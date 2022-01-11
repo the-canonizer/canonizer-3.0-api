@@ -1,0 +1,212 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Canonizer API",
+        "description": "This documentation is the canonizer version 3 API",
+        "termsOfService": "http://canonizer.com/termsandservice",
+        "contact": {
+            "email": "support@canonizer.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://api.canonizer.com/api/v3/",
+            "description": "Canonizer API"
+        }
+    ],
+    "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create user",
+                "description": "This is used to register the user.",
+                "operationId": "createUser",
+                "requestBody": {
+                    "description": "Created user object",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": "successful operation"
+                    }
+                }
+            }
+        },
+        "/user/login": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Logs user into the system",
+                "description": "",
+                "operationId": "loginUser",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "query",
+                        "description": "The user name for login",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "The password for login in clear text",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "headers": {
+                            "X-Rate-Limit": {
+                                "description": "calls per hour allowed by the user",
+                                "schema": {
+                                    "type": "integer",
+                                    "format": "int32"
+                                }
+                            },
+                            "X-Expires-After": {
+                                "description": "date in UTC when token expires",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid username/password"
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Logout the user",
+                "description": "",
+                "operationId": "logoutUser",
+                "parameters": [],
+                "responses": {
+                    "default": {
+                        "description": "successful operation"
+                    }
+                }
+            }
+        },
+        "/user/{username}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user by user nick name",
+                "description": "",
+                "operationId": "getUserByName",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "The name that needs to be fetched. Use user1 for testing. ",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid username supplied"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Updated user",
+                "description": "This can only be done by the logged in user.",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "name that need to be updated",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated user object",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "400": {
+                        "description": "Invalid user supplied"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete user",
+                "description": "This can only be done by the logged in user.",
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "The name that needs to be deleted",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid username supplied"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        }
+    }
+}
