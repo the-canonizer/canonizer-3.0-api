@@ -2,8 +2,81 @@
 
 namespace App\Http\Controllers;
 
-class UserController
+use Exception;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\SuccessResource;
+use Illuminate\Support\Facades\Validator;
+
+class UserController extends Controller
 {
+
+    public function clientToken(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'client_id' => 'required',
+            'client_secret' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "The given data was invalid.",
+                "error"       => $validator->errors(),
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+        
+        try {
+            $response = Http::asForm()->post(URL::to('/') . '/oauth/token', [
+                'grant_type' => 'client_credentials',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'scope' => '*',
+            ]);
+    
+            $status = $response->status();
+            
+            if ($status === 200) {
+                $res = (object)[
+                    "status_code" => 200,
+                    "message"     => "Success",
+                    "error"       => null,
+                    "data"        => $response->json()
+                ];
+                return (new SuccessResource($res))->response()->setStatusCode(200);
+            } elseif ($status === 401) {
+                $res = (object)[
+                    "status_code" => 401,
+                    "message"     => "Unauthenticated",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(401);
+            } else {
+                $res = (object)[
+                    "status_code" => 400,
+                    "message"     => "Something went wrong",
+                    "error"       => null,
+                    "data"        => $response->json()
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(400);
+            }
+        }catch(Exception $ex){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => $ex->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
 
     /**
      * @OA\Post(path="/register",
@@ -73,8 +146,98 @@ class UserController
      *   @OA\Response(response=400, description="Invalid username/password")
      * )
      */
-    public function loginUser()
+    public function loginUser(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
+            'password' => 'required|string',
+            'client_id' => 'required|string',
+            'client_secret' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "The given data was invalid.",
+                "error"       => $validator->errors(),
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+
+        try {
+
+            $username = $request->username;
+
+            $user = User::where(function ($query) use ($username) {
+                $query->where('email', '=', $username);
+            })->first();
+
+            if ($user) {
+                if (Hash::check($request->password, $user->password)) {
+
+                    $response = Http::asForm()->post(URL::to('/') . '/oauth/token', [
+                        'grant_type' => 'password',
+                        'client_id' => $request->client_id,
+                        'client_secret' => $request->client_secret,
+                        'username' => $request->username,
+                        'password' => $request->password,
+                        'scope' => '*',
+                    ]);
+
+                    $status = $response->status();
+                    if ($status === 200) {
+                        $res = (object)[
+                            "status_code" => 200,
+                            "message"     => "Success",
+                            "error"       => null,
+                            "data"        => $response->json()
+                        ];
+                        return (new SuccessResource($res))->response()->setStatusCode(200);
+                    } elseif ($status === 401) {
+                        $res = (object)[
+                            "status_code" => 401,
+                            "message"     => "Unauthenticated",
+                            "error"       => null,
+                            "data"        => null
+                        ];
+                        return (new ErrorResource($res))->response()->setStatusCode(401);
+                    } else {
+                        $res = (object)[
+                            "status_code" => 400,
+                            "message"     => "Something went wrong",
+                            "error"       => null,
+                            "data"        => null
+                        ];
+                        return (new ErrorResource($res))->response()->setStatusCode(400);
+                    }
+                }else{
+                    $res = (object)[
+                        "status_code" => 401,
+                        "message"     => "Email or password does not match",
+                        "error"       => null,
+                        "data"        => null
+                    ];
+                    return (new ErrorResource($res))->response()->setStatusCode(401);
+                }
+            } else {
+                $res = (object)[
+                    "status_code" => 401,
+                    "message"     => "Email or password does not match",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(401);
+            }
+        } catch (Exception $e) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 
     /**
@@ -87,8 +250,28 @@ class UserController
      *   @OA\Response(response="default", description="successful operation")
      * )
      */
-    public function logoutUser()
+    public function logoutUser(Request $request)
     {
+        $loggedInUser = $request->user();
+
+        try {
+            $loggedInUser->token()->revoke();
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Success",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        } catch (Exception $ex) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 
     /**
