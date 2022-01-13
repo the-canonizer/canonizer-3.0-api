@@ -7,3 +7,5 @@ Homestead.yaml
 /composer.lock
 /.editorconfig
 /.styleci.yml
+/storage/oauth-private.key
+/storage/oauth-public.key
