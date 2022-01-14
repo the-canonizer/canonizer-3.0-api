@@ -57,9 +57,7 @@ class ProfileController extends Controller
     *             oneOf={
     *                 @OA\Schema(ref="#/components/schemas/Error"),
     *                 @OA\Schema(type="string")
-    *             },
-    *             @OA\Examples(example="result", value={"success": true}, summary="An result object."),
-    *             @OA\Examples(example="bool", value=false, summary="A boolean value."),
+    *             },  
     *         )
     *     )
     * )
