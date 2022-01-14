@@ -27,6 +27,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
-        $router->post('/user/logout','UserController@logoutUser');
+        $router->get('/user/logout','UserController@logoutUser');
     });
 });

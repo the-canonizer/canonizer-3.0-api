@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\Authentication\UserResource;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -187,11 +188,15 @@ class UserController extends Controller
 
                     $status = $response->status();
                     if ($status === 200) {
+                        $data = [
+                            "auth" => $response->json(),
+                            "user" => new UserResource($user),
+                        ];
                         $res = (object)[
                             "status_code" => 200,
                             "message"     => "Success",
                             "error"       => null,
-                            "data"        => $response->json()
+                            "data"        => $data
                         ];
                         return (new SuccessResource($res))->response()->setStatusCode(200);
                     } elseif ($status === 401) {
