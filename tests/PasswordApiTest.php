@@ -12,8 +12,7 @@ class PasswordApiTest extends TestCase
     /**
      * Invalid data Test
      * check validation in that case
-     * @return void
-     */
+     * */
     public function testPasswordApiWithInvalidData()
     {
         print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
