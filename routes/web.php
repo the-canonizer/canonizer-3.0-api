@@ -16,4 +16,9 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-$router->post('changepassword','ProfileController@changePassword');
+$router->group(['prefix'=>'api/v1'], function() use($router){
+
+    $router->post('changepassword','ProfileController@changePassword');
+
+});
+
