@@ -2,8 +2,62 @@
 
 namespace App\Http\Controllers;
 
-class UserController
+use Exception;
+use App\Models\User;
+use App\Facades\Util;
+use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Request\ValidationMessages;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Request\ValidationRules;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\SuccessResource;
+use App\Http\Resources\Authentication\UserResource;
+
+class UserController extends Controller
 {
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
+
+    public function __construct()
+    {
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
+    }
+
+    public function clientToken(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), $this->validationMessages->getTokenValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'client_credentials',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            if( $generateToken->status_code == 200 ){
+                return (new SuccessResource($generateToken))->response()->setStatusCode(200);
+            }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+
+        } catch( Exception $ex ) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => $ex->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
 
     /**
      * @OA\Post(path="/register",
@@ -73,8 +127,61 @@ class UserController
      *   @OA\Response(response=400, description="Invalid username/password")
      * )
      */
-    public function loginUser()
+    public function loginUser(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getLoginValidationRules(), $this->validationMessages->getLoginValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $username = $request->username;
+            $password = $request->password;
+            $user = User::where('email', '=', $username)->first();
+
+            if(empty($user) && !Hash::check($password, $user->password)){
+                $res = (object)[
+                    "status_code" => 401,
+                    "message"     => "Email or password does not match",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(401);
+            }
+
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'password',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'username' => $username,
+                'password' => $password,
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            if($generateToken->status_code == 200){
+                $data = [
+                    "auth" => $generateToken->data,
+                    "user" => new UserResource($user),
+                ];
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Success",
+                    "error"       => null,
+                    "data"        => $data
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+        } catch (Exception $e) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 
     /**
@@ -87,8 +194,28 @@ class UserController
      *   @OA\Response(response="default", description="successful operation")
      * )
      */
-    public function logoutUser()
+    public function logoutUser(Request $request)
     {
+        $loggedInUser = $request->user();
+
+        try {
+            $loggedInUser->token()->revoke();
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Success",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        } catch (Exception $ex) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 
     /**
