@@ -14,17 +14,19 @@ use App\Http\Resources\Authentication\UserResource;
 
 class UserController extends Controller
 {
+    public \ValidationRules $rules;
 
-    public function clientToken(Request $request)
+    public function __construct()
     {
-        $rules = [
-            'client_id' => 'required',
-            'client_secret' => 'required',
-        ];
-        $messages = [];
-        $validationErrors = Util::validate($request, $rules, $messages);
+        $this->rules = new \ValidationRules;
+    }
 
-        if($validationErrors !== true){
+    public function clientToken(Request $request, \Validate $validate)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), []);
+
+        if( !$validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
@@ -38,12 +40,12 @@ class UserController extends Controller
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
 
-            if($generateToken->status_code == 200){
+            if( $generateToken->status_code == 200 ){
                 return (new SuccessResource($generateToken))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
 
-        }catch(Exception $ex){
+        } catch( Exception $ex ) {
             $res = (object)[
                 "status_code" => 400,
                 "message"     => "Something went wrong",
@@ -133,7 +135,7 @@ class UserController extends Controller
         $messages = [];
         $validationErrors = Util::validate($request, $rules,$messages);
 
-        if($validationErrors !== true){
+        if( !$validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
@@ -152,7 +154,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(401);
             }
-            
+
             if (!Hash::check($request->password, $user->password)){
                 $res = (object)[
                     "status_code" => 401,

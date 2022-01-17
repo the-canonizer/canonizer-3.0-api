@@ -8,9 +8,18 @@ use Illuminate\Support\Facades\Validator;
 
 class Util
 {
-    public function validate(Request $request , $rules, $messages = []) {
+    /**
+     * @param Request $request
+     * @param $rules
+     * @param array $messages
+     * @return object|bool
+     */
+    public function validate(Request $request , $rules, array $messages = []): object|bool
+    {
+
         $validator = Validator::make($request->all(), $rules, $messages);
-        if($validator->fails()){
+
+        if( $validator->fails() ) {
             return (object)[
                 "status_code" => 400,
                 "message"     => "The given data was invalid.",
@@ -22,6 +31,11 @@ class Util
         return true;
     }
 
+    /**
+     * @param $url
+     * @param $data
+     * @return object
+     */
     public function httpPost($url, $data) {
         $response = Http::asForm()->post($url, $data);
 
