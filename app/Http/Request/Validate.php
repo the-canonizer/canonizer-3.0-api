@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Http\Request;
+
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
@@ -22,6 +24,6 @@ class Validate extends FormValidateRequest
                 "data"        => null
             ];
         }
-        return 1;
+        return null;
     }
 }

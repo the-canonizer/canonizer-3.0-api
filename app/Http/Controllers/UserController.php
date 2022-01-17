@@ -6,27 +6,31 @@ use Exception;
 use App\Models\User;
 use App\Facades\Util;
 use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Request\ValidationMessages;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Resources\Authentication\UserResource;
 
 class UserController extends Controller
 {
-    public \ValidationRules $rules;
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
 
     public function __construct()
     {
-        $this->rules = new \ValidationRules;
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
     }
 
-    public function clientToken(Request $request, \Validate $validate)
+    public function clientToken(Request $request, Validate $validate)
     {
-
-        $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), []);
-
-        if( !$validationErrors ){
+        $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), $this->validationMessages->getTokenValidationMessages());
+        if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
@@ -39,7 +43,6 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-
             if( $generateToken->status_code == 200 ){
                 return (new SuccessResource($generateToken))->response()->setStatusCode(200);
             }
@@ -124,38 +127,19 @@ class UserController extends Controller
      *   @OA\Response(response=400, description="Invalid username/password")
      * )
      */
-    public function loginUser(Request $request)
+    public function loginUser(Request $request, Validate $validate)
     {
-        $rules = [
-            'username' => 'required|string',
-            'password' => 'required|string',
-            'client_id' => 'required|string',
-            'client_secret' => 'required|string',
-        ];
-        $messages = [];
-        $validationErrors = Util::validate($request, $rules,$messages);
-
-        if( !$validationErrors ){
+        $validationErrors = $validate->validate($request, $this->rules->getLoginValidationRules(), $this->validationMessages->getLoginValidationMessages());
+        if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
-
             $username = $request->username;
-
+            $password = $request->password;
             $user = User::where('email', '=', $username)->first();
 
-            if(empty($user)){
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "Email or password does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
-            }
-
-            if (!Hash::check($request->password, $user->password)){
+            if(empty($user) && !Hash::check($password, $user->password)){
                 $res = (object)[
                     "status_code" => 401,
                     "message"     => "Email or password does not match",
@@ -170,8 +154,8 @@ class UserController extends Controller
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
                 'client_secret' => $request->client_secret,
-                'username' => $request->username,
-                'password' => $request->password,
+                'username' => $username,
+                'password' => $password,
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);

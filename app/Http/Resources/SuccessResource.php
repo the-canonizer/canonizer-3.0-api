@@ -8,7 +8,6 @@ class SuccessResource extends JsonResource
 {
     public function toArray($request)
     {
-        // dd(json_encode($response));
         return [
             "status_code" => $this->status_code ?? 200,
             "message"     => $this->message ?? 'Success',

@@ -8,28 +8,6 @@ use Illuminate\Support\Facades\Validator;
 
 class Util
 {
-    /**
-     * @param Request $request
-     * @param $rules
-     * @param array $messages
-     * @return object|bool
-     */
-    public function validate(Request $request , $rules, array $messages = []): object|bool
-    {
-
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if( $validator->fails() ) {
-            return (object)[
-                "status_code" => 400,
-                "message"     => "The given data was invalid.",
-                "error"       => $validator->errors(),
-                "data"        => null
-            ];
-        }
-
-        return true;
-    }
 
     /**
      * @param $url
@@ -40,29 +18,32 @@ class Util
         $response = Http::asForm()->post($url, $data);
 
         $status = $response->status();
-
+        
         switch($status){
             case 200:
-                return (object)[
+                $returnObject = (object)[
                     "status_code" => 200,
                     "message"     => "Success",
                     "error"       => null,
                     "data"        => $response->json()
                 ];
+                break;
             case 401:
-                return (object)[
+                $returnObject = (object)[
                     "status_code" => 401,
                     "message"     => "Unauthenticated",
                     "error"       => null,
                     "data"        => null
                 ];
+                break;
             default :
-                return (object)[
+                $returnObject = (object)[
                     "status_code" => 400,
                     "message"     => "Something went wrong",
                     "error"       => null,
                     "data"        => null
                 ];
         }
+        return $returnObject;
     }
 }
