@@ -2,72 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\Authentication\UserResource;
 use Exception;
 use App\Models\User;
+use App\Facades\Util;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\Authentication\UserResource;
 
 class UserController extends Controller
 {
 
     public function clientToken(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'client_id' => 'required',
             'client_secret' => 'required',
-        ]);
+        ];
+        $messages = [];
+        $validationErrors = Util::validate($request, $rules, $messages);
 
-        if ($validator->fails()) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "The given data was invalid.",
-                "error"       => $validator->errors(),
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+        if($validationErrors !== true){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        
+
         try {
-            $response = Http::asForm()->post(URL::to('/') . '/oauth/token', [
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
                 'grant_type' => 'client_credentials',
                 'client_id' => $request->client_id,
                 'client_secret' => $request->client_secret,
                 'scope' => '*',
-            ]);
-    
-            $status = $response->status();
-            
-            if ($status === 200) {
-                $res = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $response->json()
-                ];
-                return (new SuccessResource($res))->response()->setStatusCode(200);
-            } elseif ($status === 401) {
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "Unauthenticated",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
-            } else {
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
-                    "data"        => $response->json()
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+
+            if($generateToken->status_code == 200){
+                return (new SuccessResource($generateToken))->response()->setStatusCode(200);
             }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+
         }catch(Exception $ex){
             $res = (object)[
                 "status_code" => 400,
@@ -149,83 +124,26 @@ class UserController extends Controller
      */
     public function loginUser(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'username' => 'required|string',
             'password' => 'required|string',
             'client_id' => 'required|string',
             'client_secret' => 'required|string',
-        ]);
+        ];
+        $messages = [];
+        $validationErrors = Util::validate($request, $rules,$messages);
 
-        if ($validator->fails()) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "The given data was invalid.",
-                "error"       => $validator->errors(),
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+        if($validationErrors !== true){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
 
             $username = $request->username;
 
-            $user = User::where(function ($query) use ($username) {
-                $query->where('email', '=', $username);
-            })->first();
+            $user = User::where('email', '=', $username)->first();
 
-            if ($user) {
-                if (Hash::check($request->password, $user->password)) {
-
-                    $response = Http::asForm()->post(URL::to('/') . '/oauth/token', [
-                        'grant_type' => 'password',
-                        'client_id' => $request->client_id,
-                        'client_secret' => $request->client_secret,
-                        'username' => $request->username,
-                        'password' => $request->password,
-                        'scope' => '*',
-                    ]);
-
-                    $status = $response->status();
-                    if ($status === 200) {
-                        $data = [
-                            "auth" => $response->json(),
-                            "user" => new UserResource($user),
-                        ];
-                        $res = (object)[
-                            "status_code" => 200,
-                            "message"     => "Success",
-                            "error"       => null,
-                            "data"        => $data
-                        ];
-                        return (new SuccessResource($res))->response()->setStatusCode(200);
-                    } elseif ($status === 401) {
-                        $res = (object)[
-                            "status_code" => 401,
-                            "message"     => "Unauthenticated",
-                            "error"       => null,
-                            "data"        => null
-                        ];
-                        return (new ErrorResource($res))->response()->setStatusCode(401);
-                    } else {
-                        $res = (object)[
-                            "status_code" => 400,
-                            "message"     => "Something went wrong",
-                            "error"       => null,
-                            "data"        => null
-                        ];
-                        return (new ErrorResource($res))->response()->setStatusCode(400);
-                    }
-                }else{
-                    $res = (object)[
-                        "status_code" => 401,
-                        "message"     => "Email or password does not match",
-                        "error"       => null,
-                        "data"        => null
-                    ];
-                    return (new ErrorResource($res))->response()->setStatusCode(401);
-                }
-            } else {
+            if(empty($user)){
                 $res = (object)[
                     "status_code" => 401,
                     "message"     => "Email or password does not match",
@@ -234,6 +152,41 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(401);
             }
+            
+            if (!Hash::check($request->password, $user->password)){
+                $res = (object)[
+                    "status_code" => 401,
+                    "message"     => "Email or password does not match",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(401);
+            }
+
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'password',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'username' => $request->username,
+                'password' => $request->password,
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            if($generateToken->status_code == 200){
+                $data = [
+                    "auth" => $generateToken->data,
+                    "user" => new UserResource($user),
+                ];
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Success",
+                    "error"       => null,
+                    "data"        => $data
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
             $res = (object)[
                 "status_code" => 400,
