@@ -15,14 +15,7 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-<<<<<<< HEAD
-$router->group(['prefix'=>'api/v1'], function() use($router){
 
-    $router->post('changepassword','ProfileController@changePassword');
-
-});
-
-=======
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     $router->post('/client_token','UserController@clientToken');
@@ -36,6 +29,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
+        $router->post('changepassword','ProfileController@changePassword');
     });
 });
->>>>>>> development
