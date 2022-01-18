@@ -80,24 +80,25 @@ class UserController extends Controller
     public function createUser(Request $request, Validate $validate)
     {
 
-
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
        
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-
         try {
 
-            $input = [
-                "" => $request->first_name()
-
-            ];
-            //$authCode = mt_rand(100000, 999999);
+             //$authCode = mt_rand(100000, 999999);
             $authCode = 454545;
-            $input['password'] = Hash::make($input['password']);
-            $input['otp'] = $authCode;
+            $input = [
+                "first_name" => $request->first_name,
+                "last_name" => $request->last_name,
+                "middle_name" => $request->middle_name,
+                "email" => $request->email,
+                "phone_number" => $request->phone_number,
+                "password" => Hash::make($request->password),
+                "otp" => $authCode
+            ];
+            
             $user = User::create($input);
             
             if($user){
