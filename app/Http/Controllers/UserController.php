@@ -14,6 +14,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Resources\Authentication\UserResource;
+use App\Models\Nickname;
 
 class UserController extends Controller
 {
@@ -76,9 +77,62 @@ class UserController extends Controller
      *   @OA\Response(response="default", description="successful operation")
      * )
      */
-    public function createUser()
+    public function createUser(Request $request, Validate $validate)
     {
+
+
+        $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
+       
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+
+        try {
+
+            $input = [
+                "" => $request->first_name()
+
+            ];
+            //$authCode = mt_rand(100000, 999999);
+            $authCode = 454545;
+            $input['password'] = Hash::make($input['password']);
+            $input['otp'] = $authCode;
+            $user = User::create($input);
+            
+            if($user){
+                 $nickname = $user->first_name."-".$user->last_name;
+                 $this->createNickname($user->id, $nickname);
+                
+                    $response = (object)[
+                        "status_code" => 200,
+                        "message"     => "Otp sent successfully on your registered Email Id",
+                        "error"       => null,
+                        "data"        => null
+                    ];
+                    return (new SuccessResource($response))->response()->setStatusCode(200);
+
+            }else{
+                $res = (object)[
+                    "status_code" => 400,
+                    "message"     => "Your Registration failed Please try again!",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(400);
+            }
+           
+        } catch (Exception $e) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
+
 
     /**
      * @OA\Get(path="/user/login",
@@ -294,5 +348,121 @@ class UserController extends Controller
      */
     public function deleteUser()
     {
+    }
+
+    protected function createNickname($userID, $nickname) {
+        $nicknameCreated = false;
+        if(empty($userID) || empty($nickname)) {
+         
+            return $nicknameCreated;
+        }
+        // Check whether user exists or not for the given id
+        $user = User::getById($userID);
+
+       
+        if(empty($user)) {
+            return $nicknameCreated;
+        }
+
+        // Check whether nickname exists for the given nickname
+        $isExists = Nickname::isNicknameExists($nickname);
+
+        if($isExists === true) {
+            $randNumber = mt_rand(000, 999);
+            $nickname = $nickname.$randNumber;
+        } 
+
+        try {
+
+            // Create nickname
+            $nicknameObj = new Nickname();
+            $nicknameObj->owner_code = Util::canon_encode($userID);
+            $nicknameObj->nick_name = $nickname;
+            $nicknameObj->private = 0;
+            $nicknameObj->create_time = time();
+            $nicknameObj->save();
+            $nicknameCreated = true;
+
+        } catch(Exception $ex) {
+            $nicknameCreated = false;
+        }
+        return $nicknameCreated;
+    }
+
+
+    /**
+     * @OA\Delete(path="/verifyOtp",
+     *   tags={"postVerifyOtp"},
+     *   summary="post Verify Otp",
+     *   description="This use to verify user Otp.",
+     *   operationId="verifyOtp",
+     *   @OA\Parameter(
+     *     name="username",
+     *     in="path",
+     *     description="The name that needs to be deleted",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(response=400, description="Invalid username supplied"),
+     *   @OA\Response(response=404, description="User not found")
+     * )
+     */
+
+    public function postVerifyOtp(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getVerifyOtpValidationRules(), $this->validationMessages->getVerifyOtpValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+
+            $user = User::where('email', '=', $request->username)->first();
+
+            if(empty($user) || $request->otp != $user->otp){
+                $res = (object)[
+                    "status_code" => 401,
+                    "message"     => "OTP does not match",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(401);
+            }
+
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'password',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'username' => $request->username,
+                'password' => env('PASSPORT_MASTER_PASSWORD'),
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            if($generateToken->status_code == 200){
+                $data = [
+                    "auth" => $generateToken->data,
+                    "user" => new UserResource($user),
+                ];
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Success",
+                    "error"       => null,
+                    "data"        => $data
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+        } catch (Exception $e) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 }
