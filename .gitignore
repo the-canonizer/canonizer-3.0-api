@@ -5,6 +5,7 @@ Homestead.yaml
 .env
 .phpunit.result.cache
 /composer.lock
-/.env.example
 /.editorconfig
 /.styleci.yml
+/storage/oauth-private.key
+/storage/oauth-public.key
