@@ -27,11 +27,7 @@ class Nickname extends Model {
     public static function isNicknameExists($nickname) {
 
         $nickname = self::where('nick_name', $nickname)->first();
-        if(empty($nickname)) {
-            return false;
-        } else {
-            return true;
-        }
+        return (empty($nickname)) ? false : true;
     }
 
     

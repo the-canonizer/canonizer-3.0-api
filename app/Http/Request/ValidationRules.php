@@ -33,6 +33,7 @@ class ValidationRules
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
             'phone_number' => 'required|unique:person',
+            'country_code' => 'required',
         ]);
     }
 

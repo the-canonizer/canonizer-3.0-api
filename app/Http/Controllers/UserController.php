@@ -95,10 +95,11 @@ class UserController extends Controller
                 "middle_name" => $request->middle_name,
                 "email" => $request->email,
                 "phone_number" => $request->phone_number,
+                "country_code" => $request->country_code,
                 "password" => Hash::make($request->password),
                 "otp" => $authCode
             ];
-            
+
             $user = User::create($input);
             
             if($user){
@@ -358,7 +359,7 @@ class UserController extends Controller
             return $nicknameCreated;
         }
         // Check whether user exists or not for the given id
-        $user = User::getById($userID);
+        $user = User::getUserById($userID);
 
        
         if(empty($user)) {

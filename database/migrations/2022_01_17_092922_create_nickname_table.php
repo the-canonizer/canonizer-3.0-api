@@ -18,7 +18,7 @@ class CreateNicknameTable extends Migration
             $table->string('owner_code', 255);
             $table->string('nick_name', 255);
             $table->integer('create_time');
-            $table->tinyInteger('private')();
+            $table->tinyInteger('private');
         });
     }
 
