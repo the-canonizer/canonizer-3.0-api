@@ -21,4 +21,13 @@ class ValidationRules
             'client_secret' => 'required',
         ]);
     }
+
+    public function getChangePasswordValidationRules(): array
+    {
+        return([
+            'current_password' => 'required',
+            'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
+            'confirm_password' => 'required|same:new_password'
+        ]);
+    }
 }

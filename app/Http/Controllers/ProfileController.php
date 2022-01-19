@@ -1,19 +1,31 @@
 <?php
 
 namespace App\Http\Controllers;
+use Exception;
 use App\Models\User;
+use App\Facades\Util;
 use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Request\ValidationMessages;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
-use Validator;
+use App\Http\Request\ValidationRules;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\SuccessResource;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
  */
 class ProfileController extends Controller
 {
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
+
     public function __construct()
     {
-        //Auth middleware
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
     }
 
     /**
@@ -62,28 +74,42 @@ class ProfileController extends Controller
     *     )
     * )
     */
-    public function changePassword(Request $request)
+    public function changePassword(Request $request, Validate $validate)
     {
-        $user = User::where('email', '=', 'reenanalwa@gmail.com')->first();
-        $message = [
-            'new_password.regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-            'current_password.required' => 'The current password field is required.'
-        ];        
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required',
-            'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
-            'confirm_password' => 'required|same:new_password'
-        ], $message);
-        if ($validator->fails()) {
-            return response()->json(['status_code'=>400,'message'=>'Error','error'=>['errors'=>$validator->errors(),'message'=>'Invalid Data'],'data'=>null],400);
-        }
+        $user = $request->user();
+        $validationErrors = $validate->validate($request, $this->rules->getChangePasswordValidationRules(), $this->validationMessages->getChangePasswordValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }        
 
         if (!Hash::check($request->get('current_password'), $user->password)) {
-            return response()->json(['status_code'=>400,'message'=>'Incorrect Current Password','error'=>['errors'=>null,'message'=>'Incorrect Current Password']],400);
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Incorrect Current Password",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
         }
-        $newPassword = Hash::make($request->get('new_password'));
-        $user->password = $newPassword;
-        $user->save();
-        return response()->json(['status_code'=>200,'message'=>'Password updated successfully'],200);
+        try{
+            $newPassword = Hash::make($request->get('new_password'));
+            $user->password = $newPassword;
+            $user->save();
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Password changed successfully",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => $e->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
     }
 }

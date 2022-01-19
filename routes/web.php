@@ -12,6 +12,9 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+$router->get('/key', function() {
+    return \Illuminate\Support\Str::random(32);
+});
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
