@@ -9,3 +9,4 @@ Homestead.yaml
 /.styleci.yml
 /storage/oauth-private.key
 /storage/oauth-public.key
+/database/mysql-data/
