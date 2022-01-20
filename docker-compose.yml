@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    tty: true
+    container_name: canonizer_database
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_USER: root
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: root
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    networks:
+      - app-network
+    volumes:
+      - ./database/mysql-data:/var/lib/mysql:rw
+  api: 
+    container_name: canonizer_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment: 
+      DATABASE_URL: mysql://root:root@db:33060/canonizer_3
+    ports:
+      - 8000:8000
+    command: php -S 0.0.0.0:8000 public/index.php
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      - db
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
