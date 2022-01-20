@@ -35,4 +35,9 @@ class ValidationMessages
     {
         return ([]);
     }
+
+    public function getSocialValidationMessages(): array
+    {
+        return ([]);
+    }
 }
