@@ -10,6 +10,9 @@ RUN php -r "readfile('http://getcomposer.org/installer');" | php -- --install-di
 RUN mkdir -p /opt/canonizer/
 COPY . /opt/canonizer/
 
+# Copy the docker environment file
+COPY ./docker/docker.env /opt/canonizer/.env
+
 WORKDIR /opt/canonizer/
 
 # update composer
