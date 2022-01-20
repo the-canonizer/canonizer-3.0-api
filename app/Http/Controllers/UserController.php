@@ -505,7 +505,6 @@ class UserController extends Controller
 
                 }
 
-                if($userRes){
                     $postUrl = URL::to('/') . '/oauth/token';
                     $payload = [
                         'grant_type' => 'password',
@@ -530,15 +529,6 @@ class UserController extends Controller
                         return (new SuccessResource($response))->response()->setStatusCode(200);
                     }
                     return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-                }else{
-                    $res = (object)[
-                        "status_code" => 400,
-                        "message"     => "Something went wrong",
-                        "error"       => null,
-                        "data"        => null
-                    ];
-                    return (new ErrorResource($res))->response()->setStatusCode(400);
-                }
             
         } catch (Exception $e) {
             $res = (object)[
