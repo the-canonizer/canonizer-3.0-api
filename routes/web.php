@@ -12,9 +12,13 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+$router->get('/key', function() {
+    return \Illuminate\Support\Str::random(32);
+});
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     $router->post('/client_token','UserController@clientToken');
@@ -28,5 +32,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
+        $router->post('changepassword','ProfileController@changePassword');
     });
 });
