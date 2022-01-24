@@ -21,6 +21,10 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
+    $router->get('/get_all_namespaces','NamespaceController@getAll');
+    $router->get('/get_whats_new_content','VideoPodcastController@getNewContent');
+    $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
+
     $router->post('/client_token','UserController@clientToken');
 
     //Route Group to access api with client token
@@ -34,4 +38,5 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/user/logout','UserController@logoutUser');
         $router->post('changepassword','ProfileController@changePassword');
     });
+
 });
