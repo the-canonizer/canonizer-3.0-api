@@ -47,18 +47,20 @@ class ValidationRules
         ]);
     }
 
-    public function getSocialValidationRules(): array
+    public function getSocialLoginValidationRules(): array
     {
         return ([
-            'name' => 'required',
-            'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'email' => 'required|string|email|max:225',
+            'provider' => 'required'
+        ]);
+    }
+
+    public function getSocialCallbackValidationRules(): array
+    {
+        return ([
             'client_id' => 'required',
             'client_secret' => 'required',
-            'provider_id' => 'required',
             'provider' => 'required',
-
+            'code' => 'required'
         ]);
     }
     

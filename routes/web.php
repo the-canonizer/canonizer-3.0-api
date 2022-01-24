@@ -27,7 +27,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/register','UserController@createUser');
         $router->post('/user/login','UserController@loginUser');
         $router->post('/verifyOtp','UserController@postVerifyOtp');
-        $router->post('/user/social','UserController@social');
+        $router->post('/user/social/login','UserController@socialLogin');
+        $router->post('/user/social/callback','UserController@socialCallback');
     });
 
     //Route Group to access api with user access token

@@ -60,6 +60,7 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('auth');
+$app->configure('services');
 
 /*
 |--------------------------------------------------------------------------
@@ -103,6 +104,9 @@ $app->register(App\Providers\EventServiceProvider::class);
 
 $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
+
+//Register Socialite 
+$app->register(Laravel\Socialite\SocialiteServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

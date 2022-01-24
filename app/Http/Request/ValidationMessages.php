@@ -36,10 +36,16 @@ class ValidationMessages
         return ([]);
     }
 
-    public function getSocialValidationMessages(): array
+    public function getSocialLoginValidationMessages(): array
     {
         return ([]);
     }
+
+    public function getSocialCallbackValidationMessages(): array
+    {
+        return ([]);
+    }
+
     public function getChangePasswordValidationMessages(): array
     {
         return([

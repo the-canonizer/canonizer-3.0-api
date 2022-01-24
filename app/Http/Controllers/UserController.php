@@ -15,6 +15,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
 
 class UserController extends Controller
@@ -356,7 +357,7 @@ class UserController extends Controller
     protected function createNickname($userID, $nickname) {
         $nicknameCreated = false;
         if(empty($userID) || empty($nickname)) {
-         
+
             return $nicknameCreated;
         }
         // Check whether user exists or not for the given id
@@ -391,7 +392,6 @@ class UserController extends Controller
         }
         return $nicknameCreated;
     }
-
 
     /**
      * @OA\Delete(path="/verifyOtp",
@@ -470,67 +470,111 @@ class UserController extends Controller
         }
     }
 
-    public function social(Request $request, Validate $validate)
+    public function socialLogin(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getSocialValidationRules(), $this->validationMessages->getVerifyOtpValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getSocialLoginValidationRules(), $this->validationMessages->getSocialLoginValidationMessages());
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
+            $provider = $request->provider;
+            $redirect = Socialite::with($provider)->stateless()->redirect()->getTargetUrl();
+            if(empty($redirect)) {
+                $res = (object)[
+                    "status_code" => 400,
+                    "message"     => "Something went wrong",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(400);
+            }
+            $data = [
+                "url" => $redirect
+            ];
+            $response = (object)[
+                "status_code" => 200,
+                "message"     => "Success",
+                "error"       => null,
+                "data"        => $data
+            ];
+            return (new SuccessResource($response))->response()->setStatusCode(200);
+        }catch (Exception $ex) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
 
-                $user = User::where('email', '=', $request->email)->first();
+    public function socialCallback(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSocialCallbackValidationRules(), $this->validationMessages->getSocialCallbackValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
 
-                if(!empty($user)){
-                    $userRes = User::where('email', '=', $request->email)->update(['otp' => '','status' => 1]);
-                }else{
-                    $input = [
-                        "first_name" => $request->first_name,
-                        "last_name" => $request->last_name,
-                        "email" => $request->email,
-                        "otp" => '',
-                        "status" => 1
-                    ];
-                    $userRes = User::create($input);
-
-                    $socialUser = SocialUser::create([
-                        'user_id'       => $userRes->id,
-                        'social_email'  => $request->email,
-                        'provider_id'   => $request->provider_id,
-                        'provider'      => $request->provider,
-                        'social_name'   => $request->name,
-                    ]);
-                    $nickname = $userRes->first_name."-".$userRes->last_name;
-                    $this->createNickname($userRes->id, $nickname);
-
-                }
-
-                    $postUrl = URL::to('/') . '/oauth/token';
-                    $payload = [
-                        'grant_type' => 'password',
-                        'client_id' => $request->client_id,
-                        'client_secret' => $request->client_secret,
-                        'username' => $request->email,
-                        'password' => env('PASSPORT_MASTER_PASSWORD'),
-                        'scope' => '*',
-                    ];
-                    $generateToken = Util::httpPost($postUrl, $payload);
-                    if($generateToken->status_code == 200){
-                        $data = [
-                            "auth" => $generateToken->data,
-                            "user" => new UserResource($user),
-                        ];
-                        $response = (object)[
-                            "status_code" => 200,
-                            "message"     => "Success",
-                            "error"       => null,
-                            "data"        => $data
-                        ];
-                        return (new SuccessResource($response))->response()->setStatusCode(200);
-                    }
-                    return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+        try {
+            $provider = $request->provider;
+            $userSocial =   Socialite::driver($provider)->stateless()->user();
+            if(empty($userSocial)){
+                $res = (object)[
+                    "status_code" => 400,
+                    "message"     => "Something went wrong",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(400);
+            }
+            $user_email = $userSocial->getEmail();
+            $social_name = $userSocial->getName();
+            $user = User::where(['email' => $user_email])->first();
+            if(empty($user)){
+                $splitName = Util::split_name($social_name);
+                $user = User::create([
+                    'first_name'    => $splitName[0],
+                    'last_name'     => $splitName[1],
+                    'email'         => $user_email
+                ]);
+                SocialUser::create([
+                    'user_id'       => $user->id,
+                    'social_email'  => $user_email,
+                    'provider_id'   => $userSocial->getId(),
+                    'provider'      => $provider,
+                    'social_name'   => $social_name,
+                ]);
+                $nickname = $user->first_name.'-'.$user->last_name;
+                $this->createNickname($user->id, $nickname);
+            }
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'password',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'username' => $user->email,
+                'password' => env('PASSPORT_MASTER_PASSWORD'),
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            if($generateToken->status_code == 200){
+                $data = [
+                    "auth" => $generateToken->data,
+                    "user" => new UserResource($user),
+                ];
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Success",
+                    "error"       => null,
+                    "data"        => $data
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }
+            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
             
-        } catch (Exception $e) {
+        }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
                 "message"     => "Something went wrong",

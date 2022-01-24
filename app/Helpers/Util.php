@@ -14,7 +14,8 @@ class Util
      * @param $data
      * @return object
      */
-    public function httpPost($url, $data) {
+    public function httpPost($url, $data):object
+    {
         $response = Http::asForm()->post($url, $data);
 
         $status = $response->status();
@@ -67,5 +68,20 @@ class Util
     {
         $code = base64_decode($code);
         return (int) $code=str_replace("Malia","",$code);
+    }
+
+    /**
+     * @param $name
+     * @return array
+     */
+    public function split_name($name):array
+    {
+        $name = trim($name);
+        $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+        $first_name = trim( preg_replace('#'.preg_quote($last_name,'#').'#', '', $name ) );
+        return [
+            ucwords($first_name),
+            ucwords($last_name)
+        ];
     }
 }
