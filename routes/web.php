@@ -33,5 +33,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
         $router->post('changepassword','ProfileController@changePassword');
+        $router->get('mobilecarrier','ProfileController@mobileCarrier');
     });
 });
