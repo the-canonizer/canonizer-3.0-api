@@ -136,56 +136,93 @@ class ProfileController extends Controller
         }
     }
 
-    public function updateProfile(Request $request){ 
+    public function updateProfile(Request $request, Validate $validate){ 
       
        $user = $request->user();
-       echo "<pre>"; print_r($user); exit;
+       $input = $request->all();
+       $validationErrors = $validate->validate($request, $this->rules->getUpdateProfileValidatonRules(),[]);
+       if( $validationErrors ){
+           return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+       }
 
-       $user->first_name = $input['first_name'];
-       if ($input['first_name_bit'] != '0')
-           $private_flags[] = $input['first_name_bit'];
-       $user->last_name = $input['last_name'];
-       if ($input['last_name_bit'] != '0')
-           $private_flags[] = $input['last_name_bit'];
-       $user->middle_name = $input['middle_name'];
-       if ($input['middle_name_bit'] != '0')
-           $private_flags[] = $input['middle_name_bit'];
-       $user->gender = isset($input['gender']) ? $input['gender'] : '';
-       //if($input['gender_bit']!='0') $private_flags[]=$input['gender_bit'];
-       $user->birthday = date('Y-m-d', strtotime($input['birthday']));
-       if ($input['birthday_bit'] != '0')
-           $private_flags[] = $input['birthday_bit'];
-       
-       if ($input['email_bit'] != '0')
-           $private_flags[] = $input['email_bit'];
-       
-       $user->language = $input['language'];
-       $user->address_1 = $input['address_1'];
-       if ($input['address_1_bit'] != '0')
-           $private_flags[] = $input['address_1_bit'];
-       $user->address_2 = $input['address_2'];
-       if ($input['address_2_bit'] != '0')
-           $private_flags[] = $input['address_2_bit'];
-       $user->city = $input['city'];
-       if ($input['city_bit'] != '0')
-           $private_flags[] = $input['city_bit'];
-       $user->state = $input['state'];
-       if ($input['state_bit'] != '0')
-           $private_flags[] = $input['state_bit'];
-       $user->country = $input['country'];
-       if ($input['country_bit'] != '0')
-           $private_flags[] = $input['country_bit'];
-       $user->postal_code = $input['postal_code'];
-       if ($input['postal_code_bit'] != '0')
-           $private_flags[] = $input['postal_code_bit'];
-       if ($input['email_bit'] != '0')
-           $private_flags[] = $input['email_bit'];
-
-       $flags = implode(",", $private_flags);
-       $user->default_algo = $request->input('default_algo');
-       $user->private_flags = $flags;
-       $user->update();
-
+       try{           
+            $private_flags = [];
+            if(isset($input['first_name']))
+                $user->first_name =  $input['first_name']; 
+            if(isset($input['middle_name']))
+                $user->middle_name = $input['middle_name'] ;
+            if(isset($input['last_name']))
+                $user->last_name =  $input['last_name'];
+            if(isset($input['address_1']))
+                $user->address_1 = $input['address_1'];
+            if(isset($input['address_2']))
+                $user->address_2 = $input['address_2']; 
+            if(isset($input['city']))
+                $user->city = $input['city'];
+            if(isset($input['state']))
+                $user->state =  $input['state'];
+            if(isset($input['country']))
+                $user->country = $input['country'];
+            if(isset($input['postal_code']))
+                $user->postal_code = $input['postal_code']; 
+            if(isset($input['gender']))
+                $user->gender = $input['gender'];
+            if(isset($input['birthday']))
+                $user->birthday = date('Y-m-d', strtotime($input['birthday']));
+            if(isset($input['language']))
+                $user->language = $input['language']; 
+            if(isset($input['phone_number']))
+                $user->phone_number = $input['phone_number'];
+            if(isset($input['mobile_carrier']))
+                $user->phone_number = $input['mobile_carrier'];
+            if(isset($input['default_algo']))
+                $user->default_algo = $input['default_algo'];
+            
+            if(isset($input['first_name_bit']) && ($input['first_name_bit'] != '0'))
+            $private_flags[] = $input['first_name_bit'];
+            if(isset($input['last_name_bit']) && ($input['last_name_bit'] != '0'))
+            $private_flags[] = $input['last_name_bit'];
+            if(isset($input['middle_name_bit']) && ($input['middle_name_bit'] != '0'))
+            $private_flags[] = $input['middle_name_bit'] ;
+            if(isset($input['birthday_bit']) && ($input['birthday_bit'] != '0'))
+            $private_flags[] = $input['birthday_bit'];
+            if(isset($input['email_bit']) && ($input['email_bit'] != '0'))
+            $private_flags[] = $input['email_bit'];
+            if(isset($input['address_1_bit']) && ($input['address_1_bit'] != '0'))
+            $private_flags[] = $input['address_1_bit'];
+            if(isset($input['address_2_bit']) && ($input['address_2_bit'] != '0'))
+            $private_flags[] = $input['address_2_bit'];
+            if(isset ($input['city_bit']) &&  ($input['city_bit'] != '0'))
+            $private_flags[] = $input['city_bit'];
+            if(isset($input['state_bit']) && ($input['state_bit'] != '0'))
+            $private_flags[] =  $input['state_bit'];
+            if(isset($input['country_bit']) && ($input['country_bit'] != '0'))
+            $private_flags[] =  $input['country_bit'];
+            if(isset($input['postal_code_bit']) && ($input['postal_code_bit'] != '0'))
+            $private_flags[] =  $input['postal_code_bit'];
+            if(!empty($private_flags))
+            $user->private_flags = implode(",", $private_flags);
+            $user->update_time = time();
+            $user->update();            
+            
+            $response = (object)[
+                "status_code" => 200,
+                "message"     => "Profile updated successfully.",
+                "error"       => null,
+                "data"        => $user
+            ];
+            return (new SuccessResource($response))->response()->setStatusCode(200);
+      
+      
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => $e->getMessage(),
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+       }
 
 
     }
