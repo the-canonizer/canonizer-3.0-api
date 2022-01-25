@@ -30,4 +30,12 @@ class ValidationRules
             'confirm_password' => 'required|same:new_password'
         ]);
     }
+
+    public function getUpdateProfileValidatonRules(): array
+    {
+        return ([
+            'first_name' => 'required',
+            'last_name' => 'required',
+        ]);
+    }
 }
