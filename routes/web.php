@@ -21,6 +21,7 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
+    //Api for non register users
     $router->get('/get_all_namespaces','NamespaceController@getAll');
     $router->get('/get_whats_new_content','VideoPodcastController@getNewContent');
     $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
