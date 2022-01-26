@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
+use App\Models\MobileCarrier;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -108,6 +109,28 @@ class ProfileController extends Controller
                 "message"     => "Something went wrong",
                 "error"       => null,
                 "data"        => $e->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
+
+    public function mobileCarrier(Request $request){
+        try{
+            $carrier = MobileCarrier::all();
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Password changed successfully",
+                "error"       => null,
+                "data"        => $carrier
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
