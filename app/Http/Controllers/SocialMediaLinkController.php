@@ -32,7 +32,7 @@ class SocialMediaLinkController extends Controller
      *                                    ),
      *                                    @OA\Items(
      *                                         name="data",
-     *                                         type="string"
+     *                                         type="array"
      *                                    )
      *                                 )
      *                            )
