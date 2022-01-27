@@ -21,4 +21,13 @@ class ValidationMessages
             'current_password.required' => 'The current password field is required.'
         ]);
     }
+
+    public function getUpdateProfileValidationMessages(): array
+    {
+        return([
+            'first_name.regex' => 'The first name must be in alphabets and space only.',
+            'last_name.regex' => 'The last name must be in alphabets and space only.',
+            'middle_name.regex' => 'The middle name must be in alphabets and space only.',
+        ]);
+    }
 }

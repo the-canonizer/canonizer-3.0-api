@@ -114,6 +114,17 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/mobilecarrier",
+     *   tags={"profile"},
+     *   summary="",
+     *   description="Get list of mobile carrier",
+     *   operationId="loginUser",
+     *   @OA\Response(response=200, description="Sucsess")
+     *   @OA\Response(response=400, description="Something went wrog")
+     * )
+     */
+
     public function mobileCarrier(Request $request){
         try{
             $carrier = MobileCarrier::all();
@@ -136,70 +147,76 @@ class ProfileController extends Controller
         }
     }
 
+
+
+    /**
+     * @OA\Post(path="/updateprofile",
+     *   tags={"profile"},
+     *   summary="Update Profile",
+     *   description="This is used to update the user profile.",
+     *   operationId="updateprofile",
+     *   @OA\Parameter(
+     *     name="first_name",
+     *     required=true,
+     *     in="query",
+     *     description="The first name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *    @OA\Parameter(
+     *     name="last_name",
+     *     required=true,
+     *     in="query",
+     *     description="The last name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),    
+     *   @OA\Response(status_code=200, message="Profile Updated Successfully"),
+     *   @OA\Response(status_code=400, message="The given data was invalid")
+     *   @OA\Response(status_code=400, message="Somethig went wrong")
+     * )
+    */
     public function updateProfile(Request $request, Validate $validate){ 
       
        $user = $request->user();
        $input = $request->all();
-       $validationErrors = $validate->validate($request, $this->rules->getUpdateProfileValidatonRules(),[]);
+       $validationErrors = $validate->validate($request, $this->rules->getUpdateProfileValidatonRules(),$this->validationMessages->getUpdateProfileValidationMessages());
        if( $validationErrors ){
            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
        }
 
-       try{           
-            $private_flags = [];
-            if(isset($input['first_name']))
-                $user->first_name =  $input['first_name']; 
-            if(isset($input['middle_name']))
-                $user->middle_name = $input['middle_name'] ;
-            if(isset($input['last_name']))
-                $user->last_name =  $input['last_name'];
-            if(isset($input['address_1']))
-                $user->address_1 = $input['address_1'];
-            if(isset($input['address_2']))
-                $user->address_2 = $input['address_2']; 
-            if(isset($input['city']))
-                $user->city = $input['city'];
-            if(isset($input['state']))
-                $user->state =  $input['state'];
-            if(isset($input['country']))
-                $user->country = $input['country'];
-            if(isset($input['postal_code']))
-                $user->postal_code = $input['postal_code']; 
-            if(isset($input['gender']))
-                $user->gender = $input['gender'];
-            if(isset($input['birthday']))
-                $user->birthday = date('Y-m-d', strtotime($input['birthday']));
-            if(isset($input['language']))
-                $user->language = $input['language']; 
-            if(isset($input['phone_number']))
-                $user->phone_number = $input['phone_number'];
-            if(isset($input['mobile_carrier']))
-                $user->phone_number = $input['mobile_carrier'];
-            if(isset($input['default_algo']))
-                $user->default_algo = $input['default_algo'];
+       try{    
+            $fields = ['middle_name','address_1','address_2','city','state','country','postal_code','phone_number','mobile_carrier','gender','birthday','default_algo'] ;
+            foreach($fields as $f){
+               if(isset($input[$f])){
+                   if($f == 'birthday')
+                    $user->$f = date('Y-m-d', strtotime($input[$f]));
+                   else
+                    $user->$f = $input[$f];
+               }
+            }
             
-            if(isset($input['first_name_bit']) && ($input['first_name_bit'] != '0'))
-            $private_flags[] = $input['first_name_bit'];
-            if(isset($input['last_name_bit']) && ($input['last_name_bit'] != '0'))
-            $private_flags[] = $input['last_name_bit'];
-            if(isset($input['middle_name_bit']) && ($input['middle_name_bit'] != '0'))
-            $private_flags[] = $input['middle_name_bit'] ;
-            if(isset($input['birthday_bit']) && ($input['birthday_bit'] != '0'))
-            $private_flags[] = $input['birthday_bit'];
-            if(isset($input['email_bit']) && ($input['email_bit'] != '0'))
-            $private_flags[] = $input['email_bit'];
-            if(isset($input['address_1_bit']) && ($input['address_1_bit'] != '0'))
-            $private_flags[] = $input['address_1_bit'];
-            if(isset($input['address_2_bit']) && ($input['address_2_bit'] != '0'))
-            $private_flags[] = $input['address_2_bit'];
-            if(isset ($input['city_bit']) &&  ($input['city_bit'] != '0'))
-            $private_flags[] = $input['city_bit'];
-            if(isset($input['state_bit']) && ($input['state_bit'] != '0'))
-            $private_flags[] =  $input['state_bit'];
-            if(isset($input['country_bit']) && ($input['country_bit'] != '0'))
-            $private_flags[] =  $input['country_bit'];
-            if(isset($input['postal_code_bit']) && ($input['postal_code_bit'] != '0'))
-            $private_flags[] =  $input['postal_code_bit'];
+            $flagFields = [
+                'first_name_bit'    =>  'first_name',
+                'last_name_bit' =>  'last_name',
+                'middle_name_bit'   => 'middle_name',
+                'birthday_bit' =>'birthday',
+                'email_bit' => 'email',
+                'address_1_bit' => 'address_1',
+                'address_2_bit' => 'address_2',
+                'city_bit' => 'city',
+                'state_bit' => 'state',
+                'country_bit' => 'country',
+                'postal_code_bit' => 'postal_code'
+            ];
+            $private_flags = [];
+            foreach($flagFields as $pf => $field){
+                if(isset($input[$pf]) && !$input[$pf]){
+                    $private_flags[] = $field;
+                }
+            } 
             if(!empty($private_flags))
             $user->private_flags = implode(",", $private_flags);
             $user->update_time = time();
