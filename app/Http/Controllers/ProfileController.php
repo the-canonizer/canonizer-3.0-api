@@ -188,7 +188,7 @@ class ProfileController extends Controller
        }
 
        try{    
-            $fields = ['middle_name','address_1','address_2','city','state','country','postal_code','phone_number','mobile_carrier','gender','birthday','default_algo'] ;
+            $fields = ['first_name','last_name','middle_name','address_1','address_2','city','state','country','postal_code','phone_number','mobile_carrier','gender','birthday','default_algo'] ;
             foreach($fields as $f){
                if(isset($input[$f])){
                    if($f == 'birthday')
