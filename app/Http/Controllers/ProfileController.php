@@ -243,4 +243,35 @@ class ProfileController extends Controller
 
 
     }
+
+     /**
+     * @OA\Get(path="/user/profile",
+     *   tags={"profile"},
+     *   summary="Get looged in user profile",
+     *   description="",
+     *   operationId="userProfile",   
+     *   @OA\Response(response=200, description="success", @OA\Schema(ref="#/components/schemas/User")),
+     *   @OA\Response(response=404, description="Something went wrong")
+     * )
+     */
+    public function getProfile(Request $request){
+        $user = $request->user();
+        try{
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Success",
+                "error"       => null,
+                "data"        => $user
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => $e->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
 }

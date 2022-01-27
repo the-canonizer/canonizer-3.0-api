@@ -35,5 +35,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('changepassword','ProfileController@changePassword');
         $router->get('mobilecarrier','ProfileController@mobileCarrier');
         $router->post('updateprofile','ProfileController@updateProfile');
+        $router->get('user/profile','ProfileController@getProfile');
     });
 });
