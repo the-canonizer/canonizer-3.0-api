@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use App\Facades\Util;
+use App\Models\Country;
+use App\Jobs\SendOtpJob;
 use App\Models\Nickname;
+use App\Jobs\WelcomeMail;
 use App\Models\SocialUser;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
@@ -107,7 +110,10 @@ class UserController extends Controller
             if($user){
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
-                
+
+                 $job = new SendOtpJob($user);
+                 dispatch($job)->onQueue('sendOtp');
+                 
                     $response = (object)[
                         "status_code" => 200,
                         "message"     => "Otp sent successfully on your registered Email Id",
@@ -446,6 +452,10 @@ class UserController extends Controller
             $generateToken = Util::httpPost($postUrl, $payload);
             if($generateToken->status_code == 200){
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
+
+                $job = new WelcomeMail($user);
+                dispatch($job)->onQueue('welcomeMail');
+                
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
@@ -573,6 +583,43 @@ class UserController extends Controller
                 return (new SuccessResource($response))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+            
+        }catch (Exception $ex) {
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
+
+
+    public function countryList(Request $request)
+    {
+        
+        try {
+           
+            $result = Country::where('status', 1)->get();
+
+            if(empty($result)){
+                $res = (object)[
+                    "status_code" => 400,
+                    "message"     => "Something went wrong",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new ErrorResource($res))->response()->setStatusCode(400);
+            }
+           
+            $response = (object)[
+                "status_code" => 200,
+                "message"     => "Success",
+                "error"       => null,
+                "data"        => $result
+            ];
+            return (new SuccessResource($response))->response()->setStatusCode(200);
             
         }catch (Exception $ex) {
             $res = (object)[
