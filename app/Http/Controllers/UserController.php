@@ -10,6 +10,8 @@ use App\Jobs\SendOtpJob;
 use App\Models\Nickname;
 use App\Jobs\WelcomeMail;
 use App\Models\SocialUser;
+use App\Events\SendOtpEvent;
+use App\Events\WelcomeMailEvent;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use Illuminate\Support\Facades\URL;
@@ -20,6 +22,7 @@ use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
+use Illuminate\Support\Facades\Event;
 
 class UserController extends Controller
 {
@@ -92,8 +95,8 @@ class UserController extends Controller
         }
         try {
 
-             //$authCode = mt_rand(100000, 999999);
-            $authCode = 454545;
+            $authCode = mt_rand(100000, 999999);
+            //$authCode = 454545;
             $input = [
                 "first_name" => $request->first_name,
                 "last_name" => $request->last_name,
@@ -111,9 +114,12 @@ class UserController extends Controller
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
 
-                 $job = new SendOtpJob($user);
-                 dispatch($job)->onQueue('sendOtp');
-                 
+                //  $job = new SendOtpJob($user);
+                //  dispatch($job)->onQueue('sendOtp');
+
+                Event::dispatch(new SendOtpEvent($user));
+               // Event::dispatch(new SendOtpEvent($user));
+
                     $response = (object)[
                         "status_code" => 200,
                         "message"     => "Otp sent successfully on your registered Email Id",
@@ -453,8 +459,7 @@ class UserController extends Controller
             if($generateToken->status_code == 200){
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
 
-                $job = new WelcomeMail($user);
-                dispatch($job)->onQueue('welcomeMail');
+                Event::dispatch(new WelcomeMailEvent($user));
                 
                 $data = [
                     "auth" => $generateToken->data,
