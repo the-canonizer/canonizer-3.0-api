@@ -188,49 +188,23 @@ class ProfileController extends Controller
        }
 
        try{    
-            $fields = ['first_name','last_name','middle_name','address_1','address_2','city','state','country','postal_code','phone_number','mobile_carrier','gender','birthday','default_algo'] ;
-            foreach($fields as $f){
-               if(isset($input[$f])){
-                   if($f == 'birthday')
-                    $user->$f = date('Y-m-d', strtotime($input[$f]));
-                   else
-                    $user->$f = $input[$f];
-               }
-            }
-            
-            $flagFields = [
-                'first_name_bit'    =>  'first_name',
-                'last_name_bit' =>  'last_name',
-                'middle_name_bit'   => 'middle_name',
-                'birthday_bit' =>'birthday',
-                'email_bit' => 'email',
-                'address_1_bit' => 'address_1',
-                'address_2_bit' => 'address_2',
-                'city_bit' => 'city',
-                'state_bit' => 'state',
-                'country_bit' => 'country',
-                'postal_code_bit' => 'postal_code'
-            ];
-            $private_flags = [];
-            foreach($flagFields as $pf => $field){
-                if(isset($input[$pf]) && !$input[$pf]){
-                    $private_flags[] = $field;
-                }
+            if($user->update($input)){
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Profile updated successfully.",
+                    "error"       => null,
+                    "data"        => $request->user()
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }else{
+                    $response = (object)[
+                        "status_code" => 400,
+                        "message"     => "Failed to update profile, please try again.",
+                        "error"       => null,
+                        "data"        => null
+                    ];
+                    return (new ErrorResource($response))->response()->setStatusCode(400);
             } 
-            if(!empty($private_flags))
-            $user->private_flags = implode(",", $private_flags);
-            $user->update_time = time();
-            $user->update();            
-            
-            $response = (object)[
-                "status_code" => 200,
-                "message"     => "Profile updated successfully.",
-                "error"       => null,
-                "data"        => $user
-            ];
-            return (new SuccessResource($response))->response()->setStatusCode(200);
-      
-      
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
@@ -240,7 +214,5 @@ class ProfileController extends Controller
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
        }
-
-
     }
 }
