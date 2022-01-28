@@ -274,4 +274,15 @@ class ProfileController extends Controller
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
     }
+
+    public function sendOtp(Request $request, Validate $validate){ 
+      
+        $user = $request->user();
+        $input = $request->all();
+        $validationErrors = $validate->validate($request, $this->rules->getVerifyPhoneValidatonRules(),$this->validationMessages->getUpdateProfileValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+    }
 }
