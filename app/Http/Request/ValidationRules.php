@@ -37,6 +37,11 @@ class ValidationRules
             'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'city' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'state' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'country' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'postal_code' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'phone_number' => 'nullable|digits:10',
         ]);
     }
 }
