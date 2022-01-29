@@ -44,4 +44,19 @@ class ValidationRules
             'phone_number' => 'nullable|digits:10',
         ]);
     }
+
+    public function getVerifyPhoneValidatonRules(): array
+    {
+        return ([
+            'phone_number' => 'required|digits:10',
+            'mobile_carrier' => 'required'
+        ]);
+    }
+
+    public function getVerifyOtpValidatonRules(): array
+    {
+        return ([
+            'otp' => 'required|digits:6',
+        ]);
+    }
 }
