@@ -251,6 +251,35 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/sendotp",
+     *   tags={"otp"},
+     *   summary="Send Otp to verify number",
+     *   description="Send Otp to verify number",
+     *   operationId="sendOtp",
+     *   @OA\Parameter(
+     *     name="phone_number",
+     *     required=true,
+     *     in="query",
+     *     description="10 digit valid phone number is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *    @OA\Parameter(
+     *     name="mobile_carrier",
+     *     required=true,
+     *     in="query",
+     *     description="Mobile carrier is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),    
+     *   @OA\Response(status_code=200, message="Otp has been sent on your phone number."),
+     *   @OA\Response(status_code=400, message="The given data was invalid")
+     *   @OA\Response(status_code=400, message="Somethig went wrong")
+     * )
+    */
     public function sendOtp(Request $request, Validate $validate){       
         $user = $request->user();
         $input = $request->all();
@@ -268,7 +297,7 @@ class ProfileController extends Controller
             $user->mobile_carrier = $input['mobile_carrier'];
             $user->otp = $otp;
             $user->update();
-            //Event::dispatch(new SendOtpEvent($user));
+            Event::dispatch(new SendOtpEvent($user));
             $res = (object)[
                 "status_code" => 200,
                 "message"     => "Otp has been sent on your phone number.",
@@ -288,6 +317,26 @@ class ProfileController extends Controller
        
     }
 
+      /**
+     * @OA\Post(path="/verifyotp",
+     *   tags={"otp"},
+     *   summary="Verify Otp sent on phone number",
+     *   description="Verify Otp sent on phone number",
+     *   operationId="verifyOtp",
+     *   @OA\Parameter(
+     *     name="otp",
+     *     required=true,
+     *     in="query",
+     *     description="6 digit otp is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(status_code=200, message="Phone number has been verified successfully."),
+     *   @OA\Response(status_code=400, message="The given data was invalid")
+     *   @OA\Response(status_code=400, message="Invalid One Time Verification Code.")
+     * )
+    */
     public function verifyOtp(Request $request, Validate $validate){
         $user = $request->user();
         $input = $request->all();

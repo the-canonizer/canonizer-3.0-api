@@ -26,7 +26,6 @@ class SendOtpListener
     public function handle($event)
     {
         $user = $event->user;
-       // echo "<pre>"; print_r($user); exit;
-        Mail::to('reenanalwa@gmail.com')->send(new sendOtpMail($user));
+        Mail::to($user->email)->send(new sendOtpMail($user));
     }
 }
