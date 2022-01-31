@@ -14,7 +14,9 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\SendOtpMail;
+//use App\Mail\SendOtpMail;
+use App\Events\SendOtpEvent;
+use Illuminate\Support\Facades\Event;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -257,21 +259,33 @@ class ProfileController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $otp = mt_rand(100000, 999999);
-        $result['otp'] = $otp;
-        $result['subject'] = "Canonizer - Phone number verification code";
-
-        $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
-        $user->phone_number = $input['phone_number'];
-        $user->mobile_carrier = $input['mobile_carrier'];
-        $user->otp = $otp;
-        $user->update();
-        /*try{
-        Mail::to($receiver)->bcc('reenanalwa@gmail.com')->send(new SendOtpMail($user, $result));
-        }catch(\Swift_TransportException $e){
-                throw new \Swift_TransportException($e);
-                //$response = $e->getMessage();
-        } */
+        try{
+            $otp = mt_rand(100000, 999999);
+            $result['otp'] = $otp;
+            $result['subject'] = "Canonizer - Phone number verification code";
+            $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
+            $user->phone_number = $input['phone_number'];
+            $user->mobile_carrier = $input['mobile_carrier'];
+            $user->otp = $otp;
+            $user->update();
+            //Event::dispatch(new SendOtpEvent($user));
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => "Otp has been sent on your phone number.",
+                "error"       => null,
+                "data"        => $user
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => null,
+                "data"        => $e->getMessage()
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+       
     }
 
     public function verifyOtp(Request $request, Validate $validate){
