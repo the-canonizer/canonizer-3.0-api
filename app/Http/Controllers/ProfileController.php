@@ -298,6 +298,7 @@ class ProfileController extends Controller
         try{
             if($user->otp == trim($input['otp'])){
                 $user->mobile_verified = 1;
+                $user->otp = "";
                 $user->update();
                 $res = (object)[
                     "status_code" => 200,
@@ -313,7 +314,7 @@ class ProfileController extends Controller
                     "status_code" => 400,
                     "message"     => "Invalid One Time Verification Code.",
                     "error"       => null,
-                    "data"        => $user
+                    "data"        => null
                 ];
                 return (new SuccessResource($res))->response()->setStatusCode(200);
             }
