@@ -16,7 +16,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PersonSeeder::class,
             SocialMediaLinksSeeder::class,
-            MobileCarrierSeeder::class
+            MobileCarrierSeeder::class,
+            UpdateVideoPodCastContentSeeder::class,
+            AlgorithmSeeder::class
         ]);
     }
 }
