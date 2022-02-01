@@ -68,7 +68,7 @@ class SocialMediaLinkController extends Controller
     public function getLinks()
     {
         try {
-            $socialMediaLinks = SocialMediaLink::all();
+            $socialMediaLinks = SocialMediaLink::orderBy('order_number')->get();
             $res = (object) [
                 "status_code" => 200,
                 "message" => "Success",
