@@ -34,6 +34,7 @@ class UserController extends Controller
     {
         $this->rules = new ValidationRules;
         $this->validationMessages = new ValidationMessages;
+        $this->authTokenUrl = '/oauth/token';
     }
 
      /**
@@ -115,7 +116,7 @@ class UserController extends Controller
         }
 
         try {
-            $postUrl = URL::to('/') . '/oauth/token';
+            $postUrl = URL::to('/') . $this->authTokenUrl;
             $payload = [
                 'grant_type' => 'client_credentials',
                 'client_id' => $request->client_id,
@@ -270,14 +271,14 @@ class UserController extends Controller
     {
 
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
-       
+
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
 
             $authCode = mt_rand(100000, 999999);
-            //$authCode = 454545;
+
             $input = [
                 "first_name" => $request->first_name,
                 "last_name" => $request->last_name,
@@ -290,16 +291,12 @@ class UserController extends Controller
             ];
 
             $user = User::create($input);
-            
+
             if($user){
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
 
-                //  $job = new SendOtpJob($user);
-                //  dispatch($job)->onQueue('sendOtp');
-
                 Event::dispatch(new SendOtpEvent($user));
-               // Event::dispatch(new SendOtpEvent($user));
 
                     $response = (object)[
                         "status_code" => 200,
@@ -318,7 +315,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
         } catch (Exception $e) {
             $res = (object)[
                 "status_code" => 400,
@@ -400,7 +397,7 @@ class UserController extends Controller
                 return (new ErrorResource($res))->response()->setStatusCode(401);
             }
 
-            $postUrl = URL::to('/') . '/oauth/token';
+            $postUrl = URL::to('/') . $this->authTokenUrl;
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
@@ -556,7 +553,7 @@ class UserController extends Controller
         // Check whether user exists or not for the given id
         $user = User::getUserById($userID);
 
-       
+
         if(empty($user)) {
             return $nicknameCreated;
         }
@@ -567,7 +564,7 @@ class UserController extends Controller
         if($isExists === true) {
             $randNumber = mt_rand(000, 999);
             $nickname = $nickname.$randNumber;
-        } 
+        }
 
         try {
 
@@ -700,7 +697,7 @@ class UserController extends Controller
                 return (new ErrorResource($res))->response()->setStatusCode(401);
             }
 
-            $postUrl = URL::to('/') . '/oauth/token';
+            $postUrl = URL::to('/') . $this->authTokenUrl;
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
@@ -709,16 +706,19 @@ class UserController extends Controller
                 'password' => env('PASSPORT_MASTER_PASSWORD'),
                 'scope' => '*',
             ];
+
             $generateToken = Util::httpPost($postUrl, $payload);
+
             if($generateToken->status_code == 200){
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
 
                 Event::dispatch(new WelcomeMailEvent($user));
-                
+
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
+
                 $response = (object)[
                     "status_code" => 200,
                     "message"     => "Success",
@@ -966,16 +966,20 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
+
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
             $user = User::where(['email' => $user_email])->first();
+
             if(empty($user)){
                 $splitName = Util::split_name($social_name);
+
                 $user = User::create([
                     'first_name'    => $splitName[0],
                     'last_name'     => $splitName[1],
                     'email'         => $user_email
                 ]);
+
                 SocialUser::create([
                     'user_id'       => $user->id,
                     'social_email'  => $user_email,
@@ -986,7 +990,7 @@ class UserController extends Controller
                 $nickname = $user->first_name.'-'.$user->last_name;
                 $this->createNickname($user->id, $nickname);
             }
-            $postUrl = URL::to('/') . '/oauth/token';
+            $postUrl = URL::to('/') . $this->authTokenUrl;
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
@@ -1010,7 +1014,7 @@ class UserController extends Controller
                 return (new SuccessResource($response))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
@@ -1084,9 +1088,9 @@ class UserController extends Controller
 
     public function countryList(Request $request)
     {
-        
+
         try {
-           
+
             $result = Country::where('status', 1)->get();
 
             if(empty($result)){
@@ -1098,7 +1102,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
             $response = (object)[
                 "status_code" => 200,
                 "message"     => "Success",
@@ -1106,7 +1110,7 @@ class UserController extends Controller
                 "data"        => $result
             ];
             return (new SuccessResource($response))->response()->setStatusCode(200);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
