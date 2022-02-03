@@ -112,6 +112,7 @@ $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
 //Register Socialite 
 $app->register(Laravel\Socialite\SocialiteServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
+$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
