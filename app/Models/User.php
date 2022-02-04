@@ -49,13 +49,14 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function update(array $attributes = array(), array $options = []){        
         $fields = self::getProfileFields();
 
-        foreach($fields as $f => $flag){           
+        foreach($fields as $f => $flag){
 
             if(isset($attributes[$f])) $this->{$f} = $attributes[$f];
             if(isset($attributes[$flag]) && !$attributes[$flag]) $this->private_fields[] = $f;
-        } 
-               
+        }  
+        
         if(!empty($this->private_fields)) $this->private_flags = implode(",", $this->private_fields);
+        
         return $this->save();
     }
 
@@ -79,6 +80,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             'default_algo' => 'default_algo_bit'
         ];
     }
+
     /**
      * Get user by user id
      * @param interger $id
