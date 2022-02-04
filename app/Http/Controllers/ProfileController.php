@@ -114,6 +114,17 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/mobilecarrier",
+     *   tags={"profile"},
+     *   summary="",
+     *   description="Get list of mobile carrier",
+     *   operationId="loginUser",
+     *   @OA\Response(response=200, description="Sucsess")
+     *   @OA\Response(response=400, description="Something went wrog")
+     * )
+     */
+
     public function mobileCarrier(Request $request){
         try{
             $carrier = MobileCarrier::all();
@@ -134,5 +145,74 @@ class ProfileController extends Controller
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
+    }
+
+
+
+    /**
+     * @OA\Post(path="/updateprofile",
+     *   tags={"profile"},
+     *   summary="Update Profile",
+     *   description="This is used to update the user profile.",
+     *   operationId="updateprofile",
+     *   @OA\Parameter(
+     *     name="first_name",
+     *     required=true,
+     *     in="query",
+     *     description="The first name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *    @OA\Parameter(
+     *     name="last_name",
+     *     required=true,
+     *     in="query",
+     *     description="The last name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),    
+     *   @OA\Response(status_code=200, message="Profile Updated Successfully"),
+     *   @OA\Response(status_code=400, message="The given data was invalid")
+     *   @OA\Response(status_code=400, message="Somethig went wrong")
+     * )
+    */
+    public function updateProfile(Request $request, Validate $validate){ 
+      
+       $user = $request->user();
+       $input = $request->all();
+       $validationErrors = $validate->validate($request, $this->rules->getUpdateProfileValidatonRules(),$this->validationMessages->getUpdateProfileValidationMessages());
+       if( $validationErrors ){
+           return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+       }
+
+       try{    
+            if($user->update($input)){
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Profile updated successfully.",
+                    "error"       => null,
+                    "data"        => $request->user()
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
+            }else{
+                    $response = (object)[
+                        "status_code" => 400,
+                        "message"     => "Failed to update profile, please try again.",
+                        "error"       => null,
+                        "data"        => null
+                    ];
+                    return (new ErrorResource($response))->response()->setStatusCode(400);
+            } 
+        }catch(Exception $e){
+            $res = (object)[
+                "status_code" => 400,
+                "message"     => "Something went wrong",
+                "error"       => $e->getMessage(),
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+       }
     }
 }

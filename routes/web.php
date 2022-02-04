@@ -43,6 +43,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/user/logout','UserController@logoutUser');
         $router->post('changepassword','ProfileController@changePassword');
         $router->get('mobilecarrier','ProfileController@mobileCarrier');
+        $router->post('updateprofile','ProfileController@updateProfile');
     });
 
 });
