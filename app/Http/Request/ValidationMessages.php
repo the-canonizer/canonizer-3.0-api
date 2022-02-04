@@ -60,6 +60,10 @@ class ValidationMessages
             'first_name.regex' => 'The first name must be in alphabets and space only.',
             'last_name.regex' => 'The last name must be in alphabets and space only.',
             'middle_name.regex' => 'The middle name must be in alphabets and space only.',
+            'city.regex' => 'The city name must be in alphabets and space only.',
+            'state.regex' => 'The state name must be in alphabets and space only.',
+            'country.regex' => 'The country name must be in alphabets and space only.',
+            'postal_code.regex' => 'The postal code name must be in alphabets and space only.',
         ]);
     }
 }
