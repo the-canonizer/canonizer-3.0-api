@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 
-use App\Mail\SendOtpMail;
 use App\Mail\SendOtp;
 use App\Events\SendOtpEvent;
 use Illuminate\Queue\InteractsWithQueue;
