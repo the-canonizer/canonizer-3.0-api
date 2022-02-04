@@ -2,7 +2,9 @@
 
 namespace App\Listeners;
 
+
 use App\Mail\SendOtpMail;
+use App\Mail\SendOtp;
 use App\Events\SendOtpEvent;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,6 +28,9 @@ class SendOtpListener
     public function handle($event)
     {
         $user = $event->user;
-        Mail::to($user->email)->send(new sendOtpMail($user));
+        $settingFlag = $event->settingFlag;
+
+        Mail::to($user->email)->send(new SendOtp($user,$settingFlag));
+
     }
 }

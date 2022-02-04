@@ -297,7 +297,7 @@ class ProfileController extends Controller
             $user->mobile_carrier = $input['mobile_carrier'];
             $user->otp = $otp;
             $user->update();
-            Event::dispatch(new SendOtpEvent($user));
+            Event::dispatch(new SendOtpEvent($user,true));
             $res = (object)[
                 "status_code" => 200,
                 "message"     => "Otp has been sent on your phone number.",

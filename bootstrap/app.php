@@ -63,11 +63,8 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('auth');
+$app->configure('services');
 $app->configure('mail');
-$app->alias('mail.manager', Illuminate\Mail\MailManager::class); $app->alias('mail.manager', Illuminate\Contracts\Mail\Factory::class);
-
-$app->alias('mailer', Illuminate\Mail\Mailer::class); $app->alias('mailer', Illuminate\Contracts\Mail\Mailer::class); $app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
-
 
 /*
 |--------------------------------------------------------------------------
@@ -91,6 +88,7 @@ $app->middleware([
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+    'Xss' => \App\Http\Middleware\Xss::class,
 ]);
 
 /*
@@ -110,6 +108,11 @@ $app->register(App\Providers\EventServiceProvider::class);
 $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
+
+//Register Socialite 
+$app->register(Laravel\Socialite\SocialiteServiceProvider::class);
+$app->register(Illuminate\Mail\MailServiceProvider::class);
+$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
