@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,8 +25,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-        'first_name','last_name','middle_name', 'email', 'password','otp','phone_number'
-
+        'first_name','last_name','middle_name', 'email', 'password','otp','phone_number','country_code'
     ];
 
     /**
@@ -48,11 +48,15 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function update(array $attributes = array(), array $options = []){        
         $fields = self::getProfileFields();
+
         foreach($fields as $f => $flag){
+
             if(isset($attributes[$f])) $this->{$f} = $attributes[$f];
             if(isset($attributes[$flag]) && !$attributes[$flag]) $this->private_fields[] = $f;
-        }        
+        }  
+
         if(!empty($this->private_fields)) $this->private_flags = implode(",", $this->private_fields);
+        
         return $this->save();
     }
 
@@ -76,5 +80,30 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             'default_algo' => 'default_algo_bit'
         ];
     }
+
+    /**
+     * Get user by user id
+     * @param interger $id
+     * @return User 
+     */
+    public static function getUserById($id) {
+        return User::where('id', $id)->first();
+    }
     
+
+    // Set as username any column from users table
+    public function findForPassport($username) 
+    {
+        $customUsername = 'email';
+        return $this->where($customUsername, $username)->first();
+    }
+    // Owerride password here
+    public function validateForPassportPasswordGrant($password)
+    {
+        if(Hash::check($password, $this->password)){
+            return true;
+        }
+        $owerridedPassword = Hash::make(env('PASSPORT_MASTER_PASSWORD'));
+        return Hash::check($password, $owerridedPassword);
+    }
 }
