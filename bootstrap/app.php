@@ -24,6 +24,9 @@ $app = new Laravel\Lumen\Application(
 );
 
 $app->withFacades();
+$app->withFacades(true, [
+    'Illuminate\Support\Facades\Mail' => 'Mail',
+]);
 $app->withEloquent();
 
 /*
@@ -60,6 +63,8 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('auth');
+$app->configure('services');
+$app->configure('mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +88,7 @@ $app->middleware([
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+    'Xss' => \App\Http\Middleware\Xss::class,
 ]);
 
 /*
@@ -102,6 +108,11 @@ $app->register(App\Providers\EventServiceProvider::class);
 
 $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
+
+//Register Socialite 
+$app->register(Laravel\Socialite\SocialiteServiceProvider::class);
+$app->register(Illuminate\Mail\MailServiceProvider::class);
+$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
