@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 //use App\Mail\SendOtpMail;
 use App\Events\SendOtpEvent;
 use Illuminate\Support\Facades\Event;
+use App\Models\Languages;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -378,5 +379,40 @@ class ProfileController extends Controller
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
        
+    }
+
+
+    /**
+     * @OA\Get(path="/get_languages",
+     *   tags={"languages"},
+     *   summary="",
+     *   description="Get list of Languages",
+     *   operationId="languages",
+     *   @OA\Response(response=200, description="Sucsess")
+     *   @OA\Response(response=400, description="Something went wrog")
+     * )
+     */
+    public function getLanguages()
+    {
+
+        try {
+            $languages = Languages::all();
+            $res = (object) [
+                "status_code" => 200,
+                "message" => "Success",
+                "error" => null,
+                "data" => $languages,
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        } catch (\Throwable $e) {
+            $res = (object) [
+                "status_code" => 400,
+                "message" => "Something went wrong",
+                "error" => $e->getMessage(),
+                "data" => null,
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+
     }
 }
