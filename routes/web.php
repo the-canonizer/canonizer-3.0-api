@@ -45,6 +45,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('mobilecarrier','ProfileController@mobileCarrier');
         $router->post('updateprofile','ProfileController@updateProfile');
         $router->get('user/profile','ProfileController@getProfile');
+        $router->post('sendotp','ProfileController@sendOtp');
+        $router->post('verifyotp','ProfileController@VerifyOtp');
     });
 
 });

@@ -9,7 +9,6 @@ use App\Listeners\ExampleListener;
 use App\Listeners\SendOtpListener;
 use App\Listeners\WelcomeMailListener;
 use App\Mail\welcomeEmail;
-
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
