@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             SocialMediaLinksSeeder::class,
             MobileCarrierSeeder::class,
             UpdateVideoPodCastContentSeeder::class,
-            AlgorithmSeeder::class
+            AlgorithmSeeder::class,
+            LanguageSeeder::class,
         ]);
     }
 }
