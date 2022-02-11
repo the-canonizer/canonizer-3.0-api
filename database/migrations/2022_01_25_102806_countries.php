@@ -20,8 +20,8 @@ class Countries extends Migration
             $table->string('country_code', 255);
             $table->string('name', 255);
             $table->string('alpha_3', 255)->nullable();
-            $table->timestamp('created_at', 255)->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->tinyInteger('status', 255)->default(1)->comment('0 => Inactive, 1 => Active');
+            $table->timestamp('created_at')->useCurrent();
+            $table->tinyInteger('status')->default(1)->comment('0 => Inactive, 1 => Active');
         });
     }
 
