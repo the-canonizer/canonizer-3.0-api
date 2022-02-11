@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\SuccessResource;
-use App\Http\Resources\ErrorResource;
+
+use App\Helpers\ResponseInterface;
 use App\Models\Namespaces;
+
 
 class NamespaceController extends Controller
 {
 
+    public function __construct(ResponseInterface $resProvider)
+    {
+        $this->resProvider = $resProvider;
+    }
     /**
      * @OA\Post(path="/get_all_namespaces",
      *   tags={"namespaces"},
@@ -58,32 +63,20 @@ class NamespaceController extends Controller
      *                                    )
      *                                 )
      *                             )
-     * 
+     *
      * )
      */
 
-    /** 
+    /**
      * Get all namespaces
      */
     public function getAll()
     {
         try {
             $namespaces = Namespaces::all();
-            $res = (object) [
-                "status_code" => 200,
-                "message" => "Success",
-                "error" => null,
-                "data" => $namespaces,
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
+            return $this->resProvider->apiJsonResponse(200, 'Success', $namespaces, '');
         } catch (\Throwable $e) {
-            $res = (object) [
-                "status_code" => 400,
-                "message" => "Something went wrong",
-                "error" => $e->getMessage(),
-                "data" => null,
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, "Something went wrong", '', $e->getMessage());
         }
     }
 }
