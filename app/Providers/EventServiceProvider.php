@@ -2,14 +2,15 @@
 
 namespace App\Providers;
 
+use App\Mail\welcomeEmail;
 use App\Events\ExampleEvent;
 use App\Events\SendOtpEvent;
 use App\Events\WelcomeMailEvent;
 use App\Listeners\ExampleListener;
 use App\Listeners\SendOtpListener;
 use App\Listeners\WelcomeMailListener;
-use App\Mail\welcomeEmail;
-
+use App\Events\ForgotPasswordSendOtpEvent;
+use App\Listeners\ForgotPasswordSendOtpListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -28,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         WelcomeMailEvent::class => [
             WelcomeMailListener::class,
+        ],
+        ForgotPasswordSendOtpEvent::class => [
+            ForgotPasswordSendOtpListener::class,
         ],
     ];
 }

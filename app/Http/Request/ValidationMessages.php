@@ -66,4 +66,25 @@ class ValidationMessages
             'postal_code.regex' => 'The postal code name must be in alphabets and space only.',
         ]);
     }
+
+    public function getForgotPasswordSendOtpValidationMessages(): array
+    {
+        return ([]);
+    }
+
+    public function getForgotPasswordVerifyOtpValidationMessages(): array
+    {
+        return ([]);
+    }
+
+    public function getForgotPasswordUpdateValidationMessages(): array
+    {
+        return([
+            'username.required' => 'The User Name field is required.',
+            'new_password.regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
+            'current_password.required' => 'The current password field is required.'
+        ]);
+    }
+
+
 }

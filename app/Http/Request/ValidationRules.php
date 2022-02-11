@@ -86,4 +86,28 @@ class ValidationRules
             'phone_number' => 'nullable|digits:10',
         ]);
     }
+
+    public function getForgotPasswordSendOtpValidationRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225',
+        ]);
+    }
+
+    public function getForgotPasswordVerifyOtpValidationRules(): array
+    {
+        return ([
+            'otp' => 'required',
+            'username' => 'required',
+        ]);
+    }
+
+    public function getForgotPasswordUpdateValidationRules(): array
+    {
+        return([
+            'username' => 'required',
+            'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
+            'confirm_password' => 'required|same:new_password'
+        ]);
+    }
 }
