@@ -21,7 +21,7 @@ class CorsMiddleware
         if (in_array($request->header('origin'), $allowedOrigins)) {
             $origin = $request->header('origin');
         } else {
-            $origin = 'https://canonizer.com';
+            $origin = 'https://canonizer3.canonizer.com';
         }
 
         $headers = [
