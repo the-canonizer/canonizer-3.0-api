@@ -48,6 +48,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('user/profile','ProfileController@getProfile');
         $router->post('sendotp','ProfileController@sendOtp');
         $router->post('verifyotp','ProfileController@VerifyOtp');
+        $router->post('add_nick_name','NicknameController@addNickName');
     });
 
 });
