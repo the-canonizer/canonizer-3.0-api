@@ -16,6 +16,187 @@
         }
     ],
     "paths": {
+        "/forgotpassword/sendOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password send Otp",
+                "description": "This api used to forgot password send Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/verifyOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password verify Otp",
+                "description": "This api used to forgot password verify Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "otp",
+                        "in": "body",
+                        "description": "User Otp",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/update": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password update",
+                "description": "This api used to forgot password update",
+                "operationId": "forgotPasswordupdate",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "body",
+                        "description": "User Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "body",
+                        "description": "User new password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "body",
+                        "description": "User confirm password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
         "/changepassword": {
             "post": {
                 "tags": [
@@ -54,6 +235,7 @@
                     }
                 ],
                 "responses": {
+
                     "200": {
                         "description": "Password updated successfully"
                     },
@@ -77,6 +259,22 @@
                     },
                     "404": {
                         "description": "Something went wrong"
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/Error"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "message": "Error"
                     }
                 }
             }
