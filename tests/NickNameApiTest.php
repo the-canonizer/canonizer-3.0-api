@@ -25,7 +25,18 @@ class NickNameApiTest extends TestCase
     }
 
     public function testAddNickNameWithInvalidData(){
+        print sprintf(" \n Add Nickname %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
 
+        $parameter = [
+            'nick_name' => "",
+            "visibility_status" => ""
+        ];
+
+        $this->actingAs($user)
+        ->post('/api/v3/add_nick_name', $parameter);
+
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testAddNickNameWithValidData(){
