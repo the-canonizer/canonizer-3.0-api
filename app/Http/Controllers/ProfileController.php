@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Helpers\ResponseInterface;
 use Exception;
 use App\Models\User;
 use App\Facades\Util;
@@ -27,18 +28,20 @@ class ProfileController extends Controller
 
     private ValidationMessages $validationMessages;
 
-    public function __construct()
+    public function __construct(ResponseInterface $resProvider)
     {
         $this->rules = new ValidationRules;
         $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
     }
 
     /**
-     * @OA\Post(path="/changepassword",
-     *   tags={"changepassword"},
-     *   summary="Update Password",
-     *   description="This is used to update the user password.",
-     *   operationId="changePassword",
+     * @OA\Post(
+     *     path="/changepassword",
+     *     tags={"changepassword"},
+     *     summary="Update Password",
+     *     description="This is used to update the user password.",
+     *     operationId="changePassword",
      *   @OA\Parameter(
      *     name="current_password",
      *     required=true,
@@ -66,16 +69,13 @@ class ProfileController extends Controller
      *         type="string"
      *     )
      *   ),
-    *   @OA\Response(status_code=200, message="Password updated successfully"),
+    *   @OA\Response(
+     *     response=200,
+     *     description="Password updated successfully"
+     * ),
     *   @OA\Response(
     *         response=400,
-    *         message="Error",
-    *         @OA\JsonContent(
-    *             oneOf={
-    *                 @OA\Schema(ref="#/components/schemas/Error"),
-    *                 @OA\Schema(type="string")
-    *             },  
-    *         )
+    *         description="Error"
     *     )
     * )
     */
@@ -85,36 +85,18 @@ class ProfileController extends Controller
         $validationErrors = $validate->validate($request, $this->rules->getChangePasswordValidationRules(), $this->validationMessages->getChangePasswordValidationMessages());
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }        
+        }
 
         if (!Hash::check($request->get('current_password'), $user->password)) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Incorrect Current Password",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, 'Incorrect Username or Password', '', '');
         }
         try{
             $newPassword = Hash::make($request->get('new_password'));
             $user->password = $newPassword;
             $user->save();
-            $res = (object)[
-                "status_code" => 200,
-                "message"     => "Password changed successfully",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
+            return $this->resProvider->apiJsonResponse(200, 'Password changed successfully', '', '');
         }catch(Exception $e){
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => $e->getMessage()
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, 'Something went wrong', $e->getMessage(), '');
         }
     }
 
@@ -176,14 +158,14 @@ class ProfileController extends Controller
      *     @OA\Schema(
      *         type="string"
      *     )
-     *   ),    
+     *   ),
      *   @OA\Response(status_code=200, message="Profile Updated Successfully"),
      *   @OA\Response(status_code=400, message="The given data was invalid")
      *   @OA\Response(status_code=400, message="Somethig went wrong")
      * )
     */
-    public function updateProfile(Request $request, Validate $validate){ 
-      
+    public function updateProfile(Request $request, Validate $validate){
+
        $user = $request->user();
        $input = $request->all();
        $validationErrors = $validate->validate($request, $this->rules->getUpdateProfileValidatonRules(),$this->validationMessages->getUpdateProfileValidationMessages());
@@ -191,7 +173,7 @@ class ProfileController extends Controller
            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
        }
 
-       try{    
+       try{
             if($user->update($input)){
                 $response = (object)[
                     "status_code" => 200,
@@ -208,7 +190,7 @@ class ProfileController extends Controller
                         "data"        => null
                     ];
                     return (new ErrorResource($response))->response()->setStatusCode(400);
-            } 
+            }
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
@@ -225,7 +207,7 @@ class ProfileController extends Controller
      *   tags={"profile"},
      *   summary="Get looged in user profile",
      *   description="",
-     *   operationId="userProfile",   
+     *   operationId="userProfile",
      *   @OA\Response(response=200, description="success", @OA\Schema(ref="#/components/schemas/User")),
      *   @OA\Response(response=404, description="Something went wrong")
      * )
@@ -274,13 +256,13 @@ class ProfileController extends Controller
      *     @OA\Schema(
      *         type="string"
      *     )
-     *   ),    
+     *   ),
      *   @OA\Response(status_code=200, message="Otp has been sent on your phone number."),
      *   @OA\Response(status_code=400, message="The given data was invalid")
      *   @OA\Response(status_code=400, message="Somethig went wrong")
      * )
     */
-    public function sendOtp(Request $request, Validate $validate){       
+    public function sendOtp(Request $request, Validate $validate){
         $user = $request->user();
         $input = $request->all();
         $validationErrors = $validate->validate($request, $this->rules->getVerifyPhoneValidatonRules(),[]);
@@ -294,7 +276,7 @@ class ProfileController extends Controller
             $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
             $user->phone_number = $input['phone_number'];
             $user->mobile_carrier = $input['mobile_carrier'];
-            $user->otp = $otp;  
+            $user->otp = $otp;
             $user->update();
             Event::dispatch(new SendOtpEvent($user,true));
             $res = (object)[
@@ -313,7 +295,7 @@ class ProfileController extends Controller
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
-       
+
     }
 
       /**
@@ -343,7 +325,7 @@ class ProfileController extends Controller
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-       
+
         try{
             if($user->otp == trim($input['otp'])){
                 $user->mobile_verified = 1;
@@ -367,7 +349,7 @@ class ProfileController extends Controller
                 ];
                 return (new SuccessResource($res))->response()->setStatusCode(200);
             }
-           
+
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
@@ -377,7 +359,7 @@ class ProfileController extends Controller
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
-       
+
     }
 
 
