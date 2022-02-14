@@ -110,4 +110,18 @@ class ValidationRules
             'confirm_password' => 'required|same:new_password'
         ]);
     }
+    public function getVerifyPhoneValidatonRules(): array
+    {
+        return ([
+            'phone_number' => 'required|digits:10',
+            'mobile_carrier' => 'required'
+        ]);
+    }
+
+    public function getVerifyOtpValidatonRules(): array
+    {
+        return ([
+            'otp' => 'required|digits:6',
+        ]);
+    }
 }

@@ -13,11 +13,13 @@ class SendOtpEvent extends Event
      * @return void
      */
     public $user;
+    public $settingFlag;
+
     
-    public function __construct($user)
+    public function __construct($user, $settingFlag = false)
     {
-       // echo "<pre>"; print_r($user->first_name); die;
         $this->user = $user;
+        $this->settingFlag = $settingFlag;
     }
 
 
