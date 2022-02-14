@@ -3,18 +3,14 @@
 namespace App\Http\Controllers;
 use App\Helpers\ResponseInterface;
 use Exception;
-use App\Models\User;
-use App\Facades\Util;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Http\Request\ValidationMessages;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
-use Illuminate\Support\Facades\Mail;
 use App\Events\SendOtpEvent;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
@@ -81,6 +77,8 @@ class ProfileController extends Controller
     */
     public function changePassword(Request $request, Validate $validate)
     {
+        $status = $message = $data = '';
+
         $user = $request->user();
         $validationErrors = $validate->validate($request, $this->rules->getChangePasswordValidationRules(), $this->validationMessages->getChangePasswordValidationMessages());
         if( $validationErrors ){
@@ -94,10 +92,14 @@ class ProfileController extends Controller
             $newPassword = Hash::make($request->get('new_password'));
             $user->password = $newPassword;
             $user->save();
-            return $this->resProvider->apiJsonResponse(200, 'Password changed successfully', '', '');
+            $status = 200;
+            $message = 'Password changed successfully.';
         }catch(Exception $e){
-            return $this->resProvider->apiJsonResponse(400, 'Something went wrong', $e->getMessage(), '');
+            $status = 200;
+            $message = 'Something went wrong';
+            $data = $e->getMessage();
         }
+        return $this->resProvider->apiJsonResponse($status, $message, $data, '');
     }
 
     /**
