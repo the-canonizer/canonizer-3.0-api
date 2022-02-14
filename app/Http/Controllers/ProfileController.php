@@ -114,22 +114,9 @@ class ProfileController extends Controller
     public function mobileCarrier(Request $request){
         try{
             $carrier = MobileCarrier::all();
-            $res = (object)[
-                "status_code" => 200,
-                "message"     => "success",
-                "error"       => null,
-                "data"        => $carrier
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
-
+            return $this->resProvider->apiJsonResponse(200, 'Success', $carrier, '');
         }catch(Exception $e){
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, 'Something went wrong', $e->getMessage(), '');
         }
     }
 
@@ -159,9 +146,9 @@ class ProfileController extends Controller
      *         type="string"
      *     )
      *   ),
-     *   @OA\Response(status_code=200, message="Profile Updated Successfully"),
-     *   @OA\Response(status_code=400, message="The given data was invalid")
-     *   @OA\Response(status_code=400, message="Somethig went wrong")
+     *   @OA\Response(response=200, description="Profile Updated Successfully"),
+     *   @OA\Response(response=400, description="The given data was invalid")
+     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
     */
     public function updateProfile(Request $request, Validate $validate){
