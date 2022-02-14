@@ -196,6 +196,7 @@
                 }
             }
         },
+
         "/changepassword": {
             "post": {
                 "tags": [
@@ -234,6 +235,30 @@
                     }
                 ],
                 "responses": {
+
+                    "200": {
+                        "description": "Password updated successfully"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get looged in user profile",
+                "description": "",
+                "operationId": "userProfile",
+                "responses": {
+                    "200": {
+                        "description": "success"
+                    },
+                    "404": {
+                        "description": "Something went wrong"
                     "400": {
                         "content": {
                             "application/json": {
