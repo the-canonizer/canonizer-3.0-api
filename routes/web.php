@@ -27,6 +27,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
     $router->get('/get_algorithms','AlgorithmController@getAll');
     $router->get('/get_languages','ProfileController@getLanguages');
+    $router->get('mobilecarrier','ProfileController@mobileCarrier');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -42,8 +43,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
-        $router->post('changepassword','ProfileController@changePassword');
-        $router->get('mobilecarrier','ProfileController@mobileCarrier');
+        $router->post('changepassword','ProfileController@changePassword');      
         $router->post('updateprofile','ProfileController@updateProfile');
         $router->get('user/profile','ProfileController@getProfile');
         $router->post('sendotp','ProfileController@sendOtp');

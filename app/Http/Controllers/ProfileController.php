@@ -14,7 +14,6 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
 use Illuminate\Support\Facades\Mail;
-//use App\Mail\SendOtpMail;
 use App\Events\SendOtpEvent;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
@@ -135,7 +134,7 @@ class ProfileController extends Controller
             $carrier = MobileCarrier::all();
             $res = (object)[
                 "status_code" => 200,
-                "message"     => "Password changed successfully",
+                "message"     => "success",
                 "error"       => null,
                 "data"        => $carrier
             ];
@@ -288,7 +287,6 @@ class ProfileController extends Controller
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         try{
             $otp = mt_rand(100000, 999999);
             $result['otp'] = $otp;
@@ -296,7 +294,7 @@ class ProfileController extends Controller
             $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
             $user->phone_number = $input['phone_number'];
             $user->mobile_carrier = $input['mobile_carrier'];
-            $user->otp = $otp;
+            $user->otp = $otp;  
             $user->update();
             Event::dispatch(new SendOtpEvent($user,true));
             $res = (object)[
@@ -345,6 +343,7 @@ class ProfileController extends Controller
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+       
         try{
             if($user->otp == trim($input['otp'])){
                 $user->mobile_verified = 1;
