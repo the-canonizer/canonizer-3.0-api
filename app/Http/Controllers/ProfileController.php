@@ -116,9 +116,9 @@ class ProfileController extends Controller
     public function mobileCarrier(Request $request){
         try{
             $carrier = MobileCarrier::all();
-            return $this->resProvider->apiJsonResponse(200, 'Success', $carrier, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $carrier, '');
         }catch(Exception $e){
-            return $this->resProvider->apiJsonResponse(400, 'Something went wrong', $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), $e->getMessage(), '');
         }
     }
 
