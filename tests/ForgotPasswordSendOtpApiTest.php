@@ -3,6 +3,7 @@
 use App\Models\User;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ForgotPasswordSendOtpApiTest extends TestCase
 {
@@ -29,32 +30,25 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         $this->assertTrue($v->passes());
     }
 
-
-    public function testForgotPasswordSendOtpEmptyParams()
-    {
-        print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/forgotpassword/sendOtp', []);
-        $this->assertEquals(400, $response->status());       
+    public function testForgotPasswordSendOtpWithInvalidData(){
+        print sprintf(" \n Invalid Forgot Password Send Otp details submitted %d %s", 400,PHP_EOL);
+        $user = User::factory()->make();
+        $this->actingAs($user)
+        ->post('/api/v3/forgotpassword/sendotp',['email'=>'email@email.com']);    
+        $this->assertEquals(400, $this->response->status());
     }
 
-    public function testSuccessfulForgotPasswordSendOtp()
+    public function testForgotPasswordSendOtpWithValidData()
     {
-
-        print sprintf("Valid details submitted %d %s", 302,PHP_EOL);
-
+        print sprintf(" \n Valid Forgot Password Send Otp details submitted %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
         $parameters = [
             "email" => "email@email.com",
         ];
+        $this->actingAs($user)
+            ->post('/api/v3/forgotpassword/sendotp',$parameters);   
 
-        $this->post("api/v3/forgotpassword/sendOtp", $parameters, []);
-        $this->seeStatusCode(200);
-        $this->seeJsonStructure(
-            [
-                "status_code" => 200,
-                "message" => "Otp sent successfully on your registered Email Id",
-                "error" => null,
-                "data" => null
-            ]
-        );
+        $this->assertEquals(200, $this->response->status());
     }
+   
 }
