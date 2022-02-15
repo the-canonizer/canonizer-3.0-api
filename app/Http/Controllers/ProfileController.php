@@ -163,31 +163,11 @@ class ProfileController extends Controller
        }
 
        try{
-            if($user->update($input)){
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Profile updated successfully.",
-                    "error"       => null,
-                    "data"        => $request->user()
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
-            }else{
-                    $response = (object)[
-                        "status_code" => 400,
-                        "message"     => "Failed to update profile, please try again.",
-                        "error"       => null,
-                        "data"        => null
-                    ];
-                    return (new ErrorResource($response))->response()->setStatusCode(400);
-            }
+            return ( $user->update($input) )
+                 ? $this->resProvider->apiJsonResponse(200, config('message.success.update_profile'), $request->user(), '')
+                 : $this->resProvider->apiJsonResponse(400, config('message.error.update_profile'), '', '');
         }catch(Exception $e){
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => $e->getMessage(),
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+           return $this->resProvider->apiJsonResponse(200, config('message.error.exception'), $e->getMessage(), '');
        }
     }
 
