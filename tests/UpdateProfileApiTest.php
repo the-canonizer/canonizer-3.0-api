@@ -29,20 +29,20 @@ class UpdateProfileApiTest extends TestCase
             'postal_code' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
             'phone_number' => 'nullable|digits:10',
         ];
-        
+
         $data = [
             "first_name" => "first name",
             "last_name" => "last name",
         ];
-        
+
         $v = $this->app['validator']->make($data, $rules);
         $this->assertTrue($v->passes());
     }
 
-    public function testUnauthorizedUserCanNotUpdate(){
+    public function testUnauthorizedUserCannotUpdate(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 500,PHP_EOL);
         $response = $this->call('POST', '/api/v3/updateprofile', []);
-        $this->assertEquals(401, $response->status()); 
+        $this->assertEquals(401, $response->status());
     }
 
 
@@ -51,7 +51,7 @@ class UpdateProfileApiTest extends TestCase
         print sprintf(" \n Invalid details submitted %d %s", 400,PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-        ->post('/api/v3/updateprofile',[]);    
+        ->post('/api/v3/updateprofile',[]);
         $this->assertEquals(400, $this->response->status());
     }
 
