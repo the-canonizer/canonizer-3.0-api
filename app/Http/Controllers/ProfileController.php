@@ -246,9 +246,9 @@ class ProfileController extends Controller
      *         type="string"
      *     )
      *   ),
-     *   @OA\Response(status_code=200, message="Otp has been sent on your phone number."),
-     *   @OA\Response(status_code=400, message="The given data was invalid")
-     *   @OA\Response(status_code=400, message="Somethig went wrong")
+     *   @OA\Response(response=200, description="Otp has been sent on your phone number."),
+     *   @OA\Response(response=400, description="The given data was invalid")
+     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
     */
     public function sendOtp(Request $request, Validate $validate){
