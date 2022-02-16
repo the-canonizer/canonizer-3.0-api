@@ -14,7 +14,7 @@ class ResponseBuilder implements ResponseInterface
      * @param string $error
      * @return \Illuminate\Http\JsonResponse|object
      */
-    public function apiJsonResponse($code, $message, $data, $error)
+    public function apiJsonResponse($code, $message, $data, $error = null)
     {
         $res = (object)[
             "status_code" => $code,
