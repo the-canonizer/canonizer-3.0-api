@@ -2,18 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Helpers\ResponseInterface;
 use App\Models\Namespaces;
 
 
 class NamespaceController extends Controller
 {
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->resProvider = $resProvider;
-    }
     /**
      * @OA\Post(path="/get_all_namespaces",
      *   tags={"namespaces"},
