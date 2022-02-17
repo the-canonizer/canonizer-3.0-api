@@ -11,6 +11,41 @@ Laravel Lumen is a stunningly fast PHP micro-framework for building web applicat
 
 Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
 
+## Activity Logger Laravel
+   **Add logs automatically**
+   
+   If you want to log the activities automatically on model created, updated, deleted events then extend    model with BaseModel.
+   Here are some properties in Base Model that you can override in specific model
+1. **$logName:** Default value of $logName is ‘BaseModel’. It can be override in model
+2. **$recordedEvents:** Specify the event such   created, updated, deleted
+3. **getDescriptionForEvent:**  Log Description can be changed through this function
+
+  **Add logs Manually in controller**
+  
+  Logs can be added manually in controller.
+ When you extend the YourContoller with Controller, there is an object **$this→logger** which is  available in whole controller. 
+ How you can log the activity manually in controller
+ 
+        $this→logger::createLog($description,  $eloquentModelObject, $logType, $withProperties);
+
+**$description:**  the description of activity
+
+**$eloquentModel:**  Specify the model against log is being created
+
+**$logType:** Log Type can model name or anything you want to store like user logs, topic logs,
+
+**$withProperties:** Add extra keys or properties in array
+
+ **Example**
+
+          $description = “User B has delegated his support to User A”
+          
+          $logType = “Support”
+          
+          $withProperties = [“delegater_id” => 1]
+          
+          $this→logger::createLog($description,  new Support(),  $logType, $withProperties);
+
 ## Contributing
 
 Thank you for considering contributing to Lumen! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
