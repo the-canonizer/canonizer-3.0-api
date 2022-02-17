@@ -12,10 +12,12 @@ class ForgotPasswordSendOtp extends Mailable {
     use Queueable, SerializesModels;
 
     public $user;
+    public $settingFlag;
 
-    public function __construct($user)
+    public function __construct($user, $settingFlag = false)
     {
         $this->user = $user;
+        $this->settingFlag = $settingFlag;
     }
     //build the message.
     public function build() {

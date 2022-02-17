@@ -46,21 +46,40 @@ class RegistrationApiTest extends TestCase
 
     public function testRegisterEmptyParams()
     {
-        print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
+        print sprintf("Invalid Register details submitted %d %s", 302,PHP_EOL);
         $response = $this->call('POST', '/api/v3/register', []);
         $this->assertEquals(400, $response->status());       
     }
 
-    public function testWhenIncorrectCurrentPassword(){
-        print sprintf("Same New And Current Password %d %s", 302,PHP_EOL);
+    public function testWhenIncorrectRegisterCurrentPassword(){
+        print sprintf("Same Register New And Current Password %d %s", 302,PHP_EOL);
         $response = $this->call('POST', '/api/v3/register', ['password'=>'Test#123','password_confirmation'=>'Test#123']);
         $this->assertEquals(400, $response->status());
     }
 
-    public function testSuccessfulRegistration()
+    public function testRegisterWithInvalidData()
     {
+        print sprintf(" \n Invalid Register details submitted %d %s", 400,PHP_EOL);
+        $user = User::factory()->make();
+        $this->actingAs($user)
+        ->post('/api/v3/register',[]);    
+        $this->assertEquals(400, $this->response->status());
+    }
 
-        print sprintf("Valid details submitted %d %s", 302,PHP_EOL);
+
+    public function testRegisterWithValidaData(){
+        
+        print sprintf(" \n Register with valid data %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
+        $user->first_name = "first_name";
+        $user->last_name = "last_name";
+        $user->middle_name = "middle_name";
+        $user->email = "email@email.com";
+        $user->phone_number = "8765432123";
+        $user->country_code = "country_code";
+        $user->password = "Test@123";
+        $user->password_confirmation = "Test@123";
+        $user->otp = "123456";
 
         $parameters = [
             "first_name" => "first_name",
@@ -71,18 +90,11 @@ class RegistrationApiTest extends TestCase
             "country_code" => "country_code",
             "password" => "Test@123",
             "password_confirmation" => "Test@123",
-            "otp" => "123456",
+            "otp" => "123456"
         ];
-
-        $this->post("api/v3/register", $parameters, []);
-        $this->seeStatusCode(200);
-        $this->seeJsonStructure(
-            [
-                "status_code" => 200,
-                "message" => "Otp sent successfully on your registered Email Id",
-                "error" => null,
-                "data" => null
-            ]
-        );
+        $this->actingAs($user)
+        ->post('/api/v3/register',$parameters);
+        $this->assertEquals(200, $this->response->status());
     }
+
 }
