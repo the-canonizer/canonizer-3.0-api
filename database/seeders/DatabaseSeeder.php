@@ -20,8 +20,8 @@ class DatabaseSeeder extends Seeder
             UpdateVideoPodCastContentSeeder::class,
             AlgorithmSeeder::class,
             LanguageSeeder::class,
-            // NameSpaceSeeder::class,
-            ActivitiesDummySeeder::class
+            NameSpaceSeeder::class,
+            ActivitiesDummySeeder::class // Can be remove after testing
         ]);
     }
 }
