@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Namespaces;
 
 class NameSpaceSeeder extends Seeder
 {
@@ -168,14 +169,15 @@ class NameSpaceSeeder extends Seeder
         );
 
         foreach($namespaces as $ns){
-            DB::table('namespace')->insert([
-                [
-                    'id'        => $ns['id'],
-                    'parent_id' => $ns['parent_id'],
-                    'name'      => $ns['name'],
-                    'label'     => $ns['label']
-                ],
-            ]);
+            // DB::table('namespace')->insert([
+            //     [
+            //         'id'        => $ns['id'],
+            //         'parent_id' => $ns['parent_id'],
+            //         'name'      => $ns['name'],
+            //         'label'     => $ns['label']
+            //     ],
+            // ]);
+            Namespaces::updateOrCreate($ns, $ns);
         }
     }
 }
