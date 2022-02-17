@@ -67,7 +67,7 @@ class SocialMediaLinkController extends Controller
     {
         try {
             $socialMediaLinks = SocialMediaLink::orderBy('order_number')->get();
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $socialMediaLinks);
+            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $socialMediaLinks, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
