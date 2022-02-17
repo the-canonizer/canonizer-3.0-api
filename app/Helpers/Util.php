@@ -84,4 +84,28 @@ class Util
             ucwords($last_name)
         ];
     }
+
+    /**
+     * Get model class name 
+     * if class name plural like Languages then remove s from last 
+     * 
+     * @param object $classObject
+     * @return string
+     */
+
+     public function getModelClassName($classObject){
+
+        if(!is_object($classObject)){
+             return '';
+        }
+        
+        $modelName = get_class($classObject);
+        $modelName = substr(strrchr($modelName, "\\"), 1);
+        $lastChar = substr($modelName, -1);
+        if($lastChar == 's') {
+            $modelName = substr($modelName, 0, -1);
+        }
+        return $modelName;
+     }
+
 }

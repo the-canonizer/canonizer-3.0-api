@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Helpers\Util;
+use App\Helpers\ActivityLogHelper;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,5 +17,6 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         $this->app->bind('util', Util::class);
+        $this->app->bind('ActivityLogHelper', ActivityLogHelper::class);
     }
 }

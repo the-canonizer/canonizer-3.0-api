@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 use App\Helpers\ResponseInterface;
+use App\Facades\ActivityLogFacade;
 
 class Controller extends BaseController
 {
@@ -14,8 +15,16 @@ class Controller extends BaseController
      */
     protected $resProvider;
 
-    public function __construct(ResponseInterface $resProvider)
+    /**
+     * Custom Log.
+     *
+     * @var mixed
+     */
+    protected $logger;
+
+    public function __construct(ResponseInterface $resProvider, ActivityLogFacade $logger)
     {
         $this->resProvider = $resProvider;
+        $this->logger = $logger;
     }
 }
