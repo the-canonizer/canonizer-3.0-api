@@ -26,9 +26,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('/get_whats_new_content','VideoPodcastController@getNewContent');
     $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
     $router->get('/get_algorithms','AlgorithmController@getAll');
-    $router->get('/get_recent_activities','ActivitiesController@getRecentActivities');
     $router->get('/get_languages','ProfileController@getLanguages');
     $router->get('mobilecarrier','ProfileController@mobileCarrier');
+    $router->post('/get_recent_activities','ActivitiesController@getRecentActivities');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
