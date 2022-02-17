@@ -21,7 +21,7 @@ class CreateNicknameTable extends Migration
                 $table->integer('create_time');
                 $table->tinyInteger('private');
             });
-         }
+       }
     }
 
     /**

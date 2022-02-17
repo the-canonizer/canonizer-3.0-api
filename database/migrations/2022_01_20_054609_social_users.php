@@ -13,14 +13,16 @@ class SocialUsers extends Migration
      */
     public function up()
     {
-        Schema::create('social_users', function (Blueprint $table) {
-            $table->integer('id');
-            $table->integer('user_id');
-            $table->string('social_email', 255);
-            $table->string('social_name', 255)->nullable();
-            $table->string('provider', 255);
-            $table->string('provider_id', 255);
-        });
+        if (!Schema::hasTable('social_users')){
+            Schema::create('social_users', function (Blueprint $table) {
+                $table->integer('id');
+                $table->integer('user_id');
+                $table->string('social_email', 255);
+                $table->string('social_name', 255)->nullable();
+                $table->string('provider', 255);
+                $table->string('provider_id', 255);
+            });
+        }
     }
 
     /**
