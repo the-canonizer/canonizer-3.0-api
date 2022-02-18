@@ -52,6 +52,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('sendotp','ProfileController@sendOtp');
         $router->post('verifyotp','ProfileController@VerifyOtp');
         $router->post('add_nick_name','NicknameController@addNickName');
+        $router->post('update_nick_name/{id}','NicknameController@UpdateNickName');
+        $router->get('get_nick_name_list','NicknameController@getNickNameList');
     });
 
 });
