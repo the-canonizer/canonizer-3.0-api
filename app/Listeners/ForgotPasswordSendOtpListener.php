@@ -29,6 +29,8 @@ class ForgotPasswordSendOtpListener
     public function handle($event)
     {
         $user = $event->user;
-        Mail::to($user->email)->send(new ForgotPasswordSendOtp($user));
+        $settingFlag = $event->settingFlag;
+
+        Mail::to($user->email)->send(new ForgotPasswordSendOtp($user,$settingFlag));
     }
 }

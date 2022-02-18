@@ -2,18 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Helpers\ResponseInterface;
 use App\Models\Namespaces;
 
 
 class NamespaceController extends Controller
 {
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->resProvider = $resProvider;
-    }
     /**
      * @OA\Post(path="/get_all_namespaces",
      *   tags={"namespaces"},
@@ -74,9 +67,9 @@ class NamespaceController extends Controller
     {
         try {
             $namespaces = Namespaces::all();
-            return $this->resProvider->apiJsonResponse(200, 'Success', $namespaces, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $namespaces, '');
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, "Something went wrong", '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
     }
 }

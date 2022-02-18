@@ -15,9 +15,15 @@ class ForgotPasswordUpdateApiTest extends TestCase
      * */
     public function testForgotPasswordApiWithInvalidData()
     {
-        print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v1/forgotpassword/update', []);
+        print sprintf("Invalid Forgot Password update details submitted %d %s", 302,PHP_EOL);
+        $response = $this->call('POST', '/api/v3/forgotpassword/update', []);
         $this->assertEquals(400, $response->status());       
+    }
+
+    public function testForgotPasswordUnauthorizedUserCanNotUpdate(){
+        print sprintf("\n Unauthorized ForgotPassword update User can not  request this api %d %s", 500,PHP_EOL);
+        $response = $this->call('POST', '/api/v3/forgotpassword/update', []);
+        $this->assertEquals(500, $response->status()); 
     }
 
     public function testForgotPasswordUpdateValidateFiled()
@@ -37,25 +43,24 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $this->assertTrue($v->passes());
     }
 
-    public function testForgotPasswordApiWithValidData()
+    public function testForgotPasswordUpdateWithInvalidData()
     {
-        print sprintf("Valid details submitted %d %s", 302,PHP_EOL);
-
-        $parameters = [
-            "username" => "email@email.com",
-            "new_password" => "987654",
-        ];
-
-        $this->post("api/v3/forgotpassword/update", $parameters, []);
-        $this->seeStatusCode(200);
-        $this->seeJsonStructure(
-            [
-                "status_code" => 200,
-                "message" => "Password changed successfully",
-                "error" => null,
-                "data" => null
-            ]
-        );
-       
+        print sprintf(" \n Invalid Forgot Password Update details submitted %d %s", 400,PHP_EOL);
+        $user = User::factory()->make();
+        $this->actingAs($user)
+        ->post('/api/v3/forgotpassword/update',[]);    
+        $this->assertEquals(400, $this->response->status());
     }
+
+
+    public function testForgotPasswordUpdateWithValidaData(){
+        print sprintf(" \n Forgot Password updated wit valid data %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
+        $user->new_password = "123456";
+        $user->username = "email@email.com";
+        $this->actingAs($user)
+        ->post('/api/v3/forgotpassword/update',['username'=>$user->username,'new_password'=>$user->new_password]);
+        $this->assertEquals(200, $this->response->status());
+    }
+    
 }
