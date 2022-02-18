@@ -5,9 +5,16 @@ namespace App\Http\Requests;
 use Illuminate\Http\JsonResponse;
 use Laravel\Lumen\Http\Request;
 use Anik\Form\FormRequest;
+use App\Helpers\ResponseInterface;
 
 class AddNickNameRequest extends FormRequest
 {
+
+    public function __construct(ResponseInterface $resProvider)
+    {
+        $this->resProvider = $resProvider;
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -42,12 +49,7 @@ class AddNickNameRequest extends FormRequest
 
     protected function errorResponse(): ?JsonResponse
     { 
-        return response()->json([
-            'status_code'=> 400,
-            'data' => null,
-            'message' => $this->errorMessage(),
-            'errors' => $this->validator->errors()->messages(),
-        ], 400);
+        return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
     } 
 
     

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Helpers\ResponseInterface;
 use App\Models\Namespaces;
 use App\Http\Requests\AddNickNameRequest;
 use App\Http\Requests\UpdateNickNameRequest;
@@ -13,12 +11,6 @@ use Illuminate\Http\Request;
 
 class NicknameController extends Controller
 {
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->resProvider = $resProvider;
-    }
-
     /**
      * @OA\Get(path="/add_nick_name",
      *   tags={"nickname"},
@@ -50,11 +42,15 @@ class NicknameController extends Controller
     public function addNickName(AddNickNameRequest $request)
     {
         $user = $request->user();
+
         try {
+            
             $nickname = Nickname::createNickname($user->id, $request->all());
-            return $this->resProvider->apiJsonResponse(200, 'Success', $nickname, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.nick_name_add'), $nickname, '');
+       
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, "Something went wrong", '', $e->getMessage());
+            
+            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
 
     }
@@ -86,9 +82,11 @@ class NicknameController extends Controller
             $nickname->private = $request->visibility_status;
             $nickname->update();
             
-            return $this->resProvider->apiJsonResponse(200, 'Nick name visibility status updated successfully.', $nickname, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.nick_name_update'), $nickname, '');
+        
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, "Something went wrong", '', $e->getMessage());
+
+            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -108,9 +106,10 @@ class NicknameController extends Controller
         try {
             $allNicknames = Nickname::getAllNicknames($user->id);
 
-            return $this->resProvider->apiJsonResponse(200, 'Success', $allNicknames, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $allNicknames, '');
+        
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, "Something went wrong", '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
 
     }
