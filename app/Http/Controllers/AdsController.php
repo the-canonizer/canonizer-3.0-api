@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 class AdsController extends Controller
 {
     /**
-     * Get ads list filtered by the specific page 
+     * Get ads list filtered by page 
      * 
      * @param AdRequest $request
-     * @param Page $pageName
+     * @param Page $pagName
      * @return Response
      */
     public function pageAdsListing(AdsRequest $request)

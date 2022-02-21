@@ -15,7 +15,7 @@ class Ads extends Model
      * @var array
      */
     protected $fillable = [
-        'client_id', 'page_id', 'slot', 'format', 'adtest', 'is_responsive'
+        'client_id', 'slot', 'format', 'adtest', 'is_responsive'
     ];
 
     /**

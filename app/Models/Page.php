@@ -32,18 +32,12 @@ class Page extends Model
      */
 
     /**
-     * Get ads list for the specific page.
+     * Get the ads for the page.
      */
     public function ads()
     {
         return $this->hasMany(Ads::class);
     }
-    
-    /**
-     * Get images list for the specific page.
-     */
-    public function images()
-    {
-        return $this->hasMany(Image::class);
-    }
+
+
 }
