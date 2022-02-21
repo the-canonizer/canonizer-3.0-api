@@ -14,10 +14,10 @@ class PasswordApiTest extends TestCase
      * check validation in that case
      * */
 
-    public function testGuestuserCanNotAccessApi(){
+    public function testGuestuserCannotAccessApi(){
         print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
         $response = $this->call('POST', '/api/v3/changepassword', []);
-        $this->assertEquals(401, $response->status());       
+        $this->assertEquals(401, $response->status());
     }
 
     public function testPasswordApiWithInvalidData()
@@ -25,8 +25,8 @@ class PasswordApiTest extends TestCase
         print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-        ->post('/api/v3/changepassword',[]);    
-        $this->assertEquals(400, $this->response->status()); 
+        ->post('/api/v3/changepassword',[]);
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testWhenIncorrectCurrentPassword(){
@@ -39,8 +39,8 @@ class PasswordApiTest extends TestCase
 
         ];
 
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter); 
-        $this->assertEquals(400, $this->response->status()); 
+        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testWhenSameNewAndCurrentPassword(){
@@ -53,7 +53,7 @@ class PasswordApiTest extends TestCase
         ];
 
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter); 
+        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
         $this->assertEquals(400, $this->response->status());
 
     }
@@ -67,10 +67,10 @@ class PasswordApiTest extends TestCase
             'confirm_password'=>'Test@123'
 
         ];
-        
+
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter); 
+        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
         $this->assertEquals(200, $this->response->status());
-       
+
     }
 }

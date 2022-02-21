@@ -11,6 +11,88 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
+/**
+ *  @OA\Schema(
+ *     schema="User",
+ *     title="User Schema to return for API's",
+ * 	    @OA\Property(
+ *         property="id",
+ *         type="integer"
+ *     ),
+ * 	    @OA\Property(
+ *         property="first_name",
+ *         type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="middle_name",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="last_name",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="email",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="address_1",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="address_2",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="city",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="state",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="country",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="phone_number",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="mobile_carrier",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="mobile_verified",
+ *          type="boolean"
+ *      ),
+ *      @OA\Property (
+ *          property="update_time",
+ *          type="integer"
+ *      ),
+ *      @OA\Property (
+ *          property="join_time",
+ *          type="integer"
+ *      ),
+ *      @OA\Property (
+ *          property="language",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="birthday",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="gender",
+ *          type="string"
+ *      ),
+ *      @OA\Property (
+ *          property="country_code",
+ *          type="integer"
+ *      )
+ * )
+*/
 class User extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens , Authorizable, HasFactory;
@@ -42,21 +124,21 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     }
 
     public function setBirthdayAttribute($value)
-    { 
+    {
         $this->attributes['birthday'] = date('Y-m-d', strtotime($value));
     }
 
-    public function update(array $attributes = array(), array $options = []){        
+    public function update(array $attributes = array(), array $options = []){
         $fields = self::getProfileFields();
 
         foreach($fields as $f => $flag){
 
             if(isset($attributes[$f])) $this->{$f} = $attributes[$f];
             if(isset($attributes[$flag]) && !$attributes[$flag]) $this->private_fields[] = $f;
-        }  
-        
+        }
+
         if(!empty($this->private_fields)) $this->private_flags = implode(",", $this->private_fields);
-        
+
         return $this->save();
     }
 
@@ -84,15 +166,15 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     /**
      * Get user by user id
      * @param interger $id
-     * @return User 
+     * @return User
      */
     public static function getUserById($id) {
         return User::where('id', $id)->first();
     }
-    
+
 
     // Set as username any column from users table
-    public function findForPassport($username) 
+    public function findForPassport($username)
     {
         $customUsername = 'email';
         return $this->where($customUsername, $username)->first();
