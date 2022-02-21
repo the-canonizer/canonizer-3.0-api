@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             NameSpaceSeeder::class,
             PagesSeeder::class,
             AdsSeeder::class,
+            ImageSeeder::class,
         ]);
     }
 }

@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Ads extends Model
+class Image extends Model
 {
-    protected $table = 'ads';
+    protected $table = 'images';
     public $timestamps = false;
 
     /**
@@ -15,7 +15,7 @@ class Ads extends Model
      * @var array
      */
     protected $fillable = [
-        'client_id', 'page_id', 'slot', 'format', 'adtest', 'is_responsive'
+        'page_id', 'title', 'description', 'route', 'url'
     ];
 
     /**
@@ -32,7 +32,7 @@ class Ads extends Model
      */
 
     /**
-     * Get the page that owns the ad.
+     * Get the page that owns the image.
      */
     public function page()
     {

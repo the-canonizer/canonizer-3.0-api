@@ -55,4 +55,5 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     });
 
     $router->post('/pageAdsListing','AdsController@pageAdsListing');
+    $router->post('/pageImagesListing','ImageController@pageImagesListing');
 });

@@ -2,31 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AdsRequest;
-use App\Http\Resources\AdsResource;
+use App\Http\Requests\ImageRequest;
+use App\Http\Resources\ImageResource;
 use App\Models\Page;
 use Illuminate\Http\Request;
 
-class AdsController extends Controller
+class ImageController extends Controller
 {
     /**
-     * Get ads list filtered by the specific page 
+     * Get the images list filtered by the specific page
      * 
-     * @param AdRequest $request
+     * @param ImageRequest $request
      * @param Page $pageName
      * @return Response
      */
-    public function pageAdsListing(AdsRequest $request)
+    public function pageImagesListing(ImageRequest $request) 
     {
         $pageName = $request->page_name;
-        $ads = [];
-        
+        $images = [];
+
         try {
             $page = Page::where('name', $pageName)->first();
             if($page) {
-                $ads = AdsResource::collection($page->ads);
+                $images = ImageResource::collection($page->images);
             }
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $ads, '');
+            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $images, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
         }
