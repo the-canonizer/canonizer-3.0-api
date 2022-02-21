@@ -75,21 +75,72 @@ class UserController extends Controller
      *   description="This is used to register the user.",
      *   operationId="createUser",
      *   @OA\RequestBody(
-     *       required=true,
      *       description="Created user object",
      *       @OA\MediaType(
      *           mediaType="multipart/form-data",
-     *           @OA\Schema(ref="#/components/schemas/User")
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="first_name",
+     *                  description="First Name of the User",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="middle_name",
+     *                  type="string",
+     *                  description="Middle Name of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="last_name",
+     *                  type="string",
+     *                  description="Last Name of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="email",
+     *                  type="string",
+     *                  description="Email Id of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="phone_number",
+     *                  type="string",
+     *                  description="Phone Number of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="password",
+     *                  type="string",
+     *                  description="Password of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="confirm_password",
+     *                  type="string",
+     *                  description="Confirm password string"
+     *              )
+     *          )
      *       )
      *   ),
-     *   @OA\Response(response="default", description="successful operation")
+     *
+     *   @OA\Response(
+     *      response=200,
+     *      description="success",
+     *      @OA\Schema(ref="#/components/schemas/User")
+     *   ),
+     *   @OA\Response(
+     *      response=400,
+     *      description="Something went wrong",
+     *      @OA\Schema(ref="#/components/schemas/ExceptionRes")
+     *   ),
+     *   @OA\Response(
+     *      response=401,
+     *      description="Unauthorised request"
+     *   )
+     *
+     *
      * )
      */
     public function createUser(Request $request, Validate $validate)
     {
 
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
-       
+
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
@@ -109,7 +160,7 @@ class UserController extends Controller
             ];
 
             $user = User::create($input);
-            
+
             if($user){
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
@@ -137,7 +188,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
         } catch (Exception $e) {
             $res = (object)[
                 "status_code" => 400,
@@ -358,7 +409,17 @@ class UserController extends Controller
      *         type="string"
      *     )
      *   ),
-     *   @OA\Response(response=400, description="Invalid username supplied"),
+     *   @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *   @OA\Response(
+     *      response=401,
+     *      description="Unauthenticated"
+     *   ),
      *   @OA\Response(response=404, description="User not found")
      * )
      */
@@ -375,7 +436,7 @@ class UserController extends Controller
         // Check whether user exists or not for the given id
         $user = User::getUserById($userID);
 
-       
+
         if(empty($user)) {
             return $nicknameCreated;
         }
@@ -386,7 +447,7 @@ class UserController extends Controller
         if($isExists === true) {
             $randNumber = mt_rand(000, 999);
             $nickname = $nickname.$randNumber;
-        } 
+        }
 
         try {
 
@@ -460,7 +521,7 @@ class UserController extends Controller
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
 
                 Event::dispatch(new WelcomeMailEvent($user));
-                
+
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
@@ -588,7 +649,7 @@ class UserController extends Controller
                 return (new SuccessResource($response))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
@@ -603,9 +664,9 @@ class UserController extends Controller
 
     public function countryList(Request $request)
     {
-        
+
         try {
-           
+
             $result = Country::where('status', 1)->get();
 
             if(empty($result)){
@@ -617,7 +678,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
             $response = (object)[
                 "status_code" => 200,
                 "message"     => "Success",
@@ -625,7 +686,7 @@ class UserController extends Controller
                 "data"        => $result
             ];
             return (new SuccessResource($response))->response()->setStatusCode(200);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
