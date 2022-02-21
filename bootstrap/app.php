@@ -116,9 +116,6 @@ $app->register(Laravel\Socialite\SocialiteServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 
-/* Form request */
-$app->register(\Anik\Form\FormRequestServiceProvider::class);
-
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
