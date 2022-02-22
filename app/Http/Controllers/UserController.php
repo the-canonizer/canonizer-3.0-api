@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Throwable;
 use App\Models\User;
 use App\Facades\Util;
 use App\Models\Country;
@@ -11,18 +12,20 @@ use App\Models\Nickname;
 use App\Jobs\WelcomeMail;
 use App\Models\SocialUser;
 use App\Events\SendOtpEvent;
-use App\Events\WelcomeMailEvent;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Events\WelcomeMailEvent;
+use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
-use Illuminate\Support\Facades\Event;
 
 class UserController extends Controller
 {
@@ -30,10 +33,11 @@ class UserController extends Controller
 
     private ValidationMessages $validationMessages;
 
-    public function __construct()
+    public function __construct(ResponseInterface $resProvider)
     {
         $this->rules = new ValidationRules;
         $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
     }
 
     public function clientToken(Request $request, Validate $validate)
@@ -164,20 +168,21 @@ class UserController extends Controller
             if($user){
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
+                try {
+                    Event::dispatch(new SendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
 
-                //  $job = new SendOtpJob($user);
-                //  dispatch($job)->onQueue('sendOtp');
-
-                Event::dispatch(new SendOtpEvent($user));
-               // Event::dispatch(new SendOtpEvent($user));
-
-                    $response = (object)[
-                        "status_code" => 200,
-                        "message"     => "Otp sent successfully on your registered Email Id",
-                        "error"       => null,
-                        "data"        => null
-                    ];
-                    return (new SuccessResource($response))->response()->setStatusCode(200);
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Otp sent successfully on your registered Email Id",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
 
             }else{
                 $res = (object)[
@@ -192,7 +197,7 @@ class UserController extends Controller
         } catch (Exception $e) {
             $res = (object)[
                 "status_code" => 400,
-                "message"     => "Something went wrong",
+                "message"     => $e->getMessage(),
                 "error"       => null,
                 "data"        => null
             ];
@@ -268,6 +273,12 @@ class UserController extends Controller
                     "data"        => null
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(401);
+            }
+
+            if($user->status != 1){
+                $status = 401;
+                $message = config('message.error.account_not_verified');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
