@@ -5,7 +5,9 @@ return [
         'exception'      => 'Something went wrong',
         'update_profile' => 'Failed to update profile, please try again.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
-        'email_invalid'  => 'Invalid Email Id!'
+        'email_invalid'  => 'Invalid Email Id!',
+        'account_not_verified'  => 'Your account is not verified!',
+        'otp_failed' => 'Failed to Send OTP.',
     ],
     'success' => [
         'success'          => 'Success',

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ResponseInterface;
 use Exception;
+use Throwable;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
@@ -107,7 +108,13 @@ class ForgotPasswordController extends Controller
                 $user->otp = $authCode;
                 $user->status = 0;
                 $user->update();
-                Event::dispatch(new ForgotPasswordSendOtpEvent($user));
+                try {
+                    Event::dispatch(new ForgotPasswordSendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
                 $status = 200;
                 $message = config('message.success.forgot_password');
             } else {
