@@ -15,7 +15,7 @@ class Countries extends Migration
     public function up()
     {
         Schema::create('countries', function (Blueprint $table) {
-            $table->integer('id');
+            $table->bigIncrements('id');
             $table->string('phone_code', 255);
             $table->string('country_code', 255);
             $table->string('name', 255);
