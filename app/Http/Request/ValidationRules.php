@@ -124,4 +124,11 @@ class ValidationRules
             'otp' => 'required|digits:6',
         ]);
     }
+
+    public function getUserReSendOtpValidationRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225',
+        ]);
+    }
 }

@@ -708,4 +708,102 @@ class UserController extends Controller
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
     }
+
+
+        /**
+     * @OA\Post(path="/user/reSendOtp",
+     *   tags={"user"},
+     *   summary="User Resend Otp",
+     *   description="This api used to Resend Otp",
+     *   operationId="userReSend",
+     * @OA\Parameter(
+     *     name="email",
+     *     required=true,
+     *     in="body",
+     *     description="User Email Id",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="array",
+     *                                 @OA\Items(
+     *                                         name="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="data",
+     *                                         type="array"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *   @OA\Response(response=400, description="Exception occurs",
+     *                             @OA\JsonContent(
+     *                                 type="array",
+     *                                 @OA\Items(
+     *                                         name="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="error",
+     *                                         type="array"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="data",
+     *                                         type="string"
+     *                                    )
+     *                                 )
+     *                             )
+     *
+     * )
+     */
+
+    public function reSendOtp(Request $request, Validate $validate)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getUserReSendOtpValidationRules(), $this->validationMessages->getUserReSendOtpValidationMessages());
+
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $user = User::where('email', '=', $request->email)->first();
+
+            if ($user) {
+                $authCode = mt_rand(100000, 999999);
+                $user->otp = $authCode;
+                $user->status = 0;
+                $user->update();
+                try {
+                    Event::dispatch(new SendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
+                $status = 200;
+                $message = config('message.success.forgot_password');
+            } else {
+                $status = 400;
+                $message = config('message.error.email_invalid');
+            }
+            return $this->resProvider->apiJsonResponse($status, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
+        }
+    }
 }
