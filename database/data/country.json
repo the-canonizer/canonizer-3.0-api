@@ -1,0 +1,1514 @@
+[
+    {
+        "phone_code": "+93",
+        "country_code": "AF",
+        "name": "Afghanistan",
+        "alpha_3": "AFG"
+    },
+    {
+        "phone_code": "+358",
+        "country_code": "AX",
+        "name": "Aland Islands",
+        "alpha_3": "ALA"
+    },
+    {
+        "phone_code": "+355",
+        "country_code": "AL",
+        "name": "Albania",
+        "alpha_3": "ALB"
+    },
+    {
+        "phone_code": "+213",
+        "country_code": "DZ",
+        "name": "Algeria",
+        "alpha_3": "DZA"
+    },
+    {
+        "phone_code": "+1684",
+        "country_code": "AS",
+        "name": "American Samoa",
+        "alpha_3": "ASM"
+    },
+    {
+        "phone_code": "+376",
+        "country_code": "AD",
+        "name": "Andorra",
+        "alpha_3": "AND"
+    },
+    {
+        "phone_code": "+244",
+        "country_code": "AO",
+        "name": "Angola",
+        "alpha_3": "AGO"
+    },
+    {
+        "phone_code": "+1264",
+        "country_code": "AI",
+        "name": "Anguilla",
+        "alpha_3": "AIA"
+    },
+    {
+        "phone_code": "+672",
+        "country_code": "AQ",
+        "name": "Antarctica",
+        "alpha_3": "ATA"
+    },
+    {
+        "phone_code": "+1268",
+        "country_code": "AG",
+        "name": "Antigua and Barbuda",
+        "alpha_3": "ATG"
+    },
+    {
+        "phone_code": "+54",
+        "country_code": "AR",
+        "name": "Argentina",
+        "alpha_3": "ARG"
+    },
+    {
+        "phone_code": "+374",
+        "country_code": "AM",
+        "name": "Armenia",
+        "alpha_3": "ARM"
+    },
+    {
+        "phone_code": "+297",
+        "country_code": "AW",
+        "name": "Aruba",
+        "alpha_3": "ABW"
+    },
+    {
+        "phone_code": "+61",
+        "country_code": "AU",
+        "name": "Australia",
+        "alpha_3": "AUS"
+    },
+    {
+        "phone_code": "+43",
+        "country_code": "AT",
+        "name": "Austria",
+        "alpha_3": "AUT"
+    },
+    {
+        "phone_code": "+994",
+        "country_code": "AZ",
+        "name": "Azerbaijan",
+        "alpha_3": "AZE"
+    },
+    {
+        "phone_code": "+1242",
+        "country_code": "BS",
+        "name": "Bahamas",
+        "alpha_3": "BHS"
+    },
+    {
+        "phone_code": "+973",
+        "country_code": "BH",
+        "name": "Bahrain",
+        "alpha_3": "BHR"
+    },
+    {
+        "phone_code": "+880",
+        "country_code": "BD",
+        "name": "Bangladesh",
+        "alpha_3": "BGD"
+    },
+    {
+        "phone_code": "+1246",
+        "country_code": "BB",
+        "name": "Barbados",
+        "alpha_3": "BRB"
+    },
+    {
+        "phone_code": "+375",
+        "country_code": "BY",
+        "name": "Belarus",
+        "alpha_3": "BLR"
+    },
+    {
+        "phone_code": "+32",
+        "country_code": "BE",
+        "name": "Belgium",
+        "alpha_3": "BEL"
+    },
+    {
+        "phone_code": "+501",
+        "country_code": "BZ",
+        "name": "Belize",
+        "alpha_3": "BLZ"
+    },
+    {
+        "phone_code": "+229",
+        "country_code": "BJ",
+        "name": "Benin",
+        "alpha_3": "BEN"
+    },
+    {
+        "phone_code": "+1441",
+        "country_code": "BM",
+        "name": "Bermuda",
+        "alpha_3": "BMU"
+    },
+    {
+        "phone_code": "+975",
+        "country_code": "BT",
+        "name": "Bhutan",
+        "alpha_3": "BTN"
+    },
+    {
+        "phone_code": "+591",
+        "country_code": "BO",
+        "name": "Bolivia",
+        "alpha_3": "BOL"
+    },
+    {
+        "phone_code": "+599",
+        "country_code": "BQ",
+        "name": "Bonaire, Sint Eustatius and Saba",
+        "alpha_3": "BES"
+    },
+    {
+        "phone_code": "+387",
+        "country_code": "BA",
+        "name": "Bosnia and Herzegovina",
+        "alpha_3": "BIH"
+    },
+    {
+        "phone_code": "+267",
+        "country_code": "BW",
+        "name": "Botswana",
+        "alpha_3": "BWA"
+    },
+    {
+        "phone_code": "+55",
+        "country_code": "BV",
+        "name": "Bouvet Island",
+        "alpha_3": "BVT"
+    },
+    {
+        "phone_code": "+55",
+        "country_code": "BR",
+        "name": "Brazil",
+        "alpha_3": "BRA"
+    },
+    {
+        "phone_code": "+246",
+        "country_code": "IO",
+        "name": "British Indian Ocean Territory",
+        "alpha_3": "IOT"
+    },
+    {
+        "phone_code": "+673",
+        "country_code": "BN",
+        "name": "Brunei Darussalam",
+        "alpha_3": "BRN"
+    },
+    {
+        "phone_code": "+359",
+        "country_code": "BG",
+        "name": "Bulgaria",
+        "alpha_3": "BGR"
+    },
+    {
+        "phone_code": "+226",
+        "country_code": "BF",
+        "name": "Burkina Faso",
+        "alpha_3": "BFA"
+    },
+    {
+        "phone_code": "+257",
+        "country_code": "BI",
+        "name": "Burundi",
+        "alpha_3": "BDI"
+    },
+    {
+        "phone_code": "+855",
+        "country_code": "KH",
+        "name": "Cambodia",
+        "alpha_3": "KHM"
+    },
+    {
+        "phone_code": "+237",
+        "country_code": "CM",
+        "name": "Cameroon",
+        "alpha_3": "CMR"
+    },
+    {
+        "phone_code": "+1",
+        "country_code": "CA",
+        "name": "Canada",
+        "alpha_3": "CAN"
+    },
+    {
+        "phone_code": "+238",
+        "country_code": "CV",
+        "name": "Cape Verde",
+        "alpha_3": "CPV"
+    },
+    {
+        "phone_code": "+1345",
+        "country_code": "KY",
+        "name": "Cayman Islands",
+        "alpha_3": "CYM"
+    },
+    {
+        "phone_code": "+236",
+        "country_code": "CF",
+        "name": "Central African Republic",
+        "alpha_3": "CAF"
+    },
+    {
+        "phone_code": "+235",
+        "country_code": "TD",
+        "name": "Chad",
+        "alpha_3": "TCD"
+    },
+    {
+        "phone_code": "+56",
+        "country_code": "CL",
+        "name": "Chile",
+        "alpha_3": "CHL"
+    },
+    {
+        "phone_code": "+86",
+        "country_code": "CN",
+        "name": "China",
+        "alpha_3": "CHN"
+    },
+    {
+        "phone_code": "+61",
+        "country_code": "CX",
+        "name": "Christmas Island",
+        "alpha_3": "CXR"
+    },
+    {
+        "phone_code": "+672",
+        "country_code": "CC",
+        "name": "Cocos (Keeling) Islands",
+        "alpha_3": "CCK"
+    },
+    {
+        "phone_code": "+57",
+        "country_code": "CO",
+        "name": "Colombia",
+        "alpha_3": "COL"
+    },
+    {
+        "phone_code": "+269",
+        "country_code": "KM",
+        "name": "Comoros",
+        "alpha_3": "COM"
+    },
+    {
+        "phone_code": "+242",
+        "country_code": "CG",
+        "name": "Congo",
+        "alpha_3": "COG"
+    },
+    {
+        "phone_code": "+242",
+        "country_code": "CD",
+        "name": "Congo, Democratic Republic of the Congo",
+        "alpha_3": "COD"
+    },
+    {
+        "phone_code": "+682",
+        "country_code": "CK",
+        "name": "Cook Islands",
+        "alpha_3": "COK"
+    },
+    {
+        "phone_code": "+506",
+        "country_code": "CR",
+        "name": "Costa Rica",
+        "alpha_3": "CRI"
+    },
+    {
+        "phone_code": "+225",
+        "country_code": "CI",
+        "name": "Cote D'Ivoire",
+        "alpha_3": "CIV"
+    },
+    {
+        "phone_code": "+385",
+        "country_code": "HR",
+        "name": "Croatia",
+        "alpha_3": "HRV"
+    },
+    {
+        "phone_code": "+53",
+        "country_code": "CU",
+        "name": "Cuba",
+        "alpha_3": "CUB"
+    },
+    {
+        "phone_code": "+599",
+        "country_code": "CW",
+        "name": "Curacao",
+        "alpha_3": "CUW"
+    },
+    {
+        "phone_code": "+357",
+        "country_code": "CY",
+        "name": "Cyprus",
+        "alpha_3": "CYP"
+    },
+    {
+        "phone_code": "+420",
+        "country_code": "CZ",
+        "name": "Czech Republic",
+        "alpha_3": "CZE"
+    },
+    {
+        "phone_code": "+45",
+        "country_code": "DK",
+        "name": "Denmark",
+        "alpha_3": "DNK"
+    },
+    {
+        "phone_code": "+253",
+        "country_code": "DJ",
+        "name": "Djibouti",
+        "alpha_3": "DJI"
+    },
+    {
+        "phone_code": "+1767",
+        "country_code": "DM",
+        "name": "Dominica",
+        "alpha_3": "DMA"
+    },
+    {
+        "phone_code": "+1809",
+        "country_code": "DO",
+        "name": "Dominican Republic",
+        "alpha_3": "DOM"
+    },
+    {
+        "phone_code": "+593",
+        "country_code": "EC",
+        "name": "Ecuador",
+        "alpha_3": "ECU"
+    },
+    {
+        "phone_code": "+20",
+        "country_code": "EG",
+        "name": "Egypt",
+        "alpha_3": "EGY"
+    },
+    {
+        "phone_code": "+503",
+        "country_code": "SV",
+        "name": "El Salvador",
+        "alpha_3": "SLV"
+    },
+    {
+        "phone_code": "+240",
+        "country_code": "GQ",
+        "name": "Equatorial Guinea",
+        "alpha_3": "GNQ"
+    },
+    {
+        "phone_code": "+291",
+        "country_code": "ER",
+        "name": "Eritrea",
+        "alpha_3": "ERI"
+    },
+    {
+        "phone_code": "+372",
+        "country_code": "EE",
+        "name": "Estonia",
+        "alpha_3": "EST"
+    },
+    {
+        "phone_code": "+251",
+        "country_code": "ET",
+        "name": "Ethiopia",
+        "alpha_3": "ETH"
+    },
+    {
+        "phone_code": "+500",
+        "country_code": "FK",
+        "name": "Falkland Islands (Malvinas)",
+        "alpha_3": "FLK"
+    },
+    {
+        "phone_code": "+298",
+        "country_code": "FO",
+        "name": "Faroe Islands",
+        "alpha_3": "FRO"
+    },
+    {
+        "phone_code": "+679",
+        "country_code": "FJ",
+        "name": "Fiji",
+        "alpha_3": "FJI"
+    },
+    {
+        "phone_code": "+358",
+        "country_code": "FI",
+        "name": "Finland",
+        "alpha_3": "FIN"
+    },
+    {
+        "phone_code": "+33",
+        "country_code": "FR",
+        "name": "France",
+        "alpha_3": "FRA"
+    },
+    {
+        "phone_code": "+594",
+        "country_code": "GF",
+        "name": "French Guiana",
+        "alpha_3": "GUF"
+    },
+    {
+        "phone_code": "+689",
+        "country_code": "PF",
+        "name": "French Polynesia",
+        "alpha_3": "PYF"
+    },
+    {
+        "phone_code": "+262",
+        "country_code": "TF",
+        "name": "French Southern Territories",
+        "alpha_3": "ATF"
+    },
+    {
+        "phone_code": "+241",
+        "country_code": "GA",
+        "name": "Gabon",
+        "alpha_3": "GAB"
+    },
+    {
+        "phone_code": "+220",
+        "country_code": "GM",
+        "name": "Gambia",
+        "alpha_3": "GMB"
+    },
+    {
+        "phone_code": "+995",
+        "country_code": "GE",
+        "name": "Georgia",
+        "alpha_3": "GEO"
+    },
+    {
+        "phone_code": "+49",
+        "country_code": "DE",
+        "name": "Germany",
+        "alpha_3": "DEU"
+    },
+    {
+        "phone_code": "+233",
+        "country_code": "GH",
+        "name": "Ghana",
+        "alpha_3": "GHA"
+    },
+    {
+        "phone_code": "+350",
+        "country_code": "GI",
+        "name": "Gibraltar",
+        "alpha_3": "GIB"
+    },
+    {
+        "phone_code": "+30",
+        "country_code": "GR",
+        "name": "Greece",
+        "alpha_3": "GRC"
+    },
+    {
+        "phone_code": "+299",
+        "country_code": "GL",
+        "name": "Greenland",
+        "alpha_3": "GRL"
+    },
+    {
+        "phone_code": "+1473",
+        "country_code": "GD",
+        "name": "Grenada",
+        "alpha_3": "GRD"
+    },
+    {
+        "phone_code": "+590",
+        "country_code": "GP",
+        "name": "Guadeloupe",
+        "alpha_3": "GLP"
+    },
+    {
+        "phone_code": "+1671",
+        "country_code": "GU",
+        "name": "Guam",
+        "alpha_3": "GUM"
+    },
+    {
+        "phone_code": "+502",
+        "country_code": "GT",
+        "name": "Guatemala",
+        "alpha_3": "GTM"
+    },
+    {
+        "phone_code": "+44",
+        "country_code": "GG",
+        "name": "Guernsey",
+        "alpha_3": "GGY"
+    },
+    {
+        "phone_code": "+224",
+        "country_code": "GN",
+        "name": "Guinea",
+        "alpha_3": "GIN"
+    },
+    {
+        "phone_code": "+245",
+        "country_code": "GW",
+        "name": "Guinea-Bissau",
+        "alpha_3": "GNB"
+    },
+    {
+        "phone_code": "+592",
+        "country_code": "GY",
+        "name": "Guyana",
+        "alpha_3": "GUY"
+    },
+    {
+        "phone_code": "+509",
+        "country_code": "HT",
+        "name": "Haiti",
+        "alpha_3": "HTI"
+    },
+    {
+        "phone_code": "+0",
+        "country_code": "HM",
+        "name": "Heard Island and Mcdonald Islands",
+        "alpha_3": "HMD"
+    },
+    {
+        "phone_code": "+39",
+        "country_code": "VA",
+        "name": "Holy See (Vatican City State)",
+        "alpha_3": "VAT"
+    },
+    {
+        "phone_code": "+504",
+        "country_code": "HN",
+        "name": "Honduras",
+        "alpha_3": "HND"
+    },
+    {
+        "phone_code": "+852",
+        "country_code": "HK",
+        "name": "Hong Kong",
+        "alpha_3": "HKG"
+    },
+    {
+        "phone_code": "+36",
+        "country_code": "HU",
+        "name": "Hungary",
+        "alpha_3": "HUN"
+    },
+    {
+        "phone_code": "+354",
+        "country_code": "IS",
+        "name": "Iceland",
+        "alpha_3": "ISL"
+    },
+    {
+        "phone_code": "+91",
+        "country_code": "IN",
+        "name": "India",
+        "alpha_3": "IND"
+    },
+    {
+        "phone_code": "+62",
+        "country_code": "ID",
+        "name": "Indonesia",
+        "alpha_3": "IDN"
+    },
+    {
+        "phone_code": "+98",
+        "country_code": "IR",
+        "name": "Iran, Islamic Republic of",
+        "alpha_3": "IRN"
+    },
+    {
+        "phone_code": "+964",
+        "country_code": "IQ",
+        "name": "Iraq",
+        "alpha_3": "IRQ"
+    },
+    {
+        "phone_code": "+353",
+        "country_code": "IE",
+        "name": "Ireland",
+        "alpha_3": "IRL"
+    },
+    {
+        "phone_code": "+44",
+        "country_code": "IM",
+        "name": "Isle of Man",
+        "alpha_3": "IMN"
+    },
+    {
+        "phone_code": "+972",
+        "country_code": "IL",
+        "name": "Israel",
+        "alpha_3": "ISR"
+    },
+    {
+        "phone_code": "+39",
+        "country_code": "IT",
+        "name": "Italy",
+        "alpha_3": "ITA"
+    },
+    {
+        "phone_code": "+1876",
+        "country_code": "JM",
+        "name": "Jamaica",
+        "alpha_3": "JAM"
+    },
+    {
+        "phone_code": "+81",
+        "country_code": "JP",
+        "name": "Japan",
+        "alpha_3": "JPN"
+    },
+    {
+        "phone_code": "+44",
+        "country_code": "JE",
+        "name": "Jersey",
+        "alpha_3": "JEY"
+    },
+    {
+        "phone_code": "+962",
+        "country_code": "JO",
+        "name": "Jordan",
+        "alpha_3": "JOR"
+    },
+    {
+        "phone_code": "+7",
+        "country_code": "KZ",
+        "name": "Kazakhstan",
+        "alpha_3": "KAZ"
+    },
+    {
+        "phone_code": "+254",
+        "country_code": "KE",
+        "name": "Kenya",
+        "alpha_3": "KEN"
+    },
+    {
+        "phone_code": "+686",
+        "country_code": "KI",
+        "name": "Kiribati",
+        "alpha_3": "KIR"
+    },
+    {
+        "phone_code": "+850",
+        "country_code": "KP",
+        "name": "Korea, Democratic People's Republic of",
+        "alpha_3": "PRK"
+    },
+    {
+        "phone_code": "+82",
+        "country_code": "KR",
+        "name": "Korea, Republic of",
+        "alpha_3": "KOR"
+    },
+    {
+        "phone_code": "+381",
+        "country_code": "XK",
+        "name": "Kosovo",
+        "alpha_3": "XKX"
+    },
+    {
+        "phone_code": "+965",
+        "country_code": "KW",
+        "name": "Kuwait",
+        "alpha_3": "KWT"
+    },
+    {
+        "phone_code": "+996",
+        "country_code": "KG",
+        "name": "Kyrgyzstan",
+        "alpha_3": "KGZ"
+    },
+    {
+        "phone_code": "+856",
+        "country_code": "LA",
+        "name": "Lao People's Democratic Republic",
+        "alpha_3": "LAO"
+    },
+    {
+        "phone_code": "+371",
+        "country_code": "LV",
+        "name": "Latvia",
+        "alpha_3": "LVA"
+    },
+    {
+        "phone_code": "+961",
+        "country_code": "LB",
+        "name": "Lebanon",
+        "alpha_3": "LBN"
+    },
+    {
+        "phone_code": "+266",
+        "country_code": "LS",
+        "name": "Lesotho",
+        "alpha_3": "LSO"
+    },
+    {
+        "phone_code": "+231",
+        "country_code": "LR",
+        "name": "Liberia",
+        "alpha_3": "LBR"
+    },
+    {
+        "phone_code": "+218",
+        "country_code": "LY",
+        "name": "Libyan Arab Jamahiriya",
+        "alpha_3": "LBY"
+    },
+    {
+        "phone_code": "+423",
+        "country_code": "LI",
+        "name": "Liechtenstein",
+        "alpha_3": "LIE"
+    },
+    {
+        "phone_code": "+370",
+        "country_code": "LT",
+        "name": "Lithuania",
+        "alpha_3": "LTU"
+    },
+    {
+        "phone_code": "+352",
+        "country_code": "LU",
+        "name": "Luxembourg",
+        "alpha_3": "LUX"
+    },
+    {
+        "phone_code": "+853",
+        "country_code": "MO",
+        "name": "Macao",
+        "alpha_3": "MAC"
+    },
+    {
+        "phone_code": "+389",
+        "country_code": "MK",
+        "name": "Macedonia, the Former Yugoslav Republic of",
+        "alpha_3": "MKD"
+    },
+    {
+        "phone_code": "+261",
+        "country_code": "MG",
+        "name": "Madagascar",
+        "alpha_3": "MDG"
+    },
+    {
+        "phone_code": "+265",
+        "country_code": "MW",
+        "name": "Malawi",
+        "alpha_3": "MWI"
+    },
+    {
+        "phone_code": "+60",
+        "country_code": "MY",
+        "name": "Malaysia",
+        "alpha_3": "MYS"
+    },
+    {
+        "phone_code": "+960",
+        "country_code": "MV",
+        "name": "Maldives",
+        "alpha_3": "MDV"
+    },
+    {
+        "phone_code": "+223",
+        "country_code": "ML",
+        "name": "Mali",
+        "alpha_3": "MLI"
+    },
+    {
+        "phone_code": "+356",
+        "country_code": "MT",
+        "name": "Malta",
+        "alpha_3": "MLT"
+    },
+    {
+        "phone_code": "+692",
+        "country_code": "MH",
+        "name": "Marshall Islands",
+        "alpha_3": "MHL"
+    },
+    {
+        "phone_code": "+596",
+        "country_code": "MQ",
+        "name": "Martinique",
+        "alpha_3": "MTQ"
+    },
+    {
+        "phone_code": "+222",
+        "country_code": "MR",
+        "name": "Mauritania",
+        "alpha_3": "MRT"
+    },
+    {
+        "phone_code": "+230",
+        "country_code": "MU",
+        "name": "Mauritius",
+        "alpha_3": "MUS"
+    },
+    {
+        "phone_code": "+269",
+        "country_code": "YT",
+        "name": "Mayotte",
+        "alpha_3": "MYT"
+    },
+    {
+        "phone_code": "+52",
+        "country_code": "MX",
+        "name": "Mexico",
+        "alpha_3": "MEX"
+    },
+    {
+        "phone_code": "+691",
+        "country_code": "FM",
+        "name": "Micronesia, Federated States of",
+        "alpha_3": "FSM"
+    },
+    {
+        "phone_code": "+373",
+        "country_code": "MD",
+        "name": "Moldova, Republic of",
+        "alpha_3": "MDA"
+    },
+    {
+        "phone_code": "+377",
+        "country_code": "MC",
+        "name": "Monaco",
+        "alpha_3": "MCO"
+    },
+    {
+        "phone_code": "+976",
+        "country_code": "MN",
+        "name": "Mongolia",
+        "alpha_3": "MNG"
+    },
+    {
+        "phone_code": "+382",
+        "country_code": "ME",
+        "name": "Montenegro",
+        "alpha_3": "MNE"
+    },
+    {
+        "phone_code": "+1664",
+        "country_code": "MS",
+        "name": "Montserrat",
+        "alpha_3": "MSR"
+    },
+    {
+        "phone_code": "+212",
+        "country_code": "MA",
+        "name": "Morocco",
+        "alpha_3": "MAR"
+    },
+    {
+        "phone_code": "+258",
+        "country_code": "MZ",
+        "name": "Mozambique",
+        "alpha_3": "MOZ"
+    },
+    {
+        "phone_code": "+95",
+        "country_code": "MM",
+        "name": "Myanmar",
+        "alpha_3": "MMR"
+    },
+    {
+        "phone_code": "+264",
+        "country_code": "NA",
+        "name": "Namibia",
+        "alpha_3": "NAM"
+    },
+    {
+        "phone_code": "+674",
+        "country_code": "NR",
+        "name": "Nauru",
+        "alpha_3": "NRU"
+    },
+    {
+        "phone_code": "+977",
+        "country_code": "NP",
+        "name": "Nepal",
+        "alpha_3": "NPL"
+    },
+    {
+        "phone_code": "+31",
+        "country_code": "NL",
+        "name": "Netherlands",
+        "alpha_3": "NLD"
+    },
+    {
+        "phone_code": "+599",
+        "country_code": "AN",
+        "name": "Netherlands Antilles",
+        "alpha_3": "ANT"
+    },
+    {
+        "phone_code": "+687",
+        "country_code": "NC",
+        "name": "New Caledonia",
+        "alpha_3": "NCL"
+    },
+    {
+        "phone_code": "+64",
+        "country_code": "NZ",
+        "name": "New Zealand",
+        "alpha_3": "NZL"
+    },
+    {
+        "phone_code": "+505",
+        "country_code": "NI",
+        "name": "Nicaragua",
+        "alpha_3": "NIC"
+    },
+    {
+        "phone_code": "+227",
+        "country_code": "NE",
+        "name": "Niger",
+        "alpha_3": "NER"
+    },
+    {
+        "phone_code": "+234",
+        "country_code": "NG",
+        "name": "Nigeria",
+        "alpha_3": "NGA"
+    },
+    {
+        "phone_code": "+683",
+        "country_code": "NU",
+        "name": "Niue",
+        "alpha_3": "NIU"
+    },
+    {
+        "phone_code": "+672",
+        "country_code": "NF",
+        "name": "Norfolk Island",
+        "alpha_3": "NFK"
+    },
+    {
+        "phone_code": "+1670",
+        "country_code": "MP",
+        "name": "Northern Mariana Islands",
+        "alpha_3": "MNP"
+    },
+    {
+        "phone_code": "+47",
+        "country_code": "NO",
+        "name": "Norway",
+        "alpha_3": "NOR"
+    },
+    {
+        "phone_code": "+968",
+        "country_code": "OM",
+        "name": "Oman",
+        "alpha_3": "OMN"
+    },
+    {
+        "phone_code": "+92",
+        "country_code": "PK",
+        "name": "Pakistan",
+        "alpha_3": "PAK"
+    },
+    {
+        "phone_code": "+680",
+        "country_code": "PW",
+        "name": "Palau",
+        "alpha_3": "PLW"
+    },
+    {
+        "phone_code": "+970",
+        "country_code": "PS",
+        "name": "Palestinian Territory, Occupied",
+        "alpha_3": "PSE"
+    },
+    {
+        "phone_code": "+507",
+        "country_code": "PA",
+        "name": "Panama",
+        "alpha_3": "PAN"
+    },
+    {
+        "phone_code": "+675",
+        "country_code": "PG",
+        "name": "Papua New Guinea",
+        "alpha_3": "PNG"
+    },
+    {
+        "phone_code": "+595",
+        "country_code": "PY",
+        "name": "Paraguay",
+        "alpha_3": "PRY"
+    },
+    {
+        "phone_code": "+51",
+        "country_code": "PE",
+        "name": "Peru",
+        "alpha_3": "PER"
+    },
+    {
+        "phone_code": "+63",
+        "country_code": "PH",
+        "name": "Philippines",
+        "alpha_3": "PHL"
+    },
+    {
+        "phone_code": "+64",
+        "country_code": "PN",
+        "name": "Pitcairn",
+        "alpha_3": "PCN"
+    },
+    {
+        "phone_code": "+48",
+        "country_code": "PL",
+        "name": "Poland",
+        "alpha_3": "POL"
+    },
+    {
+        "phone_code": "+351",
+        "country_code": "PT",
+        "name": "Portugal",
+        "alpha_3": "PRT"
+    },
+    {
+        "phone_code": "+1787",
+        "country_code": "PR",
+        "name": "Puerto Rico",
+        "alpha_3": "PRI"
+    },
+    {
+        "phone_code": "+974",
+        "country_code": "QA",
+        "name": "Qatar",
+        "alpha_3": "QAT"
+    },
+    {
+        "phone_code": "+262",
+        "country_code": "RE",
+        "name": "Reunion",
+        "alpha_3": "REU"
+    },
+    {
+        "phone_code": "+40",
+        "country_code": "RO",
+        "name": "Romania",
+        "alpha_3": "ROM"
+    },
+    {
+        "phone_code": "+70",
+        "country_code": "RU",
+        "name": "Russian Federation",
+        "alpha_3": "RUS"
+    },
+    {
+        "phone_code": "+250",
+        "country_code": "RW",
+        "name": "Rwanda",
+        "alpha_3": "RWA"
+    },
+    {
+        "phone_code": "+590",
+        "country_code": "BL",
+        "name": "Saint Barthelemy",
+        "alpha_3": "BLM"
+    },
+    {
+        "phone_code": "+290",
+        "country_code": "SH",
+        "name": "Saint Helena",
+        "alpha_3": "SHN"
+    },
+    {
+        "phone_code": "+1869",
+        "country_code": "KN",
+        "name": "Saint Kitts and Nevis",
+        "alpha_3": "KNA"
+    },
+    {
+        "phone_code": "+1758",
+        "country_code": "LC",
+        "name": "Saint Lucia",
+        "alpha_3": "LCA"
+    },
+    {
+        "phone_code": "+590",
+        "country_code": "MF",
+        "name": "Saint Martin",
+        "alpha_3": "MAF"
+    },
+    {
+        "phone_code": "+508",
+        "country_code": "PM",
+        "name": "Saint Pierre and Miquelon",
+        "alpha_3": "SPM"
+    },
+    {
+        "phone_code": "+1784",
+        "country_code": "VC",
+        "name": "Saint Vincent and the Grenadines",
+        "alpha_3": "VCT"
+    },
+    {
+        "phone_code": "+684",
+        "country_code": "WS",
+        "name": "Samoa",
+        "alpha_3": "WSM"
+    },
+    {
+        "phone_code": "+378",
+        "country_code": "SM",
+        "name": "San Marino",
+        "alpha_3": "SMR"
+    },
+    {
+        "phone_code": "+239",
+        "country_code": "ST",
+        "name": "Sao Tome and Principe",
+        "alpha_3": "STP"
+    },
+    {
+        "phone_code": "+966",
+        "country_code": "SA",
+        "name": "Saudi Arabia",
+        "alpha_3": "SAU"
+    },
+    {
+        "phone_code": "+221",
+        "country_code": "SN",
+        "name": "Senegal",
+        "alpha_3": "SEN"
+    },
+    {
+        "phone_code": "+381",
+        "country_code": "RS",
+        "name": "Serbia",
+        "alpha_3": "SRB"
+    },
+    {
+        "phone_code": "+381",
+        "country_code": "CS",
+        "name": "Serbia and Montenegro",
+        "alpha_3": "SCG"
+    },
+    {
+        "phone_code": "+248",
+        "country_code": "SC",
+        "name": "Seychelles",
+        "alpha_3": "SYC"
+    },
+    {
+        "phone_code": "+232",
+        "country_code": "SL",
+        "name": "Sierra Leone",
+        "alpha_3": "SLE"
+    },
+    {
+        "phone_code": "+65",
+        "country_code": "SG",
+        "name": "Singapore",
+        "alpha_3": "SGP"
+    },
+    {
+        "phone_code": "+1",
+        "country_code": "SX",
+        "name": "Sint Maarten",
+        "alpha_3": "SXM"
+    },
+    {
+        "phone_code": "+421",
+        "country_code": "SK",
+        "name": "Slovakia",
+        "alpha_3": "SVK"
+    },
+    {
+        "phone_code": "+386",
+        "country_code": "SI",
+        "name": "Slovenia",
+        "alpha_3": "SVN"
+    },
+    {
+        "phone_code": "+677",
+        "country_code": "SB",
+        "name": "Solomon Islands",
+        "alpha_3": "SLB"
+    },
+    {
+        "phone_code": "+252",
+        "country_code": "SO",
+        "name": "Somalia",
+        "alpha_3": "SOM"
+    },
+    {
+        "phone_code": "+27",
+        "country_code": "ZA",
+        "name": "South Africa",
+        "alpha_3": "ZAF"
+    },
+    {
+        "phone_code": "+500",
+        "country_code": "GS",
+        "name": "South Georgia and the South Sandwich Islands",
+        "alpha_3": "SGS"
+    },
+    {
+        "phone_code": "+211",
+        "country_code": "SS",
+        "name": "South Sudan",
+        "alpha_3": "SSD"
+    },
+    {
+        "phone_code": "+34",
+        "country_code": "ES",
+        "name": "Spain",
+        "alpha_3": "ESP"
+    },
+    {
+        "phone_code": "+94",
+        "country_code": "LK",
+        "name": "Sri Lanka",
+        "alpha_3": "LKA"
+    },
+    {
+        "phone_code": "+249",
+        "country_code": "SD",
+        "name": "Sudan",
+        "alpha_3": "SDN"
+    },
+    {
+        "phone_code": "+597",
+        "country_code": "SR",
+        "name": "Suriname",
+        "alpha_3": "SUR"
+    },
+    {
+        "phone_code": "+47",
+        "country_code": "SJ",
+        "name": "Svalbard and Jan Mayen",
+        "alpha_3": "SJM"
+    },
+    {
+        "phone_code": "+268",
+        "country_code": "SZ",
+        "name": "Swaziland",
+        "alpha_3": "SWZ"
+    },
+    {
+        "phone_code": "+46",
+        "country_code": "SE",
+        "name": "Sweden",
+        "alpha_3": "SWE"
+    },
+    {
+        "phone_code": "+41",
+        "country_code": "CH",
+        "name": "Switzerland",
+        "alpha_3": "CHE"
+    },
+    {
+        "phone_code": "+963",
+        "country_code": "SY",
+        "name": "Syrian Arab Republic",
+        "alpha_3": "SYR"
+    },
+    {
+        "phone_code": "+886",
+        "country_code": "TW",
+        "name": "Taiwan, Province of China",
+        "alpha_3": "TWN"
+    },
+    {
+        "phone_code": "+992",
+        "country_code": "TJ",
+        "name": "Tajikistan",
+        "alpha_3": "TJK"
+    },
+    {
+        "phone_code": "+255",
+        "country_code": "TZ",
+        "name": "Tanzania, United Republic of",
+        "alpha_3": "TZA"
+    },
+    {
+        "phone_code": "+66",
+        "country_code": "TH",
+        "name": "Thailand",
+        "alpha_3": "THA"
+    },
+    {
+        "phone_code": "+670",
+        "country_code": "TL",
+        "name": "Timor-Leste",
+        "alpha_3": "TLS"
+    },
+    {
+        "phone_code": "+228",
+        "country_code": "TG",
+        "name": "Togo",
+        "alpha_3": "TGO"
+    },
+    {
+        "phone_code": "+690",
+        "country_code": "TK",
+        "name": "Tokelau",
+        "alpha_3": "TKL"
+    },
+    {
+        "phone_code": "+676",
+        "country_code": "TO",
+        "name": "Tonga",
+        "alpha_3": "TON"
+    },
+    {
+        "phone_code": "+1868",
+        "country_code": "TT",
+        "name": "Trinidad and Tobago",
+        "alpha_3": "TTO"
+    },
+    {
+        "phone_code": "+216",
+        "country_code": "TN",
+        "name": "Tunisia",
+        "alpha_3": "TUN"
+    },
+    {
+        "phone_code": "+90",
+        "country_code": "TR",
+        "name": "Turkey",
+        "alpha_3": "TUR"
+    },
+    {
+        "phone_code": "+7370",
+        "country_code": "TM",
+        "name": "Turkmenistan",
+        "alpha_3": "TKM"
+    },
+    {
+        "phone_code": "+1649",
+        "country_code": "TC",
+        "name": "Turks and Caicos Islands",
+        "alpha_3": "TCA"
+    },
+    {
+        "phone_code": "+688",
+        "country_code": "TV",
+        "name": "Tuvalu",
+        "alpha_3": "TUV"
+    },
+    {
+        "phone_code": "+256",
+        "country_code": "UG",
+        "name": "Uganda",
+        "alpha_3": "UGA"
+    },
+    {
+        "phone_code": "+380",
+        "country_code": "UA",
+        "name": "Ukraine",
+        "alpha_3": "UKR"
+    },
+    {
+        "phone_code": "+971",
+        "country_code": "AE",
+        "name": "United Arab Emirates",
+        "alpha_3": "ARE"
+    },
+    {
+        "phone_code": "+44",
+        "country_code": "GB",
+        "name": "United Kingdom",
+        "alpha_3": "GBR"
+    },
+    {
+        "phone_code": "+1",
+        "country_code": "US",
+        "name": "United States",
+        "alpha_3": "USA"
+    },
+    {
+        "phone_code": "+1",
+        "country_code": "UM",
+        "name": "United States Minor Outlying Islands",
+        "alpha_3": "UMI"
+    },
+    {
+        "phone_code": "+598",
+        "country_code": "UY",
+        "name": "Uruguay",
+        "alpha_3": "URY"
+    },
+    {
+        "phone_code": "+998",
+        "country_code": "UZ",
+        "name": "Uzbekistan",
+        "alpha_3": "UZB"
+    },
+    {
+        "phone_code": "+678",
+        "country_code": "VU",
+        "name": "Vanuatu",
+        "alpha_3": "VUT"
+    },
+    {
+        "phone_code": "+58",
+        "country_code": "VE",
+        "name": "Venezuela",
+        "alpha_3": "VEN"
+    },
+    {
+        "phone_code": "+84",
+        "country_code": "VN",
+        "name": "Viet Nam",
+        "alpha_3": "VNM"
+    },
+    {
+        "phone_code": "+1284",
+        "country_code": "VG",
+        "name": "Virgin Islands, British",
+        "alpha_3": "VGB"
+    },
+    {
+        "phone_code": "+1340",
+        "country_code": "VI",
+        "name": "Virgin Islands, U.s.",
+        "alpha_3": "VIR"
+    },
+    {
+        "phone_code": "+681",
+        "country_code": "WF",
+        "name": "Wallis and Futuna",
+        "alpha_3": "WLF"
+    },
+    {
+        "phone_code": "+212",
+        "country_code": "EH",
+        "name": "Western Sahara",
+        "alpha_3": "ESH"
+    },
+    {
+        "phone_code": "+967",
+        "country_code": "YE",
+        "name": "Yemen",
+        "alpha_3": "YEM"
+    },
+    {
+        "phone_code": "+260",
+        "country_code": "ZM",
+        "name": "Zambia",
+        "alpha_3": "ZMB"
+    },
+    {
+        "phone_code": "+263",
+        "country_code": "ZW",
+        "name": "Zimbabwe",
+        "alpha_3": "ZWE"
+    }
+]
