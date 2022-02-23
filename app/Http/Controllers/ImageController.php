@@ -2,21 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ImageRequest;
+use App\Http\Request\ImageRequest;
 use App\Http\Resources\ImageResource;
 use App\Models\Page;
-use Illuminate\Http\Request;
 
 class ImageController extends Controller
 {
     /**
-     * Get the images list filtered by the specific page
-     * 
-     * @param ImageRequest $request
-     * @param Page $pageName
-     * @return Response
-     */
-    public function pageImagesListing(ImageRequest $request) 
+     * @OA\Post(path="/images",
+     *   tags={"images"},
+     *   summary="get images list",
+     *   description="This is used to get the images list for specific page.",
+     *   operationId="image",
+     *   @OA\Parameter(
+     *     name="page_name",
+     *     required=true,
+     *     in="query",
+     *     description="The page name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
+     * )
+    */
+    public function getImages(ImageRequest $request) 
     {
         $pageName = $request->page_name;
         $images = [];

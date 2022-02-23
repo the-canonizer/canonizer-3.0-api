@@ -20,7 +20,6 @@ class CreateImagesTable extends Migration
             $table->text('description');
             $table->string('route', 100);
             $table->string('url', 200);
-            $table->timestamps();
         });
 
         Schema::table('images', function($table) {

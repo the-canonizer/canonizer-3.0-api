@@ -54,6 +54,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('add_nick_name','NicknameController@addNickName');
     });
 
-    $router->post('/pageAdsListing','AdsController@pageAdsListing');
-    $router->post('/pageImagesListing','ImageController@pageImagesListing');
+    $router->post('/ads','AdsController@getAds');
+    $router->post('/images','ImageController@getImages');
 });

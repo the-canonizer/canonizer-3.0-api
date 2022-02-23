@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Request;
 
 use Anik\Form\FormRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\ValidationException;
 
-class AdsRequest extends FormRequest
+class ImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,16 +24,10 @@ class AdsRequest extends FormRequest
      */
     protected function rules(): array
     {
-        switch ($this->method()) {
-
-            case 'POST': {
-                    return [
-                        'page_name' => 'required|string'
-                    ];
-                    break;
-                }
-            default:
-                break;
+        if ($this->method() == 'POST') {
+            return [
+                'page_name' => 'required|string'
+            ];
         }
     }
 
@@ -44,7 +36,7 @@ class AdsRequest extends FormRequest
      *
      * @return array
      */
-    protected function errorResponse(): ?JsonResponse
+    protected function errorResponse(): ? JsonResponse
     {
 
         return response()->json([

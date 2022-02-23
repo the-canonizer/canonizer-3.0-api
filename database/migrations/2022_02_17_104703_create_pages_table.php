@@ -13,13 +13,10 @@ class CreatePagesTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('pages')) {
-            Schema::create('pages', function (Blueprint $table) {
-                $table->id();
-                $table->string('name', 50)->unique();
-                $table->timestamps();
-            });
-        }
+        Schema::create('pages', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 50)->unique();
+        });
     }
 
     /**

@@ -2,21 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AdsRequest;
+use App\Http\Request\AdsRequest;
 use App\Http\Resources\AdsResource;
 use App\Models\Page;
-use Illuminate\Http\Request;
 
 class AdsController extends Controller
 {
     /**
-     * Get ads list filtered by the specific page 
-     * 
-     * @param AdRequest $request
-     * @param Page $pageName
-     * @return Response
-     */
-    public function pageAdsListing(AdsRequest $request)
+     * @OA\Post(path="/ads",
+     *   tags={"ads"},
+     *   summary="get ads list",
+     *   description="This is used to get the ads list for specific page.",
+     *   operationId="ad",
+     *   @OA\Parameter(
+     *     name="page_name",
+     *     required=true,
+     *     in="query",
+     *     description="The page name is required",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
+     * )
+    */
+    public function getAds(AdsRequest $request)
     {
         $pageName = $request->page_name;
         $ads = [];
