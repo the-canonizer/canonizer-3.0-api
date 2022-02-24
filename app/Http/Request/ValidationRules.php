@@ -32,6 +32,7 @@ class ValidationRules
             'email' => 'required|string|email|max:225|unique:person',
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
+            'phone_number' => 'unique:person',
             'country_code' => 'required',
         ]);
     }
