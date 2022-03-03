@@ -22,6 +22,8 @@ class CreateAdsTable extends Migration
             $table->tinyInteger('adtest')->default('0')->comment('0 => Off, 1 => On'); 
             $table->tinyInteger('is_responsive')->default(1)->comment('0 => True, 1 => Off');
             $table->tinyInteger('status')->default(1)->comment('0 => Inactive, 1 => Active');
+            $table->integer('create_time');
+            $table->integer('update_time');
         });
 
         Schema::table('ads', function($table) {
