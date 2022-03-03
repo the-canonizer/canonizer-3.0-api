@@ -36,7 +36,7 @@ class AdsRequest extends FormRequest
      *
      * @return array
      */
-    protected function errorResponse(): ?JsonResponse
+    protected function apiJsonResponse()
     {
 
         return response()->json([

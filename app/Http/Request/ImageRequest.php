@@ -3,7 +3,7 @@
 namespace App\Http\Request;
 
 use Anik\Form\FormRequest;
-use Illuminate\Http\JsonResponse;
+use  App\Helpers\ResponseInterface;
 
 class ImageRequest extends FormRequest
 {
@@ -36,7 +36,7 @@ class ImageRequest extends FormRequest
      *
      * @return array
      */
-    protected function errorResponse(): ? JsonResponse
+    protected function apiJsonResponse()
     {
 
         return response()->json([
