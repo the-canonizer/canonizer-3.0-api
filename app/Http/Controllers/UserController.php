@@ -265,14 +265,11 @@ class UserController extends Controller
             $password = $request->password;
             $user = User::where('email', '=', $username)->first();
 
-            if(empty($user) && !Hash::check($password, $user->password)){
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "Email or password does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
+            if(empty($user)){
+                return $this->resProvider->apiJsonResponse(401, "Emails is not registered with us!", null, null);
+            }
+            if(!Hash::check($password, $user->password)){
+                return $this->resProvider->apiJsonResponse(401, "Password does not match!", null, null);
             }
 
             if($user->status != 1){
@@ -296,23 +293,11 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $data
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                return $this->resProvider->apiJsonResponse(200, "Success", $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null , null);
         }
     }
 
