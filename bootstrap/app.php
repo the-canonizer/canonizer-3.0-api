@@ -110,6 +110,7 @@ $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 $app->register(App\Providers\ResponseServiceProvider::class);
+$app->register(App\Providers\ResourceServiceProvider::class);
 
 //Register Socialite
 $app->register(Laravel\Socialite\SocialiteServiceProvider::class);

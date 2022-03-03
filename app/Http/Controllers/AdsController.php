@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Request\AdsRequest;
-use App\Http\Resources\AdsResource;
 use App\Models\Page;
+use App\Http\Request\AdsRequest;
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResourceInterface;
 
 class AdsController extends Controller
 {
+
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider)
+    {
+        $this->resourceProvider = $resProvider;
+        $this->responseProvider = $respProvider;
+    }
+
     /**
      * @OA\Post(path="/ads",
      *   tags={"ads"},
@@ -32,15 +40,15 @@ class AdsController extends Controller
     {
         $pageName = $request->page_name;
         $ads = [];
-        
-        try {
+
+        try{
             $page = Page::where('name', $pageName)->first();
-            if($page) {
-                $ads = AdsResource::collection($page->ads);
+            if($page && $page->has('ads')) {
+                $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
             }
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $ads, '');
-        } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->responseProvider->apiJsonResponse(200, config('message.success.success'), $ads, '');
+        }catch(Exception $e){
+            return $this->responseProvider->apiJsonResponse(400, config('message.error.exception'), $e->getMessage(), '');
         }
     }
 }
