@@ -14,7 +14,6 @@ class Countries extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('countries')){
         Schema::create('countries', function (Blueprint $table) {
             $table->integer('id');
             $table->string('phone_code', 255);
@@ -24,7 +23,6 @@ class Countries extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->tinyInteger('status')->default(1)->comment('0 => Inactive, 1 => Active');
         });
-      }
     }
 
     /**

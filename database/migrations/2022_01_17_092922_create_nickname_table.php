@@ -13,15 +13,13 @@ class CreateNicknameTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('nick_name')){
-            Schema::create('nick_name', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('owner_code', 255);
-                $table->string('nick_name', 255);
-                $table->integer('create_time');
-                $table->tinyInteger('private');
-            });
-       }
+        Schema::create('nick_name', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('owner_code', 255);
+            $table->string('nick_name', 255);
+            $table->integer('create_time');
+            $table->tinyInteger('private');
+        });
     }
 
     /**
