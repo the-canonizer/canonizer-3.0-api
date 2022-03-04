@@ -8,6 +8,8 @@ return [
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Your account is not verified!',
         'otp_failed' => 'Failed to Send OTP.',
+        'email_not_registered' => 'Email is not registered with us!',
+        'password_not_match' => 'Password does not match!',
     ],
     'success' => [
         'success'          => 'Success',

@@ -265,14 +265,15 @@ class UserController extends Controller
             $password = $request->password;
             $user = User::where('email', '=', $username)->first();
 
-            if(empty($user) && !Hash::check($password, $user->password)){
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "Email or password does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
+            if(empty($user)){
+                $status = 401;
+                $message = config('message.error.email_not_registered');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            if(!Hash::check($password, $user->password)){
+                $status = 401;
+                $message = config('message.error.password_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             if($user->status != 1){
@@ -296,23 +297,13 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $data
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                $status = 200;
+                $message = config('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null , null);
         }
     }
 
