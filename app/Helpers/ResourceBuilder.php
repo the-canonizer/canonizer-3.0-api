@@ -14,9 +14,11 @@ class ResourceBuilder implements ResourceInterface
      */
     public function jsonResponse($modelType, $data)
     {
+        $res = [];
+
         if($modelType == 'ad') {
             foreach($data as $row) {
-                $res =  [
+                $res[] =  [
                     "client_id" => $row->client_id,
                     "slot" => $row->slot,
                     "format" => $row->format,
@@ -28,16 +30,13 @@ class ResourceBuilder implements ResourceInterface
         }
         else if($modelType == 'image') {
             foreach($data as $row) {
-                $res = [
+                $res[] = [
                     'title' => $row->title,
                     'description' => $row->description,
                     'route' => $row->route,
                     'image_url' => $row->url
                 ];
             }
-        }
-        else {
-            $res = [];
         }
         
         return $res;
