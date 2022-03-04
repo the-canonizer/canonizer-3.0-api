@@ -3,10 +3,15 @@
 namespace App\Http\Request;
 
 use Anik\Form\FormRequest;
-use Illuminate\Http\JsonResponse;
+use App\Helpers\ResponseInterface;
 
 class AdsRequest extends FormRequest
 {
+    public function __construct(ResponseInterface $resProvider)
+    {
+        $this->resProvider = $resProvider;
+    }
+    
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -38,15 +43,6 @@ class AdsRequest extends FormRequest
      */
     protected function apiJsonResponse(): ?apiJsonResponse
     {
-
-        return response()->json([
-            'status_code' => 422,
-            'message' => 'validation errors',
-            'data' => null,
-            'errors' => [
-                'message' => 'The given data is invalid',
-                'errors' => $this->validator->errors()->messages()
-            ]
-        ], $this->statusCode());
+        return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
     }
 }
