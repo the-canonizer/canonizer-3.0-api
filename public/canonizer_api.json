@@ -16,265 +16,116 @@
         }
     ],
     "paths": {
-        "/forgotpassword/sendOtp": {
+        "/add_nick_name": {
             "post": {
                 "tags": [
-                    "forgotpassword"
+                    "User"
                 ],
-                "summary": "forgot password send Otp",
-                "description": "This api used to forgot password send Otp",
-                "operationId": "forgotPassword",
-                "parameters": [
-                    {
-                        "name": "email",
-                        "in": "body",
-                        "description": "User Email Id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Exception occurs",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/forgotpassword/verifyOtp": {
-            "post": {
-                "tags": [
-                    "forgotpassword"
-                ],
-                "summary": "forgot password verify Otp",
-                "description": "This api used to forgot password verify Otp",
-                "operationId": "forgotPassword",
-                "parameters": [
-                    {
-                        "name": "email",
-                        "in": "body",
-                        "description": "User Email Id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "otp",
-                        "in": "body",
-                        "description": "User Otp",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Exception occurs",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/forgotpassword/update": {
-            "post": {
-                "tags": [
-                    "forgotpassword"
-                ],
-                "summary": "forgot password update",
-                "description": "This api used to forgot password update",
-                "operationId": "forgotPasswordupdate",
-                "parameters": [
-                    {
-                        "name": "username",
-                        "in": "body",
-                        "description": "User Name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "new_password",
-                        "in": "body",
-                        "description": "User new password",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "confirm_password",
-                        "in": "body",
-                        "description": "User confirm password",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Exception occurs",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "integer",
-                                        "name": "status_code"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-
-        "/changepassword": {
-            "post": {
-                "tags": [
-                    "changepassword"
-                ],
-                "summary": "Update Password",
-                "description": "This is used to update the user password.",
-                "operationId": "changePassword",
-                "parameters": [
-                    {
-                        "name": "current_password",
-                        "in": "query",
-                        "description": "The current password of logged in user",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "new_password",
-                        "in": "query",
-                        "description": "The new password of logged in user",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "confirm_password",
-                        "in": "query",
-                        "description": "The confirm password same as new password of logged in user",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-
-                    "200": {
-                        "description": "Password updated successfully"
-                    },
-                    "400": {
-                        "description": "Error"
-                    }
-                }
-            }
-        },
-        "/user/profile": {
-            "get": {
-                "tags": [
-                    "profile"
-                ],
-                "summary": "Get looged in user profile",
+                "summary": "Add New nick name",
                 "description": "",
-                "operationId": "userProfile",
+                "operationId": "addNickName",
+                "requestBody": {
+                    "description": "Unique nickname required with max 50 characters",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "nick_name": {
+                                        "type": "string"
+                                    },
+                                    "visibility_status": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
-                    "200": {
-                        "description": "success"
-                    },
-                    "404": {
-                        "description": "Something went wrong"
                     "400": {
+                        "description": "Something went wrong",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "oneOf": [
                                         {
-                                            "$ref": "#/components/schemas/Error"
-                                        },
-                                        {
-                                            "type": "string"
+                                            "$ref": "#/components/schemas/ExceptionRes"
                                         }
                                     ]
                                 }
                             }
-                        },
-                        "message": "Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "200": {
+                        "description": "success"
+                    }
+                }
+            }
+        },
+        "/update_nick_name": {
+            "post": {
+                "tags": [
+                    "nickname"
+                ],
+                "summary": "update nick name visibility status",
+                "description": "",
+                "operationId": "updatenickName",
+                "requestBody": {
+                    "description": "Unique nickname required with max 50 characters",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "visibility_status": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Update successfully"
+                    }
+                }
+            }
+        },
+        "/get_all_nickname": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get list of all the nicknames",
+                "description": "Get list of nicknames",
+                "operationId": "getAllNickNames",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
                     }
                 }
             }
@@ -289,18 +140,53 @@
                 "operationId": "createUser",
                 "requestBody": {
                     "description": "Created user object",
-                    "required": true,
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/User"
+                                "properties": {
+                                    "first_name": {
+                                        "description": "First Name of the User",
+                                        "type": "string"
+                                    },
+                                    "middle_name": {
+                                        "description": "Middle Name of the User",
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "description": "Last Name of the User",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "Email Id of the User",
+                                        "type": "string"
+                                    },
+                                    "phone_number": {
+                                        "description": "Phone Number of the User",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "Password of the User",
+                                        "type": "string"
+                                    },
+                                    "confirm_password": {
+                                        "description": "Confirm password string",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
                 },
                 "responses": {
-                    "default": {
-                        "description": "successful operation"
+                    "200": {
+                        "description": "success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    },
+                    "401": {
+                        "description": "Unauthorised request"
                     }
                 }
             }
@@ -463,7 +349,21 @@
                 ],
                 "responses": {
                     "400": {
-                        "description": "Invalid username supplied"
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     },
                     "404": {
                         "description": "User not found"
@@ -498,6 +398,112 @@
                         "description": "User not found"
                     }
                 }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "NickName": {
+                "title": "NickName Schema to return for API's",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "owner_code": {
+                        "type": "string"
+                    },
+                    "nick_name": {
+                        "type": "string"
+                    },
+                    "create_time": {
+                        "type": "integer"
+                    },
+                    "private": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "ExceptionRes": {
+                "title": "Exception Response of the API's",
+                "properties": {
+                    "status_code": {
+                        "type": "integer"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "error": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "User Schema to return for API's",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "middle_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "address_1": {
+                        "type": "string"
+                    },
+                    "address_2": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "phone_number": {
+                        "type": "string"
+                    },
+                    "mobile_carrier": {
+                        "type": "string"
+                    },
+                    "mobile_verified": {
+                        "type": "boolean"
+                    },
+                    "update_time": {
+                        "type": "integer"
+                    },
+                    "join_time": {
+                        "type": "integer"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "birthday": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "string"
+                    },
+                    "country_code": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
             }
         }
     }

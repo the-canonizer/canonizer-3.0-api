@@ -32,7 +32,7 @@ class ValidationRules
             'email' => 'required|string|email|max:225|unique:person',
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
-            'phone_number' => 'required|unique:person',
+            'phone_number' => 'unique:person',
             'country_code' => 'required',
         ]);
     }
@@ -82,7 +82,7 @@ class ValidationRules
             'city' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
             'state' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
             'country' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'postal_code' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'postal_code' => 'nullable|regex:/^[a-zA-Z0-9 ]*$/|string|max:100',
             'phone_number' => 'nullable|digits:10',
         ]);
     }
@@ -122,6 +122,13 @@ class ValidationRules
     {
         return ([
             'otp' => 'required|digits:6',
+        ]);
+    }
+
+    public function getUserReSendOtpValidationRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225',
         ]);
     }
 }

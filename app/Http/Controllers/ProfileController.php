@@ -33,7 +33,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/changepassword",
+     *     path="/change-password",
      *     tags={"changepassword"},
      *     summary="Update Password",
      *     description="This is used to update the user password.",
@@ -86,7 +86,7 @@ class ProfileController extends Controller
         }
 
         if (!Hash::check($request->get('current_password'), $user->password)) {
-            return $this->resProvider->apiJsonResponse(400, 'Incorrect Username or Password', '', '');
+            return $this->resProvider->apiJsonResponse(400, 'Incorrect Current Password', '', '');
         }
         try{
             $newPassword = Hash::make($request->get('new_password'));
@@ -103,7 +103,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * @OA\Get(path="/mobilecarrier",
+     * @OA\Get(path="/mobile-carrier",
      *   tags={"profile"},
      *   summary="",
      *   description="Get list of mobile carrier",
@@ -125,7 +125,7 @@ class ProfileController extends Controller
 
 
     /**
-     * @OA\Post(path="/updateprofile",
+     * @OA\Post(path="/update-profile",
      *   tags={"profile"},
      *   summary="Update Profile",
      *   description="This is used to update the user profile.",
@@ -203,7 +203,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * @OA\Post(path="/sendotp",
+     * @OA\Post(path="/send-otp",
      *   tags={"otp"},
      *   summary="Send Otp to verify number",
      *   description="Send Otp to verify number",
@@ -268,7 +268,7 @@ class ProfileController extends Controller
     }
 
       /**
-     * @OA\Post(path="/verifyotp",
+     * @OA\Post(path="/verify-otp",
      *   tags={"otp"},
      *   summary="Verify Otp sent on phone number",
      *   description="Verify Otp sent on phone number",
@@ -333,7 +333,7 @@ class ProfileController extends Controller
 
 
     /**
-     * @OA\Get(path="/get_languages",
+     * @OA\Get(path="/get-languages",
      *   tags={"languages"},
      *   summary="",
      *   description="Get list of Languages",
