@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PagesSeeder::class,
             AdsSeeder::class,
             ImageSeeder::class,
+            CountrySeeder::class,
         ]);
     }
 }

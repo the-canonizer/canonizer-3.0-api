@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Throwable;
 use App\Models\User;
 use App\Facades\Util;
 use App\Models\Country;
@@ -11,18 +12,20 @@ use App\Models\Nickname;
 use App\Jobs\WelcomeMail;
 use App\Models\SocialUser;
 use App\Events\SendOtpEvent;
-use App\Events\WelcomeMailEvent;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Events\WelcomeMailEvent;
+use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
-use Illuminate\Support\Facades\Event;
 
 class UserController extends Controller
 {
@@ -30,10 +33,11 @@ class UserController extends Controller
 
     private ValidationMessages $validationMessages;
 
-    public function __construct()
+    public function __construct(ResponseInterface $resProvider)
     {
         $this->rules = new ValidationRules;
         $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
     }
 
     public function clientToken(Request $request, Validate $validate)
@@ -75,21 +79,72 @@ class UserController extends Controller
      *   description="This is used to register the user.",
      *   operationId="createUser",
      *   @OA\RequestBody(
-     *       required=true,
      *       description="Created user object",
      *       @OA\MediaType(
      *           mediaType="multipart/form-data",
-     *           @OA\Schema(ref="#/components/schemas/User")
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="first_name",
+     *                  description="First Name of the User",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="middle_name",
+     *                  type="string",
+     *                  description="Middle Name of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="last_name",
+     *                  type="string",
+     *                  description="Last Name of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="email",
+     *                  type="string",
+     *                  description="Email Id of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="phone_number",
+     *                  type="string",
+     *                  description="Phone Number of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="password",
+     *                  type="string",
+     *                  description="Password of the User"
+     *              ),
+     *              @OA\Property(
+     *                  property="confirm_password",
+     *                  type="string",
+     *                  description="Confirm password string"
+     *              )
+     *          )
      *       )
      *   ),
-     *   @OA\Response(response="default", description="successful operation")
+     *
+     *   @OA\Response(
+     *      response=200,
+     *      description="success",
+     *      @OA\Schema(ref="#/components/schemas/User")
+     *   ),
+     *   @OA\Response(
+     *      response=400,
+     *      description="Something went wrong",
+     *      @OA\Schema(ref="#/components/schemas/ExceptionRes")
+     *   ),
+     *   @OA\Response(
+     *      response=401,
+     *      description="Unauthorised request"
+     *   )
+     *
+     *
      * )
      */
     public function createUser(Request $request, Validate $validate)
     {
 
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
-       
+
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
@@ -109,24 +164,25 @@ class UserController extends Controller
             ];
 
             $user = User::create($input);
-            
+
             if($user){
                  $nickname = $user->first_name."-".$user->last_name;
                  $this->createNickname($user->id, $nickname);
+                try {
+                    Event::dispatch(new SendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
 
-                //  $job = new SendOtpJob($user);
-                //  dispatch($job)->onQueue('sendOtp');
-
-                Event::dispatch(new SendOtpEvent($user));
-               // Event::dispatch(new SendOtpEvent($user));
-
-                    $response = (object)[
-                        "status_code" => 200,
-                        "message"     => "Otp sent successfully on your registered Email Id",
-                        "error"       => null,
-                        "data"        => null
-                    ];
-                    return (new SuccessResource($response))->response()->setStatusCode(200);
+                $response = (object)[
+                    "status_code" => 200,
+                    "message"     => "Otp sent successfully on your registered Email Id",
+                    "error"       => null,
+                    "data"        => null
+                ];
+                return (new SuccessResource($response))->response()->setStatusCode(200);
 
             }else{
                 $res = (object)[
@@ -137,11 +193,11 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
         } catch (Exception $e) {
             $res = (object)[
                 "status_code" => 400,
-                "message"     => "Something went wrong",
+                "message"     => $e->getMessage(),
                 "error"       => null,
                 "data"        => null
             ];
@@ -209,14 +265,21 @@ class UserController extends Controller
             $password = $request->password;
             $user = User::where('email', '=', $username)->first();
 
-            if(empty($user) && !Hash::check($password, $user->password)){
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "Email or password does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
+            if(empty($user)){
+                $status = 401;
+                $message = config('message.error.email_not_registered');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            if(!Hash::check($password, $user->password)){
+                $status = 401;
+                $message = config('message.error.password_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            if($user->status != 1){
+                $status = 401;
+                $message = config('message.error.account_not_verified');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
@@ -234,23 +297,13 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $data
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                $status = 200;
+                $message = config('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null , null);
         }
     }
 
@@ -358,7 +411,17 @@ class UserController extends Controller
      *         type="string"
      *     )
      *   ),
-     *   @OA\Response(response=400, description="Invalid username supplied"),
+     *   @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *   @OA\Response(
+     *      response=401,
+     *      description="Unauthenticated"
+     *   ),
      *   @OA\Response(response=404, description="User not found")
      * )
      */
@@ -375,7 +438,7 @@ class UserController extends Controller
         // Check whether user exists or not for the given id
         $user = User::getUserById($userID);
 
-       
+
         if(empty($user)) {
             return $nicknameCreated;
         }
@@ -386,7 +449,7 @@ class UserController extends Controller
         if($isExists === true) {
             $randNumber = mt_rand(000, 999);
             $nickname = $nickname.$randNumber;
-        } 
+        }
 
         try {
 
@@ -460,7 +523,7 @@ class UserController extends Controller
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
 
                 Event::dispatch(new WelcomeMailEvent($user));
-                
+
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
@@ -588,7 +651,7 @@ class UserController extends Controller
                 return (new SuccessResource($response))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
@@ -603,9 +666,9 @@ class UserController extends Controller
 
     public function countryList(Request $request)
     {
-        
+
         try {
-           
+
             $result = Country::where('status', 1)->get();
 
             if(empty($result)){
@@ -617,7 +680,7 @@ class UserController extends Controller
                 ];
                 return (new ErrorResource($res))->response()->setStatusCode(400);
             }
-           
+
             $response = (object)[
                 "status_code" => 200,
                 "message"     => "Success",
@@ -625,7 +688,7 @@ class UserController extends Controller
                 "data"        => $result
             ];
             return (new SuccessResource($response))->response()->setStatusCode(200);
-            
+
         }catch (Exception $ex) {
             $res = (object)[
                 "status_code" => 400,
@@ -634,6 +697,104 @@ class UserController extends Controller
                 "data"        => null
             ];
             return (new ErrorResource($res))->response()->setStatusCode(400);
+        }
+    }
+
+
+        /**
+     * @OA\Post(path="/user/reSendOtp",
+     *   tags={"user"},
+     *   summary="User Resend Otp",
+     *   description="This api used to Resend Otp",
+     *   operationId="userReSend",
+     * @OA\Parameter(
+     *     name="email",
+     *     required=true,
+     *     in="body",
+     *     description="User Email Id",
+     *     @OA\Schema(
+     *         type="string"
+     *     )
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="array",
+     *                                 @OA\Items(
+     *                                         name="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="data",
+     *                                         type="array"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *   @OA\Response(response=400, description="Exception occurs",
+     *                             @OA\JsonContent(
+     *                                 type="array",
+     *                                 @OA\Items(
+     *                                         name="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="error",
+     *                                         type="array"
+     *                                    ),
+     *                                    @OA\Items(
+     *                                         name="data",
+     *                                         type="string"
+     *                                    )
+     *                                 )
+     *                             )
+     *
+     * )
+     */
+
+    public function reSendOtp(Request $request, Validate $validate)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getUserReSendOtpValidationRules(), $this->validationMessages->getUserReSendOtpValidationMessages());
+
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $user = User::where('email', '=', $request->email)->first();
+
+            if ($user) {
+                $authCode = mt_rand(100000, 999999);
+                $user->otp = $authCode;
+                $user->status = 0;
+                $user->update();
+                try {
+                    Event::dispatch(new SendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
+                $status = 200;
+                $message = config('message.success.forgot_password');
+            } else {
+                $status = 400;
+                $message = config('message.error.email_invalid');
+            }
+            return $this->resProvider->apiJsonResponse($status, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
     }
 }
