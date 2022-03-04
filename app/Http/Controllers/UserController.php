@@ -266,10 +266,14 @@ class UserController extends Controller
             $user = User::where('email', '=', $username)->first();
 
             if(empty($user)){
-                return $this->resProvider->apiJsonResponse(401, "Emails is not registered with us!", null, null);
+                $status = 401;
+                $message = config('message.error.email_not_registered');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if(!Hash::check($password, $user->password)){
-                return $this->resProvider->apiJsonResponse(401, "Password does not match!", null, null);
+                $status = 401;
+                $message = config('message.error.password_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             if($user->status != 1){
@@ -293,7 +297,9 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                return $this->resProvider->apiJsonResponse(200, "Success", $data, null);
+                $status = 200;
+                $message = config('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
