@@ -3,6 +3,7 @@
 use App\Models\User;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ForgotPasswordVerifyOtpApiTest extends TestCase
 {
@@ -15,49 +16,54 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
      * @return void
      */
 
-    public function testForgotPasswordVerifyOtpValidateFiled()
-    {
-        $rules = [
-            'email' => 'required|string|email|max:225|unique:person',
-            'otp' => 'required',
-        ];
-        
-        $data = [
-            "email" => "email@email.com",
-            "otp" => "123456",
-        ];
-        
-        $v = $this->app['validator']->make($data, $rules);
-        $this->assertTrue($v->passes());
-    }
-
-
-    public function testForgotPasswordVerifyOtpEmptyParams()
-    {
-        print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/forgotpassword/verifyOtp', []);
-        $this->assertEquals(400, $response->status());       
-    }
-
-    public function testSuccessfulForgotPasswordVerifyOtp()
-    {
-
-        print sprintf("Valid details submitted %d %s", 302,PHP_EOL);
+    public function testForgotPasswordVerifyOtpWithInvalidData(){
+        print sprintf(" \n Invalid Forgot Password details submitted %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
+        $user->otp = "123456";
+        $user->email = "email@email.com";
 
         $parameters = [
-            "email" => "email@email.com",
-            "otp" => "123456",
+            "otp" => '',
+            "email" => '',
         ];
+       
+        $this->actingAs($user)
+            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
 
-        $this->post("api/v3/forgotpassword/verifyOtp", $parameters, []);
-        $this->seeStatusCode(200);
-        $this->seeJsonStructure(
-            [
-                "status_code" => 200,
-                "message" => "Otp Verifyed",
-                "error" => null,
-                "data" => null
-            ]
-        );
+        $this->assertEquals(400, $this->response->status());
+    }
+
+    public function testForgotPasswordVerifyOtpWithInvalidOtp(){
+        print sprintf(" \n Incorrect Forgot Password Otp  submitted %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
+        $user->otp = "123456";
+
+        $parameters = [
+            "otp" => '1234',
+        ];
+       
+        $this->actingAs($user)
+            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
+
+        $this->assertEquals(400, $this->response->status());
+    }
+
+
+    public function testForgotPasswordVerifyOtpWithValidData(){
+        print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200,PHP_EOL);
+        $user = User::factory()->make();
+        $user->otp = "123456";
+        $user->email = "email@email.com";
+
+        $parameters = [
+            "otp" => '123456',
+            "email" => 'email@email.com',
+            
+        ];
+       
+        $this->actingAs($user)
+            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
+
+        $this->assertEquals(200, $this->response->status());
     }
 }

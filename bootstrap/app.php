@@ -116,6 +116,7 @@ $app->register(App\Providers\ResourceServiceProvider::class);
 $app->register(Laravel\Socialite\SocialiteServiceProvider::class);
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
+$app->register(\Anik\Form\FormRequestServiceProvider::class);
 
 /* Form request */
 $app->register(\Anik\Form\FormRequestServiceProvider::class);
