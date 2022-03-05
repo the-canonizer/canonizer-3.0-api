@@ -2,10 +2,9 @@
 
 namespace App\Helpers;
 
-class ActivityLogHelper
+class LoggerBuilder implements LoggerInterface
 {
-
-     /**
+    /**
      * @param $description
      * @param $model
      * @param $logType 
@@ -20,5 +19,4 @@ class ActivityLogHelper
             ->withProperties($withProperties)
             ->log($description);
     }
-
 }

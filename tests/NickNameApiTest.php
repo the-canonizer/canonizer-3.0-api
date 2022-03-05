@@ -91,7 +91,7 @@ class NickNameApiTest extends TestCase
 
     public function testGuestUserCanNotGetAllNickNames(){
         print sprintf("\n Gues user can not get list of nicknames ",401, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/get_all_nicknames', []);
+        $response = $this->call('GET', '/api/v3/get_nick_name_list', []);
         $this->assertEquals(401, $response->status()); 
     }
 
@@ -100,7 +100,7 @@ class NickNameApiTest extends TestCase
         $user = User::factory()->make();
 
         $this->actingAs($user)
-        ->post('/api/v3/get_all_nicknames', []);
+        ->get('/api/v3/get_nick_name_list', []);
 
         $this->assertEquals(200, $this->response->status());
     }
@@ -111,12 +111,11 @@ class NickNameApiTest extends TestCase
         $user = User::factory()->make();
 
         $parameter = [
-            'nick_name_id' => "",
             "visibility_status" => ""
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/update_nick_name', $parameter);
+        ->post('/api/v3/update_nick_name/1', $parameter);
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -124,14 +123,12 @@ class NickNameApiTest extends TestCase
     public function testUpdateNickNameWithValidData(){
         print sprintf(" \n Update Nickname visibilty with valid data %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
-
         $parameter = [
-            'nick_name_id' => "1",
             "visibility_status" => "1"
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/update_nick_name', $parameter);
+        ->post('/api/v3/update_nick_name/1', $parameter);
 
         $this->assertEquals(200, $this->response->status());
     }

@@ -86,5 +86,11 @@ class ValidationMessages
         ]);
     }
 
+    public function getUserReSendOtpValidationMessages(): array
+    {
+        return ([]);
+    }
+
+
 
 }

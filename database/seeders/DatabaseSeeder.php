@@ -21,7 +21,10 @@ class DatabaseSeeder extends Seeder
             AlgorithmSeeder::class,
             LanguageSeeder::class,
             NameSpaceSeeder::class,
-            ActivitiesDummySeeder::class // Can be remove after testing
+            PagesSeeder::class,
+            AdsSeeder::class,
+            ImageSeeder::class,
+            CountrySeeder::class,
         ]);
     }
 }

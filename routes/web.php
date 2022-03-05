@@ -26,9 +26,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('/get_whats_new_content','VideoPodcastController@getNewContent');
     $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
     $router->get('/get_algorithms','AlgorithmController@getAll');
-    $router->get('/get_languages','ProfileController@getLanguages');
-    $router->get('mobilecarrier','ProfileController@mobileCarrier');
-    $router->post('/get_recent_activities','ActivitiesController@getRecentActivities');
+    $router->get('/get-languages','ProfileController@getLanguages');
+    $router->get('mobile-carrier','ProfileController@mobileCarrier');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -42,17 +41,22 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/forgotpassword/sendOtp','ForgotPasswordController@sendOtp');
         $router->post('/forgotpassword/verifyOtp','ForgotPasswordController@verifyOtp');
         $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
+        $router->post('/user/reSendOtp','UserController@reSendOtp');
     });
 
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
-        $router->post('changepassword','ProfileController@changePassword');      
-        $router->post('updateprofile','ProfileController@updateProfile');
+        $router->post('change-password','ProfileController@changePassword');      
+        $router->post('update-profile','ProfileController@updateProfile');
         $router->get('user/profile','ProfileController@getProfile');
-        $router->post('sendotp','ProfileController@sendOtp');
-        $router->post('verifyotp','ProfileController@VerifyOtp');
-        $router->post('add_nick_name','NicknameController@addNickName');
+        $router->post('send-otp','ProfileController@sendOtp');
+        $router->post('verify-otp','ProfileController@VerifyOtp');
+        $router->post('add-nick-name','NicknameController@addNickName');
+        $router->post('update-nick-name/{id}','NicknameController@UpdateNickName');
+        $router->get('get-nick-name-list','NicknameController@getNickNameList');
     });
 
+    $router->post('/ads','AdsController@getAds');
+    $router->post('/images','ImageController@getImages');
 });

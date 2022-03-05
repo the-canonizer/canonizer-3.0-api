@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Throwable;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
@@ -21,10 +23,11 @@ class ForgotPasswordController extends Controller
 
     private ValidationMessages $validationMessages;
 
-    public function __construct()
+    public function __construct(ResponseInterface $resProvider)
     {
         $this->rules = new ValidationRules;
         $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
     }
 
     /**
@@ -85,7 +88,7 @@ class ForgotPasswordController extends Controller
      *                                    )
      *                                 )
      *                             )
-     * 
+     *
      * )
      */
 
@@ -105,31 +108,22 @@ class ForgotPasswordController extends Controller
                 $user->otp = $authCode;
                 $user->status = 0;
                 $user->update();
-                Event::dispatch(new ForgotPasswordSendOtpEvent($user));
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Otp sent successfully on your  Email Id",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                try {
+                    Event::dispatch(new ForgotPasswordSendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = config('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
+                $status = 200;
+                $message = config('message.success.forgot_password');
             } else {
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Invalid Email Id!",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = config('message.error.email_invalid');
             }
+            return $this->resProvider->apiJsonResponse($status, $message, '', '');
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => $e->getMessage(),
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
     }
 
@@ -200,7 +194,7 @@ class ForgotPasswordController extends Controller
      *                                    )
      *                                 )
      *                             )
-     * 
+     *
      * )
      */
 
@@ -321,7 +315,7 @@ class ForgotPasswordController extends Controller
      *                                    )
      *                                 )
      *                             )
-     * 
+     *
      * )
      */
 
