@@ -22,10 +22,10 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
-    $router->get('/get_all_namespaces','NamespaceController@getAll');
-    $router->get('/get_whats_new_content','VideoPodcastController@getNewContent');
-    $router->get('/get_social_media_links','SocialMediaLinkController@getLinks');
-    $router->get('/get_algorithms','AlgorithmController@getAll');
+    $router->get('/get-all-namespaces','NamespaceController@getAll');
+    $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');
+    $router->get('/get-social-media-links','SocialMediaLinkController@getLinks');
+    $router->get('/get-algorithms','AlgorithmController@getAll');
     $router->get('/get-languages','ProfileController@getLanguages');
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
 
@@ -59,4 +59,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
+    
+  
+    
 });
