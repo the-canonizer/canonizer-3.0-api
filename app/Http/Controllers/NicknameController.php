@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class NicknameController extends Controller
 {
     /**
-     * @OA\POST(path="/add_nick_name",
+     * @OA\POST(path="/add-nick-name",
      *   tags={"User"},
      *   summary="Add New nick name",
      *   description="",
@@ -93,7 +93,7 @@ class NicknameController extends Controller
     }
 
     /**
-     * @OA\POST(path="/update_nick_name",
+     * @OA\POST(path="/update-nick-name",
      *   tags={"nickname"},
      *   summary="update nick name visibility status",
      *   description="",
@@ -138,7 +138,7 @@ class NicknameController extends Controller
     }
 
     /**
-     * @OA\Get(path="/get_all_nickname",
+     * @OA\Get(path="/get-nick-name-list",
      *   tags={"User"},
      *   summary="Get list of all the nicknames",
      *   description="Get list of nicknames",

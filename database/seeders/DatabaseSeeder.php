@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
             AlgorithmSeeder::class,
             LanguageSeeder::class,
             NameSpaceSeeder::class,
+            PagesSeeder::class,
+            AdsSeeder::class,
+            ImageSeeder::class,
             CountrySeeder::class,
         ]);
     }
