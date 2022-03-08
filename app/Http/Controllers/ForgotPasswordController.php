@@ -112,14 +112,14 @@ class ForgotPasswordController extends Controller
                     Event::dispatch(new ForgotPasswordSendOtpEvent($user));
                 } catch (Throwable $e) {
                     $status = 403;
-                    $message = config('message.error.otp_failed');
+                    $message = trans('message.error.otp_failed');
                     return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
                 }
                 $status = 200;
-                $message = config('message.success.forgot_password');
+                $message = trans('message.success.forgot_password');
             } else {
                 $status = 400;
-                $message = config('message.error.email_invalid');
+                $message = trans('message.error.email_invalid');
             }
             return $this->resProvider->apiJsonResponse($status, $message, '', '');
         } catch (Exception $e) {
@@ -210,32 +210,20 @@ class ForgotPasswordController extends Controller
             $user = User::where('email', '=', $request->username)->first();
 
             if (empty($user) || $request->otp != $user->otp) {
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "OTP does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
+                $status = 401;
+                $message = trans('message.error.otp_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message,null, null);
             } else {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
 
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message,null, null);
             }
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
     }
 
@@ -329,34 +317,22 @@ class ForgotPasswordController extends Controller
         $user = User::where('email', '=', $request->username)->first();
 
         if (empty($user)) {
-            $res = (object)[
-                "status_code" => 401,
-                "message"     => "User Does Not Exist",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(401);
+            $status = 401;
+            $message = trans('message.error.user_not_exist');
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
 
         try {
             $newPassword = Hash::make($request->get('new_password'));
             $user->password = $newPassword;
             $user->save();
-            $res = (object)[
-                "status_code" => 200,
-                "message"     => "Password changed successfully",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
+            $status = 200;
+            $message = trans('message.success.password_change');
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => $e->getMessage()
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
     }
 }
