@@ -46,9 +46,9 @@ class AdsController extends Controller
             if($page && $page->has('ads')) {
                 $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
             }
-            return $this->responseProvider->apiJsonResponse(200, config('message.success.success'), $ads, '');
+            return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
         }catch(Exception $e){
-            return $this->responseProvider->apiJsonResponse(400, config('message.error.exception'), $e->getMessage(), '');
+            return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 }

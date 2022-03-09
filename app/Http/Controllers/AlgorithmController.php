@@ -19,9 +19,9 @@ class AlgorithmController extends Controller
 
         try {
             $algorithms = Algorithm::all();
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $algorithms, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $algorithms, '');
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
 
     }

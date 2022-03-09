@@ -10,7 +10,7 @@ class SuccessResource extends JsonResource
     {
         return [
             "status_code" => $this->status_code ?? 200,
-            "message"     => $this->message ?? 'Success',
+            "message"     => $this->message ?? trans('message.success.success'),
             "error"       => $this->error ?? null,
             "data"        => $this->data ?? null
         ];

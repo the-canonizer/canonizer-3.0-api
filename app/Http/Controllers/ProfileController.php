@@ -93,10 +93,10 @@ class ProfileController extends Controller
             $user->password = $newPassword;
             $user->save();
             $status = 200;
-            $message = 'Password changed successfully.';
+            $message = trans('message.success.password_change');
         }catch(Exception $e){
             $status = 200;
-            $message = 'Something went wrong';
+            $message = trans('message.error.exception');
             $data = $e->getMessage();
         }
         return $this->resProvider->apiJsonResponse($status, $message, $data, '');
@@ -115,10 +115,10 @@ class ProfileController extends Controller
 
     public function mobileCarrier(Request $request){
         try{
-            $carrier = MobileCarrier::all();
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $carrier, '');
+            $carrier = MobileCarrier::all();              
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $carrier, '');
         }catch(Exception $e){
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 
@@ -164,10 +164,10 @@ class ProfileController extends Controller
 
        try{
             return ( $user->update($input) )
-                 ? $this->resProvider->apiJsonResponse(200, config('message.success.update_profile'), $request->user(), '')
-                 : $this->resProvider->apiJsonResponse(400, config('message.error.update_profile'), '', '');
+                 ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
+                 : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
         }catch(Exception $e){
-           return $this->resProvider->apiJsonResponse(200, config('message.error.exception'), $e->getMessage(), '');
+           return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
        }
     }
 
@@ -186,7 +186,7 @@ class ProfileController extends Controller
         try{
             $res = (object)[
                 "status_code" => 200,
-                "message"     => "Success",
+                "message"     => trans('message.success.success'),
                 "error"       => null,
                 "data"        => $user
             ];
@@ -194,7 +194,7 @@ class ProfileController extends Controller
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
-                "message"     => "Something went wrong",
+                "message"     => trans('message.error.exception'),
                 "error"       => null,
                 "data"        => $e->getMessage()
             ];
@@ -250,7 +250,7 @@ class ProfileController extends Controller
             Event::dispatch(new SendOtpEvent($user,true));
             $res = (object)[
                 "status_code" => 200,
-                "message"     => "Otp has been sent on your phone number.",
+                "message"     => trans('message.success.phone_number_otp'),
                 "error"       => null,
                 "data"        => $user
             ];
@@ -258,7 +258,7 @@ class ProfileController extends Controller
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
-                "message"     => "Something went wrong",
+                "message"     => trans('message.error.exception'),
                 "error"       => null,
                 "data"        => $e->getMessage()
             ];
@@ -302,7 +302,7 @@ class ProfileController extends Controller
                 $user->update();
                 $res = (object)[
                     "status_code" => 200,
-                    "message"     => "Phone number has been verified successfully.",
+                    "message"     => trans('message.success.verify_otp'),
                     "error"       => null,
                     "data"        => $user
                 ];
@@ -312,7 +312,7 @@ class ProfileController extends Controller
                 $user->update();
                 $res = (object)[
                     "status_code" => 400,
-                    "message"     => "Invalid One Time Verification Code.",
+                    "message"     => trans('message.error.verify_otp'),
                     "error"       => null,
                     "data"        => null
                 ];
@@ -322,7 +322,7 @@ class ProfileController extends Controller
         }catch(Exception $e){
             $res = (object)[
                 "status_code" => 400,
-                "message"     => "Something went wrong",
+                "message"     => trans('message.error.exception'),
                 "error"       => null,
                 "data"        => $e->getMessage()
             ];
@@ -349,7 +349,7 @@ class ProfileController extends Controller
             $languages = Languages::all();
             $res = (object) [
                 "status_code" => 200,
-                "message" => "Success",
+                "message" => trans('message.success.success'),
                 "error" => null,
                 "data" => $languages,
             ];
@@ -357,7 +357,7 @@ class ProfileController extends Controller
         } catch (\Throwable $e) {
             $res = (object) [
                 "status_code" => 400,
-                "message" => "Something went wrong",
+                "message" => trans('message.error.exception'),
                 "error" => $e->getMessage(),
                 "data" => null,
             ];
