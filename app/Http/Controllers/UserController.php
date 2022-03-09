@@ -62,13 +62,9 @@ class UserController extends Controller
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
 
         } catch( Exception $ex ) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => $ex->getMessage()
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
     }
 
@@ -172,36 +168,22 @@ class UserController extends Controller
                     Event::dispatch(new SendOtpEvent($user));
                 } catch (Throwable $e) {
                     $status = 403;
-                    $message = config('message.error.otp_failed');
+                    $message = trans('message.error.otp_failed');
                     return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
                 }
-
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Otp sent successfully on your registered Email Id",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
-
+                $status = 200;
+                $message = trans('message.success.reg_success');
+                return $this->resProvider->apiJsonResponse($status, $message,null, null);
             }else{
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Your Registration failed Please try again!",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = trans('message.error.reg_failed');
+                return $this->resProvider->apiJsonResponse($status, $message,null, null);
             }
 
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => $e->getMessage(),
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = $e->getMessage();
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
     }
 
@@ -259,7 +241,6 @@ class UserController extends Controller
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         try {
             $username = $request->username;
             $password = $request->password;
@@ -267,19 +248,31 @@ class UserController extends Controller
 
             if(empty($user)){
                 $status = 401;
-                $message = config('message.error.email_not_registered');
+                $message = trans('message.error.email_not_registered');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if(!Hash::check($password, $user->password)){
                 $status = 401;
-                $message = config('message.error.password_not_match');
+                $message = trans('message.error.password_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             if($user->status != 1){
-                $status = 401;
-                $message = config('message.error.account_not_verified');
+                $status = 402;
+                $message = trans('message.error.account_not_verified');
+                $authCode = mt_rand(100000, 999999);
+                $user->otp = $authCode;
+                $user->status = 0;
+                $user->update();
+                try {
+                    Event::dispatch(new SendOtpEvent($user));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = trans('message.error.otp_failed');
+                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                }
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
@@ -298,7 +291,7 @@ class UserController extends Controller
                     "user" => new UserResource($user),
                 ];
                 $status = 200;
-                $message = config('message.success.success');
+                $message = trans('message.success.success');
                 return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
@@ -323,21 +316,13 @@ class UserController extends Controller
 
         try {
             $loggedInUser->token()->revoke();
-            $res = (object)[
-                "status_code" => 200,
-                "message"     => "Success",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $ex) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message,null, null);
         }
     }
 
@@ -500,13 +485,9 @@ class UserController extends Controller
             $user = User::where('email', '=', $request->username)->first();
 
             if(empty($user) || $request->otp != $user->otp){
-                $res = (object)[
-                    "status_code" => 401,
-                    "message"     => "OTP does not match",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(401);
+                $status = 401;
+                $message = trans('message.error.otp_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
@@ -528,23 +509,15 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $data
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $e) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -559,32 +532,20 @@ class UserController extends Controller
             $provider = $request->provider;
             $redirect = Socialite::with($provider)->stateless()->redirect()->getTargetUrl();
             if(empty($redirect)) {
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $data = [
                 "url" => $redirect
             ];
-            $response = (object)[
-                "status_code" => 200,
-                "message"     => "Success",
-                "error"       => null,
-                "data"        => $data
-            ];
-            return (new SuccessResource($response))->response()->setStatusCode(200);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         }catch (Exception $ex) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -599,13 +560,9 @@ class UserController extends Controller
             $provider = $request->provider;
             $userSocial =   Socialite::driver($provider)->stateless()->user();
             if(empty($userSocial)){
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
@@ -642,24 +599,16 @@ class UserController extends Controller
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
                 ];
-                $response = (object)[
-                    "status_code" => 200,
-                    "message"     => "Success",
-                    "error"       => null,
-                    "data"        => $data
-                ];
-                return (new SuccessResource($response))->response()->setStatusCode(200);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
 
         }catch (Exception $ex) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -672,31 +621,19 @@ class UserController extends Controller
             $result = Country::where('status', 1)->get();
 
             if(empty($result)){
-                $res = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
-                    "data"        => null
-                ];
-                return (new ErrorResource($res))->response()->setStatusCode(400);
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
-            $response = (object)[
-                "status_code" => 200,
-                "message"     => "Success",
-                "error"       => null,
-                "data"        => $result
-            ];
-            return (new SuccessResource($response))->response()->setStatusCode(200);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $result, null);
 
         }catch (Exception $ex) {
-            $res = (object)[
-                "status_code" => 400,
-                "message"     => "Something went wrong",
-                "error"       => null,
-                "data"        => null
-            ];
-            return (new ErrorResource($res))->response()->setStatusCode(400);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -783,14 +720,14 @@ class UserController extends Controller
                     Event::dispatch(new SendOtpEvent($user));
                 } catch (Throwable $e) {
                     $status = 403;
-                    $message = config('message.error.otp_failed');
+                    $message = trans('message.error.otp_failed');
                     return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
                 }
                 $status = 200;
-                $message = config('message.success.forgot_password');
+                $message = trans('message.success.forgot_password');
             } else {
                 $status = 400;
-                $message = config('message.error.email_invalid');
+                $message = trans('message.error.email_invalid');
             }
             return $this->resProvider->apiJsonResponse($status, $message, '', '');
         } catch (Exception $e) {

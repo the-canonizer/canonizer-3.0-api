@@ -27,7 +27,8 @@ class ValidationMessages
             'last_name.required' => 'The last name field is required.',
             'last_name.max' => 'The last name can not be more than 100.',
             'password_confirmation.required' => 'The confirm password field is required.',
-            'password_confirmation.same' => 'The password confirmation does not match.'
+            'password_confirmation.same' => 'The password confirmation does not match.',
+            'email.unique' => 'Email is already used.'
         ]);
     }
 

@@ -67,9 +67,9 @@ class VideoPodcastController extends Controller
     {
         try {
             $videoPodcast = VideoPodcast::all();
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $videoPodcast, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $videoPodcast, '');
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
        
     }
