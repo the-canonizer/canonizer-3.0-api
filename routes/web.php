@@ -22,6 +22,9 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
+    $router->get('/get/camp-statement','StatementController@get');
+    $router->get('/get/camp-newsfeed','NewsFeedController@get');
+
     $router->get('/get-all-namespaces','NamespaceController@getAll');
     $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');
     $router->get('/get-social-media-links','SocialMediaLinkController@getLinks');

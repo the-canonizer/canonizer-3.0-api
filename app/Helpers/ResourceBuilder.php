@@ -38,6 +38,26 @@ class ResourceBuilder implements ResourceInterface
                 ];
             }
         }
+        else if($modelType == 'Statement') {
+            foreach($data as $row) {
+                $res[] = [
+                    'id' => $row->id,
+                    'value' => $row->value,
+                    'note' => $row->note,   
+                ];
+            }
+        }
+        else if($modelType == 'NewsFeed') {
+            foreach($data as $row) {
+                $res[] = [
+                    'id' => $row->id,
+                    'display_text' => $row->display_text,
+                    'link' => $row->link,
+                    'available_for_child' => $row->available_for_child,
+                    'link' => $row->link,  
+                ];
+            }
+        }
         
         return $res;
     }

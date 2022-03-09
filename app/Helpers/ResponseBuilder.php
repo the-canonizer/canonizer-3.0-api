@@ -22,7 +22,7 @@ class ResponseBuilder implements ResponseInterface
             "error"       => $error,
             "data"        => $data
         ];
-
+        
         if ( $error ) {
             return (new ErrorResource($res))->response()->setStatusCode($code);
         }
