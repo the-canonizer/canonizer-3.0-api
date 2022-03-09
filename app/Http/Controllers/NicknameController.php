@@ -83,11 +83,11 @@ class NicknameController extends Controller
         try {
 
             $nickname = Nickname::createNickname($user->id, $request->all());
-            return $this->resProvider->apiJsonResponse(200, config('message.success.nick_name_add'), $nickname, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.nick_name_add'), $nickname, '');
 
         } catch (\Throwable $e) {
 
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
 
     }
@@ -129,11 +129,11 @@ class NicknameController extends Controller
             $nickname->private = $request->visibility_status;
             $nickname->update();
 
-            return $this->resProvider->apiJsonResponse(200, config('message.success.nick_name_update'), $nickname, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.nick_name_update'), $nickname, '');
 
         } catch (\Throwable $e) {
 
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -153,10 +153,10 @@ class NicknameController extends Controller
         try {
             $allNicknames = Nickname::getAllNicknames($user->id);
 
-            return $this->resProvider->apiJsonResponse(200, config('message.success.success'), $allNicknames, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $allNicknames, '');
 
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
 
     }

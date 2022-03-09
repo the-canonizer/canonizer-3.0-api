@@ -23,5 +23,6 @@ return [
         'nick_name_add'    => 'Nick name added successfully.',
         'reg_success'      => 'Otp sent successfully on your registered Email Id',
         'reg_failed'       => 'Your Registration failed Please try again!',
+        'phone_number_otp' => 'Otp has been sent on your phone number.'
     ]
 ];
