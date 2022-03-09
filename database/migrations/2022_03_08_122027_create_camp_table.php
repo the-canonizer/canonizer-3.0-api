@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTopicTable extends Migration
+class CreateCampTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,16 @@ class CreateTopicTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('topic')) {
-            Schema::create('topic', function (Blueprint $table) {
+        if (!Schema::hasTable('camp')) {
+            Schema::create('camp', function (Blueprint $table) {
                 $table->id();
-                $table->string('namespace',250)->nullable();
-                $table->string('language',250)->nullable();
-                $table->mediumText('topic_name');
                 $table->integer('topic_num');
+                $table->integer('parent_camp_num');
+                $table->integer('camp_num');
+                $table->string('title',555);
+                $table->string('camp_name',555);
+                $table->mediumText('key_words')->nullable();
+                $table->string('language',250)->nullable();  
                 $table->longText('note',250)->nullable();
                 $table->integer('submitter_nick_id');
                 $table->integer('submit_time');
@@ -29,7 +32,8 @@ class CreateTopicTable extends Migration
                 $table->longText('object_reason')->nullable();
                 $table->integer('proposed');
                 $table->bigInteger('replacement');
-                $table->integer('namespace_id');
+                $table->mediumText('camp_about_url');
+                $table->integer('camp_about_nick_id');
                 $table->integer('grace_period')->default(0);
             });
         }
@@ -42,6 +46,6 @@ class CreateTopicTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('topic');
+        Schema::dropIfExists('camp');
     }
 }
