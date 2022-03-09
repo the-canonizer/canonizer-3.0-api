@@ -45,9 +45,9 @@ class ImageController extends Controller
             if($page && $page->has('images')) {
                 $images = $this->resourceProvider->jsonResponse('image', $page->images);
             }
-            return $this->responseProvider->apiJsonResponse(200, config('message.success.success'), $images, '');
+            return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');
         } catch (\Throwable $e) {
-            return $this->responseProvider->apiJsonResponse(400, config('message.error.exception'), '', $e->getMessage());
+            return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
