@@ -15,20 +15,20 @@ class NewsFeedController extends Controller
         $this->responseProvider = $respProvider;
     }
 
-    public function get(NewsFeedRequest $request)
+    public function getNewsFeed(NewsFeedRequest $request)
     {
-        $topicnum = $request->topicnum;
-        $parentcampnum = $request->parentcampnum;
+        $topicNum = $request->topic_num;
+        $campNum = $request->camp_num;
         try {
-            $news = NewsFeed::where('topic_num', '=', $topicnum)
-                ->where('camp_num', '=', $parentcampnum)
+            $news = NewsFeed::where('topic_num', '=', $topicNum)
+                ->where('camp_num', '=',$campNum)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
                 $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
             }
-            return $this->responseProvider->apiJsonResponse(200, config('message.success.success'), $news, '');
+            return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
-            return $this->responseProvider->apiJsonResponse(400, config('message.error.exception'), $e->getMessage(), '');
+            return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 }

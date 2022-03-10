@@ -7,43 +7,66 @@ use Illuminate\Database\Eloquent\Model;
 class Statement extends Model
 {
     protected $table = 'statement';
-    public $timestamps = false;
-    protected static $tempArray = [];
 
-    const AGREEMENT_CAMP = "Agreement";
-
-    public static function getLiveStatement($topicnum, $campnum, $filter = array())
+    public static function getLiveStatement($filter = array())
     {
-        if ((isset($filter['asof']) && $filter['asof'] == "default")) {
-            return self::where('topic_num', $topicnum)
-                ->where('camp_num', $campnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->where('go_live_time', '<=', time())
-                ->orderBy('submit_time', 'desc')
-                ->first();
+        $filterName = $filter['asOf'];
+        if ($filterName) {
+            return self::asOfFilter($filter);
         } else {
-            if (isset($filter['asof']) && $filter['asof'] == "review") {
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', $campnum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->orderBy('submit_time', 'desc')
-                    ->first();
-            } else if (isset($filter['asof']) && $filter['asof'] == "bydate") {
-                $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', $campnum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', $asofdate)
-                    ->orderBy('submit_time', 'desc')
-                    ->first();
-            } else {
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', $campnum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', time())
-                    ->orderBy('submit_time', 'desc')
-                    ->first();
-            }
+            $filter['asOf'] = 'others';
+            return self::asOfFilter($filter);
         }
+    }
+
+    private function defaultAsOfFilter($filter)
+    {
+        return self::where('topic_num', $filter['topicNum'])
+            ->where('camp_num', $filter['campNum'])
+            ->where('objector_nick_id', '=', NULL)
+            ->where('go_live_time', '<=', time())
+            ->orderBy('submit_time', 'desc')
+            ->first();
+    }
+
+    private function reviewAsofFilter($filter)
+    {
+        return self::where('topic_num', $filter['topicNum'])
+            ->where('camp_num', $filter['campNum'])
+            ->where('objector_nick_id', '=', NULL)
+            ->orderBy('submit_time', 'desc')
+            ->first();
+    }
+
+    private function byDateFilter($filter)
+    {
+        $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
+        return self::where('topic_num', $filter['topicNum'])
+            ->where('camp_num', $filter['campNum'])
+            ->where('objector_nick_id', '=', NULL)
+            ->where('go_live_time', '<=', $asofdate)
+            ->orderBy('submit_time', 'desc')
+            ->first();
+    }
+
+    private function otherFilter($filter)
+    {
+        return self::where('topic_num', $filter['topicNum'])
+            ->where('camp_num', $filter['campNum'])
+            ->where('objector_nick_id', '=', NULL)
+            ->where('go_live_time', '<=', time())
+            ->orderBy('submit_time', 'desc')
+            ->first();
+    }
+
+    private function asOfFIlter($filter)
+    {
+        $asOfFilter = [
+            'default' => self::defaultAsOfFilter($filter),
+            'review'  => self::reviewAsofFilter($filter),
+            'bydate'  => self::byDateFilter($filter),
+            'others'  => self::otherFilter($filter)
+        ];
+        return $asOfFilter[$filter['asOf']];
     }
 }

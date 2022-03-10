@@ -35,6 +35,18 @@ class ImageRequest extends FormRequest
             ];
         }
     }
+     
+    /**
+     * Get  validation messages that apply to the request.
+     *
+     * @return array
+     */
+    protected function messages(): array
+    {
+        return [
+            'page_name.required'=>"Please enter page_name",
+        ];
+    }
 
     /**
      * format the validation response if there is error in validation.
