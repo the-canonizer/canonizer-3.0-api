@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Page;
-use App\Http\Request\ImageRequest;
 use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
+use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Request\ValidationMessages;
+use App\Http\Request\ValidationRules;
+use App\Http\Resources\ErrorResource;
 
 class ImageController extends Controller
 {
@@ -13,6 +18,8 @@ class ImageController extends Controller
     {
         $this->resourceProvider = $resProvider;
         $this->responseProvider = $respProvider;
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
     }
 
     /**
@@ -34,15 +41,18 @@ class ImageController extends Controller
      *   @OA\Response(response=400, description="Error message")
      *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
      * )
-    */
-    public function getImages(ImageRequest $request) 
+     */
+    public function getImages(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getImageValidateionRules(), $this->validationMessages->getImageValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
         $pageName = $request->page_name;
         $images = [];
-
         try {
             $page = Page::where('name', $pageName)->first();
-            if($page && $page->has('images')) {
+            if ($page && $page->has('images')) {
                 $images = $this->resourceProvider->jsonResponse('image', $page->images);
             }
             return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');

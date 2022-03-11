@@ -92,6 +92,35 @@ class ValidationMessages
         return ([]);
     }
 
-
+    public function getStamenetValidationMessages(): array
+    {
+        return [
+            'as_of.in'=>"Please enter a valid value (default,review,bydate) or leave it empty",
+            'as_of_date.required_if'=>"Please enter as_of_date in case of bydate",
+            'topic_num.required'=>"Please enter topic_num",
+            'camp_num.required'=>"Please enter camp_num"
+        ];
+    }
+    public function getNewsFeedValidationMessages(): array
+    {
+        return [
+            'topic_num.required'=>"Please enter topic_num",
+            'camp_num.required'=>"Please enter camp_num"
+        ];
+    }
+    public function getAdsValidationMessages(): array
+    {
+        return [
+            'page_name.required'=>"Please enter page_name",
+            'page_name.string'=>"page_name should be a string"
+        ];
+    }
+    public function getImageValidationMessages(): array
+    {
+        return [
+            'page_name.required'=>"Please enter page_name",
+            'page_name.string'=>"page_name should be a string"
+        ];
+    }
 
 }

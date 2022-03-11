@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Page;
-use App\Http\Request\AdsRequest;
 use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
+use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Request\ValidationMessages;
+use App\Http\Request\ValidationRules;
+use App\Http\Resources\ErrorResource;
 
 class AdsController extends Controller
 {
@@ -14,6 +19,8 @@ class AdsController extends Controller
     {
         $this->resourceProvider = $resProvider;
         $this->responseProvider = $respProvider;
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
     }
 
     /**
@@ -35,19 +42,23 @@ class AdsController extends Controller
      *   @OA\Response(response=400, description="Error message")
      *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
      * )
-    */
-    public function getAds(AdsRequest $request)
+     */
+    public function getAds(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getAdsValidateionRules(), $this->validationMessages->getAdsValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
         $pageName = $request->page_name;
         $ads = [];
 
-        try{
+        try {
             $page = Page::where('name', $pageName)->first();
-            if($page && $page->has('ads')) {
+            if ($page && $page->has('ads')) {
                 $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
             }
             return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }

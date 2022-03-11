@@ -11,12 +11,10 @@ class Statement extends Model
     public static function getLiveStatement($filter = array())
     {
         $filterName = $filter['asOf'];
-        if ($filterName) {
-            return self::asOfFilter($filter);
-        } else {
+        if (!$filterName) {
             $filter['asOf'] = 'others';
-            return self::asOfFilter($filter);
         }
+        return self::asOfFilter($filter);
     }
 
     private function defaultAsOfFilter($filter)

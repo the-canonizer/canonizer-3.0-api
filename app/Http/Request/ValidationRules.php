@@ -28,7 +28,7 @@ class ValidationRules
         return ([
             'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-			'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
+            'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
             'email' => 'required|string|email|max:225|unique:person',
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
@@ -63,10 +63,10 @@ class ValidationRules
             'code' => 'required'
         ]);
     }
-    
+
     public function getChangePasswordValidationRules(): array
     {
-        return([
+        return ([
             'current_password' => 'required',
             'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
             'confirm_password' => 'required|same:new_password'
@@ -131,4 +131,35 @@ class ValidationRules
             'email' => 'required|string|email|max:225',
         ]);
     }
+    public function getStatementValidateionRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
+    public function getNewsFeedValidateionRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ];
+    }
+
+    public function getAdsValidateionRules(): array
+    {
+        return [
+            'page_name' => 'required|string'
+        ];
+    }
+    public function getImageValidateionRules(): array
+    {
+        return [
+            'page_name' => 'required|string'
+        ];
+    }
+
+    
 }
