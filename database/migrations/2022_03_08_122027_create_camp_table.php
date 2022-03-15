@@ -17,7 +17,7 @@ class CreateCampTable extends Migration
             Schema::create('camp', function (Blueprint $table) {
                 $table->id();
                 $table->integer('topic_num');
-                $table->integer('parent_camp_num');
+                $table->integer('parent_camp_num')->nullable();
                 $table->integer('camp_num');
                 $table->string('title',555);
                 $table->string('camp_name',555);
@@ -30,10 +30,10 @@ class CreateCampTable extends Migration
                 $table->integer('objector_nick_id')->nullable();
                 $table->integer('object_time')->nullable();
                 $table->longText('object_reason')->nullable();
-                $table->integer('proposed');
-                $table->bigInteger('replacement');
-                $table->mediumText('camp_about_url');
-                $table->integer('camp_about_nick_id');
+                $table->integer('proposed')->nullable();
+                $table->bigInteger('replacement')->nullable();;
+                $table->mediumText('camp_about_url')->nullable();
+                $table->integer('camp_about_nick_id')->nullable();
                 $table->integer('grace_period')->default(0);
             });
         }

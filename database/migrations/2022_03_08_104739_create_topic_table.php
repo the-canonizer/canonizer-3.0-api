@@ -27,8 +27,8 @@ class CreateTopicTable extends Migration
                 $table->integer('objector_nick_id')->nullable();
                 $table->integer('object_time')->nullable();
                 $table->longText('object_reason')->nullable();
-                $table->integer('proposed');
-                $table->bigInteger('replacement');
+                $table->integer('proposed')->nullable();
+                $table->bigInteger('replacement')->nullable();
                 $table->integer('namespace_id');
                 $table->integer('grace_period')->default(0);
             });
