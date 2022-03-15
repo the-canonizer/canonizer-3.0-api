@@ -14,21 +14,21 @@ return [
         'user_not_exist' => 'User Does Not Exist!',
     ],
     'success' => [
-        'success'          => 'Success',
+        'success'          => 'vjvvhvjhvh',
         'password_change'  => 'Password changed successfully.',
         'update_profile'   => 'Profile updated successfully.',
         'verify_otp'       => 'Phone number has been verified successfully.',
         'forgot_password'  => 'Otp sent successfully on your Email Id.',
         'nick_name_update' => 'Nick name visibility status updated successfully.',
         'nick_name_add'    => 'Nick name added successfully.',
-        'reg_success'      => 'Otp sent successfully on your registered Email Id',
+        'reg_success'      => 'fchgcjhvhvhvjh',
         'reg_failed'       => 'Your Registration failed Please try again!',
         'phone_number_otp' => 'Otp has been sent on your phone number.'
     ],
     'validation_registration' => [
-        'password_regex'=>'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
+        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
-        'first_name_required' => 'The first name field is required.',
+        'first_name_required' => 'The Saurabh Singh first name field is required. (Fr Lang Msg)',
         'first_name_max' => 'The first name can not be more than 100.',
         'middle_name_regex' => 'The middle name must be in alphabets and space only.',
         'middle_name_max' => 'The middle name can not be more than 100.',
@@ -57,4 +57,6 @@ return [
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
     ]
+
+
 ];
