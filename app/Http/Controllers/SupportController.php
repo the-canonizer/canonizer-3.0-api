@@ -34,6 +34,7 @@ class SupportController extends Controller
             
             $response = DB::select("CALL user_support('direct', $userId)");
             
+        echo "<pre>"; print_r($response); exit;
             $directSupports = [];
             foreach($response as $k => $support){
 
