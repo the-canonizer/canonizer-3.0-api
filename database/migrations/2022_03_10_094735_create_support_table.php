@@ -14,7 +14,7 @@ class CreateSupportTable extends Migration
     public function up()
     {
         if (!Schema::hasTable('support')) {
-            Schema::create('suport', function (Blueprint $table) {
+            Schema::create('support', function (Blueprint $table) {
                 $table->increments('support_id');
                 $table->integer('nick_name_id');
                 $table->integer('delegate_nick_name_id')->default(0);
