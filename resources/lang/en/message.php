@@ -41,7 +41,11 @@ return [
     ],
     'validation_change_password' => [
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-        'current_password_required' => 'The current password field is required.'
+        'current_password_required' => 'The current password field is required.',
+        'new_password_required' => 'The new password field is required.',
+        'confirm_password_required' => 'The confirm password field is required.',
+        'confirm_password_match' => 'The new password and confirm password do not match.',
+        'new_password_different' => 'Current and new password should not be same'
     ],
     'validation_update_profile' => [
         'first_name_regex' => 'The first name must be in alphabets and space only.',
