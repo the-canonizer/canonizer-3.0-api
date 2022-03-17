@@ -17,18 +17,18 @@ class ValidationMessages
     public function getRegistrationValidationMessages(): array
     {
         return ([
-            'password.regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
-            'first_name.regex' => 'The first name must be in alphabets and space only.',
-            'first_name.required' => 'The first name field is required.',
-            'first_name.max' => 'The first name can not be more than 100.',
-            'middle_name.regex' => 'The middle name must be in alphabets and space only.',
-            'middle_name.max' => 'The middle name can not be more than 100.',
-            'last_name.regex' => 'The last name must be in alphabets and space only.',
-            'last_name.required' => 'The last name field is required.',
-            'last_name.max' => 'The last name can not be more than 100.',
-            'password_confirmation.required' => 'The confirm password field is required.',
-            'password_confirmation.same' => 'The password confirmation does not match.',
-            'email.unique' => 'Email is already used.'
+            'password.regex'=> trans('message.validation_registration.password_regex'),
+            'first_name.regex' => trans('message.validation_registration.first_name_regex'),
+            'first_name.required' => trans('message.validation_registration.first_name_required'),
+            'first_name.max' => trans('message.validation_registration.first_name_max'),
+            'middle_name.regex' => trans('message.validation_registration.middle_name_regex'),
+            'middle_name.max' => trans('message.validation_registration.middle_name_max'),
+            'last_name.regex' => trans('message.validation_registration.last_name_regex'),
+            'last_name.required' => trans('message.validation_registration.last_name_required'),
+            'last_name.max' => trans('message.validation_registration.last_name_max'),
+            'password_confirmation.required' => trans('message.validation_registration.password_confirmation_required'),
+            'password_confirmation.same' => trans('message.validation_registration.password_confirmation_same'),
+            'email.unique' => trans('message.validation_registration.email_unique'),
         ]);
     }
 
@@ -49,22 +49,27 @@ class ValidationMessages
 
     public function getChangePasswordValidationMessages(): array
     {
-        return ([
-            'new_password.regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-            'current_password.required' => 'The current password field is required.'
+        return([
+            'new_password.regex' => trans('message.validation_change_password.new_password_regex'),
+            'new_password.required' => trans('message.validation_change_password.new_password_required'),
+            'current_password.required' => trans('message.validation_change_password.current_password_required'),
+            'confirm_password.same' => trans('message.validation_change_password.confirm_password_match'),
+            'confirm_password.required' => trans('message.validation_change_password.confirm_password_required'),
+            'new_password.different' => trans('message.validation_change_password.new_password_different'),
+            
         ]);
     }
 
     public function getUpdateProfileValidationMessages(): array
     {
-        return ([
-            'first_name.regex' => 'The first name must be in alphabets and space only.',
-            'last_name.regex' => 'The last name must be in alphabets and space only.',
-            'middle_name.regex' => 'The middle name must be in alphabets and space only.',
-            'city.regex' => 'The city name must be in alphabets and space only.',
-            'state.regex' => 'The state name must be in alphabets and space only.',
-            'country.regex' => 'The country name must be in alphabets and space only.',
-            'postal_code.regex' => 'The postal code name must be in alphabets and space only.',
+        return([
+            'first_name.regex' => trans('message.validation_update_profile.first_name_regex'),
+            'last_name.regex' => trans('message.validation_update_profile.last_name_regex'),
+            'middle_name.regex' => trans('message.validation_update_profile.middle_name_regex'),
+            'city.regex' => trans('message.validation_update_profile.city_regex'),
+            'state.regex' => trans('message.validation_update_profile.state_regex'),
+            'country.regex' => trans('message.validation_update_profile.country_regex'),
+            'postal_code.regex' => trans('message.validation_update_profile.postal_code_regex'),
         ]);
     }
 
@@ -80,10 +85,10 @@ class ValidationMessages
 
     public function getForgotPasswordUpdateValidationMessages(): array
     {
-        return ([
-            'username.required' => 'The User Name field is required.',
-            'new_password.regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-            'current_password.required' => 'The current password field is required.'
+        return([
+            'username.required' => trans('message.validation_forgot_password.username_required'),
+            'new_password.regex' => trans('message.validation_forgot_password.new_password_regex'),
+            'current_password.required' => trans('message.validation_forgot_password.current_password_required'),
         ]);
     }
 

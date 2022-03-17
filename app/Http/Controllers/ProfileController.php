@@ -76,7 +76,7 @@ class ProfileController extends Controller
     * )
     */
     public function changePassword(Request $request, Validate $validate)
-    {
+    { 
         $status = $message = $data = '';
 
         $user = $request->user();
