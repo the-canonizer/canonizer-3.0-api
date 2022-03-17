@@ -56,5 +56,17 @@ class Nickname extends Model {
         return $nicknames;
     }
 
+    public static function getNicknamesIdsByUserId($userID)
+    {
+        $ownerCode = Util::canon_encode($userID);
+
+        $nicknames = self::where('owner_code', $ownerCode)->pluck('id')->toArray();
+        return $nicknames;
+    }
+
+    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum=''){
+        return url('user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
+    }
+
     
 }
