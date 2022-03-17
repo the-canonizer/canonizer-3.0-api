@@ -14,7 +14,7 @@ return [
         'user_not_exist' => 'User Does Not Exist!',
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
-        'cmap_failed' => 'Fail to create camp, please try later.',
+        'cqmp_failed' => 'Fail to create camp, please try later.',
         'cmap_alreday_exist' => 'Camp name has already been taken.',
     ],
     'success' => [
