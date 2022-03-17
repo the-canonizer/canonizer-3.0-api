@@ -14,7 +14,10 @@ use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
+use App\Events\ThankToSubmitterMailEvent;
+use App\Facades\Util;
 
 class TopicController extends Controller
 {
@@ -52,7 +55,6 @@ class TopicController extends Controller
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
-
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -78,6 +80,22 @@ class TopicController extends Controller
                     $topic->update();
                 }
                 DB::commit();
+                try {
+                    $topicLive = Topic::getLiveTopic($topic->topic_num, $request->asof);
+                    $camp = Camp::getLiveCamp($topic->topic_num, 1, $request->asof);
+                    $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp , time());
+                    $dataEmail = (object) [
+                        "type" => "topic",
+                        "link" => $historylink,
+                        "historylink" => env('APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num,
+                        "object" => $topic->topic_name . " / " . $camp->camp_name,
+                    ];
+                    Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                } catch (Throwable $e) {
+                    $status = 403;
+                    $message = $e->getMessage();
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
                 $status = 200;
                 $message = trans('message.success.topic_created');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);

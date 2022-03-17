@@ -40,6 +40,7 @@ class Topic extends Model
                 $camp = new Camp();
                 $camp->topic_num = $model->topic_num;
                 $camp->parent_camp_num = null;
+                $camp->camp_num = 1;
                 $camp->key_words = '';
                 $camp->language = $model->language;
                 $camp->note = $model->note;
@@ -53,5 +54,31 @@ class Topic extends Model
             }
         });
         parent::boot();
+    }
+
+    public static function getLiveTopic($topicnum, $filter = array())
+    {
+        if (((isset($filter) && $filter == "default"))) {
+            return self::where('topic_num', $topicnum)
+                ->where('objector_nick_id', '=', NULL)
+                ->where('go_live_time', '<=', time())
+                ->latest('submit_time')->first();
+        } else if ((isset($filter) && $filter == "review")) {
+
+            return self::where('topic_num', $topicnum)
+                ->where('objector_nick_id', '=', NULL)
+                ->latest('submit_time')->first();
+        } else if ((isset($filter) && $filter == "bydate")) {
+            $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
+            return self::where('topic_num', $topicnum)
+                ->where('objector_nick_id', '=', NULL)
+                ->where('go_live_time', '<=', $asofdate)
+                ->latest('submit_time')->first();
+        } else {
+
+            return self::where('topic_num', $topicnum)
+                ->where('objector_nick_id', '=', NULL)
+                ->latest('submit_time')->first();
+        }
     }
 }

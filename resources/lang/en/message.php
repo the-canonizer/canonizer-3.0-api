@@ -14,6 +14,8 @@ return [
         'user_not_exist' => 'User Does Not Exist!',
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
+        'cmap_failed' => 'Fail to create camp, please try later.',
+        'cmap_alreday_exist' => 'Camp name has already been taken.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -26,6 +28,7 @@ return [
         'reg_success'      => 'Otp sent successfully on your registered Email Id',
         'phone_number_otp' => 'Otp has been sent on your phone number.',
         'topic_created' => 'Topic created successfully.',
+        'camp_created' => 'Camp created successfully.',
         
     ],
     'validation_registration' => [
@@ -65,6 +68,7 @@ return [
             'nick_name_required' => 'The nick name field is required.',
             'camp_name_required' => 'Camp name is required.',
             'camp_name_max' => 'Camp name can not be more than 30 characters.',
+            'camp_name_unique' => 'The camp name has already been taken.',
             'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
             'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
             'parent_camp_num_required' => 'The parent camp name is required.',

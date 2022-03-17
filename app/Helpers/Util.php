@@ -84,4 +84,52 @@ class Util
             ucwords($last_name)
         ];
     }
+
+    /**
+     * @param $topic_num
+     * @param $camp_num
+     * @param $topic
+     * @param $camp
+     * @param $currentTime
+     * @return string
+     */
+
+    public function getTopicCampUrl($topic_num,$camp_num,$topic,$camp,$currentTime = null):string
+    {
+        $urlPortion = self::getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp); 
+       
+        $urlPortion = $urlPortion.'?currentTime='.$currentTime.'';
+        
+        return env('APP_URL_FRONT_END').('/topic/' .$urlPortion);
+    }
+
+    /**
+     * @param $topic_num
+     * @param $camp_num
+     * @param $topic
+     * @param $camp
+     * @return string
+     */
+
+    public function getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp):string
+    {
+        $topic_name = '';
+        $camp_name = '';
+        if($topic && isset($topic->topic_name)){
+                $topic_name = ($topic->topic_name !='') ? $topic->topic_name: $topic->title;
+        }
+        if($camp && isset($camp->camp_name)){
+              $camp_name = $camp->camp_name;
+            }
+        $topic_id_name = $topic_num;
+        $camp_num_name = $camp_num;
+        if($topic_name!=''){
+            $topic_id_name = $topic_num . "-" . preg_replace('/[^A-Za-z0-9\-]/', '-',$topic_name);
+        }
+        if($camp_name!=''){
+                $camp_num_name = $camp_num."-".preg_replace('/[^A-Za-z0-9\-]/', '-', $camp->camp_name);
+        }
+        
+        return $topic_id_name . '/' . $camp_num_name;
+    }
 }

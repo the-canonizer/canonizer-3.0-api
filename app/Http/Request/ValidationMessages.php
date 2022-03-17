@@ -99,6 +99,7 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_camp_store.nick_name_required'),
             'camp_name.required' => trans('message.validation_camp_store.camp_name_required'),
             'camp_name.max' => trans('message.validation_camp_store.camp_name_max'),
+            'camp_name.unique' => trans('message.validation_camp_store.camp_name_unique'),
             'camp_about_url.max' => trans('message.validation_camp_store.camp_about_url_max'),
             'camp_about_url.regex' => trans('message.validation_camp_store.camp_about_url_regex'),
             'parent_camp_num.required' => trans('message.validation_camp_store.parent_camp_num_required'),
