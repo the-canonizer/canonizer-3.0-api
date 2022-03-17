@@ -33,8 +33,6 @@ class SupportController extends Controller
         try {
             
             $response = DB::select("CALL user_support('direct', $userId)");
-            
-        echo "<pre>"; print_r($response); exit;
             $directSupports = [];
             foreach($response as $k => $support){
 
@@ -51,7 +49,7 @@ class SupportController extends Controller
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
-                        'title_link' => Topic::TopicLink($support->topic_num,1,$support->title),
+                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,
@@ -111,7 +109,7 @@ class SupportController extends Controller
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
-                        'title_link' => Topic::TopicLink($support->topic_num,1,$support->title),
+                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,

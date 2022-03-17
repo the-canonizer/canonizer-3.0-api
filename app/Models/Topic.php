@@ -11,7 +11,7 @@ class Topic extends Model {
     protected $table = 'topic';
     public $timestamps = false;
 
-    public static function TopicLink($topicNum, $campNum = 1 , $title, $campName = 'Aggreement'){
+    public static function topicLink($topicNum, $campNum = 1 , $title, $campName = 'Aggreement'){
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
         $topicId = $topicNum . "-" . $title;
