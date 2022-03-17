@@ -97,7 +97,7 @@ class CampController extends Controller
                 $message = trans('message.success.camp_created');
             } else {
                 $status = 400;
-                $message = trans('message.error.cqmp_failed');
+                $message = trans('message.error.camp_failed');
             }
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $e) {
