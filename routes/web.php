@@ -57,6 +57,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
         $router->post('camp/save','CampController@store');
         $router->post('topic/save','TopicController@store');
+        $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
+        $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
     });
 
     $router->post('/ads','AdsController@getAds');

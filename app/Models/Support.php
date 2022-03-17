@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Facades\Util;
 
 class Support extends Model
 {
@@ -21,4 +22,10 @@ class Support extends Model
      * @var array
      */
     protected $hidden = [];
+
+    public function getStartAttribute($value){
+        return date("Y-m-d", strtotime($value));
+    }
+
+    
 }
