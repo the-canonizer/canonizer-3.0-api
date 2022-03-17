@@ -51,7 +51,12 @@ class ValidationMessages
     {
         return([
             'new_password.regex' => trans('message.validation_change_password.new_password_regex'),
+            'new_password.required' => trans('message.validation_change_password.new_password_required'),
             'current_password.required' => trans('message.validation_change_password.current_password_required'),
+            'confirm_password.same' => trans('message.validation_change_password.confirm_password_match'),
+            'confirm_password.required' => trans('message.validation_change_password.confirm_password_required'),
+            'new_password.different' => trans('message.validation_change_password.new_password_different'),
+            
         ]);
     }
 
