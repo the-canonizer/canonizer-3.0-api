@@ -48,9 +48,9 @@ class CampController extends Controller
 
             ## check if mind_expert topic and camp abt nick name id is null then assign nick name as about nickname ##
             if ($request->topic_num == '81' && !isset($request->camp_about_nick_id)) {
-                $request->camp_about_nick_id = isset($request->nick_name) ? $request->nick_name : "";
+                $request->camp_about_nick_id = $request->nick_name ?? "";
             } else {
-                $request->camp_about_nick_id = isset($request->camp_about_nick_id) ? $request->camp_about_nick_id : "";
+                $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
 
             $nextCampNum =  Camp::where('topic_num', $request->topic_num)
@@ -65,18 +65,19 @@ class CampController extends Controller
                 "submitter_nick_id" => $request->nick_name,
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
-                "note" => isset($request->note) ? $request->note : "",
-                "key_words" => isset($request->key_words) ? $request->key_words : "",
-                "camp_about_url" => isset($request->camp_about_url) ? $request->camp_about_url : "",
-                "title" => isset($request->title) ? $request->title : "",
+                "note" => $request->note ?? "",
+                "key_words" => $request->key_words ?? "",
+                "camp_about_url" => $request->camp_about_url ?? "",
+                "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 1
             ];
             $camp = Camp::create($input);
+
             if ($camp) {
 
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
-                $camp_id= isset($camp->camp_num) ? $camp->camp_num:1;
+                $camp_id= $camp->camp_num ?? 1;
                 $livecamp = Camp::getLiveCamp($topic->topic_num, $camp_id, $request->asof);
                 $link = Util::getTopicCampUrl($topic->topic_num, $camp_id, $topic, $livecamp, time());
                 try {
@@ -94,12 +95,11 @@ class CampController extends Controller
                 }
                 $status = 200;
                 $message = trans('message.success.camp_created');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             } else {
                 $status = 400;
-                $message = trans('message.error.cmap_failed');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                $message = trans('message.error.cqmp_failed');
             }
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
