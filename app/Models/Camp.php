@@ -27,7 +27,7 @@ class Camp extends Model
         return $asOfFilter[$filter['asOf']];
     }
 
-    private function AgreementTopicdefaultAsOfFilter($filter)
+    public static function AgreementTopicdefaultAsOfFilter($filter)
     {
         return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
@@ -40,7 +40,7 @@ class Camp extends Model
             ->latest('topic.submit_time')->first();
     }
 
-    private function AgreementTopicreviewAsofFilter($filter)
+    public static function AgreementTopicreviewAsofFilter($filter)
     {
         return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
@@ -51,7 +51,7 @@ class Camp extends Model
             ->latest('topic.submit_time')->first();
     }
 
-    private function AgreementTopicbyDateFilter($filter)
+    public static function AgreementTopicbyDateFilter($filter)
     {
         $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
         return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
@@ -83,7 +83,7 @@ class Camp extends Model
         return $asOfFilter[$filter['asOf']];
     }
 
-    private function LiveCampdefaultAsOfFilter($filter)
+    public static function LiveCampdefaultAsOfFilter($filter)
     {
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
@@ -92,7 +92,7 @@ class Camp extends Model
             ->latest('submit_time')->first();
     }
 
-    private function LiveCampreviewAsofFilter($filter)
+    public static function LiveCampreviewAsofFilter($filter)
     {
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
@@ -100,7 +100,7 @@ class Camp extends Model
             ->latest('submit_time')->first();
     }
 
-    private function LiveCampbyDateFilter($filter)
+    public static function LiveCampbyDateFilter($filter)
     {
         $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
         if (isset($filter['nofilter']) && $filter['nofilter']) {
@@ -123,7 +123,7 @@ class Camp extends Model
             if ($campname != '') {
                 $campname =  ($camp->camp_name) . '/ ' . ($campname);
             } else {
-                $campname =  ($camp->camp_name) ;
+                $campname =  ($camp->camp_name);
             }
             if (isset($camp) && $camp->parent_camp_num) {
                 $pcamp = Camp::where('topic_num', $camp->topic_num)

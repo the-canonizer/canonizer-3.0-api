@@ -24,6 +24,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Api for non register users
     $router->post('/get/camp-statement','StatementController@getStatement');
     $router->post('/get/camp-newsfeed','NewsFeedController@getNewsFeed');
+    $router->post('/edit/camp-newsfeed','NewsFeedController@editNewsFeed');
+    $router->post('/update/camp-newsfeed','NewsFeedController@updateNewsFeed');
 
     $router->get('/get-all-namespaces','NamespaceController@getAll');
     $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');

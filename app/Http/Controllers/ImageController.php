@@ -2,26 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
 use App\Models\Page;
-use App\Helpers\ResponseInterface;
-use App\Helpers\ResourceInterface;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
-use App\Http\Request\ValidationMessages;
-use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 
 class ImageController extends Controller
 {
-    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider)
-    {
-        $this->resourceProvider = $resProvider;
-        $this->responseProvider = $respProvider;
-        $this->rules = new ValidationRules;
-        $this->validationMessages = new ValidationMessages;
-    }
-
     /**
      * @OA\Post(path="/images",
      *   tags={"images"},
@@ -44,7 +31,7 @@ class ImageController extends Controller
      */
     public function getImages(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getImageValidateionRules(), $this->validationMessages->getImageValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getImageValidationRules(), $this->validationMessages->getImageValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
@@ -55,9 +42,9 @@ class ImageController extends Controller
             if ($page && $page->has('images')) {
                 $images = $this->resourceProvider->jsonResponse('image', $page->images);
             }
-            return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');
         } catch (\Throwable $e) {
-            return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }

@@ -12,12 +12,12 @@ class Statement extends Model
     {
         $filterName = $filter['asOf'];
         if (!$filterName) {
-            $filter['asOf'] = 'others';
+            $filter['asOf'] = 'default';
         }
         return self::asOfFilter($filter);
     }
 
-    private function defaultAsOfFilter($filter)
+    public static function defaultAsOfFilter($filter)
     {
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', $filter['campNum'])
@@ -27,7 +27,7 @@ class Statement extends Model
             ->first();
     }
 
-    private function reviewAsofFilter($filter)
+    public static function reviewAsofFilter($filter)
     {
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', $filter['campNum'])
@@ -36,7 +36,7 @@ class Statement extends Model
             ->first();
     }
 
-    private function byDateFilter($filter)
+    public static function byDateFilter($filter)
     {
         $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
         return self::where('topic_num', $filter['topicNum'])
@@ -47,23 +47,12 @@ class Statement extends Model
             ->first();
     }
 
-    private function otherFilter($filter)
-    {
-        return self::where('topic_num', $filter['topicNum'])
-            ->where('camp_num', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->where('go_live_time', '<=', time())
-            ->orderBy('submit_time', 'desc')
-            ->first();
-    }
-
     private function asOfFIlter($filter)
     {
         $asOfFilter = [
             'default' => self::defaultAsOfFilter($filter),
             'review'  => self::reviewAsofFilter($filter),
             'bydate'  => self::byDateFilter($filter),
-            'others'  => self::otherFilter($filter)
         ];
         return $asOfFilter[$filter['asOf']];
     }

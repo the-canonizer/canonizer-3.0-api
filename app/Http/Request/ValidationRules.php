@@ -131,7 +131,7 @@ class ValidationRules
             'email' => 'required|string|email|max:225',
         ]);
     }
-    public function getStatementValidateionRules(): array
+    public function getStatementValidationRules(): array
     {
         return ([
             'topic_num' => 'required',
@@ -140,7 +140,7 @@ class ValidationRules
             'as_of_date' => 'required_if:as_of,bydate'
         ]);
     }
-    public function getNewsFeedValidateionRules(): array
+    public function getNewsFeedValidationRules(): array
     {
         return [
             'topic_num' => 'required',
@@ -148,16 +148,38 @@ class ValidationRules
         ];
     }
 
-    public function getAdsValidateionRules(): array
+    public function getAdsValidationRules(): array
     {
         return [
             'page_name' => 'required|string'
         ];
     }
-    public function getImageValidateionRules(): array
+    public function getImageValidationRules(): array
     {
         return [
             'page_name' => 'required|string'
+        ];
+    }
+
+    public function getNewsFeedEditValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ];
+    }
+
+    public function getNewsFeedUpdateValidationRules($sizeLimit): array
+    {
+        return [
+            'display_text' => 'required|array',
+            'display_text.*' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
+            "link" => 'required|array|size:'. $sizeLimit,
+            "link.*" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            'available_for_child' => 'required|array|size:'. $sizeLimit,
+            'available_for_child.*' => 'required|boolean',
+            'topic_num' => 'required',
+            'camp_num' => 'required'
         ];
     }
 
