@@ -9,6 +9,12 @@ use App\Helpers\ResponseInterface;
 
 class AddNickNameRequest extends FormRequest
 {
+    /**
+     * The sanitized input.
+     *
+     * @var array
+     */
+    protected $sanitized;
 
     public function __construct(ResponseInterface $resProvider)
     {
@@ -24,6 +30,26 @@ class AddNickNameRequest extends FormRequest
     {
         return true;
     }
+
+
+    public function validate(): void
+    {
+        if (false === $this->authorize()) {
+            $this->failedAuthorization();
+        }
+      
+
+        $this->validator = $this->app->make('validator')
+                                     ->make($this->sanitizeInput(), $this->rules(), $this->messages(), $this->attributes());
+
+        if ($this->validator->fails()) {
+            $this->validationFailed();
+        }
+
+        $this->validationPassed();
+    }
+
+
 
     /**
      * Get the validation rules that apply to the request.
@@ -51,6 +77,21 @@ class AddNickNameRequest extends FormRequest
     { 
         return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
     } 
+
+     /**
+     * Sanitize the input.
+     *
+     * @return array
+     */
+    protected function sanitizeInput()
+    {   
+        foreach($this->all() as $key => $input){
+           $arr[$key] = trim($input);
+        }
+        $this->merge($arr);
+        return $this->all();
+
+    }
 
     
 }
