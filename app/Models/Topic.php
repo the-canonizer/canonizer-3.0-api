@@ -59,38 +59,40 @@ class Topic extends Model
 
     public static function getLiveTopic($topicnum, $filter = array())
     {
-        if (((isset($filter) && $filter == "default"))) {
-            return self::where('topic_num', $topicnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->where('go_live_time', '<=', time())
-                ->latest('submit_time')->first();
-        } else if ((isset($filter) && $filter == "review")) {
-
-            return self::where('topic_num', $topicnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->latest('submit_time')->first();
-        } else if ((isset($filter) && $filter == "bydate")) {
-            $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
-            return self::where('topic_num', $topicnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->where('go_live_time', '<=', $asofdate)
-                ->latest('submit_time')->first();
-        } else {
-
-            return self::where('topic_num', $topicnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->latest('submit_time')->first();
+        switch ($filter) {
+            case "default":
+                return self::where('topic_num', $topicnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', time())
+                    ->latest('submit_time')->first();
+                break;
+            case "review":
+                return self::where('topic_num', $topicnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('submit_time')->first();
+                break;
+            case "bydate":
+                $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
+                return self::where('topic_num', $topicnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', $asofdate)
+                    ->latest('submit_time')->first();
+                break;
+            default:
+                return self::where('topic_num', $topicnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('submit_time')->first();
         }
     }
 
-    public static function topicLink($topicNum, $campNum = 1 , $title, $campName = 'Aggreement'){
+
+    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement')
+    {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
         $topicId = $topicNum . "-" . $title;
-        $campId = $campNum . "-" .$campName;
-        $queryString = (app('request')->getQueryString()) ? '?'.app('request')->getQueryString() : "";
+        $campId = $campNum . "-" . $campName;
+        $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
         return $link = url('topic/' . $topicId . '/' . $campId);
     }
-
-    
 }

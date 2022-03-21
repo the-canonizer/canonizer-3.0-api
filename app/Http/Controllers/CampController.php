@@ -47,7 +47,7 @@ class CampController extends Controller
             $current_time = time();
 
             ## check if mind_expert topic and camp abt nick name id is null then assign nick name as about nickname ##
-            if ($request->topic_num == '81' && !isset($request->camp_about_nick_id)) {
+            if ($request->topic_num == config('global.mind_expert_topic_num') && !isset($request->camp_about_nick_id)) {
                 $request->camp_about_nick_id = $request->nick_name ?? "";
             } else {
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";

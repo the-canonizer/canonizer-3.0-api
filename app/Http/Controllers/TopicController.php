@@ -83,7 +83,7 @@ class TopicController extends Controller
                 try {
                     $topicLive = Topic::getLiveTopic($topic->topic_num, $request->asof);
                     $camp = Camp::getLiveCamp($topic->topic_num, 1, $request->asof);
-                    $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp , time());
+                    $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
                     $dataEmail = (object) [
                         "type" => "topic",
                         "link" => $historylink,
@@ -94,16 +94,14 @@ class TopicController extends Controller
                 } catch (Throwable $e) {
                     $status = 403;
                     $message = $e->getMessage();
-                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
                 $status = 200;
                 $message = trans('message.success.topic_created');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             } else {
                 $status = 400;
                 $message = trans('message.error.topic_failed');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Throwable $e) {
             DB::rollback();
             $status = 400;

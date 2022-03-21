@@ -15,7 +15,7 @@ return [
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
-        'cmap_alreday_exist' => 'Camp name has already been taken.',
+        'camp_alreday_exist' => 'Camp name has already been taken.',
     ],
     'success' => [
         'success'          => 'Success',

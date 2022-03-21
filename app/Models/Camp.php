@@ -27,31 +27,33 @@ class Camp extends Model
 
     public static function getLiveCamp($topicnum, $campnum, $filter)
     {
-        if ((isset($filter) && $filter == "default")) {
 
-            return self::where('topic_num', $topicnum)
-                ->where('camp_num', '=', $campnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->where('go_live_time', '<=', time())
-                ->latest('submit_time')->first();
-        } else  if ((isset($filter) && $filter == "review")) {
-
-            return self::where('topic_num', $topicnum)
-                ->where('camp_num', '=', $campnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->latest('submit_time')->first();
-        } else if ((isset($filter) && $filter == "bydate")) {
-            $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($_REQUEST['asofdate'])));
-
-            return self::where('topic_num', $topicnum)
-                ->where('camp_num', '=', $campnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->where('go_live_time', '<=', $asofdate)
-                ->latest('submit_time')->first();
-        } else {
-            return self::where('topic_num', $topicnum)
-                ->where('objector_nick_id', '=', NULL)
-                ->latest('submit_time')->first();
+        switch ($filter) {
+            case "default":
+                return self::where('topic_num', $topicnum)
+                    ->where('camp_num', '=', $campnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', time())
+                    ->latest('submit_time')->first();
+                break;
+            case "review":
+                return self::where('topic_num', $topicnum)
+                    ->where('camp_num', '=', $campnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('submit_time')->first();
+                break;
+            case "bydate":
+                $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($_REQUEST['asofdate'])));
+                return self::where('topic_num', $topicnum)
+                    ->where('camp_num', '=', $campnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', $asofdate)
+                    ->latest('submit_time')->first();
+                break;
+            default:
+                return self::where('topic_num', $topicnum)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('submit_time')->first();
         }
     }
 
