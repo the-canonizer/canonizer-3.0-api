@@ -16,7 +16,7 @@ class ForgotPasswordSendOtpEvent extends Event
     public $settingFlag;
 
     
-    public function __construct($user, $settingFlag = false)
+    public function __construct($user, $settingFlag = true)
     {
         $this->user = $user;
         $this->settingFlag = $settingFlag;
