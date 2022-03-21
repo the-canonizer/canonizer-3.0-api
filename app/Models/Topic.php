@@ -57,29 +57,29 @@ class Topic extends Model
         parent::boot();
     }
 
-    public static function getLiveTopic($topicnum, $filter = array())
+    public static function getLiveTopic($topicNum, $filter = array())
     {
         switch ($filter) {
             case "default":
-                return self::where('topic_num', $topicnum)
+                return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->where('go_live_time', '<=', time())
                     ->latest('submit_time')->first();
                 break;
             case "review":
-                return self::where('topic_num', $topicnum)
+                return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->latest('submit_time')->first();
                 break;
             case "bydate":
-                $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
-                return self::where('topic_num', $topicnum)
+                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
+                return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', $asofdate)
+                    ->where('go_live_time', '<=', $asOfDate)
                     ->latest('submit_time')->first();
                 break;
             default:
-                return self::where('topic_num', $topicnum)
+                return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->latest('submit_time')->first();
         }
