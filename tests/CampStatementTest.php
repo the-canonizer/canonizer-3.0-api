@@ -10,7 +10,13 @@ class CampStatementTest extends TestCase
      *
      * @return void
      */
-    
+    private $data = [
+        'topic_num' => 95,
+        'camp_num' => 5,
+        'as_of' => "bydate",
+        'as_of_date' => "12-12-2022"
+    ];
+
     public function testStatementAPIValidateFileds()
     {
         $rules = [
@@ -19,39 +25,26 @@ class CampStatementTest extends TestCase
             'as_of_date' => 'required_if:asof,bydate'
         ];
 
-        $data = [
-            'topic_num' => 1,
-            'camp_num' => 1,
-            'as_of' => "bydate",
-            'as_of_date' => "12-12-2022"
-        ];
+        $v = $this->app['validator']->make($this->data, $rules);
 
-        $v = $this->app['validator']->make($data, $rules);
         $this->assertTrue($v->passes());
     }
 
     public function testStatementAPI()
     {
-        print sprintf("\n Get Camp Statement ", 200, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/get/camp-statement', [
-            'topic_num' => 150,
-            'camp_num' => 1,
-            'as_of' => "default",
-            'as_of_date' => "12-12-2022"
-        ]);
+        print sprintf("\n post Camp Statement ", 200, PHP_EOL);
+        $response = $this->call('post', '/api/v3/get-camp-statement', 
+        $this->data
+        );
         $this->assertEquals(200, $response->status());
     }
 
     public function testStatementAPIResponse()
     {
         print sprintf("\n Test  Camp Statement API Response ", 200, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/get/camp-statement', [
-            'topic_num' => 150,
-            'camp_num' => 1,
-            'as_of' => "default",
-            'as_of_date' => "12-12-2022"
-        ]);
-
+        $this->call('post', '/api/v3/get-camp-statement', 
+            $this->data
+        );
         $this->seeJsonStructure([
             'status_code',
             'message',

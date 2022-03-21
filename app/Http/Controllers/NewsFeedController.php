@@ -11,6 +11,37 @@ use App\Models\Camp;
 
 class NewsFeedController extends Controller
 {
+
+  /**
+     * @OA\Post(path="/get-camp-newsfeed",
+     *   tags={"Newsfeed"},
+     *   summary="get camp newsfeed",
+     *   description="This is used to get camp newsfeed.",
+     *   operationId="getCampNewsFeed",
+     *   @OA\Parameter(
+     *     name="topic_num",
+     *     required=true,
+     *     in="query",
+     *     description="topic number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ),
+     *   @OA\Parameter(
+     *     name="camp_num",
+     *     required=true,
+     *     in="query",
+     *     description="Camp number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
+
     public function getNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedValidationRules(), $this->validationMessages->getNewsFeedValidationMessages());
@@ -43,6 +74,34 @@ class NewsFeedController extends Controller
         }
     }
 
+     /**
+     * @OA\Post(path="/edit-newsfeed",
+     *   tags={"Newsfeed"},
+     *   summary="get camp statement",
+     *   description="This is used to get camp newsfeed for editing.",
+     *   operationId="getCampNewsFeed",
+     *   @OA\Parameter(
+     *     name="topic_num",
+     *     required=true,
+     *     in="query",
+     *     description="topic number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ),
+     *   @OA\Parameter(
+     *     name="camp_num",
+     *     required=true,
+     *     in="query",
+     *     description="Camp number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function editNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
@@ -64,6 +123,63 @@ class NewsFeedController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
+
+      /**
+     * @OA\Post(path="/update-camp-newsfeed",
+     *   tags={"Newsfeed"},
+     *   summary="Update camp newsfeed",
+     *   description="This is used to update camp newsfeed.",
+     *   operationId="updateCampNewsFeed",
+     *   @OA\Parameter(
+     *     name="topic_num",
+     *     required=true,
+     *     in="query",
+     *     description="topic number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ),
+     *   @OA\Parameter(
+     *     name="camp_num",
+     *     required=true,
+     *     in="query",
+     *     description="Camp number is required",
+     *     @OA\Schema(
+     *         type="Integer"
+     *     )
+     *   ), 
+     *   @OA\Parameter(
+     *     name="display_text",
+     *     required=true,
+     *     in="query",
+     *     description="display text is required",
+     *     @OA\Schema(
+     *         type="array"
+     *     )
+     *   ), 
+     *   @OA\Parameter(
+     *     name="link",
+     *     required=true,
+     *     in="query",
+     *     description="link is required",
+     *     @OA\Schema(
+     *         type="array"
+     *     )
+     *   ), 
+     *   @OA\Parameter(
+     *     name="available_for_child",
+     *     required=true,
+     *     in="query",
+     *     description="availability for child is required",
+     *     @OA\Schema(
+     *         type="array"
+     *     )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
 
     public function updateNewsFeed(Request $request, Validate $validate)
     {
