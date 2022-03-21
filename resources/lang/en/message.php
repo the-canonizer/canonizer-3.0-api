@@ -12,6 +12,10 @@ return [
         'email_not_registered' => 'Email is not registered with us!',
         'password_not_match' => 'Password does not match!',
         'user_not_exist' => 'User Does Not Exist!',
+        'reg_failed'       => 'Your Registration failed Please try again!',
+        'topic_failed' => 'Fail to create topic, please try later.',
+        'camp_failed' => 'Fail to create camp, please try later.',
+        'camp_alreday_exist' => 'Camp name has already been taken.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -22,8 +26,10 @@ return [
         'nick_name_update' => 'Nick name visibility status updated successfully.',
         'nick_name_add'    => 'Nick name added successfully.',
         'reg_success'      => 'Otp sent successfully on your registered Email Id',
-        'reg_failed'       => 'Your Registration failed Please try again!',
-        'phone_number_otp' => 'Otp has been sent on your phone number.'
+        'phone_number_otp' => 'Otp has been sent on your phone number.',
+        'topic_created' => 'Topic created successfully.',
+        'camp_created' => 'Camp created successfully.',
+        
     ],
     'validation_registration' => [
         'password_regex'=>'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
@@ -60,5 +66,29 @@ return [
         'username_required' => 'The User Name field is required.',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
+    ],
+    'validation_camp_store' => [
+            'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
+            'nick_name_required' => 'The nick name field is required.',
+            'camp_name_required' => 'Camp name is required.',
+            'camp_name_max' => 'Camp name can not be more than 30 characters.',
+            'camp_name_unique' => 'The camp name has already been taken.',
+            'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
+            'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
+            'parent_camp_num_required' => 'The parent camp name is required.',
+            'objection_required' => 'Objection reason is required.',
+            'objection_reason_max' => 'Objection reason can not be more than 100.',
+    ],
+    'validation_topic_store' => [
+        'topic_name_required' => 'Topic name is required.',
+        'topic_name_max' => 'Topic name can not be more than 30 characters.',
+        'topic_name_regex' => 'Topic name can only contain space and alphanumeric characters.',
+        'topic_name_unique' => 'The topic name has already been taken.',
+        'namespace_required' => 'Namespace is required.',
+        'create_namespace_required_if' => 'The Other Namespace Name field is required when namespace is other.',
+        'create_namespace_max' => 'The Other Namespace Name can not be more than 100 characters.',
+        'nick_name_required' => 'Nick name is required.',
+        'objection_reason_required' => 'Objection reason is required.',
+        'objection_reason_max' => 'Objection reason can not be more than 100.',
     ]
 ];

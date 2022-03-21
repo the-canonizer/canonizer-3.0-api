@@ -97,6 +97,38 @@ class ValidationMessages
         return ([]);
     }
 
+    public function getCampStoreValidationMessages(): array
+    {
+        return([
+            'camp_name.regex' => trans('message.validation_camp_store.camp_name_regex'),
+            'nick_name.required' => trans('message.validation_camp_store.nick_name_required'),
+            'camp_name.required' => trans('message.validation_camp_store.camp_name_required'),
+            'camp_name.max' => trans('message.validation_camp_store.camp_name_max'),
+            'camp_name.unique' => trans('message.validation_camp_store.camp_name_unique'),
+            'camp_about_url.max' => trans('message.validation_camp_store.camp_about_url_max'),
+            'camp_about_url.regex' => trans('message.validation_camp_store.camp_about_url_regex'),
+            'parent_camp_num.required' => trans('message.validation_camp_store.parent_camp_num_required'),
+            'objection.required' => trans('message.validation_camp_store.objection_required'),
+            'objection_reason.max' => trans('message.validation_camp_store.objection_reason_max'),
+        ]);
+    }
+
+    public function getTopicStoreValidationMessages(): array
+    {
+        return([
+            'topic_name.required' => trans('message.validation_topic_store.topic_name_required'),
+            'topic_name.max' => trans('message.validation_topic_store.topic_name_max'),
+            'topic_name.regex' => trans('message.validation_topic_store.topic_name_regex'),
+            'topic_name.unique' => trans('message.validation_topic_store.topic_name_unique'),
+            'namespace.required' => trans('message.validation_topic_store.namespace_required'),
+            'create_namespace.required_if' => trans('message.validation_topic_store.create_namespace_required_if'),
+            'create_namespace.max' => trans('message.validation_topic_store.create_namespace_max'),
+            'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
+            'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
+            'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
+        ]);
+    }
+
 
 
 }
