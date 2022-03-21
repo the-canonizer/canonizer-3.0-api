@@ -25,33 +25,32 @@ class Camp extends Model
      */
     protected $hidden = [];
 
-    public static function getLiveCamp($topicnum, $campnum, $filter)
+    public static function getLiveCamp($topicNum, $campNum, $filter)
     {
-
         switch ($filter) {
             case "default":
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', '=', $campnum)
+                return self::where('topic_num', $topicNum)
+                    ->where('camp_num', '=', $campNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->where('go_live_time', '<=', time())
                     ->latest('submit_time')->first();
                 break;
             case "review":
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', '=', $campnum)
+                return self::where('topic_num', $topicNum)
+                    ->where('camp_num', '=', $campNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->latest('submit_time')->first();
                 break;
             case "bydate":
-                $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($_REQUEST['asofdate'])));
-                return self::where('topic_num', $topicnum)
-                    ->where('camp_num', '=', $campnum)
+                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($_REQUEST['asofdate'])));
+                return self::where('topic_num', $topicNum)
+                    ->where('camp_num', '=', $campNum)
                     ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', $asofdate)
+                    ->where('go_live_time', '<=', $asOfDate)
                     ->latest('submit_time')->first();
                 break;
             default:
-                return self::where('topic_num', $topicnum)
+                return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
                     ->latest('submit_time')->first();
         }

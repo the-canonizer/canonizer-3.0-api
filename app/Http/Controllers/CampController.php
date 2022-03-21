@@ -10,16 +10,11 @@ use App\Models\Topic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Helpers\ResponseInterface;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Events\ForgotPasswordSendOtpEvent;
-use App\Http\Resources\Authentication\UserResource;
 
 class CampController extends Controller
 {
