@@ -13,20 +13,22 @@ class CreateImagesTable extends Migration
      */
     public function up()
     {
-        Schema::create('images', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('page_id');
-            $table->string('title', 100);
-            $table->text('description');
-            $table->string('route', 100);
-            $table->string('url', 200);
-            $table->integer('create_time');
-            $table->integer('update_time');
-        });
+        if (!Schema::hasTable('images')) {
+            Schema::create('images', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('page_id');
+                $table->string('title', 100);
+                $table->text('description');
+                $table->string('route', 100);
+                $table->string('url', 200);
+                $table->integer('create_time');
+                $table->integer('update_time');
+            });
 
-        Schema::table('images', function($table) {
-            $table->foreign('page_id')->references('id')->on('pages');
-        }); 
+            Schema::table('images', function ($table) {
+                $table->foreign('page_id')->references('id')->on('pages');
+            });
+        }
     }
 
     /**

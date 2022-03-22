@@ -14,15 +14,17 @@ class Countries extends Migration
      */
     public function up()
     {
-        Schema::create('countries', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('phone_code', 255);
-            $table->string('country_code', 255);
-            $table->string('name', 255);
-            $table->string('alpha_3', 255)->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->tinyInteger('status')->default(1)->comment('0 => Inactive, 1 => Active');
-        });
+        if (!Schema::hasTable('countries')) {
+            Schema::create('countries', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->string('phone_code', 255);
+                $table->string('country_code', 255);
+                $table->string('name', 255);
+                $table->string('alpha_3', 255)->nullable();
+                $table->timestamp('created_at')->useCurrent();
+                $table->tinyInteger('status')->default(1)->comment('0 => Inactive, 1 => Active');
+            });
+        }
     }
 
     /**
