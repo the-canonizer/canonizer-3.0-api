@@ -93,5 +93,11 @@ return [
         'nick_name_required' => 'Nick name is required.',
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
+    ],
+    'verify_otp' => [
+        'otp_required' => 'OTP is required.',
+        'username_required' => 'Email is required.',
+        'client_id_required' => 'Client Id is required.',
+        'client_secret_required' => 'Client Secrect is required.',
     ]
 ];
