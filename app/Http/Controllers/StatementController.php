@@ -12,54 +12,50 @@ use App\Http\Resources\ErrorResource;
 class StatementController extends Controller
 {
 
-   /**
-     * @OA\Post(path="/get-camp-statement",
+    /**
+    * @OA\Post(path="/get-camp-statement",
      *   tags={"statement"},
      *   summary="get camp statement",
      *   description="Used to get statement.",
      *   operationId="getCampStatement",
-     *   @OA\Parameter(
-     *     name="topic_num",
-     *     required=true,
-     *     in="query",
-     *     description="topic number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ),
-     *   @OA\Parameter(
-     *     name="camp_num",
-     *     required=true,
-     *     in="query",
-     *     description="Camp number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ), 
-     *   @OA\Parameter(
-     *     name="as_of",
-     *     required=false,
-     *     in="query",
-     *     description="As of filter type",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
-     *   ),
-     *   @OA\Parameter(
-     *     name="as_of_date",
-     *     required=false,
-     *     in="query",
-     *     description="As of filter date",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
-     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topics",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *                 @OA\Property(
+     *                     property="topic_num",
+     *                     description="topic number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="camp_num",
+     *                     description="Camp number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="as_of",
+     *                     description="As of filter type",
+     *                     required=false,
+     *                     type="string",
+     *                 ),
+     *                  @OA\Property(
+     *                     property="as_of_date",
+     *                     description="As of filter date",
+     *                     required=false,
+     *                     type="string",
+     *                 )
+     *            )
+     *        )
+     *   )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     * )
      */
-
-
     
     public function getStatement(Request $request, Validate $validate)
     {
@@ -74,17 +70,13 @@ class StatementController extends Controller
         $statement = [];
         $topic = Camp::getAgreementTopic($filter);
         $camp = Camp::getLiveCamp($filter);
-        if (!empty($camp) && !empty($topic)) {
-            $parentcamp = Camp::campNameWithAncestors($camp, '', $topic->topic_name,$filter);
-        } else {
-            $parentcamp = "N/A";
-        }
+        $parentCamp = (!empty($camp) && !empty($topic)) ? Camp::campNameWithAncestors($camp, '', $topic->topic_name,$filter) : 'N/A';
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $statement[] = $campStatement;
                 $statement = $this->resourceProvider->jsonResponse('Statement', $statement);
-                $statement[0]['parentCamps']=$parentcamp;
+                $statement[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {

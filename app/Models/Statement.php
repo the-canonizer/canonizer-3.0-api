@@ -14,7 +14,7 @@ class Statement extends Model
         if (!$filterName) {
             $filter['asOf'] = 'default';
         }
-        return self::asOfFilter($filter);
+        return self::liveStatementAsOfFilter($filter);
     }
 
     public static function defaultAsOfFilter($filter)
@@ -47,7 +47,7 @@ class Statement extends Model
             ->first();
     }
 
-    private function asOfFIlter($filter)
+    private function liveStatementAsOfFilter($filter)
     {
         $asOfFilter = [
             'default' => self::defaultAsOfFilter($filter),

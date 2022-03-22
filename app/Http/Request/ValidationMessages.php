@@ -130,8 +130,7 @@ class ValidationMessages
             'page_name.string' => "page_name should be a string"
         ];
     }
-
-    public function getNewsFeedUpdateValidationMessages($request): array
+    public function getNewsFeedUpdateValidationMessages(): array
     {
         $messages["display_text.*.required"] = 'Display text is required.';
         $messages["display_text.*.regex"] = 'Display text can only contain space, full stop (.) and alphanumeric characters.';

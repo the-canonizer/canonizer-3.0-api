@@ -12,36 +12,40 @@ use App\Models\Camp;
 class NewsFeedController extends Controller
 {
 
-  /**
+     /**
      * @OA\Post(path="/get-camp-newsfeed",
      *   tags={"Newsfeed"},
      *   summary="get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
-     *   @OA\Parameter(
-     *     name="topic_num",
-     *     required=true,
-     *     in="query",
-     *     description="topic number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ),
-     *   @OA\Parameter(
-     *     name="camp_num",
-     *     required=true,
-     *     in="query",
-     *     description="Camp number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ), 
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topics",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *                 @OA\Property(
+     *                     property="topic_num",
+     *                     description="Topic number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="camp_num",
+     *                     description="Camp number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 )
+     *          )
+     *      )
+     *   )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     * )
      */
 
-
+     
     public function getNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedValidationRules(), $this->validationMessages->getNewsFeedValidationMessages());
@@ -50,14 +54,14 @@ class NewsFeedController extends Controller
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
-        $camp = Camp::LiveCampdefaultAsOfFilter($filter);
+        $camp = Camp::liveCampDefaultAsOfFilter($filter);
         try {
             $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
                 ->where('camp_num', '=', $filter['campNum'])
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             
-            if (!count($news) && count($camp) && $camp->parent_camp_num != null) {
+            if (empty($news) && count($camp) && $camp->parent_camp_num != null) {
                 $neCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $neCampNum)
@@ -74,34 +78,40 @@ class NewsFeedController extends Controller
         }
     }
 
+
      /**
      * @OA\Post(path="/edit-newsfeed",
      *   tags={"Newsfeed"},
      *   summary="get camp statement",
      *   description="This is used to get camp newsfeed for editing.",
      *   operationId="getCampNewsFeed",
-     *   @OA\Parameter(
-     *     name="topic_num",
-     *     required=true,
-     *     in="query",
-     *     description="topic number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ),
-     *   @OA\Parameter(
-     *     name="camp_num",
-     *     required=true,
-     *     in="query",
-     *     description="Camp number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ), 
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topics",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *                 @OA\Property(
+     *                     property="topic_num",
+     *                     description="Topic number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="camp_num",
+     *                     description="Camp number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 )
+     *          )
+     *      )
+     *   )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     * )
      */
+
     public function editNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
@@ -124,67 +134,61 @@ class NewsFeedController extends Controller
         }
     }
 
-      /**
+     /**
      * @OA\Post(path="/update-camp-newsfeed",
      *   tags={"Newsfeed"},
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
-     *   @OA\Parameter(
-     *     name="topic_num",
-     *     required=true,
-     *     in="query",
-     *     description="topic number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ),
-     *   @OA\Parameter(
-     *     name="camp_num",
-     *     required=true,
-     *     in="query",
-     *     description="Camp number is required",
-     *     @OA\Schema(
-     *         type="Integer"
-     *     )
-     *   ), 
-     *   @OA\Parameter(
-     *     name="display_text",
-     *     required=true,
-     *     in="query",
-     *     description="display text is required",
-     *     @OA\Schema(
-     *         type="array"
-     *     )
-     *   ), 
-     *   @OA\Parameter(
-     *     name="link",
-     *     required=true,
-     *     in="query",
-     *     description="link is required",
-     *     @OA\Schema(
-     *         type="array"
-     *     )
-     *   ), 
-     *   @OA\Parameter(
-     *     name="available_for_child",
-     *     required=true,
-     *     in="query",
-     *     description="availability for child is required",
-     *     @OA\Schema(
-     *         type="array"
-     *     )
-     *   ), 
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Update Camp Newsfeed",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *                 @OA\Property(
+     *                     property="topic_num",
+     *                     description="Topic number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="camp_num",
+     *                     description="Camp number is required",
+     *                     required=true,
+     *                     type="integer",
+     *                     format="int32"
+     *                 ),
+     *                  @OA\Property(
+     *                     property="display_text",
+     *                     description="display text is required",
+     *                     required=true,
+     *                     type="array",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="link",
+     *                     description="link is required",
+     *                     required=true,
+     *                     type="array",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="available_for_child",
+     *                     description="availability for child is required",
+     *                     required=true,
+     *                     type="array",
+     *                 ),
+     *          )
+     *      )
+     *   )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     * )
      */
-
 
     public function updateNewsFeed(Request $request, Validate $validate)
     {
         $sizeLimit = $request->display_text ? count($request->display_text) : 0;
-        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedUpdateValidationRules($sizeLimit), $this->validationMessages->getNewsFeedUpdateValidationMessages($request));
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedUpdateValidationRules($sizeLimit), $this->validationMessages->getNewsFeedUpdateValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }

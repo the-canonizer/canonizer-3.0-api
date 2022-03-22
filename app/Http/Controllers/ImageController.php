@@ -26,7 +26,7 @@ class ImageController extends Controller
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
+     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
      */
     public function getImages(Request $request, Validate $validate)
