@@ -82,7 +82,10 @@ class ValidationMessages
 
     public function getForgotPasswordVerifyOtpValidationMessages(): array
     {
-        return ([]);
+        return([
+            'otp.required' => trans('message.validation_forgot_password.otp_required'),
+            'username.required' => trans('message.validation_forgot_password.emial_required'),
+        ]);
     }
 
     public function getForgotPasswordUpdateValidationMessages(): array

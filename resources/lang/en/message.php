@@ -22,11 +22,11 @@ return [
         'password_change'  => 'Password changed successfully.',
         'update_profile'   => 'Profile updated successfully.',
         'verify_otp'       => 'Phone number has been verified successfully.',
-        'forgot_password'  => 'Otp sent successfully on your Email Id.',
+        'forgot_password'  => 'OTP sent successfully on your Email Id.',
         'nick_name_update' => 'Nick name visibility status updated successfully.',
         'nick_name_add'    => 'Nick name added successfully.',
-        'reg_success'      => 'Otp sent successfully on your registered Email Id',
-        'phone_number_otp' => 'Otp has been sent on your phone number.',
+        'reg_success'      => 'OTP sent successfully on your registered Email Id',
+        'phone_number_otp' => 'OTP has been sent on your phone number.',
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
@@ -65,6 +65,7 @@ return [
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
+        'otp_required' => 'The OTP field is required.',
         'emial_required' => 'The Email field is required.',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
