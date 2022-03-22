@@ -30,7 +30,7 @@
 			<tr>
 				<td
 					style="padding-top:10px; padding-bottom: 60px; font-weight:400; font-size:30px; color:#497BDF;">
-					<a href="#"><button> Click here</button></a></td>
+					<a href="https://www.canonizer.com/"><button> Click here</button></a></td>
 			</tr>
 			<tr>
 				<td style="padding-top:10px;  font-weight:400; ">If you ever have any issues or
