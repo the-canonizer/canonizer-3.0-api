@@ -6,7 +6,7 @@ return [
         'update_profile' => 'Failed to update profile, please try again.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
-        'account_not_verified'  => 'Your account is not verified!',
+        'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email or mobile. If not then you can request for new code by clicking on the button below.',
         'otp_failed' => 'Failed to Send OTP.',
         'otp_not_match' => 'OTP does not match',
         'email_not_registered' => 'Email is not registered with us!',
@@ -29,6 +29,7 @@ return [
         'phone_number_otp' => 'Otp has been sent on your phone number.',
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
+        'password_reset' => 'Your password has been reset successfully.',
         
     ],
     'validation_registration' => [
@@ -64,6 +65,7 @@ return [
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
+        'emial_required' => 'The Email field is required.',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
     ],

@@ -75,7 +75,9 @@ class ValidationMessages
 
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
-        return ([]);
+        return([
+            'email.required' => trans('message.validation_forgot_password.emial_required'),
+        ]);
     }
 
     public function getForgotPasswordVerifyOtpValidationMessages(): array
