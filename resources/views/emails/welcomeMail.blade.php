@@ -17,10 +17,10 @@
 
 			<tr>
 				<td style="padding:30px 0px 20px; font-weight:600;">Hello {{ $user->first_name }}
-					{{ $user->last_name }}</td>
+					{{ $user->last_name }},</td>
 			</tr>
 			<tr>
-				<td style=" font-weight:400;">Thank You For registering an account with canonizer.com
+				<td style=" font-weight:400;">Thank you for registering an account with canonizer.com
 				</td>
 			</tr>
 			<tr>
@@ -33,11 +33,11 @@
 					<a href="#"><button> Click here</button></a></td>
 			</tr>
 			<tr>
-				<td style="padding-top:10px;  font-weight:400; ">if you ever have any issues or
+				<td style="padding-top:10px;  font-weight:400; ">If you ever have any issues or
 					feedback,</td>
 			</tr>
 			<tr>
-				<td style="padding-top:10px; font-weight:400; padding-bottom: 20px; ">feel free to
+				<td style="padding-top:10px; font-weight:400; padding-bottom: 20px; ">Feel free to
 					email: <a href="mailto:support@canonizer.com"
 						style="color:#497BDF; font-weight: 600; text-decoration:none;">support@canonizer.com</a>
 				</td>
