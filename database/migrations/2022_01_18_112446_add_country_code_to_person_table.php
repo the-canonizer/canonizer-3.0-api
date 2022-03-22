@@ -13,9 +13,11 @@ class AddCountryCodeToPersonTable extends Migration
      */
     public function up()
     {
-        Schema::table('person', function (Blueprint $table) {
-            $table->string('country_code',255)->nullable();
-        });
+        if (Schema::hasTable('person') && !Schema::hasColumn('person', 'country_code')) {
+            Schema::table('person', function (Blueprint $table) {
+                $table->string('country_code', 255)->nullable();
+            });
+        }
     }
 
     /**
