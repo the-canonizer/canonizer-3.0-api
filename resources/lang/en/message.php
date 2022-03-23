@@ -66,7 +66,7 @@ return [
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
         'otp_required' => 'The OTP field is required.',
-        'emial_required' => 'The Email field is required.',
+        'email_required' => 'Please enter a valid email address',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
     ],
