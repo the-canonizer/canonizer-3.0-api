@@ -54,7 +54,9 @@ return [
         'new_password_different' => 'Current and new password should not be same'
     ],
     'validation_update_profile' => [
+        'first_name_required' => 'First name is required.',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'last_name_required' => 'Last name is required.',
         'last_name_regex' => 'The last name must be in alphabets and space only.',
         'middle_name_regex' => 'The middle name must be in alphabets and space only.',
         'city_regex' => 'The city name must be in alphabets and space only.',

@@ -63,7 +63,9 @@ class ValidationMessages
     public function getUpdateProfileValidationMessages(): array
     {
         return([
+            'first_name.required' => trans('message.validation_update_profile.first_name_required'),
             'first_name.regex' => trans('message.validation_update_profile.first_name_regex'),
+            'last_name.required' => trans('message.validation_update_profile.last_name_required'),
             'last_name.regex' => trans('message.validation_update_profile.last_name_regex'),
             'middle_name.regex' => trans('message.validation_update_profile.middle_name_regex'),
             'city.regex' => trans('message.validation_update_profile.city_regex'),
