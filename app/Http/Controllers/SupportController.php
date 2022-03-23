@@ -96,11 +96,7 @@ class SupportController extends Controller
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
-                        'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-                        'my_nick_name' => $support->my_nick_name,
-                        'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
-                        'delegated_to_nick_name' => $support->delegated_to_nick_name,
-                        'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num, $support->camp_num),
+                        'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
                         'support_added' => date('Y-m-d',$support->start)
                     ];
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
@@ -110,16 +106,16 @@ class SupportController extends Controller
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
                         'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                        'my_nick_name' => $support->my_nick_name,
+                        'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
+                        'delegated_to_nick_name' => $support->delegated_to_nick_name,
+                        'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,
-                                    'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-                                    'my_nick_name' => $support->my_nick_name,
-                                    'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
-                                    'delegated_to_nick_name' => $support->delegated_to_nick_name,
-                                    'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
+                                    'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
                                     'support_added' => date('Y-m-d',$support->start)
 
                                 ]
