@@ -41,7 +41,6 @@
                     <table width="100%">
                         <tr>
                             <td verticle-align="middle" style="padding-top:30px;  text-align: center;   padding-bottom: 20px;"> 
-                                <a href="#" style="color:#20395A; text-decoration: none; font-size:14px;"> Services </a>
                                 <a href="https://www.canonizer.com/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
                                 <a href="https://www.canonizer.com/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
                                 <a href="https://www.canonizer.com/blog/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
