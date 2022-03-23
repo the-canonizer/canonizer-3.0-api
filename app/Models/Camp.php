@@ -127,7 +127,7 @@ class Camp extends Model
 
     public static function liveCampByDateFilter($filter)
     {
-        $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
+        $asOfDate=isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)

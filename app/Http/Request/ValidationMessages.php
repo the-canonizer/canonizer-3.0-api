@@ -97,58 +97,60 @@ class ValidationMessages
         return ([]);
     }
 
-    public function getStamenetValidationMessages(): array
+    public function getStatementValidationMessages(): array
     {
         return [
-            'as_of.in' => "Please enter a valid value (default,review,bydate) or leave it empty",
-            'as_of_date.required_if' => "Please enter as_of_date in case of bydate",
-            'topic_num.required' => "Please enter topic_num",
-            'camp_num.required' => "Please enter camp_num"
+            
+            'as_of.in' => trans('message.validation_get_statement.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_statement.as_of_date_required'),
+            'topic_num.required' => trans('message.validation_get_statement.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_statement.camp_num_required')
         ];
     }
 
     public function getNewsFeedValidationMessages(): array
     {
         return [
-            'topic_num.required' => "Please enter topic_num",
-            'camp_num.required' => "Please enter camp_num"
+            'topic_num.required' => trans('message.validation_get_newsfeed.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_newsfeed.camp_num_required')
         ];
     }
 
     public function getAdsValidationMessages(): array
     {
         return [
-            'page_name.required' => "Please enter page_name",
-            'page_name.string' => "page_name should be a string"
+            'page_name.required' => trans('message.validation_get_ads.page_name_required'),
+            'page_name.string' => trans('message.validation_get_ads.page_name_string')
         ];
     }
 
     public function getImageValidationMessages(): array
     {
         return [
-            'page_name.required' => "Please enter page_name",
-            'page_name.string' => "page_name should be a string"
+            'page_name.required' => trans('message.validation_get_image.page_name_required'),
+            'page_name.string' => trans('message.validation_get_image.page_name_string')
         ];
     }
     public function getNewsFeedUpdateValidationMessages(): array
     {
-        $messages["display_text.*.required"] = 'Display text is required.';
-        $messages["display_text.*.regex"] = 'Display text can only contain space, full stop (.) and alphanumeric characters.';
-        $messages["display_text.*.max"] = 'Display text may not be greater than 256 characters.';
-        $messages['display_text.required'] = "display_text is required";
-        $messages['display_text.array'] = "display_text should be an array";
-        $messages["link.*.regex"] = 'Link is invalid. (Example: https://www.example.com?post=1234)';
-        $messages["link.*.required"] = 'Link is required.';
-        $messages['link.size'] = 'Size of all arrays must be same';
-        $messages['link.array'] = "link should be an array";
-        $messages['link.required'] = "link is required";
-        $messages["available_for_child.*.boolean"] = "Please enter boolean value for children's availability";
-        $messages['available_for_child.required'] = "available_for_child is required";
-        $messages['available_for_child.array'] = "available_for_child should be an array";
-        $messages['available_for_child.size'] = 'Size of all arrays must be same';
-        $messages['topic_num.required'] = "Please enter topic_num";
-        $messages['camp_num.required'] = "Please enter camp_num";
-        return $messages;
+        return([
+            'display_text.*.required' => trans('message.validation_update_newsfeed.display_text_*_required'),
+            "display_text.*.regex" => trans('message.validation_update_newsfeed.display_text_*_regex'),
+            "display_text.*.max" => trans('message.validation_update_newsfeed.display_text_*_max'),
+            'display_text.required' => trans('message.validation_update_newsfeed.display_text_required'),
+            'display_text.array' => trans('message.validation_update_newsfeed.display_text_array'),
+            "link.*.regex" => trans('message.validation_update_newsfeed.link_*_regex'),
+            "link.*.required" => trans('message.validation_update_newsfeed.link_*_required'),
+            'link.size' => trans('message.validation_update_newsfeed.link_size'),
+            'link.array' => trans('message.validation_update_newsfeed.link_array'),
+            'link.required' => trans('message.validation_update_newsfeed.link_required'),
+            "available_for_child.*.boolean" => trans('message.validation_update_newsfeed.available_for_child_*_boolean'),
+            'available_for_child.required' => trans('message.validation_update_newsfeed.available_for_child_required'),
+            'available_for_child.array' => trans('message.validation_update_newsfeed.available_for_child_array'),
+            'available_for_child.size' => trans('message.validation_update_newsfeed.available_for_child_size'),
+            'topic_num.required' => trans('message.validation_update_newsfeed.topic_num_required'),
+            'camp_num.required' => trans('message.validation_update_newsfeed.camp_num_required'),
+        ]);
     }
 
     public function getCampStoreValidationMessages(): array
@@ -164,6 +166,7 @@ class ValidationMessages
             'parent_camp_num.required' => trans('message.validation_camp_store.parent_camp_num_required'),
             'objection.required' => trans('message.validation_camp_store.objection_required'),
             'objection_reason.max' => trans('message.validation_camp_store.objection_reason_max'),
+            'asof.in' => trans('message.validation_camp_store.asof_in')
         ]);
     }
 
@@ -180,14 +183,15 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
+            'asof.in' => trans('message.validation_topic_store.asof_in')
         ]);
     }
 
     public function getNewsFeedEditValidationMessages(): array
     {
         return [
-            'topic_num.required' => "Please enter topic_num",
-            'camp_num.required' => "Please enter camp_num"
+            'topic_num.required' => trans('message.validation_edit_newsfeed.topic_num_required'),
+            'camp_num.required' => trans('message.validation_edit_newsfeed.camp_num_required')
         ];
     }
 }

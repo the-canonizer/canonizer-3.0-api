@@ -59,7 +59,7 @@ class StatementController extends Controller
     
     public function getStatement(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStamenetValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStatementValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }

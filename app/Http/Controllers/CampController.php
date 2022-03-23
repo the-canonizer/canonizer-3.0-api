@@ -9,25 +9,13 @@ use App\Facades\Util;
 use App\Models\Topic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
-use App\Helpers\ResponseInterface;
-use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 
 class CampController extends Controller
 {
-    private ValidationRules $rules;
 
-    private ValidationMessages $validationMessages;
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->rules = new ValidationRules;
-        $this->validationMessages = new ValidationMessages;
-        $this->resProvider = $resProvider;
-    }
 
     public function store(Request $request, Validate $validate)
     {
@@ -67,13 +55,17 @@ class CampController extends Controller
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 1
             ];
+            
             $camp = Camp::create($input);
-
+            
             if ($camp) {
 
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 $camp_id= $camp->camp_num ?? 1;
-                $livecamp = Camp::getLiveCamp($topic->topic_num, $camp_id, $request->asof);
+                $filter['topicNum'] = $request->topic_num;
+                $filter['asOf'] = $request->asof;
+                $filter['campNum'] = $camp_id;
+                $livecamp = Camp::getLiveCamp($filter);
                 $link = Util::getTopicCampUrl($topic->topic_num, $camp_id, $topic, $livecamp, time());
                 try {
                     $dataEmail = (object) [
@@ -81,7 +73,7 @@ class CampController extends Controller
                         "link" =>  $link,
                         "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
-                    ];
+                    ];                 
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $status = 403;

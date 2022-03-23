@@ -194,7 +194,8 @@ class ValidationRules
             'nick_name' => 'required',
             'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
-            'parent_camp_num' => 'nullable'
+            'parent_camp_num' => 'nullable',
+            'asof' => 'in:default,review,bydate'
         ]);
     }
 
@@ -204,7 +205,8 @@ class ValidationRules
             'topic_name' => 'required|max:30|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
-            'nick_name' => 'required'
+            'nick_name' => 'required',
+            'asof' => 'in:default,review,bydate'
         ]);
     }
 }

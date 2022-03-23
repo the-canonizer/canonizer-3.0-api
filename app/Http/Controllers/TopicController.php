@@ -10,28 +10,15 @@ use App\Models\Support;
 use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
-use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
-use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Facades\Util;
 
 class TopicController extends Controller
 {
-    private ValidationRules $rules;
-
-    private ValidationMessages $validationMessages;
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->rules = new ValidationRules;
-        $this->validationMessages = new ValidationMessages;
-        $this->resProvider = $resProvider;
-    }
-
+ 
     public function store(Request $request, Validate $validate)
     {
 
@@ -82,7 +69,10 @@ class TopicController extends Controller
                 DB::commit();
                 try {
                     $topicLive = Topic::getLiveTopic($topic->topic_num, $request->asof);
-                    $camp = Camp::getLiveCamp($topic->topic_num, 1, $request->asof);
+                    $filter['topicNum'] = $request->topic_num;
+                    $filter['asOf'] = $request->asof;
+                    $filter['campNum'] = 1;
+                    $camp = Camp::getLiveCamp($filter);
                     $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
                     $dataEmail = (object) [
                         "type" => "topic",
