@@ -1,22 +1,405 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Canonizer API",
-        "description": "This documentation is the canonizer version 3 API",
-        "termsOfService": "http://canonizer.com/termsandservice",
-        "contact": {
-            "email": "support@canonizer.com"
-        },
+        "title": "Account Setting API",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api.canonizer.com/api/v3/",
-            "description": "Canonizer API"
-        }
-    ],
     "paths": {
-        "/add_nick_name": {
+        "/camp/save": {
+            "post": {
+                "tags": [
+                    "Camp"
+                ],
+                "summary": "save camp",
+                "description": "This API is use for save camp",
+                "operationId": "campSave",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "camp_name": {
+                                        "type": "string"
+                                    },
+                                    "parent_camp_num": {
+                                        "type": "string"
+                                    },
+                                    "topic_num": {
+                                        "type": "string"
+                                    },
+                                    "nick_name": {
+                                        "type": "string"
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    },
+                                    "key_words": {
+                                        "type": "string"
+                                    },
+                                    "camp_about_url": {
+                                        "type": "string"
+                                    },
+                                    "camp_about_nick_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/sendOtp": {
+            "post": {
+                "tags": [
+                    "Forgot Password"
+                ],
+                "summary": "forgot password send Otp",
+                "description": "This api used to forgot password send Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "User Email Id",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/verifyOtp": {
+            "post": {
+                "tags": [
+                    "Forgot Password"
+                ],
+                "summary": "forgot password verify Otp",
+                "description": "This api used to forgot password verify Otp",
+                "operationId": "forgotPasswordVerifyOtp",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "otp": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/update": {
+            "post": {
+                "tags": [
+                    "Forgot Password"
+                ],
+                "summary": "forgot password update",
+                "description": "This api used to forgot password update",
+                "operationId": "forgotPasswordupdate",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    },
+                                    "confirm_password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/add-nick-name": {
             "post": {
                 "tags": [
                     "User"
@@ -67,7 +450,7 @@
                 }
             }
         },
-        "/update_nick_name": {
+        "/update-nick-name": {
             "post": {
                 "tags": [
                     "nickname"
@@ -112,7 +495,7 @@
                 }
             }
         },
-        "/get_all_nickname": {
+        "/get-nick-name-list": {
             "get": {
                 "tags": [
                     "User"
@@ -130,46 +513,143 @@
                 }
             }
         },
-        "/register": {
+        "/change-password": {
             "post": {
                 "tags": [
-                    "user"
+                    "changepassword"
                 ],
-                "summary": "Create user",
-                "description": "This is used to register the user.",
-                "operationId": "createUser",
+                "summary": "Update Password",
+                "description": "This is used to update the user password.",
+                "operationId": "changePassword",
+                "parameters": [
+                    {
+                        "name": "current_password",
+                        "in": "query",
+                        "description": "The current password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "query",
+                        "description": "The new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "query",
+                        "description": "The confirm password same as new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get looged in user profile",
+                "description": "",
+                "operationId": "userProfile",
+                "responses": {
+                    "200": {
+                        "description": "success"
+                    },
+                    "404": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-direct-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "directSupport",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-delegate-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "delegateSupport",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/topic/save": {
+            "post": {
+                "tags": [
+                    "Topic"
+                ],
+                "summary": "save topic",
+                "description": "This is use for save topic",
+                "operationId": "topicSave",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
                 "requestBody": {
-                    "description": "Created user object",
+                    "description": "Request Body Json Parameter",
+                    "required": true,
                     "content": {
-                        "multipart/form-data": {
+                        "application/json": {
                             "schema": {
                                 "properties": {
-                                    "first_name": {
-                                        "description": "First Name of the User",
+                                    "topic_name": {
                                         "type": "string"
                                     },
-                                    "middle_name": {
-                                        "description": "Middle Name of the User",
+                                    "namespace": {
                                         "type": "string"
                                     },
-                                    "last_name": {
-                                        "description": "Last Name of the User",
+                                    "nick_name": {
                                         "type": "string"
                                     },
-                                    "email": {
-                                        "description": "Email Id of the User",
-                                        "type": "string"
-                                    },
-                                    "phone_number": {
-                                        "description": "Phone Number of the User",
-                                        "type": "string"
-                                    },
-                                    "password": {
-                                        "description": "Password of the User",
-                                        "type": "string"
-                                    },
-                                    "confirm_password": {
-                                        "description": "Confirm password string",
+                                    "note": {
                                         "type": "string"
                                     }
                                 },
@@ -180,66 +660,337 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "success"
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "400": {
-                        "description": "Something went wrong"
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/client_token": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "This api used to get password client id and client secrect",
+                "description": "",
+                "operationId": "clienttoken",
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
-                    "401": {
-                        "description": "Unauthorised request"
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create user API",
+                "description": "This is used to register the user.",
+                "operationId": "createUser",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    },
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "middle_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone_number": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    },
+                                    "country_code": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "/user/login": {
-            "get": {
+            "post": {
                 "tags": [
-                    "user"
+                    "User"
                 ],
                 "summary": "Logs user into the system",
                 "description": "",
                 "operationId": "loginUser",
                 "parameters": [
                     {
-                        "name": "username",
-                        "in": "query",
-                        "description": "The user name for login",
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "password",
-                        "in": "query",
-                        "description": "The password for login in clear text",
-                        "schema": {
-                            "type": "string"
+                            "type": "Authorization"
                         }
                     }
                 ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "successful operation",
-                        "headers": {
-                            "X-Rate-Limit": {
-                                "description": "calls per hour allowed by the user",
+                        "content": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "format": "int32"
-                                }
-                            },
-                            "X-Expires-After": {
-                                "description": "date in UTC when token expires",
-                                "schema": {
-                                    "type": "string",
-                                    "format": "date-time"
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
                     "400": {
-                        "description": "Invalid username/password"
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -247,7 +998,7 @@
         "/user/logout": {
             "get": {
                 "tags": [
-                    "user"
+                    "User"
                 ],
                 "summary": "Logout the user",
                 "description": "",
@@ -263,7 +1014,7 @@
         "/user/{username}": {
             "get": {
                 "tags": [
-                    "user"
+                    "User"
                 ],
                 "summary": "Get user by user nick name",
                 "description": "",
@@ -293,7 +1044,7 @@
             },
             "put": {
                 "tags": [
-                    "user"
+                    "User"
                 ],
                 "summary": "Updated user",
                 "description": "This can only be done by the logged in user.",
@@ -331,7 +1082,7 @@
             },
             "delete": {
                 "tags": [
-                    "user"
+                    "User"
                 ],
                 "summary": "Delete user",
                 "description": "This can only be done by the logged in user.",
@@ -372,30 +1123,430 @@
             }
         },
         "/verifyOtp": {
-            "delete": {
+            "post": {
                 "tags": [
-                    "postVerifyOtp"
+                    "User"
                 ],
-                "summary": "post Verify Otp",
-                "description": "This use to verify user Otp.",
+                "summary": "For verify Otp after login details",
+                "description": "This api used to verify Otp after login details",
                 "operationId": "verifyOtp",
                 "parameters": [
                     {
-                        "name": "username",
-                        "in": "path",
-                        "description": "The name that needs to be deleted",
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "otp": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/social/login": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "For get social token url",
+                "description": "This api used to create social token url and we are using this url for generating code",
+                "operationId": "usersociallogin",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "provider": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/social/callback": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "For get social user details",
+                "description": "This api used to get social social users detauls and auth details",
+                "operationId": "usersocialcallback",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "password"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    },
+                                    "provider": {
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/country/list": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "For get country list",
+                "description": "This api used to get country list",
+                "operationId": "countrylist",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
                         }
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Invalid username supplied"
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
-                    "404": {
-                        "description": "User not found"
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/reSendOtp": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "User Resend Otp",
+                "description": "This api used to Resend Otp",
+                "operationId": "userReSend",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }

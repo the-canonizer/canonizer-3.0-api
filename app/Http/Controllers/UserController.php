@@ -40,6 +40,69 @@ class UserController extends Controller
         $this->resProvider = $resProvider;
     }
 
+       /**
+    * @OA\POST(path="/client_token",
+     *   tags={"User"},
+     *   summary="This api used to get password client id and client secrect",
+     *   description="",
+     *   operationId="clienttoken",
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="client_id",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="client_secret",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function clientToken(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), $this->validationMessages->getTokenValidationMessages());
@@ -68,74 +131,111 @@ class UserController extends Controller
         }
     }
 
+    
     /**
-     * @OA\Post(path="/register",
-     *   tags={"user"},
-     *   summary="Create user",
+     * @OA\POST(path="/register",
+     *   tags={"User"},
+     *   summary="Create user API",
      *   description="This is used to register the user.",
      *   operationId="createUser",
-     *   @OA\RequestBody(
-     *       description="Created user object",
-     *       @OA\MediaType(
-     *           mediaType="multipart/form-data",
-     *           @OA\Schema(
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="client_id",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="client_secret",
+     *                  type="string"
+     *              ),
      *              @OA\Property(
      *                  property="first_name",
-     *                  description="First Name of the User",
      *                  type="string"
      *              ),
      *              @OA\Property(
      *                  property="middle_name",
-     *                  type="string",
-     *                  description="Middle Name of the User"
+     *                  type="string"
      *              ),
      *              @OA\Property(
      *                  property="last_name",
-     *                  type="string",
-     *                  description="Last Name of the User"
+     *                  type="string"
      *              ),
      *              @OA\Property(
      *                  property="email",
-     *                  type="string",
-     *                  description="Email Id of the User"
+     *                  type="string"
      *              ),
      *              @OA\Property(
      *                  property="phone_number",
-     *                  type="string",
-     *                  description="Phone Number of the User"
+     *                  type="string"
      *              ),
      *              @OA\Property(
      *                  property="password",
-     *                  type="string",
-     *                  description="Password of the User"
+     *                  type="string"
      *              ),
      *              @OA\Property(
-     *                  property="confirm_password",
-     *                  type="string",
-     *                  description="Confirm password string"
+     *                  property="password_confirmation",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="country_code",
+     *                  type="string"
      *              )
      *          )
-     *       )
+     *     ),
      *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
      *
-     *   @OA\Response(
-     *      response=200,
-     *      description="success",
-     *      @OA\Schema(ref="#/components/schemas/User")
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
      *   ),
-     *   @OA\Response(
-     *      response=400,
-     *      description="Something went wrong",
-     *      @OA\Schema(ref="#/components/schemas/ExceptionRes")
-     *   ),
-     *   @OA\Response(
-     *      response=401,
-     *      description="Unauthorised request"
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
      *   )
-     *
      *
      * )
      */
+
     public function createUser(Request $request, Validate $validate)
     {
 
@@ -189,50 +289,74 @@ class UserController extends Controller
 
 
     /**
-     * @OA\Get(path="/user/login",
-     *   tags={"user"},
+     * @OA\POST(path="/user/login",
+     *   tags={"User"},
      *   summary="Logs user into the system",
      *   description="",
      *   operationId="loginUser",
      *   @OA\Parameter(
-     *     name="username",
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
      *     required=true,
-     *     in="query",
-     *     description="The user name for login",
-     *     @OA\Schema(
-     *         type="string"
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="username",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="password",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   ),
-     *   @OA\Parameter(
-     *     name="password",
-     *     in="query",
-     *     @OA\Schema(
-     *         type="string",
-     *     ),
-     *     description="The password for login in clear text",
-     *   ),
-     *   @OA\Response(
-     *     response=200,
-     *     description="successful operation",
-     *     @OA\Schema(type="string"),
-     *     @OA\Header(
-     *       header="X-Rate-Limit",
-     *       @OA\Schema(
-     *           type="integer",
-     *           format="int32"
-     *       ),
-     *       description="calls per hour allowed by the user"
-     *     ),
-     *     @OA\Header(
-     *       header="X-Expires-After",
-     *       @OA\Schema(
-     *          type="string",
-     *          format="date-time",
-     *       ),
-     *       description="date in UTC when token expires"
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
-     *   ),
-     *   @OA\Response(response=400, description="Invalid username/password")
+     *   )
+     *
      * )
      */
     public function loginUser(Request $request, Validate $validate)
@@ -302,7 +426,7 @@ class UserController extends Controller
 
     /**
      * @OA\Get(path="/user/logout",
-     *   tags={"user"},
+     *   tags={"User"},
      *   summary="Logout the user",
      *   description="",
      *   operationId="logoutUser",
@@ -328,7 +452,7 @@ class UserController extends Controller
 
     /**
      * @OA\Get(path="/user/{username}",
-     *   tags={"user"},
+     *   tags={"User"},
      *   summary="Get user by user nick name",
      *   description="",
      *   operationId="getUserByName",
@@ -352,7 +476,7 @@ class UserController extends Controller
 
     /**
      * @OA\Put(path="/user/{username}",
-     *   tags={"user"},
+     *   tags={"User"},
      *   summary="Updated user",
      *   description="This can only be done by the logged in user.",
      *   operationId="updateUser",
@@ -383,7 +507,7 @@ class UserController extends Controller
 
     /**
      * @OA\Delete(path="/user/{username}",
-     *   tags={"user"},
+     *   tags={"User"},
      *   summary="Delete user",
      *   description="This can only be done by the logged in user.",
      *   operationId="deleteUser",
@@ -454,22 +578,82 @@ class UserController extends Controller
     }
 
     /**
-     * @OA\Delete(path="/verifyOtp",
-     *   tags={"postVerifyOtp"},
-     *   summary="post Verify Otp",
-     *   description="This use to verify user Otp.",
+     * @OA\POST(path="/verifyOtp",
+     *   tags={"User"},
+     *   summary="For verify Otp after login details",
+     *   description="This api used to verify Otp after login details",
      *   operationId="verifyOtp",
      *   @OA\Parameter(
-     *     name="username",
-     *     in="path",
-     *     description="The name that needs to be deleted",
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
      *     required=true,
-     *     @OA\Schema(
-     *         type="string"
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="client_id",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="client_secret",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="username",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="otp",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   ),
-     *   @OA\Response(response=400, description="Invalid username supplied"),
-     *   @OA\Response(response=404, description="User not found")
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
      * )
      */
 
@@ -521,6 +705,74 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @OA\POST(path="/user/social/login",
+     *   tags={"User"},
+     *   summary="For get social token url",
+     *   description="This api used to create social token url and we are using this url for generating code",
+     *   operationId="usersociallogin",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="provider",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function socialLogin(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getSocialLoginValidationRules(), $this->validationMessages->getSocialLoginValidationMessages());
@@ -548,6 +800,86 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
+
+     /**
+     * @OA\POST(path="/user/social/callback",
+     *   tags={"User"},
+     *   summary="For get social user details",
+     *   description="This api used to get social social users detauls and auth details",
+     *   operationId="usersocialcallback",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="password"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="client_id",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="client_secret",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="provider",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="code",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
 
     public function socialCallback(Request $request, Validate $validate)
     {
@@ -612,6 +944,53 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/country/list",
+     *   tags={"User"},
+     *   summary="For get country list",
+     *   description="This api used to get country list",
+     *   operationId="countrylist",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
 
     public function countryList(Request $request)
     {
@@ -638,64 +1017,63 @@ class UserController extends Controller
     }
 
 
-        /**
-     * @OA\Post(path="/user/reSendOtp",
-     *   tags={"user"},
+    /**
+     * @OA\POST(path="/user/reSendOtp",
+     *   tags={"User"},
      *   summary="User Resend Otp",
      *   description="This api used to Resend Otp",
      *   operationId="userReSend",
-     * @OA\Parameter(
-     *     name="email",
+     *  @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
      *     required=true,
-     *     in="body",
-     *     description="User Email Id",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="email",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
      *   ),
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
      *                                         type="integer"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
+     *                                    @OA\Property(
+     *                                         property="message",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
+     *                                    @OA\Property(
+     *                                         property="error",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
      *                                    )
      *                                 )
      *                            ),
      *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
      *
      * )
      */

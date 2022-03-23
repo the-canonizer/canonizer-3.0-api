@@ -31,63 +31,69 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * @OA\Post(path="/forgotpassword/sendOtp",
-     *   tags={"forgotpassword"},
+     * @OA\POST(path="/forgotpassword/sendOtp",
+     *   tags={"Forgot Password"},
      *   summary="forgot password send Otp",
      *   description="This api used to forgot password send Otp",
      *   operationId="forgotPassword",
-     * @OA\Parameter(
-     *     name="email",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="authorization"
+     *         ) 
+     *    ),
+     *  @OA\RequestBody(
      *     required=true,
-     *     in="body",
      *     description="User Email Id",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(
+     *                  property="email",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
      *   ),
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
      *                                         type="integer"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
+     *                                    @OA\Property(
+     *                                         property="message",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
+     *                                    @OA\Property(
+     *                                         property="error",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
      *                                    )
      *                                 )
      *                            ),
      *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
      *
      * )
      */
@@ -129,71 +135,72 @@ class ForgotPasswordController extends Controller
 
     /**
      * @OA\Post(path="/forgotpassword/verifyOtp",
-     *   tags={"forgotpassword"},
+     *   tags={"Forgot Password"},
      *   summary="forgot password verify Otp",
      *   description="This api used to forgot password verify Otp",
-     *   operationId="forgotPassword",
+     *   operationId="forgotPasswordVerifyOtp",
      * @OA\Parameter(
-     *     name="email",
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
      *     required=true,
-     *     in="body",
-     *     description="User Email Id",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
-     *   ),
-     * @OA\Parameter(
-     *     name="otp",
-     *     required=true,
-     *     in="body",
-     *     description="User Otp",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(
+     *                  property="email",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="otp",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
      *   ),
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
      *                                         type="integer"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
+     *                                    @OA\Property(
+     *                                         property="message",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
+     *                                    @OA\Property(
+     *                                         property="error",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
      *                                    )
      *                                 )
      *                            ),
      *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
      *
      * )
      */
@@ -229,80 +236,76 @@ class ForgotPasswordController extends Controller
 
     /**
      * @OA\Post(path="/forgotpassword/update",
-     *   tags={"forgotpassword"},
+     *   tags={"Forgot Password"},
      *   summary="forgot password update",
      *   description="This api used to forgot password update",
      *   operationId="forgotPasswordupdate",
-     * @OA\Parameter(
-     *     name="username",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
      *     required=true,
-     *     in="body",
-     *     description="User Name",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
-     *   ),
-     * @OA\Parameter(
-     *     name="new_password",
-     *     required=true,
-     *     in="body",
-     *     description="User new password",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
-     *   ),
-     * @OA\Parameter(
-     *     name="confirm_password",
-     *     required=true,
-     *     in="body",
-     *     description="User confirm password",
-     *     @OA\Schema(
-     *         type="string"
-     *     )
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="username",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="new_password",
+     *                  type="string"
+     *              ),
+     *              @OA\Property(
+     *                  property="confirm_password",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
      *   ),
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
      *                                         type="integer"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
+     *                                    @OA\Property(
+     *                                         property="message",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
+     *                                    @OA\Property(
+     *                                         property="error",
      *                                         type="string"
      *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
      *                                    )
      *                                 )
      *                            ),
      *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
      *
      * )
      */
