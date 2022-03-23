@@ -6,7 +6,7 @@ return [
         'update_profile' => 'Failed to update profile, please try again.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
-        'account_not_verified'  => 'Your account is not verified!',
+        'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email or mobile. If not then you can request for new code by clicking on the button below.',
         'otp_failed' => 'Failed to Send OTP.',
         'otp_not_match' => 'OTP does not match',
         'email_not_registered' => 'Email is not registered with us!',
@@ -22,13 +22,14 @@ return [
         'password_change'  => 'Password changed successfully.',
         'update_profile'   => 'Profile updated successfully.',
         'verify_otp'       => 'Phone number has been verified successfully.',
-        'forgot_password'  => 'Otp sent successfully on your Email Id.',
+        'forgot_password'  => 'OTP sent successfully on your Email Id.',
         'nick_name_update' => 'Nick name visibility status updated successfully.',
         'nick_name_add'    => 'Nick name added successfully.',
-        'reg_success'      => 'Otp sent successfully on your registered Email Id',
-        'phone_number_otp' => 'Otp has been sent on your phone number.',
+        'reg_success'      => 'OTP sent successfully on your registered Email Id',
+        'phone_number_otp' => 'OTP has been sent on your phone number.',
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
+        'password_reset' => 'Your password has been reset successfully.',
         
     ],
     'validation_registration' => [
@@ -64,6 +65,8 @@ return [
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
+        'otp_required' => 'The OTP field is required.',
+        'email_required' => 'Please enter a valid email address',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
         'current_password_required' => 'The current password field is required.'
     ],
@@ -90,5 +93,11 @@ return [
         'nick_name_required' => 'Nick name is required.',
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
+    ],
+    'verify_otp' => [
+        'otp_required' => 'OTP is required.',
+        'username_required' => 'Email is required.',
+        'client_id_required' => 'Client Id is required.',
+        'client_secret_required' => 'Client Secrect is required.',
     ]
 ];

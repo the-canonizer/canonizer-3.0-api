@@ -112,7 +112,6 @@ class ForgotPasswordController extends Controller
             if ($user) {
                 $authCode = mt_rand(100000, 999999);
                 $user->otp = $authCode;
-                $user->status = 0;
                 $user->update();
                 try {
                     Event::dispatch(new ForgotPasswordSendOtpEvent($user));
@@ -221,10 +220,10 @@ class ForgotPasswordController extends Controller
                 $message = trans('message.error.otp_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message,null, null);
             } else {
-                $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
+                $userRes = User::where('email', '=', $request->username)->update(['otp' => '']);
 
                 $status = 200;
-                $message = trans('message.success.success');
+                $message = trans('message.success.password_reset');
                 return $this->resProvider->apiJsonResponse($status, $message,null, null);
             }
         } catch (Exception $e) {
