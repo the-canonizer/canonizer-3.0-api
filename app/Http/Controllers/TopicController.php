@@ -89,7 +89,11 @@ class TopicController extends Controller
      *                                    ),
      *                                    @OA\Property(
      *                                         property="data",
-     *                                         type="object"
+     *                                         type="object",
+     *                                             @OA\Property(
+     *                                              property="topic_num",
+     *                                              type="integer"
+     *                                          )
      *                                    )
      *                                 )
      *                            ),

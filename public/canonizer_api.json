@@ -1,9 +1,20 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Account Setting API",
+        "title": "Canonizer API",
+        "description": "This documentation is the canonizer version 3 API",
+        "termsOfService": "http://canonizer.com/termsandservice",
+        "contact": {
+            "email": "support@canonizer.com"
+        },
         "version": "1.0.0"
     },
+    "servers": [
+        {
+            "url": "https://api.canonizer.com/api/v3/",
+            "description": "Canonizer API"
+        }
+    ],
     "paths": {
         "/camp/save": {
             "post": {
@@ -78,6 +89,11 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "camp_num": {
+                                                    "type": "integer"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -675,6 +691,11 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "topic_num": {
+                                                    "type": "integer"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -956,6 +977,60 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "auth": {
+                                                    "properties": {
+                                                        "token_type": {
+                                                            "type": "string"
+                                                        },
+                                                        "expires_in": {
+                                                            "type": "integer"
+                                                        },
+                                                        "access_token": {
+                                                            "type": "string"
+                                                        },
+                                                        "refresh_token": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "first_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "mobile_verified": {
+                                                            "type": "string"
+                                                        },
+                                                        "birthday": {
+                                                            "type": "string"
+                                                        },
+                                                        "default_algo": {
+                                                            "type": "string"
+                                                        },
+                                                        "private_flags": {
+                                                            "type": "string"
+                                                        },
+                                                        "join_time": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -1183,6 +1258,60 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "auth": {
+                                                    "properties": {
+                                                        "token_type": {
+                                                            "type": "string"
+                                                        },
+                                                        "expires_in": {
+                                                            "type": "integer"
+                                                        },
+                                                        "access_token": {
+                                                            "type": "string"
+                                                        },
+                                                        "refresh_token": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "first_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "mobile_verified": {
+                                                            "type": "string"
+                                                        },
+                                                        "birthday": {
+                                                            "type": "string"
+                                                        },
+                                                        "default_algo": {
+                                                            "type": "string"
+                                                        },
+                                                        "private_flags": {
+                                                            "type": "string"
+                                                        },
+                                                        "join_time": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -1374,6 +1503,60 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "auth": {
+                                                    "properties": {
+                                                        "token_type": {
+                                                            "type": "string"
+                                                        },
+                                                        "expires_in": {
+                                                            "type": "integer"
+                                                        },
+                                                        "access_token": {
+                                                            "type": "string"
+                                                        },
+                                                        "refresh_token": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "first_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "middle_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "mobile_verified": {
+                                                            "type": "string"
+                                                        },
+                                                        "birthday": {
+                                                            "type": "string"
+                                                        },
+                                                        "default_algo": {
+                                                            "type": "string"
+                                                        },
+                                                        "private_flags": {
+                                                            "type": "string"
+                                                        },
+                                                        "join_time": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },

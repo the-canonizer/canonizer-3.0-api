@@ -103,7 +103,11 @@ class CampController extends Controller
      *                                    ),
      *                                    @OA\Property(
      *                                         property="data",
-     *                                         type="object"
+     *                                         type="object",
+     *                                           @OA\Property(
+     *                                              property="camp_num",
+     *                                              type="integer"
+     *                                          )
      *                                    )
      *                                 )
      *                            ),

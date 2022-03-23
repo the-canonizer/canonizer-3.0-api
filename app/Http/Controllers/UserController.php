@@ -337,7 +337,71 @@ class UserController extends Controller
      *                                    ),
      *                                    @OA\Property(
      *                                         property="data",
-     *                                         type="object"
+     *                                         type="object",
+     *                                           @OA\Property(
+     *                                              property="auth",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="token_type",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="expires_in",
+     *                                                  type="integer"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="access_token",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="refresh_token",
+     *                                                  type="string"
+     *                                              )
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="user",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="first_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="middle_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="last_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="email",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="phone_number",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="mobile_verified",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="birthday",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="default_algo",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="private_flags",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="join_time",
+     *                                                  type="integer"
+     *                                              ),
+     *                                          )
      *                                    )
      *                                 )
      *                            ),
@@ -605,7 +669,7 @@ class UserController extends Controller
      *          )
      *     ),
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
+    *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
      *                                 @OA\Property(
@@ -622,7 +686,71 @@ class UserController extends Controller
      *                                    ),
      *                                    @OA\Property(
      *                                         property="data",
-     *                                         type="object"
+     *                                         type="object",
+     *                                           @OA\Property(
+     *                                              property="auth",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="token_type",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="expires_in",
+     *                                                  type="integer"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="access_token",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="refresh_token",
+     *                                                  type="string"
+     *                                              )
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="user",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="first_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="middle_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="last_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="email",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="phone_number",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="mobile_verified",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="birthday",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="default_algo",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="private_flags",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="join_time",
+     *                                                  type="integer"
+     *                                              ),
+     *                                          )
      *                                    )
      *                                 )
      *                            ),
@@ -829,7 +957,7 @@ class UserController extends Controller
      *          )
      *     ),
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
+         *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
      *                                 @OA\Property(
@@ -846,7 +974,71 @@ class UserController extends Controller
      *                                    ),
      *                                    @OA\Property(
      *                                         property="data",
-     *                                         type="object"
+     *                                         type="object",
+     *                                           @OA\Property(
+     *                                              property="auth",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="token_type",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="expires_in",
+     *                                                  type="integer"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="access_token",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="refresh_token",
+     *                                                  type="string"
+     *                                              )
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="user",
+     *                                              type="object",
+     *                                              @OA\Property(
+     *                                                  property="first_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="middle_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="last_name",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="email",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="phone_number",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="mobile_verified",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="birthday",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="default_algo",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="private_flags",
+     *                                                  type="string"
+     *                                              ),
+     *                                              @OA\Property(
+     *                                                  property="join_time",
+     *                                                  type="integer"
+     *                                              ),
+     *                                          )
      *                                    )
      *                                 )
      *                            ),
