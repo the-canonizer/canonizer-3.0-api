@@ -260,19 +260,7 @@ class UserController extends Controller
             if($user->status != 1){
                 $status = 402;
                 $message = trans('message.error.account_not_verified');
-                $authCode = mt_rand(100000, 999999);
-                $user->otp = $authCode;
-                $user->status = 0;
-                $user->update();
-                try {
-                    Event::dispatch(new SendOtpEvent($user));
-                } catch (Throwable $e) {
-                    $status = 403;
-                    $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
-                }
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
-                
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
@@ -714,7 +702,6 @@ class UserController extends Controller
             if ($user) {
                 $authCode = mt_rand(100000, 999999);
                 $user->otp = $authCode;
-                $user->status = 0;
                 $user->update();
                 try {
                     Event::dispatch(new SendOtpEvent($user));

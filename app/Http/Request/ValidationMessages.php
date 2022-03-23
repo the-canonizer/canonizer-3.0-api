@@ -34,7 +34,12 @@ class ValidationMessages
 
     public function getVerifyOtpValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'otp.required' => trans('message.verify_otp.otp_required'),
+            'username.required' => trans('message.verify_otp.username_required'),
+            'client_id.required' => trans('message.verify_otp.client_id_required'),
+            'client_secret.required' => trans('message.verify_otp.client_secret_required'),
+        ]);
     }
 
     public function getSocialLoginValidationMessages(): array
@@ -78,12 +83,17 @@ class ValidationMessages
 
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
-        return ([]);
+        return([
+            'email.required' => trans('message.validation_forgot_password.email_required'),
+        ]);
     }
 
     public function getForgotPasswordVerifyOtpValidationMessages(): array
     {
-        return ([]);
+        return([
+            'otp.required' => trans('message.validation_forgot_password.otp_required'),
+            'username.required' => trans('message.validation_forgot_password.email_required'),
+        ]);
     }
 
     public function getForgotPasswordUpdateValidationMessages(): array
