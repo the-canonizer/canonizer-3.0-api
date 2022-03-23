@@ -90,5 +90,16 @@ return [
         'nick_name_required' => 'Nick name is required.',
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
+    ],
+
+    'phone_number' => [
+        'required' => 'Phone number is required',
+        'mobile_carrier_required' => 'Mobile carrier is required',
+        'valid_digits' => 'Invalid Phone number. It must be 10 digits phone number.'
+    ],
+
+    'otp' => [
+        'required' => 'Otp is required',
+        'valid_digits' => 'Enter valid 6 digit otp.'
     ]
 ];
