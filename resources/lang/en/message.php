@@ -136,7 +136,6 @@ return [
         'topic_num_required' => 'Topic number is required.',
         'camp_num_required' => 'Camp number is required'
     ],
-    ],
     'verify_otp' => [
         'otp_required' => 'OTP is required.',
         'username_required' => 'Email is required.',
