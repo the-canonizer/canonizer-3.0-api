@@ -99,4 +99,179 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
     }
+
+    /**
+     * @OA\POST(path="/camp/allParent",
+     *   tags={"Camp"},
+     *   summary="Get All Parent",
+     *   description="This API is use for get all parent",
+     *   operationId="allParent",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                           @OA\Property(
+     *                                              property="id",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="topic_num",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="parent_camp_num",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="key_words",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="language",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="camp_num",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="note",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="submit_time",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="submitter_nick_id",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="go_live_time",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="objector_nick_id",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="object_time",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="object_reason",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="proposed",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="replacement",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="title",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="camp_name",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="camp_about_url",
+     *                                              type="string"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="camp_about_nick_id",
+     *                                              type="integer"
+     *                                          ),
+     *                                           @OA\Property(
+     *                                              property="grace_period",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function getAllParentCamp(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAllParentCampValidationRules(), $this->validationMessages->getAllParentCampValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $result = Camp::getAllParentCamp($request->topic_num,$request->filter,$request->asOfDate);
+            if(empty($result)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $data = $result;
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+
 }

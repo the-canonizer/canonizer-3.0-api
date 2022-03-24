@@ -99,5 +99,8 @@ return [
         'username_required' => 'Email is required.',
         'client_id_required' => 'Client Id is required.',
         'client_secret_required' => 'Client Secrect is required.',
+    ],
+    'get_all_parent_camp' => [
+        'topic_num_required' => 'Topic Num is required.'
     ]
 ];

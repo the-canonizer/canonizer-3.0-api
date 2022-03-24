@@ -1,22 +1,344 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Canonizer API",
-        "description": "This documentation is the canonizer version 3 API",
-        "termsOfService": "http://canonizer.com/termsandservice",
-        "contact": {
-            "email": "support@canonizer.com"
-        },
+        "title": "Account Setting API",
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api.canonizer.com/api/v3/",
-            "description": "Canonizer API"
-        }
-    ],
     "paths": {
-        "/add_nick_name": {
+        "/camp/allParent": {
+            "post": {
+                "tags": [
+                    "Camp"
+                ],
+                "summary": "Get All Parent",
+                "description": "This API is use for get all parent",
+                "operationId": "allParent",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "topic_num": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "topic_num": {
+                                                    "type": "integer"
+                                                },
+                                                "parent_camp_num": {
+                                                    "type": "integer"
+                                                },
+                                                "key_words": {
+                                                    "type": "string"
+                                                },
+                                                "language": {
+                                                    "type": "string"
+                                                },
+                                                "camp_num": {
+                                                    "type": "integer"
+                                                },
+                                                "note": {
+                                                    "type": "string"
+                                                },
+                                                "submit_time": {
+                                                    "type": "integer"
+                                                },
+                                                "submitter_nick_id": {
+                                                    "type": "integer"
+                                                },
+                                                "go_live_time": {
+                                                    "type": "integer"
+                                                },
+                                                "objector_nick_id": {
+                                                    "type": "string"
+                                                },
+                                                "object_time": {
+                                                    "type": "integer"
+                                                },
+                                                "object_reason": {
+                                                    "type": "string"
+                                                },
+                                                "proposed": {
+                                                    "type": "string"
+                                                },
+                                                "replacement": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "camp_name": {
+                                                    "type": "string"
+                                                },
+                                                "camp_about_url": {
+                                                    "type": "string"
+                                                },
+                                                "camp_about_nick_id": {
+                                                    "type": "integer"
+                                                },
+                                                "grace_period": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/sendOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password send Otp",
+                "description": "This api used to forgot password send Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/verifyOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password verify Otp",
+                "description": "This api used to forgot password verify Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "otp",
+                        "in": "body",
+                        "description": "User Otp",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/update": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password update",
+                "description": "This api used to forgot password update",
+                "operationId": "forgotPasswordupdate",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "body",
+                        "description": "User Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "body",
+                        "description": "User new password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "body",
+                        "description": "User confirm password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/add-nick-name": {
             "post": {
                 "tags": [
                     "User"
@@ -67,7 +389,7 @@
                 }
             }
         },
-        "/update_nick_name": {
+        "/update-nick-name": {
             "post": {
                 "tags": [
                     "nickname"
@@ -112,7 +434,7 @@
                 }
             }
         },
-        "/get_all_nickname": {
+        "/get-nick-name-list": {
             "get": {
                 "tags": [
                     "User"
@@ -120,6 +442,107 @@
                 "summary": "Get list of all the nicknames",
                 "description": "Get list of nicknames",
                 "operationId": "getAllNickNames",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/change-password": {
+            "post": {
+                "tags": [
+                    "changepassword"
+                ],
+                "summary": "Update Password",
+                "description": "This is used to update the user password.",
+                "operationId": "changePassword",
+                "parameters": [
+                    {
+                        "name": "current_password",
+                        "in": "query",
+                        "description": "The current password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "query",
+                        "description": "The new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "query",
+                        "description": "The confirm password same as new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get looged in user profile",
+                "description": "",
+                "operationId": "userProfile",
+                "responses": {
+                    "200": {
+                        "description": "success"
+                    },
+                    "404": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-direct-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "directSupport",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-delegate-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "delegateSupport",
                 "responses": {
                     "200": {
                         "description": "Success"
@@ -396,6 +819,57 @@
                     },
                     "404": {
                         "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/user/reSendOtp": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "User Resend Otp",
+                "description": "This api used to Resend Otp",
+                "operationId": "userReSend",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
