@@ -99,4 +99,27 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
+
+    public function getTopicRecord(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicRecordValidationRules(), $this->validationMessages->getTopicRecordValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
+        $filter['campNum'] = $request->camp_num;
+
+        try {  
+            $topic[] = Camp::getAgreementTopic($filter);
+            if ($topic) {
+                $topic = $this->resourceProvider->jsonResponse('topic-record', $topic);
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topic, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
 }

@@ -154,4 +154,9 @@ class Camp extends Model
         }
         return $campName;
     }
+
+    public function nickname() {
+        return $this->hasOne('App\Models\Nickname', 'id', 'camp_about_nick_id');
+    }
+    
 }

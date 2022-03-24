@@ -204,4 +204,24 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_edit_newsfeed.camp_num_required')
         ];
     }
+
+    public function getCampRecordValidationMessages(): array
+    {
+        return [
+            'as_of.in' => trans('message.validation_get_camp_record.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_camp_record.as_of_date_required'),
+            'topic_num.required' => trans('message.validation_get_camp_record.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required')
+        ];
+    }
+
+    public function getTopicRecordValidationMessages(): array
+    {
+        return [
+            'as_of.in' => trans('message.validation_get_topic_record.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_topic_record.as_of_date_required'),
+            'topic_num.required' => trans('message.validation_get_topic_record.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required')
+        ];
+    }
 }

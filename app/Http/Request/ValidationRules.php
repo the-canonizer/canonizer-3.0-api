@@ -209,4 +209,23 @@ class ValidationRules
             'asof' => 'in:default,review,bydate'
         ]);
     }
+
+    public function getCampRecordValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
+    public function getTopicRecordValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
 }

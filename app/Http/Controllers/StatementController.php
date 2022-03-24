@@ -74,6 +74,7 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
+                $campStatement->go_live_time=date('Y/m/d H:i:s', $campStatement->go_live_time); 
                 $statement[] = $campStatement;
                 $statement = $this->resourceProvider->jsonResponse('Statement', $statement);
                 $statement[0]['parentCamps']=$parentCamp;

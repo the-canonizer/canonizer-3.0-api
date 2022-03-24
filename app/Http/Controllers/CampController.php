@@ -91,4 +91,30 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
     }
+
+    public function getCampRecord(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getCampRecordValidationRules(), $this->validationMessages->getCampRecordValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
+        $filter['campNum'] = $request->camp_num;
+       
+
+        try {  
+            $livecamp = Camp::getLiveCamp($filter);
+            $livecamp->nick_name=isset($livecamp->nickname->nick_name) ? $livecamp->nickname->nick_name : "No nickname associated";
+            if ($livecamp) {
+                $camp[]=$livecamp;
+                $camp = $this->resourceProvider->jsonResponse('camp-record', $camp);
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
 }
