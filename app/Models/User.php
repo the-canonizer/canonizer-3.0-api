@@ -133,7 +133,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
         foreach($fields as $f => $flag){
 
-            if(isset($attributes[$f])) $this->{$f} = $attributes[$f];
+            if(isset($attributes[$f])) $this->{$f} = trim($attributes[$f]);
             if(isset($attributes[$flag]) && !$attributes[$flag]) $this->private_fields[] = $f;
         }
 
