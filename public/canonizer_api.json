@@ -173,6 +173,105 @@
                 }
             }
         },
+        "/camp/allAboutNickName": {
+            "get": {
+                "tags": [
+                    "Camp"
+                ],
+                "summary": "API For Get all About Nick Name",
+                "operationId": "9cbb4221de45d62757cdaee7071de833",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": ""
+                                                    },
+                                                    "owner_code": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "nick_name": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "create_time": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "private": {
+                                                        "type": "integer",
+                                                        "example": ""
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/forgotpassword/sendOtp": {
             "post": {
                 "tags": [
