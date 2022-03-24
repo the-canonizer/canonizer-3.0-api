@@ -7,6 +7,7 @@ use Throwable;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Helpers\ResponseInterface;
@@ -97,6 +98,113 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
+        }
+    }
+
+    /**
+ * @OA\Get(
+ *     path="/camp/allAboutNickName",
+ *     summary="API For Get all About Nick Name",
+ *     tags={"Camp"},
+ *      @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+ *     @OA\Response(
+ *         response=200,
+ *        description = "Success",
+ *        @OA\JsonContent(
+ *             type="object",
+ *              @OA\Property(
+ *                   property="status_code",
+ *                   type="integer"
+ *               ),
+ *               @OA\Property(
+ *                   property="message",
+ *                   type="string"
+ *               ),
+ *              @OA\Property(
+ *                   property="error",
+ *                   type="string"
+ *              ),
+ *             @OA\Property(
+ *                property="data",
+ *                type="array",
+ *                @OA\Items(
+ *                      @OA\Property(
+ *                         property="id",
+ *                         type="integer",
+ *                         example=""
+ *                      ),
+ *                      @OA\Property(
+ *                         property="owner_code",
+ *                         type="string",
+ *                         example=""
+ *                      ),
+ *                      @OA\Property(
+ *                         property="nick_name",
+ *                         type="string",
+ *                         example=""
+ *                      ),
+ *                      @OA\Property(
+ *                         property="create_time",
+ *                         type="string",
+ *                         example=""
+ *                      ),
+ *                      @OA\Property(
+ *                         property="private",
+ *                         type="integer",
+ *                         example=""
+ *                      ),
+ *                ),
+ *             ),
+ *        ),
+ *     ),
+ *
+ *
+ *     @OA\Response(
+ *     response=400,
+ *     description="Something went wrong",
+ *     @OA\JsonContent(
+ *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+ *     )
+ *   ),
+ *    @OA\Response(
+ *     response=403,
+ *     description="Exception Throwable",
+ *     @OA\JsonContent(
+ *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+ *     )
+ *   )
+ * )
+ */
+
+    public function getAllAboutNickName(Request $request, Validate $validate)
+    {
+
+        try {
+
+            $allNicknames = Nickname::orderBy('nick_name', 'ASC')->get();
+
+            if(empty($allNicknames)){
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 }
