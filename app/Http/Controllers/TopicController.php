@@ -92,16 +92,21 @@ class TopicController extends Controller
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
+                    $data = null;
                     $status = 403;
                     $message = $e->getMessage();
                 }
+                $data = [
+                    "topic_num" =>  $topic->topic_num,
+                ];
                 $status = 200;
                 $message = trans('message.success.topic_created');
             } else {
+                $data = null;
                 $status = 400;
                 $message = trans('message.error.topic_failed');
             }
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         } catch (Throwable $e) {
             DB::rollback();
             $status = 400;
