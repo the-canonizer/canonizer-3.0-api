@@ -1,4 +1,5 @@
 {
+    				
     "openapi": "3.0.0",
     "info": {
         "title": "Canonizer API",
@@ -16,7 +17,286 @@
         }
     ],
     "paths": {
-        "/add_nick_name": {
+        "/camp/allAboutNickName": {
+            "get": {
+                "tags": [
+                    "Camp"
+                ],
+                "summary": "API For Get all About Nick Name",
+                "operationId": "9cbb4221de45d62757cdaee7071de833",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": ""
+                                                    },
+                                                    "owner_code": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "nick_name": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "create_time": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "private": {
+                                                        "type": "integer",
+                                                        "example": ""
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/sendOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password send Otp",
+                "description": "This api used to forgot password send Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/verifyOtp": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password verify Otp",
+                "description": "This api used to forgot password verify Otp",
+                "operationId": "forgotPassword",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "otp",
+                        "in": "body",
+                        "description": "User Otp",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/forgotpassword/update": {
+            "post": {
+                "tags": [
+                    "forgotpassword"
+                ],
+                "summary": "forgot password update",
+                "description": "This api used to forgot password update",
+                "operationId": "forgotPasswordupdate",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "body",
+                        "description": "User Name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "body",
+                        "description": "User new password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "body",
+                        "description": "User confirm password",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/add-nick-name": {
             "post": {
                 "tags": [
                     "User"
@@ -67,7 +347,7 @@
                 }
             }
         },
-        "/update_nick_name": {
+        "/update-nick-name": {
             "post": {
                 "tags": [
                     "nickname"
@@ -112,7 +392,7 @@
                 }
             }
         },
-        "/get_all_nickname": {
+        "/get-nick-name-list": {
             "get": {
                 "tags": [
                     "User"
@@ -120,6 +400,107 @@
                 "summary": "Get list of all the nicknames",
                 "description": "Get list of nicknames",
                 "operationId": "getAllNickNames",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/change-password": {
+            "post": {
+                "tags": [
+                    "changepassword"
+                ],
+                "summary": "Update Password",
+                "description": "This is used to update the user password.",
+                "operationId": "changePassword",
+                "parameters": [
+                    {
+                        "name": "current_password",
+                        "in": "query",
+                        "description": "The current password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "query",
+                        "description": "The new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "confirm_password",
+                        "in": "query",
+                        "description": "The confirm password same as new password of logged in user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Get looged in user profile",
+                "description": "",
+                "operationId": "userProfile",
+                "responses": {
+                    "200": {
+                        "description": "success"
+                    },
+                    "404": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-direct-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "directSupport",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/get-delegate-supported-camps": {
+            "get": {
+                "tags": [
+                    "support"
+                ],
+                "summary": "Get list of all the direct supported camps",
+                "description": "Get list of all the direct supported camps",
+                "operationId": "delegateSupport",
                 "responses": {
                     "200": {
                         "description": "Success"
@@ -396,6 +777,57 @@
                     },
                     "404": {
                         "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/user/reSendOtp": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "User Resend Otp",
+                "description": "This api used to Resend Otp",
+                "operationId": "userReSend",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "body",
+                        "description": "User Email Id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Exception occurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "name": "status_code"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
