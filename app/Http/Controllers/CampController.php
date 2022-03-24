@@ -7,6 +7,7 @@ use Throwable;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Helpers\ResponseInterface;
@@ -97,6 +98,30 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
+        }
+    }
+
+    public function getAllAboutNickName(Request $request, Validate $validate)
+    {
+
+        try {
+
+            $allNicknames = Nickname::orderBy('nick_name', 'ASC')->get();
+
+            if(empty($allNicknames)){
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 }
