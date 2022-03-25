@@ -167,6 +167,13 @@ class ValidationMessages
         ]);
     }
 
+    public function getSocialListValidationMessages(): array
+    {
+        return ([
+            'user_id.required' => trans('message.social.user_id_required'),
+        ]);
+    }
+
 
 
 }

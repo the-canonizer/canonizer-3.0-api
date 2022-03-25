@@ -1069,6 +1069,12 @@ class UserController extends Controller
         }
 
         try {
+
+            if($request->user()){
+                // link
+            }else{
+                 // login
+            }
             $provider = $request->provider;
             $userSocial =   Socialite::driver($provider)->stateless()->user();
             if(empty($userSocial)){
@@ -1291,4 +1297,209 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
     }
+
+
+    /**
+     * @OA\POST(path="/user/social/list",
+     *   tags={"User"},
+     *   summary="Get User Social Link Account List",
+     *   description="This API is use for get user social link account list",
+     *   operationId="socialList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="user_id",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="array",
+     *                @OA\Items(
+     *                    @OA\Property(
+     *                          property="id",
+     *                          type="integer"
+     *                    ),
+     *                    @OA\Property(
+     *                          property="user_id",
+     *                          type="integer"
+     *                    ),
+     *                    @OA\Property(
+     *                          property="social_name",
+     *                          type="string"
+     *                     ),
+     *                     @OA\Property(
+     *                           property="provider",
+     *                           type="string"
+     *                     ),
+     *                     @OA\Property(
+     *                           property="provider_id",
+     *                           type="string"
+     *                     )
+     *                ),
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+
+    public function socialList(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSocialListValidationRules(), $this->validationMessages->getSocialListValidationMessages());
+
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+
+            $result = SocialUser::where('user_id', $request->user_id)->get();
+
+            if(empty($result)){
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $result, null);
+
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
+     /**
+     * @OA\POST(path="/user/social/delete/{id}",
+     *   tags={"User"},
+     *   summary="Unlink Social User",
+     *   description="This API is use for unlink soical account and delete social user",
+     *   operationId="socialDelete",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Delete a record from this id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="string",
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+    public function SocialDelete(Request $request, $id)
+    {
+        $loggedInUser = $request->user();
+        try {
+            $social_user = SocialUser::where('id', $id)->where('user_id',$loggedInUser->id)->delete();
+            $status = 200;
+            $message = trans('message.social.unlink_social_user');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
 }

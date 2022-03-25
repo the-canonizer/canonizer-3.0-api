@@ -116,5 +116,9 @@ return [
     ],
     'get_all_parent_camp' => [
         'topic_num_required' => 'Topic Num is required.'
+    ],
+    'social' => [
+        'user_id_required' => 'User id is required.',
+        'unlink_social_user' => 'Social Link deleted successfully'
     ]
 ];

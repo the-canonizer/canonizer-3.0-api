@@ -160,4 +160,11 @@ class ValidationRules
             'topic_num' => 'required'
         ]);
     }
+
+    public function getSocialListValidationRules(): array
+    {
+        return ([
+            'user_id' => 'required'
+        ]);
+    }
 }
