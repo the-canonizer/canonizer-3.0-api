@@ -142,6 +142,13 @@ class ValidationMessages
         ]);
     }
 
+    public function getAllParentCampValidationMessages(): array
+    {
+        return([
+            'topic_num.required' => trans('message.get_all_parent_camp.topic_num_required'),
+        ]);
+    }
+
     public function getVerifyPhoneValidationMessages(): array
     {
         return ([

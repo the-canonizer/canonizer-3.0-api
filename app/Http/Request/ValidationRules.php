@@ -153,4 +153,11 @@ class ValidationRules
             'nick_name' => 'required'
         ]);
     }
+
+    public function getAllParentCampValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required'
+        ]);
+    }
 }
