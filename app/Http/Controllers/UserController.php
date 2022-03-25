@@ -1098,7 +1098,7 @@ class UserController extends Controller
                     $data = [
                         "auth" => null,
                         "user" => null,
-                        "type" => "soical_link"
+                        "type" => "social_link"
                     ];
                 }
                 return $this->resProvider->apiJsonResponse($status, $message, $data, null);
@@ -1321,7 +1321,7 @@ class UserController extends Controller
 
 
     /**
-     * @OA\POST(path="/user/social/list",
+     * @OA\GET(path="/user/social/list",
      *   tags={"User"},
      *   summary="Get User Social Link Account List",
      *   description="This API is use for get user social link account list",
@@ -1335,19 +1335,6 @@ class UserController extends Controller
      *              type="Authorization"
      *         ) 
      *    ),
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="user_id",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
-     *   ),
      *     @OA\Response(
      *         response=200,
      *        description = "Success",
@@ -1413,17 +1400,11 @@ class UserController extends Controller
      */
 
 
-    public function socialList(Request $request, Validate $validate)
+    public function socialList(Request $request)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getSocialListValidationRules(), $this->validationMessages->getSocialListValidationMessages());
-
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-
         try {
 
-            $result = SocialUser::where('user_id', $request->user_id)->get();
+            $result = SocialUser::where('user_id', $request->user()->id)->get();
 
             if(empty($result)){
                 $status = 400;
@@ -1443,7 +1424,7 @@ class UserController extends Controller
     }
 
      /**
-     * @OA\POST(path="/user/social/delete/{id}",
+     * @OA\Delete(path="/user/social/delete/{id}",
      *   tags={"User"},
      *   summary="Unlink Social User",
      *   description="This API is use for unlink soical account and delete social user",

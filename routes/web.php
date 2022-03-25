@@ -61,7 +61,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/allParent','CampController@getAllParentCamp');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
-        $router->post('/user/social/list','@socialList');
+        $router->get('/user/social/list','UserController@socialList');
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
     });
 
