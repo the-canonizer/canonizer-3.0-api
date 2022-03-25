@@ -168,4 +168,19 @@ class Camp extends Model
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'camp_about_nick_id');
     }
+    
+    public static function getAllParentCamp($topicNum, $filter, $asOfDate = null)
+    {
+        if($filter == 'bydate'){
+            $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asOfDate)));
+        }else{
+            $asOfDate = time();
+        }
+
+        return self::where('topic_num', $topicNum)
+        ->where('objector_nick_id', '=', NULL)
+        ->where('go_live_time', '<=', $asOfDate)
+        ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < '.$asOfDate.' group by camp_num)')
+        ->orderBy('submit_time', 'desc')->orderBy('camp_name','desc')->groupBy('camp_num')->get();
+    }
 }

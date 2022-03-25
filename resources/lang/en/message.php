@@ -55,7 +55,9 @@ return [
         'new_password_different' => 'Current and new password should not be same'
     ],
     'validation_update_profile' => [
+        'first_name_required' => 'First name is required.',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'last_name_required' => 'Last name is required.',
         'last_name_regex' => 'The last name must be in alphabets and space only.',
         'middle_name_regex' => 'The middle name must be in alphabets and space only.',
         'city_regex' => 'The city name must be in alphabets and space only.',
@@ -136,6 +138,18 @@ return [
         'topic_num_required' => 'Topic number is required.',
         'camp_num_required' => 'Camp number is required'
     ],
+
+    'phone_number' => [
+        'required' => 'Phone number is required',
+        'mobile_carrier_required' => 'Mobile carrier is required',
+        'valid_digits' => 'Invalid Phone number. It must be 10 digits phone number.'
+    ],
+
+    'otp' => [
+        'required' => 'Otp is required',
+        'valid_digits' => 'Enter valid 6 digit otp.'
+    ],
+
     'verify_otp' => [
         'otp_required' => 'OTP is required.',
         'username_required' => 'Email is required.',
@@ -154,4 +168,7 @@ return [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
+    'get_all_parent_camp' => [
+        'topic_num_required' => 'Topic Num is required.'
+    ]
 ];

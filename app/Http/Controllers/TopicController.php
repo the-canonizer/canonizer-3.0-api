@@ -31,6 +31,82 @@ class TopicController extends Controller
         $this->resProvider = $respProvider;
     }
 
+    /**
+     * @OA\POST(path="/topic/save",
+     *   tags={"Topic"},
+     *   summary="save topic",
+     *   description="This is use for save topic",
+     *   operationId="topicSave",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="topic_name",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="namespace",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="nick_name",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="note",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                             @OA\Property(
+     *                                              property="topic_num",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
 
     public function store(Request $request, Validate $validate)
     {
@@ -95,16 +171,21 @@ class TopicController extends Controller
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
+                    $data = null;
                     $status = 403;
                     $message = $e->getMessage();
                 }
+                $data = [
+                    "topic_num" =>  $topic->topic_num,
+                ];
                 $status = 200;
                 $message = trans('message.success.topic_created');
             } else {
+                $data = null;
                 $status = 400;
                 $message = trans('message.error.topic_failed');
             }
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         } catch (Throwable $e) {
             DB::rollback();
             $status = 400;

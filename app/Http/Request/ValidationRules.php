@@ -228,4 +228,11 @@ class ValidationRules
             'as_of_date' => 'required_if:as_of,bydate'
         ]);
     }
+
+    public function getAllParentCampValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required'
+        ]);
+    }
 }
