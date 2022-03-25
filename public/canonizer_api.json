@@ -1,5 +1,5 @@
 {
-    				
+				
     "openapi": "3.0.0",
     "info": {
         "title": "Canonizer API",
@@ -17,6 +17,162 @@
         }
     ],
     "paths": {
+        "/camp/allParent": {
+            "post": {
+                "tags": [
+                    "Camp"
+                ],
+                "summary": "Get All Parent",
+                "description": "This API is use for get all parent",
+                "operationId": "allParent",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {access-token}",
+                        "required": true,
+                        "schema": {
+                            "type": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request Body Json Parameter",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "topic_num": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status_code": {
+                                            "type": "integer"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "topic_num": {
+                                                        "type": "integer"
+                                                    },
+                                                    "parent_camp_num": {
+                                                        "type": "integer"
+                                                    },
+                                                    "key_words": {
+                                                        "type": "string"
+                                                    },
+                                                    "language": {
+                                                        "type": "string"
+                                                    },
+                                                    "camp_num": {
+                                                        "type": "integer"
+                                                    },
+                                                    "note": {
+                                                        "type": "string"
+                                                    },
+                                                    "submit_time": {
+                                                        "type": "integer"
+                                                    },
+                                                    "submitter_nick_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "go_live_time": {
+                                                        "type": "integer"
+                                                    },
+                                                    "objector_nick_id": {
+                                                        "type": "string"
+                                                    },
+                                                    "object_time": {
+                                                        "type": "integer"
+                                                    },
+                                                    "object_reason": {
+                                                        "type": "string"
+                                                    },
+                                                    "proposed": {
+                                                        "type": "string"
+                                                    },
+                                                    "replacement": {
+                                                        "type": "string"
+                                                    },
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "camp_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "camp_about_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "camp_about_nick_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "grace_period": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Something went wrong",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Exception Throwable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ExceptionRes"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/camp/allAboutNickName": {
             "get": {
                 "tags": [

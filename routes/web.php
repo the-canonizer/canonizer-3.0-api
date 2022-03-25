@@ -59,6 +59,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('topic/save','TopicController@store');
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
+        $router->post('camp/allParent','CampController@getAllParentCamp');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
     });
 
