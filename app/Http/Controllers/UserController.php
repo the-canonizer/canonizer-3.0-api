@@ -1079,8 +1079,8 @@ class UserController extends Controller
             }
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
+            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
             if($request->user()){
-                $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
                 if (isset($social_user) && isset($social_user->user_id)) {
                     $status = 403;
                     $message = trans('message.social.already_linked');
@@ -1111,6 +1111,10 @@ class UserController extends Controller
                         'last_name'     => $splitName[1],
                         'email'         => $user_email
                     ]);
+                    $nickname = $user->first_name.'-'.$user->last_name;
+                    $this->createNickname($user->id, $nickname);
+                }
+                if (!isset($social_user) && !isset($social_user->user_id)) {
                     SocialUser::create([
                         'user_id'       => $user->id,
                         'social_email'  => $user_email,
@@ -1118,8 +1122,6 @@ class UserController extends Controller
                         'provider'      => $provider,
                         'social_name'   => $social_name,
                     ]);
-                    $nickname = $user->first_name.'-'.$user->last_name;
-                    $this->createNickname($user->id, $nickname);
                 }
                 $postUrl = URL::to('/') . '/oauth/token';
                 $payload = [
