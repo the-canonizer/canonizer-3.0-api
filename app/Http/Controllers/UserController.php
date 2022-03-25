@@ -1070,11 +1070,6 @@ class UserController extends Controller
 
         try {
 
-            if($request->user()){
-                // link
-            }else{
-                 // login
-            }
             $provider = $request->provider;
             $userSocial =   Socialite::driver($provider)->stateless()->user();
             if(empty($userSocial)){
@@ -1084,43 +1079,69 @@ class UserController extends Controller
             }
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
-            $user = User::where(['email' => $user_email])->first();
-            if(empty($user)){
-                $splitName = Util::split_name($social_name);
-                $user = User::create([
-                    'first_name'    => $splitName[0],
-                    'last_name'     => $splitName[1],
-                    'email'         => $user_email
-                ]);
-                SocialUser::create([
-                    'user_id'       => $user->id,
-                    'social_email'  => $user_email,
-                    'provider_id'   => $userSocial->getId(),
-                    'provider'      => $provider,
-                    'social_name'   => $social_name,
-                ]);
-                $nickname = $user->first_name.'-'.$user->last_name;
-                $this->createNickname($user->id, $nickname);
-            }
-            $postUrl = URL::to('/') . '/oauth/token';
-            $payload = [
-                'grant_type' => 'password',
-                'client_id' => $request->client_id,
-                'client_secret' => $request->client_secret,
-                'username' => $user->email,
-                'password' => env('PASSPORT_MASTER_PASSWORD'),
-                'scope' => '*',
-            ];
-            $generateToken = Util::httpPost($postUrl, $payload);
-            if($generateToken->status_code == 200){
-                $data = [
-                    "auth" => $generateToken->data,
-                    "user" => new UserResource($user),
-                ];
-                $status = 200;
-                $message = trans('message.success.success');
+            if($request->user()){
+                $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
+                if (isset($social_user) && isset($social_user->user_id)) {
+                    $status = 403;
+                    $message = trans('message.social.already_linked');
+                    $data = null;
+				}else{
+                    $socialUser = SocialUser::create([
+						'user_id'       => $request->user()->id,
+						'social_email'  => $user_email,
+						'provider_id'   => $userSocial->getId(),
+						'provider'      => $provider,
+						'social_name'   => $social_name,
+					]);
+                    $status = 200;
+                    $message = trans('message.social.successfully_linked');
+                    $data = [
+                        "auth" => null,
+                        "user" => null,
+                        "type" => "soical_link"
+                    ];
+                }
                 return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+            }else{
+                $user = User::where(['email' => $user_email])->first();
+                if(empty($user)){
+                    $splitName = Util::split_name($social_name);
+                    $user = User::create([
+                        'first_name'    => $splitName[0],
+                        'last_name'     => $splitName[1],
+                        'email'         => $user_email
+                    ]);
+                    SocialUser::create([
+                        'user_id'       => $user->id,
+                        'social_email'  => $user_email,
+                        'provider_id'   => $userSocial->getId(),
+                        'provider'      => $provider,
+                        'social_name'   => $social_name,
+                    ]);
+                    $nickname = $user->first_name.'-'.$user->last_name;
+                    $this->createNickname($user->id, $nickname);
+                }
+                $postUrl = URL::to('/') . '/oauth/token';
+                $payload = [
+                    'grant_type' => 'password',
+                    'client_id' => $request->client_id,
+                    'client_secret' => $request->client_secret,
+                    'username' => $user->email,
+                    'password' => env('PASSPORT_MASTER_PASSWORD'),
+                    'scope' => '*',
+                ];
+                $generateToken = Util::httpPost($postUrl, $payload);
+                if($generateToken->status_code == 200){
+                    $data = [
+                        "auth" => $generateToken->data,
+                        "user" => new UserResource($user),
+                    ];
+                    $status = 200;
+                    $message = trans('message.success.success');
+                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+                }
             }
+           
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
 
         }catch (Exception $ex) {

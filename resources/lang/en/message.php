@@ -119,6 +119,12 @@ return [
     ],
     'social' => [
         'user_id_required' => 'User id is required.',
-        'unlink_social_user' => 'Social Link deleted successfully'
+        'client_id_required' => 'Client id is required.',
+        'client_secret_required' => 'Client Secret is required.',
+        'provider_required' => 'Provider is required.',
+        'code_required' => 'Code is required.',
+        'unlink_social_user' => 'Social Link deleted successfully',
+        'successfully_linked' => 'Your social account is linked successfully',
+        'already_linked' => 'Email is already linked with another account',
     ]
 ];
