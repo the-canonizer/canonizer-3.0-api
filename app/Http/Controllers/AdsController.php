@@ -7,11 +7,20 @@ use App\Models\Page;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Http\Resources\ErrorResource;
-
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResourceInterface;
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
 class AdsController extends Controller
 {
 
-
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    {
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages ;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
+    }
 
     /**
      * @OA\Post(path="/ads",

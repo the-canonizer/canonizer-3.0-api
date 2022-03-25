@@ -15,10 +15,23 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Facades\Util;
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResourceInterface;
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
 
 class TopicController extends Controller
 {
- 
+
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    {
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
+    }
+
+
     public function store(Request $request, Validate $validate)
     {
 
@@ -99,6 +112,51 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
+
+   /**
+    * @OA\Post(path="/get-topic-record",
+     *   tags={"getTopicRecord"},
+     *   summary="get topic record",
+     *   description="Used to get topic record.",
+     *   operationId="getTopicRecord",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topic records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *        )
+     *   )
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
 
     public function getTopicRecord(Request $request, Validate $validate)
     {

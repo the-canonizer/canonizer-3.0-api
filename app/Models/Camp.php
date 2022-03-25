@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+
 class Camp extends Model
 {
     protected $table = 'camp';
@@ -93,7 +94,7 @@ class Camp extends Model
     {
         $filterName = $filter['asOf'];
         if (!$filterName) {
-            $filter['asOf'] = 'default';
+            $filter['asOf'] = 'other';
         }
         return self::liveCampAsOfFilter($filter);
     }
@@ -104,8 +105,16 @@ class Camp extends Model
             'default' => self::liveCampDefaultAsOfFilter($filter),
             'review'  => self::liveCampReviewAsOfFilter($filter),
             'bydate'  => self::liveCampByDateFilter($filter),
+            'other'  => self::liveCampOtherAsOfFilter($filter),
         ];
         return $asOfFilter[$filter['asOf']];
+    }
+
+    public static function liveCampOtherAsOfFilter($filter)
+    {
+        return self::where('topic_num', $filter['topicNum'])
+            ->where('objector_nick_id', '=', NULL)
+            ->latest('submit_time')->first();
     }
 
     public static function liveCampDefaultAsOfFilter($filter)
@@ -127,7 +136,7 @@ class Camp extends Model
 
     public static function liveCampByDateFilter($filter)
     {
-        $asOfDate=isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
+        $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
@@ -155,8 +164,8 @@ class Camp extends Model
         return $campName;
     }
 
-    public function nickname() {
+    public function nickname()
+    {
         return $this->hasOne('App\Models\Nickname', 'id', 'camp_about_nick_id');
     }
-    
 }

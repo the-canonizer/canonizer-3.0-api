@@ -9,12 +9,28 @@ use App\Facades\Util;
 use App\Models\Topic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Helpers\ResponseInterface;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
+use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
+use App\Helpers\ResourceInterface;
 
 class CampController extends Controller
 {
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
+
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    {
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
+    }
+
 
 
     public function store(Request $request, Validate $validate)
@@ -35,7 +51,7 @@ class CampController extends Controller
             } else {
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
-
+           
             $nextCampNum =  Camp::where('topic_num', $request->topic_num)
                 ->latest('submit_time')->first();
             $nextCampNum->camp_num++;
@@ -55,9 +71,9 @@ class CampController extends Controller
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 1
             ];
-            
+
             $camp = Camp::create($input);
-            
+           
             if ($camp) {
 
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
@@ -92,6 +108,51 @@ class CampController extends Controller
         }
     }
 
+  /**
+    * @OA\Post(path="/get-camp-record",
+     *   tags={"getCampRecord"},
+     *   summary="get camp record",
+     *   description="Used to get camp record.",
+     *   operationId="getCampRecord",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get camp records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *        )
+     *   )
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
     public function getCampRecord(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getCampRecordValidationRules(), $this->validationMessages->getCampRecordValidationMessages());
@@ -102,12 +163,11 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
-       
-
+        $camp=[];
         try {  
             $livecamp = Camp::getLiveCamp($filter);
-            $livecamp->nick_name=isset($livecamp->nickname->nick_name) ? $livecamp->nickname->nick_name : "No nickname associated";
             if ($livecamp) {
+                $livecamp->nick_name=isset($livecamp->nickname->nick_name) ? $livecamp->nickname->nick_name : "No nickname associated";
                 $camp[]=$livecamp;
                 $camp = $this->resourceProvider->jsonResponse('camp-record', $camp);
             }
@@ -116,5 +176,4 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
-
 }

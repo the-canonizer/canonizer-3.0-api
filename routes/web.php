@@ -26,8 +26,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/get-camp-newsfeed','NewsFeedController@getNewsFeed');
     $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
     $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
-    $router->post('/get-camp-record','CampController@getCampRecord');
     $router->post('/get-topic-record','TopicController@getTopicRecord');
+    $router->post('/get-camp-record','CampController@getCampRecord');
 
     $router->get('/get-all-namespaces','NamespaceController@getAll');
     $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');

@@ -8,13 +8,25 @@ use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Http\Resources\ErrorResource;
 use App\Models\Camp;
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResourceInterface;
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
 
 class NewsFeedController extends Controller
 {
 
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    {
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
+    }
+
      /**
      * @OA\Post(path="/get-camp-newsfeed",
-     *   tags={"Newsfeed"},
+     *   tags={"getNewsfeed"},
      *   summary="get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
@@ -24,25 +36,25 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *                 @OA\Property(
-     *                     property="topic_num",
-     *                     description="Topic number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="camp_num",
-     *                     description="Camp number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 )
-     *          )
-     *      )
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *                  format="int32"
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *                  format="int32"
+     *              )
+     *         )
      *   )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
+     * )
      */
 
      
@@ -80,8 +92,8 @@ class NewsFeedController extends Controller
 
 
      /**
-     * @OA\Post(path="/edit-newsfeed",
-     *   tags={"Newsfeed"},
+     * @OA\Post(path="/edit-camp-newsfeed",
+     *   tags={"editNewsfeed"},
      *   summary="get camp statement",
      *   description="This is used to get camp newsfeed for editing.",
      *   operationId="getCampNewsFeed",
@@ -91,25 +103,25 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *                 @OA\Property(
-     *                     property="topic_num",
-     *                     description="Topic number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="camp_num",
-     *                     description="Camp number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 )
-     *          )
-     *      )
-     *   )
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               )
+     *        )
+     *    )
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
+     *  )
      */
 
     public function editNewsFeed(Request $request, Validate $validate)
@@ -136,7 +148,7 @@ class NewsFeedController extends Controller
 
      /**
      * @OA\Post(path="/update-camp-newsfeed",
-     *   tags={"Newsfeed"},
+     *   tags={"updateNewsfeed"},
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
@@ -146,43 +158,43 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *                 @OA\Property(
-     *                     property="topic_num",
-     *                     description="Topic number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="camp_num",
-     *                     description="Camp number is required",
-     *                     required=true,
-     *                     type="integer",
-     *                     format="int32"
-     *                 ),
-     *                  @OA\Property(
-     *                     property="display_text",
-     *                     description="display text is required",
-     *                     required=true,
-     *                     type="array",
-     *                 ),
-     *                 @OA\Property(
-     *                     property="link",
-     *                     description="link is required",
-     *                     required=true,
-     *                     type="array",
-     *                 ),
-     *                 @OA\Property(
-     *                     property="available_for_child",
-     *                     description="availability for child is required",
-     *                     required=true,
-     *                     type="array",
-     *                 ),
-     *          )
-     *      )
-     *   )
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *                   format="int32"
+     *               ),
+     *               @OA\Property(
+     *                  property="display_text",
+     *                  description="display text is required",
+     *                  required=true,
+     *                  type="array",
+     *               ),
+     *               @OA\Property(
+     *                   property="link",
+     *                   description="link is required",
+     *                   required=true,
+     *                   type="array",
+     *               ),
+     *               @OA\Property(
+     *                   property="available_for_child",
+     *                   description="availability for child is required",
+     *                   required=true,
+     *                   type="array",
+     *               ),
+     *        )
+     *   ) 
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
+     * }
      */
 
     public function updateNewsFeed(Request $request, Validate $validate)
