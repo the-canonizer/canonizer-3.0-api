@@ -68,11 +68,9 @@ class Camp extends Model
 
     public static function getAllParentCamp($topicNum, $filter, $asOfDate = null)
     {
-        switch ($filter) {
-            case "bydate":
-                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asOfDate)));
-                break;
-            default:
+        if($filter == 'bydate'){
+            $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asOfDate)));
+        }else{
             $asOfDate = time();
         }
 
