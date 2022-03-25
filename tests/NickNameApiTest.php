@@ -55,7 +55,7 @@ class NickNameApiTest extends TestCase
             'nick_name' => "test",
             'visibility_status' => 1
         ];
-        $response = $this->call('POST', '/api/v3/add_nick_name', $parameter);
+        $response = $this->call('POST', '/api/v3/add-nick-name', $parameter);
         $this->assertEquals(401, $response->status());       
     }
 
@@ -69,9 +69,9 @@ class NickNameApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/add_nick_name', $parameter);
+        ->post('/api/v3/add-nick-name', $parameter);
 
-        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(422, $this->response->status());
     }
 
     public function testAddNickNameWithValidData(){
@@ -79,19 +79,19 @@ class NickNameApiTest extends TestCase
         $user = User::factory()->make();
 
         $parameter = [
-            'nick_name' => "test",
+            'nick_name' => "test-" . rand(1,5),
             "visibility_status" => "1"
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/add_nick_name', $parameter);
+        ->post('/api/v3/add-nick-name', $parameter);
 
         $this->assertEquals(200, $this->response->status());
     }
 
     public function testGuestUserCanNotGetAllNickNames(){
         print sprintf("\n Gues user can not get list of nicknames ",401, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/get_nick_name_list', []);
+        $response = $this->call('GET', '/api/v3/get-nick-name-list', []);
         $this->assertEquals(401, $response->status()); 
     }
 
@@ -100,7 +100,7 @@ class NickNameApiTest extends TestCase
         $user = User::factory()->make();
 
         $this->actingAs($user)
-        ->get('/api/v3/get_nick_name_list', []);
+        ->get('/api/v3/get-nick-name-list', []);
 
         $this->assertEquals(200, $this->response->status());
     }
@@ -115,9 +115,9 @@ class NickNameApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/update_nick_name/1', $parameter);
+        ->post('/api/v3/update-nick-name/1', $parameter);
 
-        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(422, $this->response->status());
     }
 
     public function testUpdateNickNameWithValidData(){
@@ -128,7 +128,7 @@ class NickNameApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/update_nick_name/1', $parameter);
+        ->post('/api/v3/update-nick-name/1', $parameter);
 
         $this->assertEquals(200, $this->response->status());
     }

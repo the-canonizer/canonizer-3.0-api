@@ -234,7 +234,7 @@ class ProfileController extends Controller
     public function sendOtp(Request $request, Validate $validate){
         $user = $request->user();
         $input = $request->all();
-        $validationErrors = $validate->validate($request, $this->rules->getVerifyPhoneValidatonRules(),[]);
+        $validationErrors = $validate->validate($request, $this->rules->getVerifyPhoneValidatonRules(),$this->validationMessages->getVerifyPhoneValidationMessages());
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
@@ -290,7 +290,7 @@ class ProfileController extends Controller
     public function verifyOtp(Request $request, Validate $validate){
         $user = $request->user();
         $input = $request->all();
-        $validationErrors = $validate->validate($request, $this->rules->getVerifyOtpValidatonRules(),[]);
+        $validationErrors = $validate->validate($request, $this->rules->getVerifyOtpValidatonRules(),$this->validationMessages->getVerifyOtpValidatonMessages());
         if( $validationErrors ){
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }

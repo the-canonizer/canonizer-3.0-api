@@ -85,17 +85,22 @@ class CampController extends Controller
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
+                    $data = null;
                     $status = 403;
                     $message = $e->getMessage();
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
+                $data = [
+                    "camp_num" =>  $camp_id,
+                ];
                 $status = 200;
                 $message = trans('message.success.camp_created');
             } else {
+                $data = null;
                 $status = 400;
                 $message = trans('message.error.camp_failed');
             }
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
