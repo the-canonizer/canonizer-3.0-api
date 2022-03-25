@@ -10,3 +10,4 @@ Homestead.yaml
 /storage/oauth-private.key
 /storage/oauth-public.key
 /database/mysql-data/
+/public/canonizer_api.json
