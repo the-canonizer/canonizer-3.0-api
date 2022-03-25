@@ -68,13 +68,16 @@ class ValidationMessages
     public function getUpdateProfileValidationMessages(): array
     {
         return([
+            'first_name.required' => trans('message.validation_update_profile.first_name_required'),
             'first_name.regex' => trans('message.validation_update_profile.first_name_regex'),
+            'last_name.required' => trans('message.validation_update_profile.last_name_required'),
             'last_name.regex' => trans('message.validation_update_profile.last_name_regex'),
             'middle_name.regex' => trans('message.validation_update_profile.middle_name_regex'),
             'city.regex' => trans('message.validation_update_profile.city_regex'),
             'state.regex' => trans('message.validation_update_profile.state_regex'),
             'country.regex' => trans('message.validation_update_profile.country_regex'),
             'postal_code.regex' => trans('message.validation_update_profile.postal_code_regex'),
+            'phone_number.digits' => trans('message.phone_number.valid_digits')
         ]);
     }
 
@@ -136,6 +139,24 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
+        ]);
+    }
+
+    public function getVerifyPhoneValidationMessages(): array
+    {
+        return ([
+            'phone_number.required' => trans('message.phone_number.required'),
+            'phone_number.digits' => trans('message.phone_number.valid_digits'),
+            'mobile_carrier.required' => trans('message.phone_number.mobile_carrier_required') 
+
+        ]);
+    }
+
+    public function getVerifyOtpValidatonMessages(): array
+    {
+        return ([
+            'otp.required' => trans('message.otp.required'),
+            'otp.digits' =>  trans('message.otp.valid_digits')
         ]);
     }
 
