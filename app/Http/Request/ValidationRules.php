@@ -28,7 +28,7 @@ class ValidationRules
         return ([
             'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-			'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
+            'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
             'email' => 'required|string|email|max:225|unique:person',
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
@@ -63,10 +63,10 @@ class ValidationRules
             'code' => 'required'
         ]);
     }
-    
+
     public function getChangePasswordValidationRules(): array
     {
-        return([
+        return ([
             'current_password' => 'required',
             'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
             'confirm_password' => 'required|same:new_password'
@@ -132,6 +132,60 @@ class ValidationRules
         ]);
     }
 
+    public function getStatementValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
+
+    public function getNewsFeedValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ];
+    }
+
+    public function getAdsValidationRules(): array
+    {
+        return [
+            'page_name' => 'required|string'
+        ];
+    }
+
+    public function getImageValidationRules(): array
+    {
+        return [
+            'page_name' => 'required|string'
+        ];
+    }
+
+    public function getNewsFeedEditValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ];
+    }
+
+    public function getNewsFeedUpdateValidationRules($sizeLimit): array
+    {
+        return [
+            'display_text' => 'required|array',
+            'display_text.*' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
+            "link" => 'required|array|size:'. $sizeLimit,
+            "link.*" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            'available_for_child' => 'required|array|size:'. $sizeLimit,
+            'available_for_child.*' => 'required|boolean',
+            'topic_num' => 'required',
+            'camp_num' => 'required'
+        ];
+    }
+
     public function getCampStoreValidationRules(): array
     {
         $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
@@ -140,7 +194,8 @@ class ValidationRules
             'nick_name' => 'required',
             'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
-            'parent_camp_num' => 'nullable'
+            'parent_camp_num' => 'nullable',
+            'asof' => 'in:default,review,bydate'
         ]);
     }
 
@@ -150,7 +205,27 @@ class ValidationRules
             'topic_name' => 'required|max:30|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
-            'nick_name' => 'required'
+            'nick_name' => 'required',
+            'asof' => 'in:default,review,bydate'
+        ]);
+    }
+
+    public function getCampRecordValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
+    public function getTopicRecordValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
         ]);
     }
 
