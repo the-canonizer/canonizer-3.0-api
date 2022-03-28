@@ -18,7 +18,7 @@ class CreateFilesFolderTable extends Migration
             Schema::create('file_folder', function (Blueprint $table) {
                 $table->id();
                 $table->integer('user_id');
-                $table->string('name', 100)->unique();
+                $table->string('name', 50)->unique();
                 $table->unsignedInteger('created_at');
                 $table->unsignedInteger('updated_at');
                 $table->unsignedInteger('deleted_at')->nullable();

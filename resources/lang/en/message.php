@@ -170,5 +170,10 @@ return [
     ],
     'get_all_parent_camp' => [
         'topic_num_required' => 'Topic Num is required.'
+    ],
+    'uploads' => [
+        'folder_created' => "Folder created successfully."
     ]
+
+
 ];

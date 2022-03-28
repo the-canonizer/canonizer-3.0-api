@@ -68,6 +68,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/allParent','CampController@getAllParentCamp');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
+        $router->post('add-folder','UploadController@addFolder');
     });
 
     $router->post('/ads','AdsController@getAds');
