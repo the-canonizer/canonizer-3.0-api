@@ -67,6 +67,7 @@ class AddNickNameRequest extends FormRequest
     protected function messages(): array
     {
         return [
+          'nick_name.required' => "Nick name is required",
           'nick_name.unique' => "Nick name already exists, please try another one.",
           'nick_name.max' => "Nick name can not be more than 50 characters."
 

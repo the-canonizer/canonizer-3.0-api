@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Page;
-use App\Http\Request\AdsRequest;
+use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Resources\ErrorResource;
 use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
-
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
 class AdsController extends Controller
 {
 
-    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider)
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
     {
-        $this->resourceProvider = $resProvider;
-        $this->responseProvider = $respProvider;
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages ;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
     }
 
     /**
@@ -33,22 +39,26 @@ class AdsController extends Controller
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     *   @OA\Response(resppageImagesListingonse=400, description="Somethig went wrong")
+     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
-    */
-    public function getAds(AdsRequest $request)
+     */
+    public function getAds(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getAdsValidationRules(), $this->validationMessages->getAdsValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
         $pageName = $request->page_name;
         $ads = [];
 
-        try{
+        try {
             $page = Page::where('name', $pageName)->first();
-            if($page && $page->has('ads')) {
+            if ($page && $page->has('ads')) {
                 $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
             }
-            return $this->responseProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
-        }catch(Exception $e){
-            return $this->responseProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 }
