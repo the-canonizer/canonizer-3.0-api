@@ -20,9 +20,6 @@ use App\Helpers\ResourceInterface;
 
 class CampController extends Controller
 {
-    private ValidationRules $rules;
-
-    private ValidationMessages $validationMessages;
 
     public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
     {
