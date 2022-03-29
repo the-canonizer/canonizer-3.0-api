@@ -107,8 +107,7 @@ class CampStatementApiTest extends TestCase
                     'id',
                     'value',
                     'note',
-                    'go_live_time',
-                    'parentCamps'
+                    'go_live_time'
                 ]
             ]
         ]);

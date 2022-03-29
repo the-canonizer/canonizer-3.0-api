@@ -144,24 +144,28 @@ class Camp extends Model
             ->latest('submit_time')->first();
     }
 
-    public static function campNameWithAncestors($camp, $campName = '', $title = '', $filter = array(), $breadCrum = false)
+    public static function campNameWithAncestors($camp, $campName = '', $title = '', $filter = array(), $breadCrum = false, $campNames = array(), $index=0)
     {
         $as_of_time = time();
         if (isset($filter['asOf']) && $filter['asOf'] == 'bydate') {
             $as_of_time = strtotime($filter['asOfDate']);
         }
         if (!empty($camp)) {
-            $campName = $campName != '' ?  ($camp->camp_name) . '/ ' . ($campName) : ($camp->camp_name);
+            $campName = $camp->camp_name;
+            $campNames[$index]['camp_name']=$campName;
+            $campNames[$index]['topic_num']=$camp->topic_num;
+            $campNames[$index]['camp_num']=$camp->camp_num;
+            $index++;
             if ($camp->parent_camp_num) {
                 $pCamp = Camp::where('topic_num', $camp->topic_num)
                     ->where('camp_num', $camp->parent_camp_num)
                     ->where('objector_nick_id', '=', NULL)
                     ->where('go_live_time', '<=', $as_of_time)
                     ->orderBy('submit_time', 'DESC')->first();
-                return self::campNameWithAncestors($pCamp, $campName, $title, $filter, $breadCrum);
+                return self::campNameWithAncestors($pCamp, $campName, $title, $filter, $breadCrum, $campNames, $index);
             }
         }
-        return $campName;
+        return $campNames;
     }
 
     public function nickname()

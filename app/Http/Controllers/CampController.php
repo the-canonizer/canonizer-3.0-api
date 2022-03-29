@@ -270,8 +270,11 @@ class CampController extends Controller
             $livecamp = Camp::getLiveCamp($filter);
             if ($livecamp) {
                 $livecamp->nick_name=isset($livecamp->nickname->nick_name) ? $livecamp->nickname->nick_name : "No nickname associated";
+                $topicData = Camp::getAgreementTopic($filter);
+                $parentCamp = (!empty($livecamp) && !empty($topicData)) ? Camp::campNameWithAncestors($livecamp, '', $topicData->topic_name,$filter) : 'N/A';
                 $camp[]=$livecamp;
                 $camp = $this->resourceProvider->jsonResponse('camp-record', $camp);
+                $camp[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
