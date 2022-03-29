@@ -181,5 +181,10 @@ return [
         'unlink_social_user' => 'Social Link deleted successfully',
         'successfully_linked' => 'Your social account is linked successfully',
         'already_linked' => 'Email is already linked with another account',
+    ],
+    'uploads' => [
+        'folder_created' => "Folder created successfully."
     ]
+
+
 ];
