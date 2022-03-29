@@ -62,6 +62,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('camp/allParent','CampController@getAllParentCamp');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
         $router->get('/user/social/list','UserController@socialList');
+        $router->post('/user/social/socialLink', ['uses' => 'UserController@SocialLink']);
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
     });
 

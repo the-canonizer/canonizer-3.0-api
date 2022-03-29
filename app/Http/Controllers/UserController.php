@@ -1079,30 +1079,7 @@ class UserController extends Controller
             }
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
-            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
-            if($request->user()){
-                if (isset($social_user) && isset($social_user->user_id)) {
-                    $status = 403;
-                    $message = trans('message.social.already_linked');
-                    $data = null;
-				}else{
-                    $socialUser = SocialUser::create([
-						'user_id'       => $request->user()->id,
-						'social_email'  => $user_email,
-						'provider_id'   => $userSocial->getId(),
-						'provider'      => $provider,
-						'social_name'   => $social_name,
-					]);
-                    $status = 200;
-                    $message = trans('message.social.successfully_linked');
-                    $data = [
-                        "auth" => null,
-                        "user" => null,
-                        "type" => "social_link"
-                    ];
-                }
-                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-            }else{
+            
                 $user = User::where(['email' => $user_email])->first();
                 if(empty($user)){
                     $splitName = Util::split_name($social_name);
@@ -1114,14 +1091,9 @@ class UserController extends Controller
                     $nickname = $user->first_name.'-'.$user->last_name;
                     $this->createNickname($user->id, $nickname);
                 }
+                $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
                 if (!isset($social_user) && !isset($social_user->user_id)) {
-                    SocialUser::create([
-                        'user_id'       => $user->id,
-                        'social_email'  => $user_email,
-                        'provider_id'   => $userSocial->getId(),
-                        'provider'      => $provider,
-                        'social_name'   => $social_name,
-                    ]);
+                    $this->CreateSocialUser($userSocial,$provider,$user->id);
                 }
                 $postUrl = URL::to('/') . '/oauth/token';
                 $payload = [
@@ -1142,8 +1114,6 @@ class UserController extends Controller
                     $message = trans('message.success.success');
                     return $this->resProvider->apiJsonResponse($status, $message, $data, null);
                 }
-            }
-           
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
 
         }catch (Exception $ex) {
@@ -1504,6 +1474,60 @@ class UserController extends Controller
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
         }
+    }
+
+
+    public function SocialLink(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSocialCallbackValidationRules(), $this->validationMessages->getSocialCallbackValidationMessages());
+        if( $validationErrors ){
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+
+            $provider = $request->provider;
+            $userSocial =   Socialite::driver($provider)->stateless()->user();
+            if(empty($userSocial)){
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $user_email = $userSocial->getEmail();
+            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
+                if (isset($social_user) && isset($social_user->user_id)) {
+                    $status = 403;
+                    $message = trans('message.social.already_linked');
+                    $data = [
+                        "already_link_user"=> $social_user,
+                        "current_user"=> $request->user(),
+                    ];
+				}else{
+                    $this->CreateSocialUser($userSocial,$provider,$request->user()->id);
+                    $status = 200;
+                    $message = trans('message.social.successfully_linked');
+                    $data = null;
+                }
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+
+        }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+    protected function CreateSocialUser($data,$provider,$userId) {
+
+       $userSocial =  SocialUser::create([
+            'user_id'       => $userId,
+            'social_email'  => $data->getEmail(),
+            'provider_id'   => $data->getId(),
+            'provider'      => $provider,
+            'social_name'   => $data->getName(),
+        ]);
+
+        return $userSocial;
     }
 
 }
