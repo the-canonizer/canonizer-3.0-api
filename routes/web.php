@@ -68,14 +68,11 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/allParent','CampController@getAllParentCamp');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
-<<<<<<< HEAD
         $router->get('/user/social/list','UserController@socialList');
         $router->post('/user/social/socialLink', ['uses' => 'UserController@SocialLink']);
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
         $router->post('/user/deactivate', ['uses' => 'UserController@deactivateUser']);
-=======
         $router->post('add-folder','UploadController@addFolder');
->>>>>>> 0a303876ed0cda3c6a199b9b294a1c47a50b15c9
     });
 
     $router->post('/ads','AdsController@getAds');
