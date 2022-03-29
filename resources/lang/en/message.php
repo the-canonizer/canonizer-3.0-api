@@ -30,6 +30,7 @@ return [
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
+        'user_remove'  => 'User remove successfully.',
         
     ],
     'validation_registration' => [

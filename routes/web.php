@@ -71,6 +71,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/user/social/list','UserController@socialList');
         $router->post('/user/social/socialLink', ['uses' => 'UserController@SocialLink']);
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
+        $router->post('/user/deactivate', ['uses' => 'UserController@deactivateUser']);
     });
 
     $router->post('/ads','AdsController@getAds');

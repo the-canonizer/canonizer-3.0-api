@@ -7,6 +7,7 @@ use Throwable;
 use App\Models\User;
 use App\Facades\Util;
 use App\Models\Country;
+use App\Models\Support;
 use App\Jobs\SendOtpJob;
 use App\Models\Nickname;
 use App\Jobs\WelcomeMail;
@@ -1596,7 +1597,8 @@ class UserController extends Controller
         }
     }
 
-    protected function CreateSocialUser($data,$provider,$userId) {
+    protected function CreateSocialUser($data,$provider,$userId)
+    {
 
        $userSocial =  SocialUser::create([
             'user_id'       => $userId,
@@ -1607,6 +1609,125 @@ class UserController extends Controller
         ]);
 
         return $userSocial;
+    }
+
+
+    /**
+     * @OA\POST(path="/user/deactivate",
+     *   tags={"User"},
+     *   summary="For deactivate user",
+     *   description="This api used to deactivate users",
+     *   operationId="deactivateuser",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="password"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="user_id",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function deactivateUser(Request $request , Validate $validate)
+	{
+            $validationErrors = $validate->validate($request, $this->rules->getDeactivateUserValidationRules(), $this->validationMessages->getDeactivateUserValidationMessages());
+            if( $validationErrors ){
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            try {
+                $user_to_deactivate = $request->user_id;
+                // deactivate user
+                $user = User::where('id', '=', $user_to_deactivate)->first();
+                $user->status = 0;
+                $user->save();
+                // delete all user supports 
+                $encode = Util::canon_encode($user_to_deactivate);
+                //get nicknames
+                $nicknames = Nickname::where('owner_code', '=', $encode)->get();
+                $userNickname = Nickname::personNicknameArray();
+                
+                $as_of_time = time() + 100;
+                $supportedTopic = Support::whereIn('nick_name_id', $userNickname)
+                ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                ->groupBy('topic_num')->orderBy('start', 'DESC')->get();
+                if (count($supportedTopic) > 0) {
+                    foreach ($supportedTopic as $k => $v) {
+                        $allUserSupports = Support::where('topic_num', $v->topic_num)
+                        ->whereIn('nick_name_id', $userNickname)
+                        ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                        ->orderBy('support_order', 'ASC')
+                        ->get();
+                        if (count($allUserSupports) > 0) {
+                            foreach ($allUserSupports as $key => $support) {
+                                $currentSupport = Support::where('support_id', $support->support_id);
+                                $currentSupport->update(array('end' => time()));
+                            }
+                        }
+                    }
+                }
+                
+                // removing linked social accounts 
+                SocialUser::where('user_id', $user_to_deactivate)->delete();
+                $status = 200;
+                $message = trans('message.success.user_remove');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
     }
 
 }

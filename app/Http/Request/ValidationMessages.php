@@ -259,4 +259,11 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required')
         ];
     }
+
+    public function getDeactivateUserValidationMessages(): array
+    {
+        return ([
+            'user_id.required' => trans('message.social.user_id_required'),
+        ]);
+    }
 }
