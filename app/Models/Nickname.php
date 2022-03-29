@@ -68,5 +68,8 @@ class Nickname extends Model {
         return url('user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
     }
 
+    public function camps() {
+        return $this->hasMany('App\Models\Camp', 'nick_name_id', 'nick_name_id');
+    }
     
 }

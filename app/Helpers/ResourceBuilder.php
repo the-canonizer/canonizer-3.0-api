@@ -15,7 +15,6 @@ class ResourceBuilder implements ResourceInterface
     public function jsonResponse($modelType, $data)
     {
         $res = [];
-
         if($modelType == 'ad') {
             foreach($data as $row) {
                 $res[] =  [
@@ -38,7 +37,48 @@ class ResourceBuilder implements ResourceInterface
                 ];
             }
         }
-        
+        else if($modelType == 'Statement') {
+            foreach($data as $row) {
+                $res[] = [
+                    'id' => $row->id,
+                    'value' => $row->value,
+                    'note' => $row->note, 
+                    'go_live_time' => $row->go_live_time
+                ];
+            }
+        }
+        else if($modelType == 'NewsFeed') {
+            foreach($data as $row) {
+                $res[] = [
+                    'id' => $row->id,
+                    'display_text' => $row->display_text,
+                    'link' => $row->link,
+                    'available_for_child' => $row->available_for_child,
+                    'link' => $row->link,  
+                ];
+            }
+        }
+        else if($modelType == 'camp-record') {
+            foreach($data as $row) {
+                $res[] = [
+                    'topic_num' => $row->topic_num,
+                    'camp_num' => $row->camp_num,
+                    'key_words' => $row->key_words,
+                    'camp_about_url' => $row->camp_about_url,
+                    'nick_name' => $row->nick_name,  
+                ];
+            }
+        }
+        else if($modelType == 'topic-record') {
+            foreach($data as $row) {
+                $res[] = [
+                    'topic_num' => $row->topic_num,
+                    'camp_num' => $row->camp_num,
+                    'topic_name' => $row->topic_name,
+                    'namespace_name' => $row->namespace_name,
+                ];
+            }
+        }
         return $res;
     }
 }
