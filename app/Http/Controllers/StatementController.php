@@ -83,7 +83,8 @@ class StatementController extends Controller
             if ($campStatement) {
                 $campStatement->go_live_time=date('m/d/Y, H:i:s A', $campStatement->go_live_time); 
                 $statement[] = $campStatement;
-                $statement = $this->resourceProvider->jsonResponse('Statement', $statement);
+                $indexs=['id','value','note','go_live_time'];
+                $statement = $this->resourceProvider->jsonResponse($indexs, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {

@@ -249,10 +249,10 @@ class TopicController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
-        $indexs=['topic_num','camp_num','topic_name','namespace_name'];
         try {  
             $topic[] = Camp::getAgreementTopic($filter);
             if ($topic) {
+                $indexs=['topic_num','camp_num','topic_name','namespace_name'];
                 $topic = $this->resourceProvider->jsonResponse($indexs, $topic);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topic, '');

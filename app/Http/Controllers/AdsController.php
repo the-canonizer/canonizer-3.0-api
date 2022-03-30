@@ -54,7 +54,8 @@ class AdsController extends Controller
         try {
             $page = Page::where('name', $pageName)->first();
             if ($page && $page->has('ads')) {
-                $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
+                $indexs=['client_id','slot','format','adtest','is_responsive','status'];
+                $ads = $this->resourceProvider->jsonResponse($indexs, $page->ads);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
         } catch (Exception $e) {
