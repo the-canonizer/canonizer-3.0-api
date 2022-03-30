@@ -82,7 +82,8 @@ class NewsFeedController extends Controller
                     ->orderBy('order_id', 'ASC')->get();
             }
             if ($news) {
-                $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
+                $indexs=['id','display_text','link','available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
@@ -138,7 +139,8 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
+                $indexs=['id','display_text','link','available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {

@@ -273,7 +273,8 @@ class CampController extends Controller
                 $topicData = Camp::getAgreementTopic($filter);
                 $parentCamp = (!empty($livecamp) && !empty($topicData)) ? Camp::campNameWithAncestors($livecamp, '', $topicData->topic_name,$filter) : 'N/A';
                 $camp[]=$livecamp;
-                $camp = $this->resourceProvider->jsonResponse('camp-record', $camp);
+                $indexs=['topic_num','camp_num','key_words','camp_about_url','nick_name'];
+                $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
