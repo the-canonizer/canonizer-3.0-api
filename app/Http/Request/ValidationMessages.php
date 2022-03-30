@@ -44,12 +44,19 @@ class ValidationMessages
 
     public function getSocialLoginValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'provider.required' => trans('message.social.provider_required')
+        ]);
     }
 
     public function getSocialCallbackValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'client_id.required' => trans('message.social.client_id_required'),
+            'client_secret.required' => trans('message.social.client_secret_required'),
+            'provider.required' => trans('message.social.provider_required'),
+            'code.required' => trans('message.social.code_required'),
+        ]);
     }
 
     public function getChangePasswordValidationMessages(): array
@@ -233,7 +240,6 @@ class ValidationMessages
         ]);
     }
 
-
     public function getCampRecordValidationMessages(): array
     {
         return [
@@ -252,5 +258,12 @@ class ValidationMessages
             'topic_num.required' => trans('message.validation_get_topic_record.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required')
         ];
+    }
+
+    public function getDeactivateUserValidationMessages(): array
+    {
+        return ([
+            'user_id.required' => trans('message.social.user_id_required'),
+        ]);
     }
 }

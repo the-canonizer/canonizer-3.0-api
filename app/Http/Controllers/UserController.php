@@ -7,6 +7,7 @@ use Throwable;
 use App\Models\User;
 use App\Facades\Util;
 use App\Models\Country;
+use App\Models\Support;
 use App\Jobs\SendOtpJob;
 use App\Models\Nickname;
 use App\Jobs\WelcomeMail;
@@ -40,8 +41,8 @@ class UserController extends Controller
         $this->resProvider = $resProvider;
     }
 
-       /**
-    * @OA\POST(path="/client_token",
+    /**
+     * @OA\POST(path="/client_token",
      *   tags={"User"},
      *   summary="This api used to get password client id and client secrect",
      *   description="",
@@ -106,7 +107,7 @@ class UserController extends Controller
     public function clientToken(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), $this->validationMessages->getTokenValidationMessages());
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
@@ -119,19 +120,18 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-            if( $generateToken->status_code == 200 ){
+            if ($generateToken->status_code == 200) {
                 return (new SuccessResource($generateToken))->response()->setStatusCode(200);
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-
-        } catch( Exception $ex ) {
+        } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
-    
+
     /**
      * @OA\POST(path="/register",
      *   tags={"User"},
@@ -241,7 +241,7 @@ class UserController extends Controller
 
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
 
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
@@ -261,29 +261,28 @@ class UserController extends Controller
 
             $user = User::create($input);
 
-            if($user){
-                 $nickname = $user->first_name."-".$user->last_name;
-                 $this->createNickname($user->id, $nickname);
+            if ($user) {
+                $nickname = $user->first_name . "-" . $user->last_name;
+                $this->createNickname($user->id, $nickname);
                 try {
                     Event::dispatch(new SendOtpEvent($user));
                 } catch (Throwable $e) {
                     $status = 403;
                     $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                    return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
                 }
                 $status = 200;
                 $message = trans('message.success.reg_success');
-                return $this->resProvider->apiJsonResponse($status, $message,null, null);
-            }else{
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            } else {
                 $status = 400;
                 $message = trans('message.error.reg_failed');
-                return $this->resProvider->apiJsonResponse($status, $message,null, null);
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-
         } catch (Exception $e) {
             $status = 400;
             $message = $e->getMessage();
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -426,7 +425,7 @@ class UserController extends Controller
     public function loginUser(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getLoginValidationRules(), $this->validationMessages->getLoginValidationMessages());
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
@@ -434,18 +433,18 @@ class UserController extends Controller
             $password = $request->password;
             $user = User::where('email', '=', $username)->first();
 
-            if(empty($user)){
+            if (empty($user)) {
                 $status = 401;
                 $message = trans('message.error.email_not_registered');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-            if(!Hash::check($password, $user->password)){
+            if (!Hash::check($password, $user->password)) {
                 $status = 401;
                 $message = trans('message.error.password_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
-            if($user->status != 1){
+            if ($user->status != 1) {
                 $status = 402;
                 $message = trans('message.error.account_not_verified');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -461,18 +460,9 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-            if($generateToken->status_code == 200){
-                $data = [
-                    "auth" => $generateToken->data,
-                    "user" => new UserResource($user),
-                ];
-                $status = 200;
-                $message = trans('message.success.success');
-                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-            }
-            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+            return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null , null);
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
     }
 
@@ -498,7 +488,7 @@ class UserController extends Controller
         } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -590,9 +580,10 @@ class UserController extends Controller
     {
     }
 
-    protected function createNickname($userID, $nickname) {
+    protected function createNickname($userID, $nickname)
+    {
         $nicknameCreated = false;
-        if(empty($userID) || empty($nickname)) {
+        if (empty($userID) || empty($nickname)) {
 
             return $nicknameCreated;
         }
@@ -600,16 +591,16 @@ class UserController extends Controller
         $user = User::getUserById($userID);
 
 
-        if(empty($user)) {
+        if (empty($user)) {
             return $nicknameCreated;
         }
 
         // Check whether nickname exists for the given nickname
         $isExists = Nickname::isNicknameExists($nickname);
 
-        if($isExists === true) {
+        if ($isExists === true) {
             $randNumber = mt_rand(000, 999);
-            $nickname = $nickname.$randNumber;
+            $nickname = $nickname . $randNumber;
         }
 
         try {
@@ -622,8 +613,7 @@ class UserController extends Controller
             $nicknameObj->create_time = time();
             $nicknameObj->save();
             $nicknameCreated = true;
-
-        } catch(Exception $ex) {
+        } catch (Exception $ex) {
             $nicknameCreated = false;
         }
         return $nicknameCreated;
@@ -669,7 +659,7 @@ class UserController extends Controller
      *          )
      *     ),
      *   ),
-    *   @OA\Response(response=200,description="successful operation",
+     *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
      *                                 @OA\Property(
@@ -776,7 +766,7 @@ class UserController extends Controller
     public function postVerifyOtp(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getVerifyOtpValidationRules(), $this->validationMessages->getVerifyOtpValidationMessages());
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
@@ -784,7 +774,7 @@ class UserController extends Controller
 
             $user = User::where('email', '=', $request->username)->first();
 
-            if(empty($user) || $request->otp != $user->otp){
+            if (empty($user) || $request->otp != $user->otp) {
                 $status = 401;
                 $message = trans('message.error.otp_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -800,8 +790,8 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-            if($generateToken->status_code == 200){
-                $userRes = User::where('email', '=', $request->username)->update(['otp' => '','status' => 1]);
+            if ($generateToken->status_code == 200) {
+                $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
 
                 Event::dispatch(new WelcomeMailEvent($user));
 
@@ -892,14 +882,14 @@ class UserController extends Controller
     public function socialLogin(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getSocialLoginValidationRules(), $this->validationMessages->getSocialLoginValidationMessages());
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
             $provider = $request->provider;
             $redirect = Socialite::with($provider)->stateless()->redirect()->getTargetUrl();
-            if(empty($redirect)) {
+            if (empty($redirect)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -910,14 +900,14 @@ class UserController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-        }catch (Exception $ex) {
+        } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
-     /**
+    /**
      * @OA\POST(path="/user/social/callback",
      *   tags={"User"},
      *   summary="For get social user details",
@@ -957,7 +947,7 @@ class UserController extends Controller
      *          )
      *     ),
      *   ),
-         *   @OA\Response(response=200,description="successful operation",
+     *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
      *                                 @OA\Property(
@@ -1064,37 +1054,36 @@ class UserController extends Controller
     public function socialCallback(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getSocialCallbackValidationRules(), $this->validationMessages->getSocialCallbackValidationMessages());
-        if( $validationErrors ){
+        if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
+
             $provider = $request->provider;
             $userSocial =   Socialite::driver($provider)->stateless()->user();
-            if(empty($userSocial)){
+            if (empty($userSocial)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $user_email = $userSocial->getEmail();
             $social_name = $userSocial->getName();
+
             $user = User::where(['email' => $user_email])->first();
-            if(empty($user)){
+            if (empty($user)) {
                 $splitName = Util::split_name($social_name);
                 $user = User::create([
                     'first_name'    => $splitName[0],
                     'last_name'     => $splitName[1],
                     'email'         => $user_email
                 ]);
-                SocialUser::create([
-                    'user_id'       => $user->id,
-                    'social_email'  => $user_email,
-                    'provider_id'   => $userSocial->getId(),
-                    'provider'      => $provider,
-                    'social_name'   => $social_name,
-                ]);
-                $nickname = $user->first_name.'-'.$user->last_name;
+                $nickname = $user->first_name . '-' . $user->last_name;
                 $this->createNickname($user->id, $nickname);
+            }
+            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
+            if (!isset($social_user) && !isset($social_user->user_id)) {
+                $this->createSocialUser($userSocial, $provider, $user->id);
             }
             $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
@@ -1106,18 +1095,8 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-            if($generateToken->status_code == 200){
-                $data = [
-                    "auth" => $generateToken->data,
-                    "user" => new UserResource($user),
-                ];
-                $status = 200;
-                $message = trans('message.success.success');
-                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-            }
-            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-
-        }catch (Exception $ex) {
+            return $this->getTokenResponse($generateToken, $user);
+        } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -1179,7 +1158,7 @@ class UserController extends Controller
 
             $result = Country::where('status', 1)->get();
 
-            if(empty($result)){
+            if (empty($result)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -1188,8 +1167,7 @@ class UserController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $result, null);
-
-        }catch (Exception $ex) {
+        } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -1278,7 +1256,7 @@ class UserController extends Controller
                 } catch (Throwable $e) {
                     $status = 403;
                     $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                    return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
                 }
                 $status = 200;
                 $message = trans('message.success.forgot_password');
@@ -1290,5 +1268,455 @@ class UserController extends Controller
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
+    }
+
+
+    /**
+     * @OA\GET(path="/user/social/list",
+     *   tags={"User"},
+     *   summary="Get User Social Link Account List",
+     *   description="This API is use for get user social link account list",
+     *   operationId="socialList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="array",
+     *                @OA\Items(
+     *                    @OA\Property(
+     *                          property="id",
+     *                          type="integer"
+     *                    ),
+     *                    @OA\Property(
+     *                          property="user_id",
+     *                          type="integer"
+     *                    ),
+     *                    @OA\Property(
+     *                          property="social_name",
+     *                          type="string"
+     *                     ),
+     *                     @OA\Property(
+     *                           property="provider",
+     *                           type="string"
+     *                     ),
+     *                     @OA\Property(
+     *                           property="provider_id",
+     *                           type="string"
+     *                     )
+     *                ),
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+
+    public function socialList(Request $request)
+    {
+        try {
+
+            $result = SocialUser::where('user_id', $request->user()->id)->get();
+
+            if (empty($result)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $result, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Delete(path="/user/social/delete/{id}",
+     *   tags={"User"},
+     *   summary="Unlink Social User",
+     *   description="This API is use for unlink soical account and delete social user",
+     *   operationId="socialDelete",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Delete a record from this id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="string",
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+    public function socialDelete(Request $request, $id)
+    {
+        $loggedInUser = $request->user();
+        try {
+            $social_user = SocialUser::where('id', $id)->where('user_id', $loggedInUser->id)->delete();
+            $status = 200;
+            $message = trans('message.social.unlink_social_user');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @OA\POST(path="/user/social/socialLink",
+     *   tags={"User"},
+     *   summary="For link social user",
+     *   description="This api used to link social users",
+     *   operationId="usersocialsociallink",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="password"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="client_id",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="client_secret",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="provider",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="code",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function socialLink(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSocialCallbackValidationRules(), $this->validationMessages->getSocialCallbackValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+
+            $provider = $request->provider;
+            $userSocial =   Socialite::driver($provider)->stateless()->user();
+            if (empty($userSocial)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $user_email = $userSocial->getEmail();
+            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
+            if (isset($social_user) && isset($social_user->user_id)) {
+                $status = 403;
+                $message = trans('message.social.already_linked');
+                $data = [
+                    "already_link_user" => $social_user,
+                    "current_user" => $request->user(),
+                ];
+            } else {
+                $this->createSocialUser($userSocial, $provider, $request->user()->id);
+                $status = 200;
+                $message = trans('message.social.successfully_linked');
+                $data = null;
+            }
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+    protected function createSocialUser($data, $provider, $userId)
+    {
+
+        $userSocial =  SocialUser::create([
+            'user_id'       => $userId,
+            'social_email'  => $data->getEmail(),
+            'provider_id'   => $data->getId(),
+            'provider'      => $provider,
+            'social_name'   => $data->getName(),
+        ]);
+
+        return $userSocial;
+    }
+
+
+    /**
+     * @OA\POST(path="/user/deactivate",
+     *   tags={"User"},
+     *   summary="For deactivate user",
+     *   description="This api used to deactivate users",
+     *   operationId="deactivateuser",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="password"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="user_id",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function deactivateUser(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getDeactivateUserValidationRules(), $this->validationMessages->getDeactivateUserValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $user_to_deactivate = $request->user_id;
+            // deactivate user
+            $user = User::where('id', '=', $user_to_deactivate)->first();
+            $user->status = 0;
+            $user->save();
+            // delete all user supports 
+            $encode = Util::canon_encode($user_to_deactivate);
+            //get nicknames
+            $nicknames = Nickname::where('owner_code', '=', $encode)->get();
+            $userNickname = Nickname::personNicknameArray();
+
+            $as_of_time = time() + 100;
+            $supportedTopic = Support::whereIn('nick_name_id', $userNickname)
+                ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                ->groupBy('topic_num')->orderBy('start', 'DESC')->get();
+            if (count($supportedTopic) > 0) {
+                foreach ($supportedTopic as $k => $v) {
+                    $allUserSupports = Support::where('topic_num', $v->topic_num)
+                        ->whereIn('nick_name_id', $userNickname)
+                        ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                        ->orderBy('support_order', 'ASC')
+                        ->get();
+                    if (count($allUserSupports) > 0) {
+                        foreach ($allUserSupports as $key => $support) {
+                            $currentSupport = Support::where('support_id', $support->support_id);
+                            $currentSupport->update(array('end' => time()));
+                        }
+                    }
+                }
+            }
+
+            // removing linked social accounts 
+            SocialUser::where('user_id', $user_to_deactivate)->delete();
+            $status = 200;
+            $message = trans('message.success.user_remove');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+    protected function getTokenResponse($generateToken, $user)
+    {
+        if ($generateToken->status_code == 200) {
+            $data = [
+                "auth" => $generateToken->data,
+                "user" => new UserResource($user),
+            ];
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        }
+        return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
     }
 }

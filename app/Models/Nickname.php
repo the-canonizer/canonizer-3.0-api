@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Model;
 
 
 class Nickname extends Model {
@@ -71,5 +73,30 @@ class Nickname extends Model {
     public function camps() {
         return $this->hasMany('App\Models\Camp', 'nick_name_id', 'nick_name_id');
     }
+
+    public static function personNicknameArray($nickId = '') {
+
+        $userNickname = array();
+        if(isset($nickId) && !empty($nickId)){
+            $nicknames = self::personAllNicknamesByAnyNickId($nickId);
+        }else{
+            $nicknames = self::personNickname();
+        }
+
+        foreach ($nicknames as $nickname) {
+            $userNickname[] = $nickname->id;
+        }
+        return $userNickname;
+    }
+
+    public static function personNickname() {
+        if (Auth::check()) {
+           $userid = Auth::user()->id;
+           $encode = Util::canon_encode($userid);
+
+       return DB::table('nick_name')->select('id', 'nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->get();
+      }
+      return [];
+   }
     
 }
