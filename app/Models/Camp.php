@@ -144,15 +144,14 @@ class Camp extends Model
             ->latest('submit_time')->first();
     }
 
-    public static function campNameWithAncestors($camp, $campName = '', $title = '', $filter = array(), $breadCrum = false, $campNames = array(), $index=0)
+    public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index=0) :array
     {
         $as_of_time = time();
         if (isset($filter['asOf']) && $filter['asOf'] == 'bydate') {
             $as_of_time = strtotime($filter['asOfDate']);
         }
-        if (!empty($camp)) {
-            $campName = $camp->camp_name;
-            $campNames[$index]['camp_name']=$campName;
+        if ($camp) {
+            $campNames[$index]['camp_name']=$camp->camp_name;
             $campNames[$index]['topic_num']=$camp->topic_num;
             $campNames[$index]['camp_num']=$camp->camp_num;
             $index++;
@@ -162,7 +161,7 @@ class Camp extends Model
                     ->where('objector_nick_id', '=', NULL)
                     ->where('go_live_time', '<=', $as_of_time)
                     ->orderBy('submit_time', 'DESC')->first();
-                return self::campNameWithAncestors($pCamp, $campName, $title, $filter, $breadCrum, $campNames, $index);
+                return self::campNameWithAncestors($pCamp, $filter, $campNames, $index);
             }
         }
         return $campNames;

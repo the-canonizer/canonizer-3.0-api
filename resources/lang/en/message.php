@@ -32,6 +32,9 @@ return [
         'password_reset' => 'Your password has been reset successfully.',
         
     ],
+    'general' => [
+        'nickname_association_absence' => "No nickname associated"
+    ],
     'validation_registration' => [
         'password_regex'=>'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
