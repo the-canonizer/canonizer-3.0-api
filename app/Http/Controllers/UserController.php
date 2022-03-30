@@ -462,16 +462,7 @@ class UserController extends Controller
                 'scope' => '*',
             ];
             $generateToken = Util::httpPost($postUrl, $payload);
-            if($generateToken->status_code == 200){
-                $data = [
-                    "auth" => $generateToken->data,
-                    "user" => new UserResource($user),
-                ];
-                $status = 200;
-                $message = trans('message.success.success');
-                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-            }
-            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+            return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null , null);
         }
@@ -1094,7 +1085,7 @@ class UserController extends Controller
                 }
                 $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
                 if (!isset($social_user) && !isset($social_user->user_id)) {
-                    $this->CreateSocialUser($userSocial,$provider,$user->id);
+                    $this->createSocialUser($userSocial,$provider,$user->id);
                 }
                 $postUrl = URL::to('/') . '/oauth/token';
                 $payload = [
@@ -1106,17 +1097,7 @@ class UserController extends Controller
                     'scope' => '*',
                 ];
                 $generateToken = Util::httpPost($postUrl, $payload);
-                if($generateToken->status_code == 200){
-                    $data = [
-                        "auth" => $generateToken->data,
-                        "user" => new UserResource($user),
-                    ];
-                    $status = 200;
-                    $message = trans('message.success.success');
-                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-                }
-            return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
-
+                return $this->getTokenResponse($generateToken, $user);
         }catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
@@ -1462,7 +1443,7 @@ class UserController extends Controller
      * )
      */
 
-    public function SocialDelete(Request $request, $id)
+    public function socialDelete(Request $request, $id)
     {
         $loggedInUser = $request->user();
         try {
@@ -1557,7 +1538,7 @@ class UserController extends Controller
      * )
      */
 
-    public function SocialLink(Request $request, Validate $validate)
+    public function socialLink(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getSocialCallbackValidationRules(), $this->validationMessages->getSocialCallbackValidationMessages());
         if( $validationErrors ){
@@ -1583,7 +1564,7 @@ class UserController extends Controller
                         "current_user"=> $request->user(),
                     ];
 				}else{
-                    $this->CreateSocialUser($userSocial,$provider,$request->user()->id);
+                    $this->createSocialUser($userSocial,$provider,$request->user()->id);
                     $status = 200;
                     $message = trans('message.social.successfully_linked');
                     $data = null;
@@ -1597,7 +1578,7 @@ class UserController extends Controller
         }
     }
 
-    protected function CreateSocialUser($data,$provider,$userId)
+    protected function createSocialUser($data,$provider,$userId)
     {
 
        $userSocial =  SocialUser::create([
@@ -1728,6 +1709,20 @@ class UserController extends Controller
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
+    }
+
+    protected function getTokenResponse($generateToken, $user)
+    {
+        if($generateToken->status_code == 200){
+            $data = [
+                "auth" => $generateToken->data,
+                "user" => new UserResource($user),
+            ];
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        }
+        return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
     }
 
 }
