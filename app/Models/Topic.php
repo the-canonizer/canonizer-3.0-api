@@ -3,12 +3,17 @@
 namespace App\Models;
 
 use App\Models\Camp;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
-
+use Illuminate\Support\Facades\DB;
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Auth\Authenticatable;
+use Laravel\Lumen\Auth\Authorizable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Topic extends Model
 {
+    use Authenticatable, HasApiTokens , Authorizable, HasFactory;
+    
     protected $table = 'topic';
     public $timestamps = false;
 
