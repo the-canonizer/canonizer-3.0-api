@@ -54,7 +54,8 @@ class ImageController extends Controller
         try {
             $page = Page::where('name', $pageName)->first();
             if ($page && $page->has('images')) {
-                $images = $this->resourceProvider->jsonResponse('image', $page->images);
+                $indexs=['title','description','route','url'];
+                $images = $this->resourceProvider->jsonResponse($indexs, $page->images);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');
         } catch (\Throwable $e) {
