@@ -23,8 +23,8 @@ class StatementController extends Controller
     }
 
     /**
-    * @OA\Post(path="/get-camp-statement",
-     *   tags={"getCampstatement"},
+     * @OA\Post(path="/get-camp-statement",
+     *   tags={"Camp"},
      *   summary="get camp statement",
      *   description="Used to get statement.",
      *   operationId="getCampStatement",
@@ -39,14 +39,12 @@ class StatementController extends Controller
      *                   description="topic number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="as_of",
@@ -60,13 +58,14 @@ class StatementController extends Controller
      *                   required=false,
      *                   type="string",
      *               )
-     *        )
-     *   )
+     *          )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
-    
+
     public function getStatement(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStatementValidationMessages());
@@ -81,9 +80,9 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time=date('m/d/Y, H:i:s A', $campStatement->go_live_time); 
+                $campStatement->go_live_time = date('m/d/Y, H:i:s A', $campStatement->go_live_time);
                 $statement[] = $campStatement;
-                $indexs=['id','value','note','go_live_time'];
+                $indexs = ['id', 'value', 'note', 'go_live_time'];
                 $statement = $this->resourceProvider->jsonResponse($indexs, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
