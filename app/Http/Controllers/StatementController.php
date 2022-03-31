@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Models\Camp;
 use App\Models\Statement;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
@@ -79,16 +78,12 @@ class StatementController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         $statement = [];
-        $topic = Camp::getAgreementTopic($filter);
-        $camp = Camp::getLiveCamp($filter);
-        $parentCamp = (!empty($camp) && !empty($topic)) ? Camp::campNameWithAncestors($camp, '', $topic->topic_name,$filter) : 'N/A';
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time=date('Y/m/d H:i:s', $campStatement->go_live_time); 
+                $campStatement->go_live_time=date('m/d/Y, H:i:s A', $campStatement->go_live_time); 
                 $statement[] = $campStatement;
                 $statement = $this->resourceProvider->jsonResponse('Statement', $statement);
-                $statement[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
