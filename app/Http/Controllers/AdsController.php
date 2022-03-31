@@ -24,7 +24,7 @@ class AdsController extends Controller
 
     /**
      * @OA\Post(path="/ads",
-     *   tags={"ads"},
+     *   tags={"Ads"},
      *   summary="get ads list",
      *   description="This is used to get the ads list for specific page.",
      *   operationId="ad",
@@ -39,7 +39,6 @@ class AdsController extends Controller
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
      */
     public function getAds(Request $request, Validate $validate)
