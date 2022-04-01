@@ -78,7 +78,6 @@ class CampStoreApiTest extends TestCase
             'message',
             'error',
             'data' => [
-                    'camp_num'
             ]
         ]);
     }
