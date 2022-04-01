@@ -23,7 +23,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         ];
         
         $data = [
-            "email" => "email@email.com",
+            "email" => "saurabh.singh@iffort.com",
         ];
         
         $v = $this->app['validator']->make($data, $rules);
@@ -42,7 +42,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         $this->actingAs($user)
         ->post('/api/v3/forgotpassword/sendOtp', $parameter);
         
-        $this->assertEquals(403, $this->response->status());
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testForgotPasswordSendOtpWithValidData()
@@ -51,7 +51,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         $user = User::factory()->make();
 
         $parameters = [
-            "email" => "email@email.com"
+            "email" => "saurabh.singh@iffort.com"
         ];
         $this->actingAs($user)
             ->post('/api/v3/forgotpassword/sendOtp',$parameters);   

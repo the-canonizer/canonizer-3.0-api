@@ -187,7 +187,7 @@ class CampController extends Controller
                         "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];                 
-                    Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                   Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;

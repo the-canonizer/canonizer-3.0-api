@@ -38,7 +38,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
-    $router->group(['middleware' => ['client', 'Xss']], function() use ($router) {
+    $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
         $router->post('/user/login','UserController@loginUser');
         $router->post('/verifyOtp','UserController@postVerifyOtp');
