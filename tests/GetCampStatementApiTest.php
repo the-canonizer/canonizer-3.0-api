@@ -38,8 +38,8 @@ class CampStatementApiTest extends TestCase
     public function testGetStatementApiWithInvalidData()
     {
         $invalidData = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => 279,
+            'camp_num' => 4,
             'as_of' => "xyz"
         ];
         print sprintf("Test with invalid values");
@@ -54,8 +54,8 @@ class CampStatementApiTest extends TestCase
     public function testGetCampStatementApiWithoutFilterDate()
     {
         $invalidData = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => 279,
+            'camp_num' => 4,
             'as_of' => "bydate"
         ];
 
@@ -69,8 +69,8 @@ class CampStatementApiTest extends TestCase
     public function testGetStatementApiStatus()
     {
         $data = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => 279,
+            'camp_num' => 4,
             'as_of' => "default"
         ];
         print sprintf("\n post Camp Statement ", 200, PHP_EOL);
@@ -88,8 +88,8 @@ class CampStatementApiTest extends TestCase
     public function testGetStatementApiResponse()
     {
         $data = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => 279,
+            'camp_num' => 4,
             'as_of' => "default"
         ];
         print sprintf("\n Test  Camp Statement API Response ", 200, PHP_EOL);

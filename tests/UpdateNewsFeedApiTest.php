@@ -39,7 +39,7 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiWithInvalidData()
     {
         $invalidData = [
-            "topic_num" => 45,
+            "topic_num" => 2,
             "camp_num" => 1,
             "display_text" => ["xyz"],
             "link" => ["facebook.com", "youtube.com"],
@@ -56,7 +56,7 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiStatus()
     {
        $data = [
-            "topic_num" => 45,
+            "topic_num" => 2,
             "camp_num" => 1,
             "display_text" => ["xyz", "abc"],
             "link" => ["facebook.com", "youtube.com"],
