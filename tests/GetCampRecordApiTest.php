@@ -108,7 +108,8 @@ class GetCampRecordApiTest extends TestCase
                     'camp_num',
                     'key_words',
                     'camp_about_url',
-                    'nick_name'
+                    'nick_name',
+                    'parentCamps'
                 ]
             ]
         ]);

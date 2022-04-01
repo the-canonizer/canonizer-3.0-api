@@ -196,7 +196,7 @@ class TopicController extends Controller
 
    /**
     * @OA\Post(path="/get-topic-record",
-     *   tags={"getTopicRecord"},
+     *   tags={"Topic"},
      *   summary="get topic record",
      *   description="Used to get topic record.",
      *   operationId="getTopicRecord",
@@ -211,14 +211,12 @@ class TopicController extends Controller
      *                   description="topic number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="as_of",
@@ -232,8 +230,9 @@ class TopicController extends Controller
      *                   required=false,
      *                   type="string",
      *               )
-     *        )
-     *   )
+     *         )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
@@ -249,11 +248,11 @@ class TopicController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
-
         try {  
             $topic[] = Camp::getAgreementTopic($filter);
             if ($topic) {
-                $topic = $this->resourceProvider->jsonResponse('topic-record', $topic);
+                $indexs=['topic_num','camp_num','topic_name','namespace_name'];
+                $topic = $this->resourceProvider->jsonResponse($indexs, $topic);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topic, '');
         } catch (Exception $e) {
