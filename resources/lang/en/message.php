@@ -183,7 +183,8 @@ return [
         'already_linked' => 'Email is already linked with another account',
     ],
     'uploads' => [
-        'folder_created' => "Folder created successfully."
+        'folder_created' => "Folder created successfully.",
+        'success' => "File(s) uploaded successfully."
     ]
 
 
