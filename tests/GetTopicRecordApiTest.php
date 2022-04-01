@@ -22,10 +22,46 @@ class GetTopicRecordApiTest extends TestCase
     {
         $emptyData = [
             'topic_num' => '',
-            'camp_num' => ''
+            'camp_num' => '',
+            'as_of' => ''
         ];
         print sprintf("Test with empty values");
         $response = $this->call('POST', '/api/v3/get-topic-record', $emptyData);
+        $this->assertEquals(400, $response->status());
+    }
+
+    /**
+     * Check Api with Invalid as_of filter value
+     * validation
+     */
+    public function testGetTopicRecordApiWithInvalidData()
+    {
+        $invalidData = [
+            'topic_num' => 45,
+            'camp_num' => 1,
+            'as_of' => "xyz",
+            'as_of_date' => "12-12-2022"
+        ];
+
+        print sprintf("Test with invalid values");
+        $response = $this->call('POST', '/api/v3/get-topic-record', $invalidData);
+        $this->assertEquals(400, $response->status());
+    }
+
+    /**
+     * Check Api with as_of filter value bydate without as_of_date
+     * validation
+     */
+    public function testGetTopicRecordApiWithoutFilterDate()
+    {
+        $invalidData = [
+            'topic_num' => 45,
+            'camp_num' => 1,
+            'as_of' => "bydate"
+        ];
+
+        print sprintf("Test with invalid values");
+        $response = $this->call('POST', '/api/v3/get-topic-record', $invalidData);
         $this->assertEquals(400, $response->status());
     }
 
@@ -36,7 +72,8 @@ class GetTopicRecordApiTest extends TestCase
     {
         $data = [
             'topic_num' => 45,
-            'camp_num' => 1
+            'camp_num' => 1,
+            'as_of' => 'default'
         ];
         print sprintf("\n get topic record ", 200, PHP_EOL);
         $response = $this->call(
@@ -54,7 +91,8 @@ class GetTopicRecordApiTest extends TestCase
     {
         $data = [
             'topic_num' => 45,
-            'camp_num' => 1
+            'camp_num' => 1,
+            'as_of' => 'default'
         ];
 
         print sprintf("\n Test GetTopicRecord API Response ", 200, PHP_EOL);

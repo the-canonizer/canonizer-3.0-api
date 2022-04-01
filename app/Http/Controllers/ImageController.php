@@ -25,7 +25,7 @@ class ImageController extends Controller
 
     /**
      * @OA\Post(path="/images",
-     *   tags={"images"},
+     *   tags={"Social Icons"},
      *   summary="get images list",
      *   description="This is used to get the images list for specific page.",
      *   operationId="image",
@@ -40,7 +40,6 @@ class ImageController extends Controller
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
      */
     public function getImages(Request $request, Validate $validate)
@@ -54,7 +53,8 @@ class ImageController extends Controller
         try {
             $page = Page::where('name', $pageName)->first();
             if ($page && $page->has('images')) {
-                $images = $this->resourceProvider->jsonResponse('image', $page->images);
+                $indexs=['title','description','route','url'];
+                $images = $this->resourceProvider->jsonResponse($indexs, $page->images);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $images, '');
         } catch (\Throwable $e) {

@@ -212,7 +212,7 @@ class CampController extends Controller
 
   /**
     * @OA\Post(path="/get-camp-record",
-     *   tags={"getCampRecord"},
+     *   tags={"Camp"},
      *   summary="get camp record",
      *   description="Used to get camp record.",
      *   operationId="getCampRecord",
@@ -227,14 +227,12 @@ class CampController extends Controller
      *                   description="topic number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="as_of",
@@ -248,8 +246,9 @@ class CampController extends Controller
      *                   required=false,
      *                   type="string",
      *               )
-     *        )
-     *   )
+     *          )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
@@ -268,10 +267,13 @@ class CampController extends Controller
         $camp=[];
         try {  
             $livecamp = Camp::getLiveCamp($filter);
-            if ($livecamp) {
-                $livecamp->nick_name=isset($livecamp->nickname->nick_name) ? $livecamp->nickname->nick_name : "No nickname associated";
+            if ($livecamp) {                        
+                $livecamp->nick_name=$livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
+                $parentCamp = Camp::campNameWithAncestors($livecamp,$filter);
                 $camp[]=$livecamp;
-                $camp = $this->resourceProvider->jsonResponse('camp-record', $camp);
+                $indexs=['topic_num','camp_num','key_words','camp_about_url','nick_name'];
+                $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
+                $camp[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {

@@ -24,7 +24,7 @@ class AdsController extends Controller
 
     /**
      * @OA\Post(path="/ads",
-     *   tags={"ads"},
+     *   tags={"Ads"},
      *   summary="get ads list",
      *   description="This is used to get the ads list for specific page.",
      *   operationId="ad",
@@ -39,7 +39,6 @@ class AdsController extends Controller
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     *   @OA\Response(response=400, description="Somethig went wrong")
      * )
      */
     public function getAds(Request $request, Validate $validate)
@@ -54,7 +53,8 @@ class AdsController extends Controller
         try {
             $page = Page::where('name', $pageName)->first();
             if ($page && $page->has('ads')) {
-                $ads = $this->resourceProvider->jsonResponse('ad', $page->ads);
+                $indexs=['client_id','slot','format','adtest','is_responsive','status'];
+                $ads = $this->resourceProvider->jsonResponse($indexs, $page->ads);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
         } catch (Exception $e) {

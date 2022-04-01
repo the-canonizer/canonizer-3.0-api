@@ -24,9 +24,9 @@ class NewsFeedController extends Controller
         $this->resProvider = $respProvider;
     }
 
-     /**
+    /**
      * @OA\Post(path="/get-camp-newsfeed",
-     *   tags={"getNewsfeed"},
+     *   tags={"Camp"},
      *   summary="get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
@@ -41,23 +41,22 @@ class NewsFeedController extends Controller
      *                  description="Topic number is required",
      *                  required=true,
      *                  type="integer",
-     *                  format="int32"
      *              ),
      *              @OA\Property(
      *                  property="camp_num",
      *                  description="Camp number is required",
      *                  required=true,
      *                  type="integer",
-     *                  format="int32"
      *              )
      *         )
-     *   )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
 
-     
+
     public function getNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedValidationRules(), $this->validationMessages->getNewsFeedValidationMessages());
@@ -72,7 +71,7 @@ class NewsFeedController extends Controller
                 ->where('camp_num', '=', $filter['campNum'])
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
-            
+
             if (empty($news) && count($camp) && $camp->parent_camp_num != null) {
                 $neCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
@@ -82,7 +81,8 @@ class NewsFeedController extends Controller
                     ->orderBy('order_id', 'ASC')->get();
             }
             if ($news) {
-                $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
+                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
@@ -90,11 +90,10 @@ class NewsFeedController extends Controller
         }
     }
 
-
-     /**
+    /**
      * @OA\Post(path="/edit-camp-newsfeed",
-     *   tags={"editNewsfeed"},
-     *   summary="get camp statement",
+     *   tags={"Camp"},
+     *   summary="get camp newsfeed",
      *   description="This is used to get camp newsfeed for editing.",
      *   operationId="getCampNewsFeed",
      *   @OA\RequestBody(
@@ -108,17 +107,16 @@ class NewsFeedController extends Controller
      *                   description="Topic number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               )
-     *        )
-     *    )
+     *           )
+     *       )  
+     *    ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      *  )
@@ -138,7 +136,8 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
+                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
@@ -146,9 +145,9 @@ class NewsFeedController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(path="/update-camp-newsfeed",
-     *   tags={"updateNewsfeed"},
+     *   tags={"Camp"},
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
@@ -163,14 +162,12 @@ class NewsFeedController extends Controller
      *                   description="Topic number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
-     *                   format="int32"
      *               ),
      *               @OA\Property(
      *                  property="display_text",
@@ -190,11 +187,12 @@ class NewsFeedController extends Controller
      *                   required=true,
      *                   type="array",
      *               ),
-     *        )
-     *   ) 
+     *           )
+     *       )
+     *   ), 
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
-     * }
+     * )
      */
 
     public function updateNewsFeed(Request $request, Validate $validate)
@@ -224,17 +222,18 @@ class NewsFeedController extends Controller
             $news->available_for_child = !empty($available_for_child[$i]) ? $available_for_child[$i] : 0;
             $news->submit_time = strtotime(date('Y-m-d H:i:s'));
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
-            $news->order_id=++$nextOrder;
+            $news->order_id = ++$nextOrder;
             $news->save();
         }
-        
+
         try {
             $news = NewsFeed::where('topic_num', '=', $topicNum)
                 ->where('camp_num', '=', $campNum)
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $news = $this->resourceProvider->jsonResponse('NewsFeed', $news);
+                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
