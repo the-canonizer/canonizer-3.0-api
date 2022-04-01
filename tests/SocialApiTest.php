@@ -4,11 +4,12 @@ use App\Models\User;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Laravel\Lumen\Testing\WithoutMiddleware;
 
 class SocialApiTest extends TestCase
 {
 
-    use DatabaseTransactions;
+    use WithoutMiddleware;
 
     /**
      * A basic test example.
@@ -92,8 +93,15 @@ class SocialApiTest extends TestCase
             'provider' => 'google',
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
-        $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $this->call('POST', '/api/v3/user/social/callback', $parameters);
+        $this->seeJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data' => [
+                   
+            ]
+        ]);
     }
 
     public function testSocialSocialLinkWithValidData()
@@ -106,14 +114,22 @@ class SocialApiTest extends TestCase
             'provider' => 'google',
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
-        $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
-        $this->assertEquals(200, $this->response->status());
+
+        $this->call('POST', '/api/v3/user/social/socialLink', $parameters);
+        $this->seeJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data' => [
+                   
+            ]
+        ]);
     }
 
     public function testGetSocialUserListInvalidData(){
-        print sprintf("\n Get Social User List Invalid Data %d %s",401, PHP_EOL);
+        print sprintf("\n Get Social User List Invalid Data %d %s",400, PHP_EOL);
         $response = $this->call('GET', '/api/v3/user/social/list');
-        $this->assertEquals(401, $response->status()); 
+        $this->assertEquals(400, $response->status()); 
     }
 
     public function testGetSocialUserListValidData(){
@@ -126,16 +142,17 @@ class SocialApiTest extends TestCase
         $this->assertEquals(200, $this->response->status());
     }
 
-    /* public function testGetSocialUserListDeleteValidData(){
+    public function testGetSocialUserListDeleteValidData(){
         print sprintf(" \n  Get Social User List Valid Data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
-        $user->user_id = 1;
-        #$this->actingAs($user)
-       # ->delete('/api/v3/user/social/delete/{id}', []);
-       dd($this->response); die;
-       $this->json('DELETE', '/api/v3/user/social/delete/' . $user->user_id, [])->assertEquals(200, $this->response->status());
-        #$this->assertEquals(200, $this->response->status());
-    } */
+        $this->call('DELETE', '/api/v3/user/social/delete/2');
+        $this->seeJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data'
+        ]);
+        
+    }
 
     public function testSocialDeactivateUserWithInvalidData()
     {

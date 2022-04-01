@@ -39,8 +39,9 @@ class TopicStoreApiTest extends TestCase
     }
 
     public function testTopicStoreWithInvalidData(){
-        print sprintf(" \n Invalid Topic Store details submitted %d %s", 401,PHP_EOL);
+        print sprintf(" \n Invalid Topic Store details submitted %d %s", 400,PHP_EOL);
 
+        $topic = Topic::factory()->make();
         $parameter = [
             'topic_name' => '',
             'namespace' => '',
@@ -49,18 +50,16 @@ class TopicStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $response = $this->call('POST', '/api/v3/topic/save', $parameter);
-        $this->assertEquals(401, $response->status());
-
-        // $this->actingAs($Topic)
-        // ->post('/api/v3/topic/save', $parameter);
-        
-        // $this->assertEquals(400, $this->response->status());
+        $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testTopicStoreWithValidData()
     {
         print sprintf(" \n Valid Topic Store details submitted %d %s", 200,PHP_EOL);
+
+        $topic = Topic::factory()->make();
+
         $parameters = [
             'topic_name' => 'Test 1234 Test',
             'namespace' => '12',
@@ -68,21 +67,11 @@ class TopicStoreApiTest extends TestCase
             'nick_name' => '12',
             'asof' => ''
         ];
+     
+        $this->actingAs($topic)
+            ->post('/api/v3/topic/save',$parameters);   
 
-        $this->call('POST', '/api/v3/topic/save', $parameters);
-       // dd($this->response); die;
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                'topic_num'
-            ]
-        ]);
-        // $this->actingAs($Topic)
-        //     ->post('/api/v3/topic/save',$parameters);   
-
-        // $this->assertEquals(200, $this->response->status());
+        $this->assertEquals(200, $this->response->status());
     }
    
 }

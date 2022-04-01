@@ -10,9 +10,12 @@ use Illuminate\Auth\Authenticatable;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-class Topic extends Model
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+
+class Topic extends Model implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, HasApiTokens , Authorizable, HasFactory;
+    use Authenticatable, HasApiTokens  , Authorizable, HasFactory;
     
     protected $table = 'topic';
     public $timestamps = false;
