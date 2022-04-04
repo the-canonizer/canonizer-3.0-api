@@ -35,7 +35,7 @@ class GetNewsFeedApiTest extends TestCase
     public function testGetNewsFeedApiStatus()
     {
         $data = [
-            'topic_num' => 45,
+            'topic_num' => 2,
             'camp_num' => 1
         ];    
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
@@ -53,7 +53,7 @@ class GetNewsFeedApiTest extends TestCase
     public function testGetNewsFeedApiResponse()
     {
         $data = [
-            'topic_num' => 45,
+            'topic_num' => 2,
             'camp_num' => 1
         ]; 
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
