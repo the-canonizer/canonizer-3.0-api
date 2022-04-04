@@ -175,9 +175,7 @@ class TopicController extends Controller
                     $status = 403;
                     $message = $e->getMessage();
                 }
-                $data = [
-                    "topic_num" =>  $topic->topic_num,
-                ];
+                $data = $topic;
                 $status = 200;
                 $message = trans('message.success.topic_created');
             } else {
