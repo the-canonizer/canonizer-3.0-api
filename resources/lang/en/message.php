@@ -31,6 +31,7 @@ return [
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
         'user_remove'  => 'User remove successfully.',
+        'otp_verified'  => 'OTP verified successfully.',
         
     ],
     'general' => [
