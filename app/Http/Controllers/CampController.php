@@ -564,6 +564,86 @@ class CampController extends Controller
         }
     }
 
+      /**
+     * @OA\POST(path="/camp/getTopicNickNameUsed",
+     *   tags={"Camp"},
+     *   summary="Get Topic Nick Name Used",
+     *   description="This API is use for get Topic Nick Name Used",
+     *   operationId="getTopicNickNameUsed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="array",
+     *                @OA\Items(
+     *                    @OA\Property(
+     *                          property="id",
+     *                          type="integer"
+     *                    ),
+     *                     @OA\Property(
+     *                           property="nick_name",
+     *                           type="string"
+     *                     )
+     *                ),
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
     public function getTopicNickNameUsed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAllParentCampValidationRules(), $this->validationMessages->getAllParentCampValidationMessages());
