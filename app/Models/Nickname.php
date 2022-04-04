@@ -98,5 +98,39 @@ class Nickname extends Model {
       }
       return [];
    }
+
+   public static function topicNicknameUsed($topic_num)
+    {
+        $personNicknameArray = self::personNicknameArray();
+        $usedNickid = 0;
+        $mysupports = Support::select('nick_name_id')->where('topic_num', $topic_num)->whereIn('nick_name_id', $personNicknameArray)->where('end', '=', 0)->groupBy('topic_num')->orderBy('support_order', 'ASC')->first();
+        if (empty($mysupports)) {
+            $mycamps = Camp::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
+            if (empty($mycamps)) {
+                $mystatement = Statement::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
+                if (empty($mystatement)) {
+                    $mytopic = Topic::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
+                    if (empty($mytopic)) {
+                        $mythread = CThread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                        if (!empty($mythread)) {
+                            $usedNickid = $mythread->user_id;
+                        }
+                    } else {
+                        $usedNickid = $mytopic->submitter_nick_id;
+                    }
+                } else {
+                    $usedNickid = $mystatement->submitter_nick_id;
+                }
+            } else {
+                $usedNickid = $mycamps->submitter_nick_id;
+            }
+        } else {
+            $usedNickid = $mysupports->nick_name_id;
+        }
+        if ($usedNickid) {
+            return self::where('id', '=', $usedNickid)->get();
+        } else
+            return self::personNickname();
+    }
     
 }

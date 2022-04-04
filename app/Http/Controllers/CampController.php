@@ -10,13 +10,14 @@ use App\Models\Topic;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Helpers\ResourceInterface;
 
 class CampController extends Controller
 {
@@ -543,17 +544,40 @@ class CampController extends Controller
 
     public function getAllAboutNickName(Request $request, Validate $validate)
     {
-
         try {
-
-            $allNicknames = Nickname::orderBy('nick_name', 'ASC')->get();
-
+            $allNicknames =DB::table('nick_name')
+            ->select(DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
+            )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+    public function getTopicNickNameUsed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAllParentCampValidationRules(), $this->validationMessages->getAllParentCampValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
+            if (empty($allNicknames)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
