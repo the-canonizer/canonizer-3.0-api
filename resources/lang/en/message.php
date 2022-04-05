@@ -31,6 +31,7 @@ return [
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
         'user_remove'  => 'User remove successfully.',
+        'news_feed_add'  => 'Newsfeed added successfully.',
         
     ],
     'general' => [
@@ -187,7 +188,14 @@ return [
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully."
+    ],
+    'validation_store_newsfeed' => [
+        'topic_num_required' => 'Topic number is required',
+        'camp_num_required' => 'Camp number is required',
+        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
+        'available_for_child_required' => 'Availability for child is required',
+        'link_required' => 'Link is required',
+        'display_text_required' => 'Display text is required.'
     ]
-
 
 ];

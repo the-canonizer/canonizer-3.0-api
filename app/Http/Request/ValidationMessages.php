@@ -266,4 +266,17 @@ class ValidationMessages
             'user_id.required' => trans('message.social.user_id_required'),
         ]);
     }
+
+    public function getNewsFeedStoreValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_store_newsfeed.topic_num_required'),
+            'camp_num.required' => trans('message.validation_store_newsfeed.camp_num_required'),
+            'link.required' => trans('message.validation_store_newsfeed.link_required'),
+            'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
+            'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
+            'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
+        ];
+    }
+
 }

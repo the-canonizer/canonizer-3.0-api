@@ -240,4 +240,25 @@ class NewsFeedController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
+
+    public function storeNewsFeed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedStoreValidationRules(), $this->validationMessages->getNewsFeedStoreValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $news = new NewsFeed();
+            $news->topic_num =  $request->topic_num;
+            $news->camp_num = $request->camp_num;
+            $news->display_text = $request->display_text;
+            $news->link = $request->link;
+            $news->available_for_child = $request->available_for_child ?? 0;
+            $news->submit_time = strtotime(date('Y-m-d H:i:s'));
+            $news->save();
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
 }
