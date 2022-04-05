@@ -19,6 +19,8 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/social/twitter/callback','UserController@twitterCallback');
+
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
