@@ -111,7 +111,7 @@ class Nickname extends Model {
                 if (empty($mystatement)) {
                     $mytopic = Topic::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
                     if (empty($mytopic)) {
-                        $mythread = CThread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                        $mythread = Thread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
                         if (!empty($mythread)) {
                             $usedNickid = $mythread->user_id;
                         }
