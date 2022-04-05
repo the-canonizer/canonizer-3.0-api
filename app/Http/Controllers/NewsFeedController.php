@@ -255,6 +255,8 @@ class NewsFeedController extends Controller
             $news->link = $request->link;
             $news->available_for_child = $request->available_for_child ?? 0;
             $news->submit_time = strtotime(date('Y-m-d H:i:s'));
+            $nextOrder = NewsFeed::where('topic_num', '=', $request->topic_num)->where('camp_num', '=', $request->camp_num)->max('order_id');
+            $news->order_id = ++$nextOrder;
             $news->save();
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
