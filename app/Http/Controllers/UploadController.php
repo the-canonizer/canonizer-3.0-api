@@ -8,7 +8,7 @@ use App\Models\FileFolder;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Upload;
-use Aws\S3\S3Client;
+use App\Helpers\Aws;
 
 
 
@@ -66,29 +66,30 @@ class UploadController extends Controller
             $uploadFiles = [];
 
             foreach($all['file'] as $k => $file){
-                $six_digit_random_number = random_int(100000, 999999);
+                $six_digit_random_number = random_in00t(100000, 999999);
                 $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
-                
-                $s3Client = new S3Client([
-                    'version' => 'latest',
-                    'region'  => 'us-east-2',
-                    'credentials' => [
-                    'key'    => 'AKIAXWMBTFWVOWZ6WAQ2',
-                    'secret' => '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'
-                    ]
-                ]);
+              
+                $s3Client = Aws::createS3Client();
                     
-                $result = $s3Client->putObject([
+               $result = $s3Client->putObject([
                     'Bucket' => 'canonizer-public-file',
                     'Key'    => $filename,
                     'Body'   => fopen($file, 'r'),
                 ]);
 
-                $response = $result->toArray();
+                //Creating a presigned URL
+               /* $cmd = $s3Client->getCommand('GetObject', [
+                    'Bucket' => 'canonizer-public-file',
+                    'Key' => $filename
+                ]);
 
-                /*$s3 = Storage::disk('s3'); 
-                $s3->put($filename, file_get_contents($file));
-                $filePath = Storage::disk('s3')->url($filename);*/
+                $request = $s3Client->createPresignedRequest($cmd, '+20 minutes');
+
+                // Get the actual presigned-url
+                $presignedUrl = (string)$request->getUri();
+                echo "<pre>"; print_r($request); exit;*/
+
+                $response = $result->toArray();
 
                 $data = [
                     'file_name' => trim($all['name'][$k]),
