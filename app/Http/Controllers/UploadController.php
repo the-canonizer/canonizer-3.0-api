@@ -266,6 +266,25 @@ class UploadController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/get-uploaded-files",
+     *   tags={"upload"},
+     *   summary="get uploaded files and folder",
+     *   description="This is used to get uploaded files and folder with count of files uploaded inside folder.",
+     *   operationId="getUploadedFiles",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function getUploadedFiles(Request $request){
         $user = $request->user();
         try{
@@ -281,8 +300,6 @@ class UploadController extends Controller
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
-
     }
 
 
