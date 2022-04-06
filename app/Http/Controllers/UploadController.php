@@ -74,6 +74,9 @@ class UploadController extends Controller
 
     }
 
+    /**
+     * 
+     */
     public function uploadFileToS3(Request $request, Validate $validate) {
         $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
         if ($validationErrors) {
@@ -98,18 +101,6 @@ class UploadController extends Controller
                     'Key'    => $filename,
                     'Body'   => fopen($file, 'r'),
                 ]);
-
-                //Creating a presigned URL
-               /* $cmd = $s3Client->getCommand('GetObject', [
-                    'Bucket' => 'canonizer-public-file',
-                    'Key' => $filename
-                ]);
-
-                $request = $s3Client->createPresignedRequest($cmd, '+20 minutes');
-
-                // Get the actual presigned-url
-                $presignedUrl = (string)$request->getUri();
-                echo "<pre>"; print_r($request); exit;*/
 
                 $response = $result->toArray();
 
