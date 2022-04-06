@@ -189,6 +189,15 @@ return [
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully."
+    ],
+    'login' => [
+        'username_required' => 'Email is required.',
+        'password_required' => 'Password is required.',
+        'client_id_required' => 'Client Id is required.',
+        'client_secret_required' => 'Client Secrect is required.',
+    ],
+    'reSendOTP' => [
+        'email_required' => 'Email is required.',
     ]
 
 
