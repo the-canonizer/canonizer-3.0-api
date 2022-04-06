@@ -78,6 +78,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('add-folder','UploadController@addFolder');
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
+        $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
     });
 
     $router->post('/ads','AdsController@getAds');

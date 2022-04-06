@@ -266,5 +266,24 @@ class UploadController extends Controller
         }
     }
 
+    public function getUploadedFiles(Request $request){
+        $user = $request->user();
+        try{
+            $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->get();
+            $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->get();
+
+            $data = [
+                'files' => $files,
+                'folders' => $folders
+            ];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
+        }catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+
+
+    }
+
 
 }
