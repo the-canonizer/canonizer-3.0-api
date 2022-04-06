@@ -19,6 +19,8 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/social/twitter/callback','UserController@twitterCallback');
+
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
@@ -64,6 +66,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/allParent','CampController@getAllParentCamp');
+        $router->post('camp/getTopicNickNameUsed','CampController@getTopicNickNameUsed');
         $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
         $router->get('/user/social/list','UserController@socialList');
         $router->post('/user/social/socialLink', ['uses' => 'UserController@socialLink']);

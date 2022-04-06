@@ -6,6 +6,7 @@
     "type": "project",
     "require": {
         "php": "^7.3|^8.0",
+        "abraham/twitteroauth": "^3.3",
         "anik/form-request": "^4.3",
         "doctrine/dbal": "^3.3",
         "dusterio/lumen-passport": "^0.3.0",

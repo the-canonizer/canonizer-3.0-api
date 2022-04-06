@@ -207,7 +207,7 @@ class NewsFeedController extends Controller
         $display_text = $request->display_text;
         $link = $request->link;
         $available_for_child = $request->available_for_child;
-        $submittime = strtotime(date('Y-m-d H:i:s'));
+        $submittime = time();
         NewsFeed::where('camp_num', '=', $campNum)
             ->where('topic_num', '=', $topicNum)
             ->where('end_time', '=', null)
@@ -220,7 +220,7 @@ class NewsFeedController extends Controller
             $news->display_text = $display_text[$i];
             $news->link = $link[$i];
             $news->available_for_child = !empty($available_for_child[$i]) ? $available_for_child[$i] : 0;
-            $news->submit_time = strtotime(date('Y-m-d H:i:s'));
+            $news->submit_time = time();
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
@@ -254,7 +254,7 @@ class NewsFeedController extends Controller
             $news->display_text = $request->display_text;
             $news->link = $request->link;
             $news->available_for_child = $request->available_for_child ?? 0;
-            $news->submit_time = strtotime(date('Y-m-d H:i:s'));
+            $news->submit_time = time();
             $nextOrder = NewsFeed::where('topic_num', '=', $request->topic_num)->where('camp_num', '=', $request->camp_num)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
