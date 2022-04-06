@@ -193,7 +193,11 @@ return [
         'image_required' => 'Please upload an image.',
         'image_mimes' => 'Only jpeg,bmp,png,jpg and gif files are allowed.',
         'image_size' => 'Sorry! Maximum allowed size for an file is 5MB.',
-        'image_name_required' => 'Please provide name for every file.'
+        'image_name_required' => 'Please provide name for every file.',
+        'folder_has_files_can_not_delete' => 'This folder contains files, hence can not be deleted.',
+        'folder_deleted' => 'Folder has been deleted successfully.',
+        'folder_not_found' => "Folder you are trying delete does not exists or already deleted."
+
     ],
     'login' => [
         'username_required' => 'Email is required.',
