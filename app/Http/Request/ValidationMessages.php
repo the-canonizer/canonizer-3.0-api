@@ -6,12 +6,20 @@ class ValidationMessages
 {
     public function getTokenValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'client_id.required' => trans('message.verify_otp.client_id_required'),
+            'client_secret.required' => trans('message.login.client_secret_required'),
+        ]);
     }
 
     public function getLoginValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'username.required' => trans('message.login.username_required'),
+            'password.required' => trans('message.login.password_required'),
+            'client_id.required' => trans('message.verify_otp.client_id_required'),
+            'client_secret.required' => trans('message.login.client_secret_required'),
+        ]);
     }
 
     public function getRegistrationValidationMessages(): array
@@ -114,7 +122,10 @@ class ValidationMessages
 
     public function getUserReSendOtpValidationMessages(): array
     {
-        return ([]);
+        return ([
+            'email' => trans('message.error.email_invalid'),
+            'email.required' => trans('message.reSendOTP.email_required'),
+        ]);
     }
 
     public function getStatementValidationMessages(): array
