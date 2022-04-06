@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Helpers\Util;
 use Illuminate\Support\ServiceProvider;
+use App\Helpers\Aws;
 
 class AppServiceProvider extends ServiceProvider
 {

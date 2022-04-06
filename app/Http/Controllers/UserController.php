@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Abraham\TwitterOAuth\TwitterOAuth;
 use Exception;
 use Throwable;
 use App\Models\User;
@@ -27,6 +28,7 @@ use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
+use App\Models\TwitterOauthToken;
 
 class UserController extends Controller
 {
@@ -885,9 +887,33 @@ class UserController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         try {
             $provider = $request->provider;
+            
+            if($provider == 'twitter'){
+                $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'));
+                $request_token = $connection->oauth('oauth/request_token', array('oauth_callback' => env('TWITTER_CALLBACK_URL')));
+                if($connection->getLastHttpCode() != 200 || empty($request_token['oauth_token']) || empty($request_token['oauth_token_secret'])){
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+
+                TwitterOauthToken::create([
+                    "token"  => $request_token['oauth_token'],
+                    "secret" => $request_token['oauth_token_secret']
+                ]);
+
+                $auth_url = $connection->url('oauth/authorize', array('oauth_token' => $request_token['oauth_token']));
+
+                $data = [
+                    "url" => $auth_url
+                ];
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+            }
+            
             $redirect = Socialite::with($provider)->stateless()->redirect()->getTargetUrl();
             if (empty($redirect)) {
                 $status = 400;
@@ -905,6 +931,28 @@ class UserController extends Controller
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
+    }
+
+    public function twitterCallback(Request $request)
+    {
+        $code = '';
+        if($request->has('oauth_token') && $request->has('oauth_verifier')) {
+            $token = $request->input('oauth_token');
+            $verifier = $request->input('oauth_verifier');
+            $twitter = TwitterOauthToken::where('token', $token)->latest()->first();
+            if(!empty($twitter)) {
+                $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->token, $twitter->secret);
+                $access_token = $connection->oauth("oauth/access_token", ["oauth_verifier" => $verifier]);
+                if($connection->getLastHttpCode() == 200 && !empty($access_token['oauth_token']) && !empty($access_token['oauth_token_secret'])){
+                    $code = $access_token['oauth_token'];
+                    $twitter->access_token = $access_token['oauth_token'];
+                    $twitter->access_secret = $access_token['oauth_token_secret'];
+                    $twitter->save(); 
+                }
+            }
+        }
+        $frontend_redirect = env('TWITTER_URL').'?code='.$code;
+        return redirect($frontend_redirect);
     }
 
     /**
@@ -1061,30 +1109,58 @@ class UserController extends Controller
         try {
 
             $provider = $request->provider;
-            $userSocial =   Socialite::driver($provider)->stateless()->user();
-            if (empty($userSocial)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
-            }
-            $user_email = $userSocial->getEmail();
-            $social_name = $userSocial->getName();
 
-            $user = User::where(['email' => $user_email])->first();
-            if (empty($user)) {
-                $splitName = Util::split_name($social_name);
-                $user = User::create([
-                    'first_name'    => $splitName[0],
-                    'last_name'     => $splitName[1],
-                    'email'         => $user_email
-                ]);
-                $nickname = $user->first_name . '-' . $user->last_name;
-                $this->createNickname($user->id, $nickname);
+            if($provider == 'twitter') {
+                $code = $request->code;
+                $twitter = TwitterOauthToken::where(['access_token' => $code])->latest()->first();
+                if(empty($twitter)){
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->access_token, $twitter->access_secret);
+                $connection->setApiVersion('2');
+                $twitterUser = $connection->get('users/me');
+                $user = null;
+                if($connection->getLastHttpCode() == 200 && !empty($twitterUser->data) && !empty($twitterUser->data->id)) {
+                    $twitter_id = $twitterUser->data->id;
+                    $social_link = SocialUser::where(['provider' => $provider, 'provider_id' => $twitter_id])->first();
+                    if(!empty($social_link)) {
+                        $user = User::find($social_link->user_id);
+                    }
+                }
+                if(empty($user)) {
+                    $status = 400;
+                    $message = trans('message.social.not_linked');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+            }else {
+                $userSocial =   Socialite::driver($provider)->stateless()->user();
+                if (empty($userSocial)) {
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $user_email = $userSocial->getEmail();
+                $social_name = $userSocial->getName();
+
+                $user = User::where(['email' => $user_email])->first();
+                if (empty($user)) {
+                    $splitName = Util::split_name($social_name);
+                    $user = User::create([
+                        'first_name'    => $splitName[0],
+                        'last_name'     => $splitName[1],
+                        'email'         => $user_email
+                    ]);
+                    $nickname = $user->first_name . '-' . $user->last_name;
+                    $this->createNickname($user->id, $nickname);
+                }
+                $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
+                if (!isset($social_user) && !isset($social_user->user_id)) {
+                    $this->createSocialUser($userSocial, $provider, $user->id);
+                }
             }
-            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
-            if (!isset($social_user) && !isset($social_user->user_id)) {
-                $this->createSocialUser($userSocial, $provider, $user->id);
-            }
+
             $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
                 'grant_type' => 'password',
@@ -1544,12 +1620,57 @@ class UserController extends Controller
         try {
 
             $provider = $request->provider;
+
+            if($provider == 'twitter') {
+                $user = $request->user();
+                $code = $request->code;
+                $twitter = TwitterOauthToken::where(['access_token' => $code])->latest()->first();
+                if(empty($twitter)){
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->access_token, $twitter->access_secret);
+                $connection->setApiVersion('2');
+                $twitterUser = $connection->get('users/me');
+                
+                if($connection->getLastHttpCode() == 200 && !empty($twitterUser->data) && !empty($twitterUser->data->id)) {
+                    $twitter_id = $twitterUser->data->id;
+                    $twitter_name = $twitterUser->data->name ?? $twitterUser->data->username;
+                    $social_link = SocialUser::where(['provider' => $provider, 'provider_id' => $twitter_id])->first();
+                    if(!empty($social_link)) {
+                        $status = 403;
+                        $message = trans('message.social.already_linked');
+                        $data = [
+                            "already_link_user" => $social_link,
+                            "current_user" => $user,
+                        ];
+                        return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                    }
+                    SocialUser::create([
+                        'user_id' => $user->id,
+                        'social_email' => $user->email,
+                        'social_name' => $twitter_name,
+                        'provider' => $provider,
+                        'provider_id' => $twitter_id
+                    ]);
+                    $status = 200;
+                    $message = trans('message.social.successfully_linked');
+                    $data = null;
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
             $userSocial =   Socialite::driver($provider)->stateless()->user();
             if (empty($userSocial)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+
             $user_email = $userSocial->getEmail();
             $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
             if (isset($social_user) && isset($social_user->user_id)) {

@@ -23,14 +23,14 @@ class LoginApiTest extends TestCase
             'client_id' => 'required',
             'client_secret' => 'required',
         ];
-        
+
         $data = [
-            "username" => "email@email.com",
+            "username" => "saurabh.singh@iffort.com",
             "password" => "Test@123",
-            "client_id" => "qwertyuio",
-            "client_secret" => "qwqertyuiopasdfghjklzcvbnm",
+            "client_id" => "4",
+            "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
         ];
-        
+
         $v = $this->app['validator']->make($data, $rules);
         $this->assertTrue($v->passes());
     }
@@ -38,32 +38,25 @@ class LoginApiTest extends TestCase
 
     public function testLoginWithInvalidData()
     {
-        print sprintf(" \n Invalid Login details submitted %d %s", 400,PHP_EOL);
+        print sprintf(" \n Invalid Login details submitted %d %s", 400, PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-        ->post('/api/v3/user/login',[]);    
+            ->post('/api/v3/user/login', []);
         $this->assertEquals(400, $this->response->status());
     }
 
 
-    public function testLoginWithValidaData(){
-        
-        print sprintf(" \n Login with valid data %d %s", 200,PHP_EOL);
+    public function testLoginWithValidaData()
+    {
+        print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
         $user = User::factory()->make();
-        $user->username = "email@email.com";
-        $user->password = "Test@123";
-        $user->client_id = "qwertyuio";
-        $user->client_secret = "qwqertyuiopasdfghjklzcvbnm";
-
         $parameters = [
-            "username" => "email@email.com",
+            "client_id" => "4",
+            "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
+            "username" => "saurabh.singh@iffort.com",
             "password" => "Test@123",
-            "client_id" => "qwertyuio",
-            "client_secret" => "qwqertyuiopasdfghjklzcvbnm",
         ];
-        $this->actingAs($user)
-        ->post('/api/v3/user/login',$parameters);
+        $this->actingAs($user)->post('/api/v3/user/login', $parameters);
         $this->assertEquals(200, $this->response->status());
     }
-
 }

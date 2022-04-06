@@ -2,10 +2,17 @@
 
 namespace App\Models;
 
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Auth\Authenticatable;
+use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
-
-class Camp extends Model
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
+    use Authenticatable, HasApiTokens  , Authorizable, HasFactory;
+
     protected $table = 'camp';
     public $timestamps = false;
     const AGREEMENT_CAMP = "Agreement";

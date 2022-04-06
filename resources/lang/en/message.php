@@ -31,6 +31,7 @@ return [
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
         'user_remove'  => 'User remove successfully.',
+        'otp_verified'  => 'OTP verified successfully.',
         
     ],
     'general' => [
@@ -150,8 +151,8 @@ return [
     ],
 
     'otp' => [
-        'required' => 'Otp is required',
-        'valid_digits' => 'Enter valid 6 digit otp.'
+        'required' => 'OTP is required.',
+        'valid_digits' => 'Enter valid 6 digit OTP.'
     ],
 
     'verify_otp' => [
@@ -184,10 +185,24 @@ return [
         'unlink_social_user' => 'Social Link deleted successfully',
         'successfully_linked' => 'Your social account is linked successfully',
         'already_linked' => 'Email is already linked with another account',
+        'not_linked' => 'Your social account is not linked with any user',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",
-        'success' => "File(s) uploaded successfully."
+        'success' => "File(s) uploaded successfully.",
+        'image_required' => 'Please upload an image.',
+        'image_mimes' => 'Only jpeg,bmp,png,jpg and gif files are allowed.',
+        'image_size' => 'Sorry! Maximum allowed size for an file is 5MB.',
+        'image_name_required' => 'Please provide name for every file.'
+    ],
+    'login' => [
+        'username_required' => 'Email is required.',
+        'password_required' => 'Password is required.',
+        'client_id_required' => 'Client Id is required.',
+        'client_secret_required' => 'Client Secrect is required.',
+    ],
+    'reSendOTP' => [
+        'email_required' => 'Email is required.',
     ]
 
 

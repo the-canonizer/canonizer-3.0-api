@@ -10,13 +10,14 @@ use App\Models\Topic;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Helpers\ResourceInterface;
 
 class CampController extends Controller
 {
@@ -187,7 +188,7 @@ class CampController extends Controller
                         "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];                 
-                    Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                   Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -543,17 +544,120 @@ class CampController extends Controller
 
     public function getAllAboutNickName(Request $request, Validate $validate)
     {
-
         try {
-
-            $allNicknames = Nickname::orderBy('nick_name', 'ASC')->get();
-
+            $allNicknames =DB::table('nick_name')
+            ->select(DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
+            )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+      /**
+     * @OA\POST(path="/camp/getTopicNickNameUsed",
+     *   tags={"Camp"},
+     *   summary="Get Topic Nick Name Used",
+     *   description="This API is use for get Topic Nick Name Used",
+     *   operationId="getTopicNickNameUsed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="array",
+     *                @OA\Items(
+     *                    @OA\Property(
+     *                          property="id",
+     *                          type="integer"
+     *                    ),
+     *                     @OA\Property(
+     *                           property="nick_name",
+     *                           type="string"
+     *                     )
+     *                ),
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+    public function getTopicNickNameUsed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAllParentCampValidationRules(), $this->validationMessages->getAllParentCampValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
+            if (empty($allNicknames)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);

@@ -9,11 +9,28 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Upload;
 use App\Helpers\Aws;
-
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
+use App\Helpers\ResponseInterface;
+use App\Http\Request\Validate;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\SuccessResource;
 
 
 class UploadController extends Controller
 {
+
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
+
+    public function __construct(ResponseInterface $resProvider)
+    {
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
+    }
+
     /**
      * @OA\POST(path="/add-folder",
      *   tags={"uploads"},
@@ -57,16 +74,21 @@ class UploadController extends Controller
 
     }
 
-    public function uploadFileToS3(Request $request) {
+    public function uploadFileToS3(Request $request, Validate $validate) {
+        $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+
         $all = $request->all();
         $user = $request->user();
 
         try{
 
             $uploadFiles = [];
-
             foreach($all['file'] as $k => $file){
-                $six_digit_random_number = random_in00t(100000, 999999);
+                $six_digit_random_number = random_int(100000, 999999);
                 $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
                 $s3Client = Aws::createS3Client();

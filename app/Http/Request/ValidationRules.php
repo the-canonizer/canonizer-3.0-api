@@ -242,4 +242,13 @@ class ValidationRules
             'user_id' => 'required'
         ]);
     }
+
+    public function getUploadFileValidationRules(): array
+    {
+        return([
+            'file' => 'required',
+            'file.*' => 'max:5120',
+            'name.*' => 'required'
+        ]);
+    }
 }
