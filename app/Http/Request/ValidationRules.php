@@ -242,4 +242,15 @@ class ValidationRules
             'user_id' => 'required'
         ]);
     }
+
+    public function getNewsFeedStoreValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'available_for_child' => 'required|boolean',
+            "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            "display_text" => 'required'
+        ];
+    }
 }

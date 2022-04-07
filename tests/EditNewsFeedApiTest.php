@@ -1,8 +1,8 @@
 <?php
-
+use App\Models\User;
 class EditNewsFeedApiTest extends TestCase
 {
-   
+
     /**
      * Check Api with empty form data
      * validation
@@ -10,8 +10,9 @@ class EditNewsFeedApiTest extends TestCase
     public function testEditNewsFeedApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/edit-camp-newsfeed', []);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', []);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -25,8 +26,9 @@ class EditNewsFeedApiTest extends TestCase
             'camp_num' => ''
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/edit-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $emptyData);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -37,14 +39,14 @@ class EditNewsFeedApiTest extends TestCase
         $data = [
             'topic_num' => 2,
             'camp_num' => 1
-        ]; 
+        ];
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
+        $user = User::factory()->make();
+        $this->actingAs($user)->post(
             '/api/v3/edit-camp-newsfeed',
             $data
         );
-        $this->assertEquals(200, $response->status());
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -55,9 +57,10 @@ class EditNewsFeedApiTest extends TestCase
         $data = [
             'topic_num' => 2,
             'camp_num' => 1
-        ];    
+        ];
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
-        $this->call('POST', '/api/v3/edit-camp-newsfeed', $data);
+        $user = User::factory()->make();
+        $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $data);
         $this->seeJsonStructure([
             'status_code',
             'message',
