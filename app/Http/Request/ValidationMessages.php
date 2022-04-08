@@ -290,4 +290,16 @@ class ValidationMessages
         ];
     }
 
+    public function getThreadStoreValidationMessages(): array
+    {
+        return [
+            'title.regex' => trans('message.thread.title_regex'),
+            'title.required' => trans('message.thread.title_required'),
+            'title.max' => trans('message.thread.title_max'),
+            'nick_name.required' => trans('message.thread.nick_name_required'),
+            'camp_num.required' => trans('message.thread.camp_num_required'),
+            'topic_num.required' => trans('message.thread.topic_num_required'),
+        ];
+    }
+
 }

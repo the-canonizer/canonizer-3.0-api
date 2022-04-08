@@ -207,6 +207,17 @@ return [
     ],
     'reSendOTP' => [
         'email_required' => 'Email is required.',
+    ],
+    'thread' => [
+        'title_regex' => 'Title can only contain space and alphanumeric characters.',
+        'title_required' => 'Title is required.',
+        'title_max' => 'Title can not be more than 100 characters.',
+        'title_unique' => 'Thread title must be unique!',
+        'nick_name_required' => 'The nick name field is required.',
+        'camp_num_required' => 'Camp num is required.',
+        'topic_num_required' => 'Topic num is required.',
+        'create_success' => 'Thread Created Successfully!',
+        'create_failed' => 'Fail to create thread, please try later.',
     ]
 
 ];
