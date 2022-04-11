@@ -73,7 +73,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
         $router->post('/user/deactivate', ['uses' => 'UserController@deactivateUser']);
         $router->post('add-folder','UploadController@addFolder');
-        $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
+        $router->post('/delete-camp-newsfeed','NewsFeedController@deleteNewsFeed');
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
     });

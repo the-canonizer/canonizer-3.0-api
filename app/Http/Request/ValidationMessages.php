@@ -218,11 +218,10 @@ class ValidationMessages
         ]);
     }
 
-    public function getNewsFeedEditValidationMessages(): array
+    public function getNewsFeedDeleteValidationMessages(): array
     {
         return [
-            'topic_num.required' => trans('message.validation_edit_newsfeed.topic_num_required'),
-            'camp_num.required' => trans('message.validation_edit_newsfeed.camp_num_required')
+            'newsfeed_id.required' => trans('message.validation_delete_newsfeed.newsfeed_id_required')
         ];
     }
     

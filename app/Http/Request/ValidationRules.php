@@ -164,11 +164,10 @@ class ValidationRules
         ];
     }
 
-    public function getNewsFeedEditValidationRules(): array
+    public function getNewsFeedDeleteValidationRules(): array
     {
         return [
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'newsfeed_id' => 'required',
         ];
     }
 

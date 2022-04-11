@@ -16,6 +16,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'record_not_found' => 'No Record Found.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -122,9 +123,8 @@ return [
         'page_name_required' => "Page name is required.",
         'page_name_string' => "Page name should be a string"
     ],
-    'validation_edit_newsfeed' => [
-        'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+    'validation_delete_newsfeed' => [
+        'newsfeed_id_required' => "Newsfeed id is required.",
     ],
     'validation_update_newsfeed' => [
         'display_text_*_required' => 'Display text is required.',
