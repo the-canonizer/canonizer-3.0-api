@@ -26,6 +26,115 @@ class ThreadsController extends Controller
         $this->resProvider = $resProvider;
     }
 
+    /**
+     * @OA\POST(path="/thread/save",
+     *   tags={"Thread"},
+     *   summary="save thread",
+     *   description="This is use for save thread",
+     *   operationId="threadSave",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="title",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="nick_name",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="camp_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_name",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="user_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="title",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="body",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="camp_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="topic_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="created_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="updated_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="id",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function store(Request $request, Validate $validate)
     {
 
