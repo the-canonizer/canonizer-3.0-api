@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CampForum;
 use Throwable;
 use App\Models\Thread;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class ThreadsController extends Controller
         }
         try {
             $thread = Thread::create([
-                'user_id'  => $request->user()->id,
+                'user_id'  => $request->nick_name,
                 'title'    => $request->title,
                 'body'     => $request->title,
                 'camp_id'  => $request->camp_num,
@@ -51,6 +52,10 @@ class ThreadsController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.thread.create_success');
+
+                // Return Url after creating thread Successfully
+                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
+                CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
             } else {
                 $data = null;
                 $status = 400;

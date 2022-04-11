@@ -216,6 +216,7 @@ return [
         'nick_name_required' => 'The nick name field is required.',
         'camp_num_required' => 'Camp num is required.',
         'topic_num_required' => 'Topic num is required.',
+        'topic_name_required' => 'Topic name is required.',
         'create_success' => 'Thread Created Successfully!',
         'create_failed' => 'Fail to create thread, please try later.',
     ]

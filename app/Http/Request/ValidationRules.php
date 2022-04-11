@@ -261,6 +261,7 @@ class ValidationRules
             'nick_name' => 'required',
             'camp_num' => 'required',
             'topic_num' => 'required',
+            'topic_name' => 'required',
         ]);
     }
 }

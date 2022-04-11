@@ -299,6 +299,7 @@ class ValidationMessages
             'nick_name.required' => trans('message.thread.nick_name_required'),
             'camp_num.required' => trans('message.thread.camp_num_required'),
             'topic_num.required' => trans('message.thread.topic_num_required'),
+            'topic_name.required' => trans('message.thread.topic_name_required'),
         ];
     }
 
