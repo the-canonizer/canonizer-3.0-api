@@ -167,7 +167,7 @@ class ValidationRules
     public function getNewsFeedDeleteValidationRules(): array
     {
         return [
-            'newsfeed_id' => 'required',
+            'newsfeed_id' => 'required|exists:news_feed,id',
         ];
     }
 

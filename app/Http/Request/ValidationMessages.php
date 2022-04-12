@@ -221,7 +221,8 @@ class ValidationMessages
     public function getNewsFeedDeleteValidationMessages(): array
     {
         return [
-            'newsfeed_id.required' => trans('message.validation_delete_newsfeed.newsfeed_id_required')
+            'newsfeed_id.required' => trans('message.validation_delete_newsfeed.newsfeed_id_required'),
+            'newsfeed_id.exists' => trans('message.validation_delete_newsfeed.not_found')
         ];
     }
     

@@ -15,8 +15,7 @@ return [
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
-        'camp_alreday_exist' => 'Camp name has already been taken.',
-        'record_not_found' => 'No Record Found.',
+        'camp_alreday_exist' => 'Camp name has already been taken.'
     ],
     'success' => [
         'success'          => 'Success',
@@ -125,6 +124,7 @@ return [
     ],
     'validation_delete_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",
+        'not_found' => 'No record found against provided id.',
     ],
     'validation_update_newsfeed' => [
         'display_text_*_required' => 'Display text is required.',

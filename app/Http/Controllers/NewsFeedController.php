@@ -322,11 +322,8 @@ class NewsFeedController extends Controller
         }
         $newsId = $request->newsfeed_id;
         try {
-            if(NewsFeed::where('id',$newsId)->delete()){
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),'', '');
-            }else{
-                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'),'', '');
-            }  
+            NewsFeed::where('id',$newsId)->delete();
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),'', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }

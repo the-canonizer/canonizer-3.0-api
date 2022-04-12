@@ -274,7 +274,7 @@ class CampController extends Controller
                 $camp[]=$livecamp;
                 $indexs=['topic_num','camp_num','key_words','camp_about_url','nick_name'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
-                $camp[0]['parentCamps']=array_reverse($parentCamp);
+                $camp[0]['parentCamps']=$parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
