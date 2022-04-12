@@ -173,7 +173,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 return self::campNameWithAncestors($pCamp, $filter, $campNames, $index);
             }
         }
-        return $campNames;
+        return array_reverse($campNames);
     }
 
     public function nickname()
