@@ -18,5 +18,6 @@ class AppServiceProvider extends ServiceProvider
         //
         $this->app->bind('util', Util::class);
         $this->app->bind('aws', AWS::class);
+        $this->app->bind('campForum', CampForum::class);
     }
 }

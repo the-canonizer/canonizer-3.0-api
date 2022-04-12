@@ -218,11 +218,11 @@ class ValidationMessages
         ]);
     }
 
-    public function getNewsFeedEditValidationMessages(): array
+    public function getNewsFeedDeleteValidationMessages(): array
     {
         return [
-            'topic_num.required' => trans('message.validation_edit_newsfeed.topic_num_required'),
-            'camp_num.required' => trans('message.validation_edit_newsfeed.camp_num_required')
+            'newsfeed_id.required' => trans('message.validation_delete_newsfeed.newsfeed_id_required'),
+            'newsfeed_id.exists' => trans('message.validation_delete_newsfeed.not_found')
         ];
     }
     
@@ -299,6 +299,19 @@ class ValidationMessages
             'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
             'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
             'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
+        ];
+    }
+
+    public function getThreadStoreValidationMessages(): array
+    {
+        return [
+            'title.regex' => trans('message.thread.title_regex'),
+            'title.required' => trans('message.thread.title_required'),
+            'title.max' => trans('message.thread.title_max'),
+            'nick_name.required' => trans('message.thread.nick_name_required'),
+            'camp_num.required' => trans('message.thread.camp_num_required'),
+            'topic_num.required' => trans('message.thread.topic_num_required'),
+            'topic_name.required' => trans('message.thread.topic_name_required'),
         ];
     }
 }
