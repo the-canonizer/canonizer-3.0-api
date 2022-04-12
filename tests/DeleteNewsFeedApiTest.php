@@ -27,7 +27,18 @@ class DeleteNewsFeedApiTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $emptyData);
+        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
+        $this->assertEquals(400, $this->response->status());
+    }
+
+    public function testDeleteNewsFeedApiWithFalseData()
+    {
+        $emptyData = [
+            'newsfeed_id' => '1'
+        ];
+        print sprintf("Test with id that dose not exist");
+        $user = User::factory()->make();
+        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -37,7 +48,7 @@ class DeleteNewsFeedApiTest extends TestCase
     public function testDeleteNewsFeedApiStatus()
     {
         $data = [
-            'newsfeed_id' => 322
+            'newsfeed_id' => 299
         ];
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
         $user = User::factory()->make();
