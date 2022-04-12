@@ -31,14 +31,15 @@ return [
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
         'user_remove'  => 'User remove successfully.',
+        'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
-        
+
     ],
     'general' => [
         'nickname_association_absence' => "No nickname associated"
     ],
     'validation_registration' => [
-        'password_regex'=>'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
+        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
@@ -78,17 +79,17 @@ return [
         'current_password_required' => 'The current password field is required.'
     ],
     'validation_camp_store' => [
-            'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
-            'nick_name_required' => 'The nick name field is required.',
-            'camp_name_required' => 'Camp name is required.',
-            'camp_name_max' => 'Camp name can not be more than 30 characters.',
-            'camp_name_unique' => 'The camp name has already been taken.',
-            'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
-            'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
-            'parent_camp_num_required' => 'The parent camp name is required.',
-            'objection_required' => 'Objection reason is required.',
-            'objection_reason_max' => 'Objection reason can not be more than 100.',
-            'asof_in' => "Please enter a valid asof value (default,review,bydate) or leave it empty",
+        'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
+        'nick_name_required' => 'The nick name field is required.',
+        'camp_name_required' => 'Camp name is required.',
+        'camp_name_max' => 'Camp name can not be more than 30 characters.',
+        'camp_name_unique' => 'The camp name has already been taken.',
+        'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
+        'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
+        'parent_camp_num_required' => 'The parent camp name is required.',
+        'objection_required' => 'Objection reason is required.',
+        'objection_reason_max' => 'Objection reason can not be more than 100.',
+        'asof_in' => "Please enter a valid asof value (default,review,bydate) or leave it empty",
     ],
     'validation_topic_store' => [
         'topic_name_required' => 'Topic name is required.',
@@ -103,29 +104,29 @@ return [
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default, review, bydate) or leave it empty",
     ],
-    'validation_get_statement' => [ 
+    'validation_get_statement' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
-    'validation_get_newsfeed' => [ 
+    'validation_get_newsfeed' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
-    'validation_get_ads' => [ 
+    'validation_get_ads' => [
         'page_name_required' => "Page name is required.",
         'page_name_string' => "Page name should be a string"
     ],
-    'validation_get_image' => [ 
+    'validation_get_image' => [
         'page_name_required' => "Page name is required.",
         'page_name_string' => "Page name should be a string"
     ],
-    'validation_edit_newsfeed' => [ 
+    'validation_edit_newsfeed' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
-    'validation_update_newsfeed' => [ 
+    'validation_update_newsfeed' => [
         'display_text_*_required' => 'Display text is required.',
         'display_text_*_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'display_text_*_max' => 'Display text may not be greater than 256 characters.',
@@ -161,13 +162,13 @@ return [
         'client_id_required' => 'Client Id is required.',
         'client_secret_required' => 'Client Secrect is required.',
     ],
-    'validation_get_camp_record' => [ 
+    'validation_get_camp_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
-    'validation_get_topic_record' => [ 
+    'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
@@ -199,6 +200,14 @@ return [
         'folder_not_found' => "Folder you are trying delete does not exists or already deleted."
 
     ],
+    'validation_store_newsfeed' => [
+        'topic_num_required' => 'Topic number is required',
+        'camp_num_required' => 'Camp number is required',
+        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
+        'available_for_child_required' => 'Availability for child is required',
+        'link_required' => 'Link is required',
+        'display_text_required' => 'Display text is required.'
+    ],
     'login' => [
         'username_required' => 'Email is required.',
         'password_required' => 'Password is required.',
@@ -208,6 +217,5 @@ return [
     'reSendOTP' => [
         'email_required' => 'Email is required.',
     ]
-
 
 ];

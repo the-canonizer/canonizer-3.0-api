@@ -26,11 +26,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Api for non register users
     $router->post('/get-camp-statement','StatementController@getStatement');
     $router->post('/get-camp-newsfeed','NewsFeedController@getNewsFeed');
-    $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
-    $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
     $router->post('/get-topic-record','TopicController@getTopicRecord');
     $router->post('/get-camp-record','CampController@getCampRecord');
-
     $router->get('/get-all-namespaces','NamespaceController@getAll');
     $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');
     $router->get('/get-social-media-links','SocialMediaLinkController@getLinks');
@@ -79,6 +76,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
         $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
+        $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
+        $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
+        $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
+
     });
 
     $router->post('/ads','AdsController@getAds');
