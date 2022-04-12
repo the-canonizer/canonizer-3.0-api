@@ -16,5 +16,10 @@ class FileFolder extends Model
      */
     protected $fillable = ['name', 'user_id', 'created_at', 'updated_at', 'deleted_at'];
 
+    public function uploads()
+    {
+        return $this->hasMany('App\Models\Upload', 'folder_id', 'id');
+    }
+
    
 }

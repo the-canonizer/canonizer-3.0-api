@@ -278,6 +278,18 @@ class ValidationMessages
         ]);
     }
 
+
+    public function getUploadFileValidationMessages(): array
+    {
+        return  ([
+            'file.required' => trans('message.uploads.image_required'),
+            'file.*.mimes' => trans('message.uploads.image_mimes'),
+            'file.*.max' => trans('message.uploads.image_size'),
+            'name.*.required' => trans('message.uploads.image_name_required'),
+
+        ]);
+    }
+    
     public function getNewsFeedStoreValidationMessages(): array
     {
         return [
@@ -302,5 +314,4 @@ class ValidationMessages
             'topic_name.required' => trans('message.thread.topic_name_required'),
         ];
     }
-
 }
