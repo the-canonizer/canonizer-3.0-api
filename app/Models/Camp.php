@@ -196,8 +196,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         ->orderBy('submit_time', 'desc')->orderBy('camp_name','desc')->groupBy('camp_num')->get();
     }
 
-    public static function getAllChildCamps($camp) {
-        $camparray = [];
+    public static function getAllChildCamps($camp):array
+     {
+        $campArray = [];
         if ($camp) {
             $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
             $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
@@ -206,45 +207,38 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             }
             Camp::$chilcampArray[] = $key;
             Camp::$chilcampArray[] = $key1;
-            $camparray[] = $camp->camp_num;
+            $campArray[] = $camp->camp_num;
             $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->where('go_live_time', '<=', time())->groupBy('camp_num')->latest('submit_time')->get();
             foreach ($childCamps as $child) {
                 $latestParent = Camp::where('topic_num', $child->topic_num)
                 ->where('camp_num', $child->camp_num)->where('go_live_time', '<=', time())->latest('submit_time')->first();
                 if($latestParent->parent_camp_num == $camp->camp_num ){ 
-                    $camparray = array_merge($camparray, self::getAllChildCamps($child)); 
+                    $campArray = array_merge($campArray, self::getAllChildCamps($child)); 
 
                 }
                 
             }
         }
 
-        return $camparray;
+        return $campArray;
     }
 
     public static function getCampSubscribers($topic_num, $camp_num = 1){
 
         $users_data = [];
-        $users = CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
-            ->whereIn('camp_num', [0, $camp_num])
-            ->get();
-        if (count($users)) {
-            foreach ($users as $user) {
-                array_push($users_data, $user->user_id);
-            }
-        }
+       
         if ($camp_num) {
             $filter['topicNum'] = $topic_num;
             $filter['asOf'] = '';
             $filter['campNum'] = $camp_num;
-            $onecamp = self::getLiveCamp($filter);
+            $oneCamp = self::getLiveCamp($filter);
         } else {
-            $onecamp = self::getLiveCampFromTopic($topic_num, ['nofilter' => true]);
+            $oneCamp = self::getLiveCampFromTopic($topic_num, ['nofilter' => true]);
         }
         $childCampData = [];
-        if (isset($onecamp) && isset($onecamp->camp_name)) {
+        if (isset($oneCamp) && isset($oneCamp->camp_name)) {
             if ($camp_num) {
-                $childCampData = $onecamp->campChild($topic_num, $camp_num);
+                $childCampData = $oneCamp->campChild($topic_num, $camp_num);
             } else {
                 $childCampData = self::campChildFromTopic($topic_num);
             }
@@ -255,17 +249,20 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $child_camps[$key] = $child->camp_num;
             }
         }
+       
+        $users = CampSubscription::select('user_id')->where('topic_num', '=', $topic_num);
+
         if (count($child_camps) > 0) {
+            $users->where('subscription_end',NULL);
+            $users->whereIn('camp_num', $child_camps);
+        }else {
+            $users->whereIn('camp_num', [0, $camp_num]);
+        }
+        $usersData = $users->get();
 
-            $usersData = CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
-                ->whereIn('camp_num', $child_camps)
-                ->where('subscription_end', '=', null)
-                ->get();
-
-            if (count($usersData)) {
-                foreach ($usersData as $user) {
-                    array_push($users_data, $user->user_id);
-                }
+        if (count($usersData)) {
+            foreach ($usersData as $user) {
+                $users_data[] = $user->user_id;
             }
         }
         return  array_unique($users_data);
@@ -282,7 +279,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $flag;
     }
 
-    public static function checkifDirectSupporter($directSupporter,$nick_id){
+    public static function checkifDirectSupporter($directSupporter,$nick_id)
+    {
         $flag =false;
         foreach($directSupporter as $sup){
             if($sup->nick_name_id == $nick_id){
@@ -293,18 +291,18 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $flag;
     }
 
-    public static function getSubscriptionList($userid,$topic_num,$camp_num=1){
+    public static function getSubscriptionList($userid,$topic_num,$camp_num=1):array 
+    {
         $list = [];
         $filter['topicNum'] = $topic_num;
         $filter['asOf'] = '';
         $filter['campNum'] = $camp_num;
-        $onecamp = self::getLiveCamp($filter);
+        $oneCamp = self::getLiveCamp($filter);
          self::clearChildCampArray();
-        $childCamps = array_unique(self::getAllChildCamps($onecamp));
+        $childCamps = array_unique(self::getAllChildCamps($oneCamp));
        
         $subscriptions = CampSubscription::where('user_id','=',$userid)->where('topic_num','=',$topic_num)->where('subscription_start','<=',strtotime(date('Y-m-d H:i:s')))->where('subscription_end','=',null)->orWhere('subscription_end','>=',strtotime(date('Y-m-d H:i:s')))->get();
         if(isset($subscriptions ) && count($subscriptions ) > 0){
-            $i=1;
             foreach($subscriptions as $subs){
                 if($camp_num!=1){
                     if(!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0){
@@ -317,7 +315,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $topic = self::getLiveCamp($filter);
                 $topicLive = Topic::getLiveTopic($subs->topic_num,['nofilter'=>true]);
                 $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topic->title != '') ? $topic->title : $topic->camp_name);
-                $topic_id =$subs->topic_num . "-" . $title;
                 $link = Util::getTopicCampUrl($topic_num,$subs->camp_num, $topicLive, $topic, time());
                 if($subs->camp_num == 0){
                     $link = Util::getTopicCampUrl($topic_num,$subs->camp_num, $topicLive, $topic, time());
@@ -332,7 +329,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $list;
     }
 
-    public function campChild($topicnum, $parentcamp) {
+    public function campChild($topicnum, $parentcamp) 
+    {
 
         $childsData = Camp::where('topic_num', '=', $topicnum)
                         ->where('parent_camp_num', '=', $parentcamp)
@@ -341,7 +339,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $childsData;
     }
     
-    public static function clearChildCampArray(){
+    public static function clearChildCampArray()
+    {
         self::$chilcampArray=[];
     }
 }
