@@ -9,8 +9,7 @@ class Aws
 {
 
     /**
-     * @param $url
-     * @param $data
+     * 
      * @return object
      */
     public static function createS3Client():object
@@ -26,6 +25,22 @@ class Aws
         ]);
 
         return $s3Client;
+    }
+
+    /**
+     * @return object
+     */
+    public static function uploadFile($filename, $file)
+    {
+        $s3Client = self::createS3Client();
+                    
+        $result = $s3Client->putObject([
+             'Bucket' => env('AWS_BUCKET'),
+             'Key'    => $filename,
+             'Body'   => fopen($file, 'r'),
+         ]);
+
+        return $result;
     }
 
 }

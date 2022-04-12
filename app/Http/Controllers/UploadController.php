@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AddFolderRequest;
-use Illuminate\Support\Facades\Storage;
 use App\Models\FileFolder;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Upload;
 use App\Helpers\Aws;
+use App\Helpers\Util;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Helpers\ResponseInterface;
@@ -122,21 +122,17 @@ class UploadController extends Controller
                 $six_digit_random_number = random_int(100000, 999999);
                 $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
-                $s3Client = Aws::createS3Client();
-                    
-               $result = $s3Client->putObject([
-                    'Bucket' => 'canonizer-public-file',
-                    'Key'    => $filename,
-                    'Body'   => fopen($file, 'r'),
-                ]);
-
+                /** Upload File to S3 */
+                $result = Aws::UploadFile($filename,$file);
                 $response = $result->toArray();
+
+                $fileShortCode = Util::generateShortCode();
 
                 $data = [
                     'file_name' => trim($all['name'][$k]),
                     'user_id' => $user->id,
-                    'short_code' => "can-" . $this->generateShortCode(), 
-                    'file_id' => "can-" . $this->generateShortCode(),
+                    'short_code' => $fileShortCode, 
+                    'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
                     'folder_id'=> isset($all['folder_id']) ? $all['folder_id'] : '',
                     'file_path' => $response['ObjectURL'],
@@ -155,20 +151,7 @@ class UploadController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
-    
- 
-    private function generateShortCode($strength = 9) {
-        $input = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $input_length = strlen($input);
-        $random_string = '';
-        for($i = 0; $i < $strength; $i++) {
-            $random_character = $input[mt_rand(0, $input_length - 1)];
-            $random_string .= $random_character;
-        }
-    
-        return $random_string;
-    }
+  
 
 
     /**
@@ -244,21 +227,19 @@ class UploadController extends Controller
             if(count($files) > 0){
                 $status = 400;
                 $message = trans('message.uploads.folder_has_files_can_not_delete');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }else{
                 $folder = FileFolder::where('id',$id)->first();
 
                 if(!$folder){
-                    $status = 400;
-                    $message = trans('message.uploads.folder_not_found');
-                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                    return $this->resProvider->apiJsonResponse(400, trans('message.uploads.folder_not_found'), null, null);
                 }
 
                 $folder->delete();
                 $status = 200;
                 $message = trans('message.uploads.folder_deleted');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
 
         }catch (\Throwable $e) {
 
