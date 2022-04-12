@@ -27,5 +27,17 @@ class Support extends Model
         return date("Y-m-d", strtotime($value));
     }
 
+    public static function getDirectSupporter($topic_num,$camp_num=1) {
+		$as_of_time = time();
+		return Support::where('topic_num','=',$topic_num)
+		                ->where('camp_num','=',$camp_num)
+                        ->where('delegate_nick_name_id',0)
+                        ->whereRaw("(start <= $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                        ->orderBy('start','DESC')
+                        ->groupBy('nick_name_id')
+						->select(['nick_name_id','support_order','topic_num','camp_num'])
+                        ->get();
+	}
+
     
 }

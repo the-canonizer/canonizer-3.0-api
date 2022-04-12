@@ -76,6 +76,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
+        $router->post('thread/save','ThreadsController@store');
     });
 
     $router->post('/ads','AdsController@getAds');
