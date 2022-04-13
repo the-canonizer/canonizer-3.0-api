@@ -218,7 +218,7 @@ class ThreadsController extends Controller
      *   @OA\Parameter(
      *         name="type",
      *         in="url",
-     *         required=false,
+     *         required=true,
      *         description="Add type field in query parameters",
      *         @OA\Schema(
      *              type="Query Parameters"
