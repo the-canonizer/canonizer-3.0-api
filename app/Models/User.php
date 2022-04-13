@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use App\Facades\Util;
 
 /**
  *  @OA\Schema(
@@ -187,5 +188,9 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         $owerridedPassword = Hash::make(env('PASSPORT_MASTER_PASSWORD'));
         return Hash::check($password, $owerridedPassword);
+    }
+
+    public static function ownerCode($userID){
+        return $ownerCode = Util::canon_encode($userID);
     }
 }
