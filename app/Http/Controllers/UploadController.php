@@ -105,7 +105,8 @@ class UploadController extends Controller
      *   @OA\Response(response=400, description="Something went wrong")
      *  )
      */
-    public function uploadFileToS3(Request $request, Validate $validate) {
+    public function uploadFileToS3(Request $request, Validate $validate) 
+    {
         $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -219,7 +220,8 @@ class UploadController extends Controller
      *   )
      * )
      */
-    public function folderDelete($id){
+    public function folderDelete($id)
+    {
         try{
 
             $files = Upload::where('folder_id','=', $id)->get();
@@ -248,10 +250,56 @@ class UploadController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-uploaded-files",
+     * @OA\Get(path="/get-uploaded-files",
      *   tags={"upload"},
      *   summary="get uploaded files and folder",
      *   description="This is used to get uploaded files and folder with count of files uploaded inside folder.",
+     *   operationId="getUploadedFiles",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get all files of this folder id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getUploadedFiles(Request $request)
+    {
+        $user = $request->user();
+        try{
+            $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->get();
+            $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->get();
+
+            $data = [
+                'files' => $files,
+                'folders' => $folders
+            ];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
+        }catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(path="/folder/files/{id}",
+     *   tags={"upload"},
+     *   summary="get uploaded files inside folder",
+     *   description="This is used to get uploaded files inside a folder.",
      *   operationId="getUploadedFiles",
      *   @OA\Parameter(
      *         name="Authorization",
@@ -266,17 +314,17 @@ class UploadController extends Controller
      *   @OA\Response(response=400, description="Error message")
      * )
      */
-    public function getUploadedFiles(Request $request){
-        $user = $request->user();
+    public function getFolderFiles($id)
+    {
         try{
-            $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->get();
-            $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->get();
+            $folder = FileFolder::where('id',$id)->first();
+            if(!$folder){
+                return $this->resProvider->apiJsonResponse(400, trans('message.uploads.folder_not_found'), null, null);
+            }
 
-            $data = [
-                'files' => $files,
-                'folders' => $folders
-            ];
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
+            $files = Upload::where('folder_id', '=' ,$id)->orderBy('created_at','DESC')->get();
+            return $this->resProvider->apiJsonResponse(400, trans('message.success.success'), $files, null);
+
         }catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

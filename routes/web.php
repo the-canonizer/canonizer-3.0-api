@@ -83,6 +83,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('thread/save','ThreadsController@store');
+        $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
     });
 
     $router->post('/ads','AdsController@getAds');

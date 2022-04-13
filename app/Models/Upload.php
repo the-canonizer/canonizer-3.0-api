@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Upload extends Model
 {
+    protected $softDelete = true;
+    
     protected $table = 'uploads';
     public $timestamps = false;
 
