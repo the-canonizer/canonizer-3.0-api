@@ -164,11 +164,10 @@ class ValidationRules
         ];
     }
 
-    public function getNewsFeedEditValidationRules(): array
+    public function getNewsFeedDeleteValidationRules(): array
     {
         return [
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'newsfeed_id' => 'required|exists:news_feed,id',
         ];
     }
 
@@ -240,6 +239,38 @@ class ValidationRules
     {
         return ([
             'user_id' => 'required'
+        ]);
+    }
+
+    public function getUploadFileValidationRules(): array
+    {
+        return([
+            'file' => 'required',
+            'file.*' => 'max:5120',
+            'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
+            'name.*' => 'required'
+        ]);
+    }
+    
+    public function getNewsFeedStoreValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'available_for_child' => 'required|boolean',
+            "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            "display_text" => 'required'
+        ];
+    }
+
+    public function getThreadStoreValidationRules(): array
+    {
+        return ([
+            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
         ]);
     }
 }

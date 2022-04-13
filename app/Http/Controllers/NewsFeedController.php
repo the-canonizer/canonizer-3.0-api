@@ -32,7 +32,7 @@ class NewsFeedController extends Controller
      *   operationId="getCampNewsFeed",
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get topics",
+     *       description="Get Newsfeed",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
@@ -81,65 +81,10 @@ class NewsFeedController extends Controller
                     ->orderBy('order_id', 'ASC')->get();
             }
             if ($news) {
-                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
+                $indexs = NewsFeed::responseIndexes();
                 $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
-        }
-    }
-
-    /**
-     * @OA\Post(path="/edit-camp-newsfeed",
-     *   tags={"Camp"},
-     *   summary="get camp newsfeed",
-     *   description="This is used to get camp newsfeed for editing.",
-     *   operationId="getCampNewsFeed",
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Get topics",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               )
-     *           )
-     *       )  
-     *    ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
-     *  )
-     */
-
-    public function editNewsFeed(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-        $topicNum = $request->topic_num;
-        $campNum = $request->camp_num;
-        try {
-            $news = NewsFeed::where('topic_num', '=', $topicNum)
-                ->where('camp_num', '=', $campNum)
-                ->where('end_time', '=', null)
-                ->orderBy('order_id', 'ASC')->get();
-            if ($news) {
-                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
-                $news = $this->resourceProvider->jsonResponse($indexs, $news);
-            }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
@@ -151,6 +96,15 @@ class NewsFeedController extends Controller
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
      *   @OA\RequestBody(
      *       required=true,
      *       description="Update Camp Newsfeed",
@@ -207,7 +161,7 @@ class NewsFeedController extends Controller
         $display_text = $request->display_text;
         $link = $request->link;
         $available_for_child = $request->available_for_child;
-        $submittime = strtotime(date('Y-m-d H:i:s'));
+        $submittime = time();
         NewsFeed::where('camp_num', '=', $campNum)
             ->where('topic_num', '=', $topicNum)
             ->where('end_time', '=', null)
@@ -220,7 +174,7 @@ class NewsFeedController extends Controller
             $news->display_text = $display_text[$i];
             $news->link = $link[$i];
             $news->available_for_child = !empty($available_for_child[$i]) ? $available_for_child[$i] : 0;
-            $news->submit_time = strtotime(date('Y-m-d H:i:s'));
+            $news->submit_time = time();
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
@@ -232,10 +186,144 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $indexs = ['id', 'display_text', 'link', 'available_for_child'];
+                $indexs = NewsFeed::responseIndexes();
                 $news = $this->resourceProvider->jsonResponse($indexs, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
+    /**
+     * @OA\Post(path="/store-camp-newsfeed",
+     *   tags={"Camp"},
+     *   summary="Store camp newsfeed",
+     *   description="This is used to store camp newsfeed.",
+     *   operationId="storeCampNewsFeed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Store Camp Newsfeed",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                  property="display_text",
+     *                  description="display text is required",
+     *                  required=true,
+     *                  type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="link",
+     *                   description="link is required",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="available_for_child",
+     *                   description="availability for child is required",
+     *                   required=true,
+     *                   type="boolean",
+     *               ),
+     *           )
+     *       )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+
+    public function storeNewsFeed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedStoreValidationRules(), $this->validationMessages->getNewsFeedStoreValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $news = new NewsFeed();
+            $news->topic_num =  $request->topic_num;
+            $news->camp_num = $request->camp_num;
+            $news->display_text = $request->display_text;
+            $news->link = $request->link;
+            $news->available_for_child = $request->available_for_child ?? 0;
+            $news->submit_time = time();
+            $nextOrder = NewsFeed::where('topic_num', '=', $request->topic_num)->where('camp_num', '=', $request->camp_num)->max('order_id');
+            $news->order_id = ++$nextOrder;
+            $news->save();
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
+    /**
+     * @OA\Post(path="/delete-camp-newsfeed",
+     *   tags={"Camp"},
+     *   summary="delete camp newsfeed",
+     *   description="This is used to delete camp newsfeed.",
+     *   operationId="deleteCampNewsFeed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="delete camp newsfeed",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Camp newsfeed id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *           )
+     *       )  
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=404, description="Record not found"),
+     *   @OA\Response(response=400, description="Error message")
+     *  )
+     */
+
+    public function deleteNewsFeed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedDeleteValidationRules(), $this->validationMessages->getNewsFeedDeleteValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $newsId = $request->newsfeed_id;
+        try {
+            NewsFeed::where('id',$newsId)->delete();
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),'', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }

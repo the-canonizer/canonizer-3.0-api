@@ -223,7 +223,7 @@ class ForgotPasswordController extends Controller
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '']);
 
                 $status = 200;
-                $message = trans('message.success.password_reset');
+                $message = trans('message.success.otp_verified');
                 return $this->resProvider->apiJsonResponse($status, $message,null, null);
             }
         } catch (Exception $e) {
@@ -329,7 +329,7 @@ class ForgotPasswordController extends Controller
             $user->password = $newPassword;
             $user->save();
             $status = 200;
-            $message = trans('message.success.password_change');
+            $message = trans('message.success.password_reset');
             return $this->resProvider->apiJsonResponse($status, $message,null, null);
         } catch (Exception $e) {
             $status = 400;
