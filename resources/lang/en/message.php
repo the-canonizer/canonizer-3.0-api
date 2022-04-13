@@ -197,7 +197,8 @@ return [
         'image_name_required' => 'Please provide name for every file.',
         'folder_has_files_can_not_delete' => 'This folder contains files, hence can not be deleted.',
         'folder_deleted' => 'Folder has been deleted successfully.',
-        'folder_not_found' => "Folder you are trying delete does not exists or already deleted."
+        'folder_not_found' => "Folder you are trying delete does not exists or already deleted.",
+        'not_found' => 'Record not found.'
 
     ],
     'validation_store_newsfeed' => [
