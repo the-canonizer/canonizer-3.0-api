@@ -6,7 +6,7 @@ return [
     'thread_type' => [
         "allThread" => "all",
         "myThread" => "my",
-        "mypPrticipate" => "participate",
+        "myPrticipate" => "participate",
         "top10" => "most_replies",
     ],
 ];
