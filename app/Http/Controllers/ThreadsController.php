@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\CampForum;
 use Throwable;
+use App\Facades\Util;
 use App\Models\Thread;
+use App\Models\Nickname;
+use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
+use phpDocumentor\Reflection\Types\Nullable;
 
 class ThreadsController extends Controller
 {
@@ -171,6 +175,54 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_failed');
             }
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function threadList(Request $request, Validate $validate)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getThreadListValidationRules(), $this->validationMessages->getThreadListValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $threads = null;
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            if ($request->type == config('global.thread_type.allThread')) {
+                $threads = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->latest()->paginate($per_page);
+                $threads = Util::getPaginatorResponse($threads);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            }
+            if (!$request->user()) {
+                $status = 401;
+                $message = trans('message.thread.not_authorized');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            }
+            $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
+            if ($request->type == config('global.thread_type.myThread')) {
+                if (count($userNicknames) > 0) {
+                    $threads = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('user_id', $userNicknames[0]->id)->latest()->paginate($per_page);
+                }
+            }
+            if ($request->type == config('global.thread_type.mypPrticipate')) {
+                if (count($userNicknames) > 0) {
+                    $threads = Thread::join('post', 'thread.id', '=', 'post.c_thread_id')->select('thread.*', 'post.body')->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('post.user_id', $userNicknames[0]->id)->latest()->paginate($per_page);
+                }
+            }
+            if ($request->type == config('global.thread_type.top10')) {
+                $threads = Thread::join('post', 'thread.id', '=', 'post.c_thread_id')->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'))->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
+            }
+            $threads = Util::getPaginatorResponse($threads);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');

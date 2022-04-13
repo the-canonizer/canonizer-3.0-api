@@ -219,6 +219,8 @@ return [
         'topic_name_required' => 'Topic name is required.',
         'create_success' => 'Thread Created Successfully!',
         'create_failed' => 'Fail to create thread, please try later.',
+        'not_authorized' => 'You are not authorized to access this API.',
+        'type_required' => 'Type field is required.',
     ]
 
 ];

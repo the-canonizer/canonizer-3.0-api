@@ -263,4 +263,13 @@ class ValidationRules
             'topic_name' => 'required',
         ]);
     }
+
+    public function getThreadListValidationRules(): array
+    {
+        return ([
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'type' => 'required',
+        ]);
+    }
 }
