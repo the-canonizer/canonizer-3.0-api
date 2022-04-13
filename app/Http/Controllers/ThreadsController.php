@@ -182,6 +182,180 @@ class ThreadsController extends Controller
         }
     }
 
+    /**
+     * @OA\GET(path="/thread/list",
+     *   tags={"Thread"},
+     *   summary="list thread",
+     *   description="This is use for get thread list",
+     *   operationId="threadList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="camp_num",
+     *         in="url",
+     *         required=true,
+     *         description="Add camp num field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="topic_num",
+     *         in="url",
+     *         required=true,
+     *         description="Add topic num field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="type",
+     *         in="url",
+     *         required=false,
+     *         description="Add type field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="page",
+     *         in="url",
+     *         required=false,
+     *         description="Add page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="per_page",
+     *         in="url",
+     *         required=false,
+     *         description="Add per_page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="like",
+     *         in="url",
+     *         required=false,
+     *         description="Add like field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="items",
+     *                                              type="object",
+     *                                                  @OA\Property(
+     *                                                      property="id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="user_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="camp_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="topic_id",
+     *                                                      type="integer"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="title",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="body",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="created_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="nick_name",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_count",
+     *                                                      type="integer"
+     *                                                 )
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="current_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="per_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="last_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="total_rows",
+     *                                              type=""
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="from",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="to",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function threadList(Request $request, Validate $validate)
     {
 
@@ -227,10 +401,7 @@ class ThreadsController extends Controller
             }
             if ($request->type == config('global.thread_type.myPrticipate')) {
                 if (count($userNicknames) > 0) {
-                    $query->where(function ($q) use ($userNicknames) {
-                        $q->where('thread.user_id', $userNicknames[0]->id)
-                            ->orWhere('post.user_id', $userNicknames[0]->id);
-                    })->groupBy('thread.id');
+                    $query->where('post.user_id', $userNicknames[0]->id)->groupBy('thread.id');
                 }
             }
             $threads = $query->latest()->paginate($per_page);
