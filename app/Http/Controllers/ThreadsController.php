@@ -196,7 +196,7 @@ class ThreadsController extends Controller
             if ($request->type == config('global.thread_type.allThread')) {
                 $query = Thread::leftJoin('post', 'thread.id', '=', 'post.c_thread_id')
                     ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -215,7 +215,7 @@ class ThreadsController extends Controller
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
             $query = Thread::leftJoin('post', 'thread.id', '=', 'post.c_thread_id')
                 ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name')
+                ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name' ,'post.updated_at as post_updated_at')
                 ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -237,7 +237,7 @@ class ThreadsController extends Controller
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::Join('post', 'thread.id', '=', 'post.c_thread_id')
                     ->Join('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
