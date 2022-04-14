@@ -231,6 +231,7 @@ return [
         'not_authorized' => 'You are not authorized to access this API.',
         'type_required' => 'Type field is required.',
         'id_not_exist' => 'Given thread id does not exist in the database.',
+        'update_success' => 'Thread title updated successfully.',
     ]
 
 ];

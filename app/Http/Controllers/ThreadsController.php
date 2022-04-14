@@ -546,7 +546,7 @@ class ThreadsController extends Controller
             }
             $threads->update($update);
             $status = 200;
-            $message = trans('message.success.success');
+            $message = trans('message.thread.update_success');
             return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
