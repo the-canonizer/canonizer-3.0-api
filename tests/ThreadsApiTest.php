@@ -94,4 +94,19 @@ class ThreadsApiTest extends TestCase
         ->get('/api/v3/thread/list?camp_num=4&topic_num=3&type=all');
         $this->assertEquals(200, $this->response->status());
     }
+
+    public function testThreadUpdateInvalidData(){
+        print sprintf("\n Get Thread Update Invalid Data %d %s",400, PHP_EOL);
+        $response = $this->call('PUT', '/api/v3/thread/update/465');
+        $this->assertEquals(400, $response->status()); 
+    }
+
+    public function testThreadUpdateValidData(){
+        print sprintf(" \n  Get Thread Update Valid Data %d %s", 200,PHP_EOL);
+        $Thread = Thread::factory()->make();
+        $parameters = ["title" => "Test 3"];
+        $this->actingAs($Thread)
+        ->put('/api/v3/thread/update/465', $parameters);
+        $this->assertEquals(200, $this->response->status());
+    }
 }
