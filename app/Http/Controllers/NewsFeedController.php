@@ -80,10 +80,17 @@ class NewsFeedController extends Controller
                     ->where('available_for_child', '=', 1)
                     ->orderBy('order_id', 'ASC')->get();
             }
-            if ($news) {
-                $indexs = NewsFeed::responseIndexes();
-                $news = $this->resourceProvider->jsonResponse($indexs, $news);
+            if ($request->user()) {
+                foreach ($news as $newsfeed) {
+                    ($newsfeed->author_id == $request->user()->id || $request->user()->type== "admin") ?  $newsfeed->delete_flag = true : $newsfeed->delete_flag = false;
+                }
+            } else {
+                foreach ($news as $newsfeed) {
+                    $newsfeed->delete_flag = false;
+                }
             }
+            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'delete_flag'];
+            $news = $this->resourceProvider->jsonResponse($indexes, $news);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
@@ -186,8 +193,8 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $indexs = NewsFeed::responseIndexes();
-                $news = $this->resourceProvider->jsonResponse($indexs, $news);
+                $indexes = ['id', 'display_text', 'link', 'available_for_child'];
+                $news = $this->resourceProvider->jsonResponse($indexes, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
@@ -263,6 +270,7 @@ class NewsFeedController extends Controller
         }
         try {
             $news = new NewsFeed();
+            $news->author_id = $request->user()->id;
             $news->topic_num =  $request->topic_num;
             $news->camp_num = $request->camp_num;
             $news->display_text = $request->display_text;
@@ -321,9 +329,14 @@ class NewsFeedController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         $newsId = $request->newsfeed_id;
+        $userId = $request->user()->id;
+        $newsFeed = NewsFeed::findOrFail($newsId);
         try {
-            NewsFeed::where('id',$newsId)->delete();
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),'', '');
+            if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
+                $newsFeed->delete();
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
+            }
+            return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }

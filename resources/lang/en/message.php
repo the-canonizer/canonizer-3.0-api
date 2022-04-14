@@ -33,10 +33,11 @@ return [
         'user_remove'  => 'User remove successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
-
+        
     ],
     'general' => [
-        'nickname_association_absence' => "No nickname associated"
+        'nickname_association_absence' => "No nickname associated",
+        'permission_denied' => "You don't have permission to access this resource"
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
