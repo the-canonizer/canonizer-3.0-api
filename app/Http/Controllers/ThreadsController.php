@@ -425,4 +425,31 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+    public function update(Request $request, Validate $validate, $id)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getThreadUpdateValidationRules(), $this->validationMessages->getThreadUpdateValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+    
+        try {
+            $update = ["title"=>$request->title];
+            $threads = Thread::find($id);
+            if(!$threads){
+                $status = 400;
+                $message = trans('message.thread.id_not_exist');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $threads->update($update);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
 }

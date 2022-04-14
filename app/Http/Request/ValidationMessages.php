@@ -324,4 +324,13 @@ class ValidationMessages
         ];
     }
 
+    public function getThreadUpdateValidationMessages(): array
+    {
+        return [
+            'title.regex' => trans('message.thread.title_regex'),
+            'title.required' => trans('message.thread.title_required'),
+            'title.max' => trans('message.thread.title_max')
+        ];
+    }
+
 }
