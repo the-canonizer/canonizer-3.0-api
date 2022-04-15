@@ -12,6 +12,7 @@ use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
+use App\Models\Nickname;
 
 class NewsFeedController extends Controller
 {
@@ -80,16 +81,16 @@ class NewsFeedController extends Controller
                     ->where('available_for_child', '=', 1)
                     ->orderBy('order_id', 'ASC')->get();
             }
-            if ($request->user()) {
-                foreach ($news as $newsfeed) {
-                    ($newsfeed->author_id == $request->user()->id || $request->user()->type== "admin") ?  $newsfeed->delete_flag = true : $newsfeed->delete_flag = false;
-                }
-            } else {
-                foreach ($news as $newsfeed) {
-                    $newsfeed->delete_flag = false;
+
+            foreach ($news as $newsfeed) {
+                $newsfeed->delete_flag = false;
+                $newsfeed->submit_time = date('Y-m-d H:i A', $newsfeed->submit_time);
+                $newsfeed->submitter_nick_name = $newsfeed->nickName ? $newsfeed->nickName->nick_name : "";
+                if ($request->user()) {
+                    ($newsfeed->author_id == $request->user()->id || $request->user()->type == "admin") ?  $newsfeed->delete_flag = true : $newsfeed->delete_flag = false;
                 }
             }
-            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'delete_flag'];
+            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'delete_flag'];
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
@@ -193,7 +194,7 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
             if ($news) {
-                $indexes = ['id', 'display_text', 'link', 'available_for_child'];
+                $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submit_time'];
                 $news = $this->resourceProvider->jsonResponse($indexes, $news);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
@@ -253,6 +254,12 @@ class NewsFeedController extends Controller
      *                   required=true,
      *                   type="boolean",
      *               ),
+     *               @OA\Property(
+     *                   property="submitter_nick_id",
+     *                   description="Nick name id of the submitter",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
      *           )
      *       )
      *   ), 
@@ -268,9 +275,14 @@ class NewsFeedController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        $nickNameIds=Nickname::getNicknamesIdsByUserId($request->user()->id);
+        if(!in_array($request->submitter_nick_id,$nickNameIds)){
+            return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
+        }
         try {
             $news = new NewsFeed();
             $news->author_id = $request->user()->id;
+            $news->submitter_nick_id = $request->submitter_nick_id;
             $news->topic_num =  $request->topic_num;
             $news->camp_num = $request->camp_num;
             $news->display_text = $request->display_text;

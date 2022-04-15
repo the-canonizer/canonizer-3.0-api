@@ -36,8 +36,8 @@ return [
         
     ],
     'general' => [
-        'nickname_association_absence' => "No nickname associated",
-        'permission_denied' => "You don't have permission to access this resource"
+        'nickname_association_absence' => "Nickname not associated.",
+        'permission_denied' => "You don't have permission to access this resource."
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
@@ -202,12 +202,13 @@ return [
 
     ],
     'validation_store_newsfeed' => [
-        'topic_num_required' => 'Topic number is required',
-        'camp_num_required' => 'Camp number is required',
-        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
-        'available_for_child_required' => 'Availability for child is required',
-        'link_required' => 'Link is required',
-        'display_text_required' => 'Display text is required.'
+        'topic_num_required' => 'Topic number is required.',
+        'camp_num_required' => 'Camp number is required.',
+        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234).',
+        'available_for_child_required' => 'Availability for child is required.',
+        'link_required' => 'Link is required.',
+        'display_text_required' => 'Display text is required.',
+        'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
         'username_required' => 'Email is required.',
