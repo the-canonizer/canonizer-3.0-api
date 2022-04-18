@@ -171,17 +171,21 @@ class ValidationRules
         ];
     }
 
-    public function getNewsFeedUpdateValidationRules($sizeLimit): array
+    public function getNewsFeedEditValidationRules(): array
     {
         return [
-            'display_text' => 'required|array',
-            'display_text.*' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
-            "link" => 'required|array|size:'. $sizeLimit,
-            "link.*" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            'available_for_child' => 'required|array|size:'. $sizeLimit,
-            'available_for_child.*' => 'required|boolean',
-            'topic_num' => 'required',
-            'camp_num' => 'required'
+            'newsfeed_id' => 'required|exists:news_feed,id',
+        ];
+    }
+
+    public function getNewsFeedUpdateValidationRules(): array
+    {
+        return [
+            'display_text' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
+            'link' => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            'available_for_child' => 'required|boolean',
+            'newsfeed_id' => 'required|exists:news_feed,id',
+            'submitter_nick_id' => 'required'
         ];
     }
 
