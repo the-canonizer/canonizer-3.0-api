@@ -275,6 +275,15 @@ class ValidationRules
         ]);
     }
 
+    public function getThreadListValidationRules(): array
+    {
+        return ([
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'type' => 'required',
+        ]);
+    }
+    
     public function getStatementHistoryValidationRules(): array
     {
         return [

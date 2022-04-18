@@ -316,6 +316,15 @@ class ValidationMessages
         ];
     }
 
+    public function getThreadListValidationMessages(): array
+    {
+        return [
+            'camp_num.required' => trans('message.thread.camp_num_required'),
+            'topic_num.required' => trans('message.thread.topic_num_required'),
+            'type.required' => trans('message.thread.type_required'),
+        ];
+    }
+
     public function getStatementHistoryValidationMessages(): array
     {
         return([
@@ -323,4 +332,5 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required')
         ]);
     }
+
 }
