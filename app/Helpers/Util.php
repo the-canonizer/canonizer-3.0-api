@@ -134,9 +134,31 @@ class Util
     }
 
     /**
+     * @param $paginator
+     * @return ?object
+     */
+
+    public function getPaginatorResponse($paginator): ?object
+    {
+        if(empty($paginator)){
+            return null;
+        }
+        return (object)[
+            "items" => $paginator->items(),
+            'current_page' => $paginator->currentPage(),
+            'per_page' => (int) $paginator->perPage(),
+            'last_page' => $paginator->lastPage(),
+            'total_rows' => $paginator->total(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+        ];
+    }
+    
+    /**  
      * 
      * @return string
     */
+
     public static function generateShortCode($strength = 9) {
         $input = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $input_length = strlen($input);

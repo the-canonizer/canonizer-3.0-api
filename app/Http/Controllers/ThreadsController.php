@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\CampForum;
 use Throwable;
+use App\Facades\Util;
 use App\Models\Thread;
+use App\Models\Nickname;
+use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
+use phpDocumentor\Reflection\Types\Nullable;
 
 class ThreadsController extends Controller
 {
@@ -171,6 +175,250 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_failed');
             }
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\GET(path="/thread/list",
+     *   tags={"Thread"},
+     *   summary="list thread",
+     *   description="This is use for get thread list",
+     *   operationId="threadList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="camp_num",
+     *         in="url",
+     *         required=true,
+     *         description="Add camp num field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="topic_num",
+     *         in="url",
+     *         required=true,
+     *         description="Add topic num field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="type",
+     *         in="url",
+     *         required=true,
+     *         description="Add type field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="page",
+     *         in="url",
+     *         required=false,
+     *         description="Add page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="per_page",
+     *         in="url",
+     *         required=false,
+     *         description="Add per_page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="like",
+     *         in="url",
+     *         required=false,
+     *         description="Add like field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="items",
+     *                                              type="object",
+     *                                                  @OA\Property(
+     *                                                      property="id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="user_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="camp_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="topic_id",
+     *                                                      type="integer"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="title",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="body",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="created_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="nick_name",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_count",
+     *                                                      type="integer"
+     *                                                 )
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="current_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="per_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="last_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="total_rows",
+     *                                              type=""
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="from",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="to",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function threadList(Request $request, Validate $validate)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getThreadListValidationRules(), $this->validationMessages->getThreadListValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try {
+            $threads = null;
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            if ($request->type == config('global.thread_type.allThread')) {
+                $query = Thread::leftJoin('post', 'thread.id', '=', 'post.c_thread_id')
+                    ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
+                    ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
+                if (!empty($request->like)) {
+                    $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+                }
+                $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
+                $threads = Util::getPaginatorResponse($threads);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            }
+            if (!$request->user()) {
+                $status = 401;
+                $message = trans('message.thread.not_authorized');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            }
+            $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
+            $query = Thread::leftJoin('post', 'thread.id', '=', 'post.c_thread_id')
+                ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
+                ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name' ,'post.updated_at as post_updated_at')
+                ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
+            if (!empty($request->like)) {
+                $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            }
+            if ($request->type == config('global.thread_type.myThread')) {
+                if (count($userNicknames) > 0) {
+                    $query->where('thread.user_id', $userNicknames[0]->id)->groupBy('thread.id');
+                }
+            }
+            if ($request->type == config('global.thread_type.myPrticipate')) {
+                if (count($userNicknames) > 0) {
+                    $query->where('post.user_id', $userNicknames[0]->id)->groupBy('thread.id');
+                }
+            }
+            $threads = $query->latest()->paginate($per_page);
+            if ($request->type == config('global.thread_type.top10')) {
+                $query = Thread::Join('post', 'thread.id', '=', 'post.c_thread_id')
+                    ->Join('nick_name', 'nick_name.id', '=', 'post.user_id')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
+                    ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
+                if (!empty($request->like)) {
+                    $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+                }
+                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
+            }
+            $threads = Util::getPaginatorResponse($threads);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');

@@ -48,6 +48,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/forgotpassword/verifyOtp','ForgotPasswordController@verifyOtp');
         $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
         $router->post('/user/reSendOtp','UserController@reSendOtp');
+        $router->get('thread/list','ThreadsController@threadList');
     });
 
     //Route Group to access api with user access token
