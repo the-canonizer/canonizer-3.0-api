@@ -65,6 +65,7 @@ $app->configure('auth');
 $app->configure('services');
 $app->configure('mail');
 $app->configure('message');
+$app->configure('global');
 
 /*
 |--------------------------------------------------------------------------

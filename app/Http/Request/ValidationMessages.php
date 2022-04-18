@@ -299,6 +299,7 @@ class ValidationMessages
             'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
             'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
             'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
+            'submitter_nick_id.required' => trans('message.validation_store_newsfeed.submitter_nick_id_required'),
         ];
     }
 
@@ -314,4 +315,14 @@ class ValidationMessages
             'topic_name.required' => trans('message.thread.topic_name_required'),
         ];
     }
+
+    public function getThreadListValidationMessages(): array
+    {
+        return [
+            'camp_num.required' => trans('message.thread.camp_num_required'),
+            'topic_num.required' => trans('message.thread.topic_num_required'),
+            'type.required' => trans('message.thread.type_required'),
+        ];
+    }
+
 }

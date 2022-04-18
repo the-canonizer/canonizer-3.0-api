@@ -1109,7 +1109,9 @@ class UserController extends Controller
         try {
 
             $provider = $request->provider;
-
+            $providerEmail = '';
+            $providerId = 0;
+            $providerUserName = '';
             if($provider == 'twitter') {
                 $code = $request->code;
                 $twitter = TwitterOauthToken::where(['access_token' => $code])->latest()->first();
@@ -1119,21 +1121,16 @@ class UserController extends Controller
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
                 $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->access_token, $twitter->access_secret);
-                $connection->setApiVersion('2');
-                $twitterUser = $connection->get('users/me');
-                $user = null;
-                if($connection->getLastHttpCode() == 200 && !empty($twitterUser->data) && !empty($twitterUser->data->id)) {
-                    $twitter_id = $twitterUser->data->id;
-                    $social_link = SocialUser::where(['provider' => $provider, 'provider_id' => $twitter_id])->first();
-                    if(!empty($social_link)) {
-                        $user = User::find($social_link->user_id);
-                    }
-                }
-                if(empty($user)) {
+                $twitterUser = $connection->get('account/verify_credentials',['include_email' => true]);
+
+                if($connection->getLastHttpCode() != 200 || empty($twitterUser->id)) {
                     $status = 400;
-                    $message = trans('message.social.not_linked');
+                    $message = trans('message.error.exception');
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
+                $providerEmail = $twitterUser->email;
+                $providerId = $twitterUser->id;
+                $providerUserName = $twitterUser->name ?? $twitterUser->screen_name;
             }else {
                 $userSocial =   Socialite::driver($provider)->stateless()->user();
                 if (empty($userSocial)) {
@@ -1141,24 +1138,32 @@ class UserController extends Controller
                     $message = trans('message.error.exception');
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
-                $user_email = $userSocial->getEmail();
-                $social_name = $userSocial->getName();
-
-                $user = User::where(['email' => $user_email])->first();
+                $providerEmail = $userSocial->getEmail();
+                $providerUserName = $userSocial->getName();
+                $providerId = $userSocial->getId();
+            }
+            $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
+            if(empty($social_user)) {
+                if(empty($providerEmail)) {
+                    $status = 400;
+                    $message = trans('message.social.not_linked');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $user = User::where(['email' => $providerEmail])->first();
                 if (empty($user)) {
-                    $splitName = Util::split_name($social_name);
+                    $splitName = Util::split_name($providerUserName);
                     $user = User::create([
                         'first_name'    => $splitName[0],
                         'last_name'     => $splitName[1],
-                        'email'         => $user_email
+                        'email'         => $providerEmail,
+                        'status'        => 1
                     ]);
                     $nickname = $user->first_name . '-' . $user->last_name;
                     $this->createNickname($user->id, $nickname);
                 }
-                $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
-                if (!isset($social_user) && !isset($social_user->user_id)) {
-                    $this->createSocialUser($userSocial, $provider, $user->id);
-                }
+                $this->createSocialUser($providerId, $providerEmail, $providerUserName, $provider, $user->id);
+            }else {
+                $user = User::find($social_user->user_id);
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
@@ -1620,6 +1625,9 @@ class UserController extends Controller
         try {
 
             $provider = $request->provider;
+            $providerEmail = '';
+            $providerId = 0;
+            $providerUserName = '';
 
             if($provider == 'twitter') {
                 $user = $request->user();
@@ -1631,61 +1639,42 @@ class UserController extends Controller
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
                 $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->access_token, $twitter->access_secret);
-                $connection->setApiVersion('2');
-                $twitterUser = $connection->get('users/me');
-                
-                if($connection->getLastHttpCode() == 200 && !empty($twitterUser->data) && !empty($twitterUser->data->id)) {
-                    $twitter_id = $twitterUser->data->id;
-                    $twitter_name = $twitterUser->data->name ?? $twitterUser->data->username;
-                    $social_link = SocialUser::where(['provider' => $provider, 'provider_id' => $twitter_id])->first();
-                    if(!empty($social_link)) {
-                        $status = 403;
-                        $message = trans('message.social.already_linked');
-                        $data = [
-                            "already_link_user" => $social_link,
-                            "current_user" => $user,
-                        ];
-                        return $this->resProvider->apiJsonResponse($status, $message, null, null);
-                    }
-                    SocialUser::create([
-                        'user_id' => $user->id,
-                        'social_email' => $user->email,
-                        'social_name' => $twitter_name,
-                        'provider' => $provider,
-                        'provider_id' => $twitter_id
-                    ]);
-                    $status = 200;
-                    $message = trans('message.social.successfully_linked');
-                    $data = null;
+                $twitterUser = $connection->get('account/verify_credentials',['include_email' => true]);
+
+                if($connection->getLastHttpCode() != 200 || empty($twitterUser->id)) {
+                    $status = 400;
+                    $message = trans('message.error.exception');
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                $providerEmail = $twitterUser->email ?? $request->user()->email;
+                $providerId = $twitterUser->id;
+                $providerUserName = $twitterUser->name ?? $twitterUser->screen_name;
+            }else {
+                $userSocial =   Socialite::driver($provider)->stateless()->user();
+                if (empty($userSocial)) {
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $providerEmail = $userSocial->getEmail() ?? $request->user()->email;
+                $providerUserName = $userSocial->getName();
+                $providerId = $userSocial->getId();
             }
-
-            $userSocial =   Socialite::driver($provider)->stateless()->user();
-            if (empty($userSocial)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
-            }
-
-            $user_email = $userSocial->getEmail();
-            $social_user = SocialUser::where(['social_email' => $user_email, 'provider' => $provider])->first();
-            if (isset($social_user) && isset($social_user->user_id)) {
+            $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
+            if(!empty($social_user)) {
                 $status = 403;
                 $message = trans('message.social.already_linked');
                 $data = [
                     "already_link_user" => $social_user,
                     "current_user" => $request->user(),
                 ];
-            } else {
-                $this->createSocialUser($userSocial, $provider, $request->user()->id);
-                $status = 200;
-                $message = trans('message.social.successfully_linked');
-                $data = null;
+                return $this->resProvider->apiJsonResponse($status, $message, $data, null);
             }
+
+            $this->createSocialUser($providerId, $providerEmail, $providerUserName, $provider, $request->user()->id);
+            $status = 200;
+            $message = trans('message.social.successfully_linked');
+            $data = null;
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         } catch (Exception $ex) {
             $status = 400;
@@ -1694,15 +1683,15 @@ class UserController extends Controller
         }
     }
 
-    protected function createSocialUser($data, $provider, $userId)
+    protected function createSocialUser($providerId, $email, $name, $provider, $userId)
     {
 
         $userSocial =  SocialUser::create([
             'user_id'       => $userId,
-            'social_email'  => $data->getEmail(),
-            'provider_id'   => $data->getId(),
+            'social_email'  => $email,
+            'provider_id'   => $providerId,
             'provider'      => $provider,
-            'social_name'   => $data->getName(),
+            'social_name'   => $name,
         ]);
 
         return $userSocial;

@@ -259,7 +259,8 @@ class ValidationRules
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
             "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required'
+            "display_text" => 'required',
+            "submitter_nick_id" => 'required'
         ];
     }
 
@@ -271,6 +272,15 @@ class ValidationRules
             'camp_num' => 'required',
             'topic_num' => 'required',
             'topic_name' => 'required',
+        ]);
+    }
+
+    public function getThreadListValidationRules(): array
+    {
+        return ([
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'type' => 'required',
         ]);
     }
 }

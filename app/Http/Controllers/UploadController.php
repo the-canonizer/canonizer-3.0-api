@@ -15,6 +15,7 @@ use App\Helpers\ResponseInterface;
 use App\Http\Request\Validate;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
+use App\Models\Statement;
 
 
 class UploadController extends Controller
@@ -330,6 +331,103 @@ class UploadController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+
+    /**
+     * @OA\Delete(path="/file/delete/{id}",
+     *   tags={"upload"},
+     *   summary="Delete  file",
+     *   description="This API is used to delete a uploaded file if not used in any statement",
+     *   operationId="folderDelete",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Delete a record from this id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="string",
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+    public function fileDelete($id){
+        try{
+
+            $file = Upload::where('id',$id)->first();
+            if(!$file){
+                return $this->resProvider->apiJsonResponse(400, trans('message.uploads.file_not_found'), null, null);
+            }
+
+            $ifFileInuse = Statement::checkIfFileInUse($file->short_code);
+
+            if($ifFileInuse){
+
+                $status = 400;
+                $message = trans('message.uploads.file_in_use');
+
+            }else{
+
+                $file->delete();
+                $status = 200;
+                $message = trans('message.uploads.file_deleted');
+            }
+
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+
+        }catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
 
 
 }
