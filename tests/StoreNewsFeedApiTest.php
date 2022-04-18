@@ -28,7 +28,8 @@ class StoreNewsFeedApiTest extends TestCase
             "camp_num" => "",
             "display_text" => "",
             "link" => "",
-            "available_for_child" => ""
+            "available_for_child" => "",
+            "submitter_nick_id" => ""
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
@@ -47,7 +48,8 @@ class StoreNewsFeedApiTest extends TestCase
             "camp_num" => 1,
             "display_text" => "xyz",
             "link" => "facebook.com",
-            "available_for_child" => "boolean"
+            "available_for_child" => "boolean",
+            "submitter_nick_id" => "0"
         ];
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
@@ -56,23 +58,14 @@ class StoreNewsFeedApiTest extends TestCase
     }
 
     /**
-     * Check Api response code with valid data
+     * Check Api without auth
+     * validation
      */
-    public function testStoreNewsFeedApiStatus()
+    public function testStoreNewsFeedWithoutUserAuth()
     {
-        $data = [
-            "topic_num" => 2,
-            "camp_num" => 1,
-            "display_text" => "xyz",
-            "link" => "facebook.com",
-            "available_for_child" => 1
-        ];
-        print sprintf("\n Store NewsFeed ", 200, PHP_EOL);
+        print sprintf("Test with empty form data");
         $user = User::factory()->make();
-        $this->actingAs($user)->post(
-            '/api/v3/store-camp-newsfeed',
-            $data
-        );
-        $this->assertEquals(200, $this->response->status());
+        $this->post('/api/v3/store-camp-newsfeed', []);
+        $this->assertEquals(401,  $this->response->status());
     }
 }

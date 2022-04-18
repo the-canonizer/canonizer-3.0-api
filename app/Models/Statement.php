@@ -56,4 +56,14 @@ class Statement extends Model
         ];
         return $asOfFilter[$filter['asOf']];
     }
+
+    public static function checkIfFileInUse($shortCode = '')
+    {
+        if($shortCode){
+
+            $result = self::where('value', 'like', '%' . $shortCode . '%')->count();
+            return ($result > 0) ? true : false;
+        }
+        return false;
+    }
 }

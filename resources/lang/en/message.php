@@ -33,10 +33,11 @@ return [
         'user_remove'  => 'User remove successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
-
+        
     ],
     'general' => [
-        'nickname_association_absence' => "No nickname associated"
+        'nickname_association_absence' => "Nickname not associated.",
+        'permission_denied' => "You don't have permission to access this resource."
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
@@ -197,16 +198,20 @@ return [
         'image_name_required' => 'Please provide name for every file.',
         'folder_has_files_can_not_delete' => 'This folder contains files, hence can not be deleted.',
         'folder_deleted' => 'Folder has been deleted successfully.',
-        'folder_not_found' => "Folder you are trying delete does not exists or already deleted."
+        'folder_not_found' => "Folder you are trying to delete does not exists or already deleted.",
+        'file_not_found' => "File you are trying to delete does not exists or already deleted.",
+        'file_in_use' => "You can not delete this file, as this is used in one or more statements.",
+        'file_deleted' => "This file has been deleted successfully."
 
     ],
     'validation_store_newsfeed' => [
-        'topic_num_required' => 'Topic number is required',
-        'camp_num_required' => 'Camp number is required',
-        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
-        'available_for_child_required' => 'Availability for child is required',
-        'link_required' => 'Link is required',
-        'display_text_required' => 'Display text is required.'
+        'topic_num_required' => 'Topic number is required.',
+        'camp_num_required' => 'Camp number is required.',
+        'link_regix' => 'Link is invalid. (Example: https://www.example.com?post=1234).',
+        'available_for_child_required' => 'Availability for child is required.',
+        'link_required' => 'Link is required.',
+        'display_text_required' => 'Display text is required.',
+        'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
         'username_required' => 'Email is required.',

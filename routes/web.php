@@ -85,6 +85,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('thread/save','ThreadsController@store');
         $router->put('thread/update/{id}','ThreadsController@update');
+        $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
     });
 
     $router->post('/ads','AdsController@getAds');
