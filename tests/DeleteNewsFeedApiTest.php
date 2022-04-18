@@ -34,7 +34,7 @@ class DeleteNewsFeedApiTest extends TestCase
     public function testDeleteNewsFeedApiWithFalseData()
     {
         $emptyData = [
-            'newsfeed_id' => '1'
+            'newsfeed_id' => '0'
         ];
         print sprintf("Test with id that dose not exist");
         $user = User::factory()->make();
@@ -58,5 +58,22 @@ class DeleteNewsFeedApiTest extends TestCase
         );
         $this->assertEquals(200, $this->response->status());
     }
+
+    /**
+     * Check Api without user Auth
+     */
+    public function testDeleteNewsFeedwithoutUserAuth()
+    {
+        $data = [
+            'newsfeed_id' => 299
+        ];
+        print sprintf("\n post NewsFeed ", 200, PHP_EOL);
+        $this->post(
+            '/api/v3/delete-camp-newsfeed',
+            $data
+        );
+        $this->assertEquals(401, $this->response->status());
+    }
+
 
 }
