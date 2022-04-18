@@ -274,4 +274,12 @@ class ValidationRules
             'topic_name' => 'required',
         ]);
     }
+
+    public function getStatementHistoryValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ];
+    }
 }

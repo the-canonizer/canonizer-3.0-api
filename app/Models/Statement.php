@@ -56,4 +56,9 @@ class Statement extends Model
         ];
         return $asOfFilter[$filter['asOf']];
     }
+
+    public static function getHistory($topicnum, $campnum) {
+
+        return self::where('topic_num', $topicnum)->where('camp_num', $campnum)->latest('submit_time')->get();
+    }
 }

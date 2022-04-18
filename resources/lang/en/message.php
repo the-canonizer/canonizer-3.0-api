@@ -230,6 +230,10 @@ return [
         'topic_name_required' => 'Topic name is required.',
         'create_success' => 'Thread Created Successfully!',
         'create_failed' => 'Fail to create thread, please try later.',
-    ]
+    ],
+    'validation_get_statementHistory' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
+    ],
 
 ];

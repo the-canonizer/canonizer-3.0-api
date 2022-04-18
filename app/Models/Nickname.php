@@ -6,7 +6,7 @@ use App\Facades\Util;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Library\General;
 
 class Nickname extends Model {
 
@@ -241,6 +241,17 @@ class Nickname extends Model {
             }
         }
         return $supports;
+    }
+
+    public static function getUserIDByNickNameId($nick_id) {
+
+        $nickname = self::find($nick_id);
+        if (!empty($nickname)) {
+            $ownerCode = $nickname->owner_code;
+            return General::canon_decode($ownerCode);
+        }
+
+        return null;
     }
     
 }
