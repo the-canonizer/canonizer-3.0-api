@@ -73,7 +73,8 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
 
-            if (empty($news) && count($camp) && $camp->parent_camp_num != null) {
+            if ($news->isEmpty() && !empty($camp) && $camp->parent_camp_num != null) {
+                
                 $neCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $neCampNum)
