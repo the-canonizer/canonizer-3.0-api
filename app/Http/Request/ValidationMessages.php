@@ -325,4 +325,12 @@ class ValidationMessages
         ];
     }
 
+    public function getStatementHistoryValidationMessages(): array
+    {
+        return([
+            'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required')
+        ]);
+    }
+
 }

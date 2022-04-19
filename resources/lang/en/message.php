@@ -236,6 +236,10 @@ return [
         'create_failed' => 'Fail to create thread, please try later.',
         'not_authorized' => 'You are not authorized to access this API.',
         'type_required' => 'Type field is required.',
-    ]
+    ],
+    'validation_get_statementHistory' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
+    ],
 
 ];
