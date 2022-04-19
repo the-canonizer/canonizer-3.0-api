@@ -95,6 +95,37 @@ class StatementController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/get-statement-history",
+     *   tags={"Camp"},
+     *   summary="get camp newsfeed",
+     *   description="This API is used to get camp statement history.",
+     *   operationId="getCampStatementHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get camp statement history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function getStatementHistory(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementHistoryValidationRules(), $this->validationMessages->getStatementHistoryValidationMessages());
@@ -103,6 +134,7 @@ class StatementController extends Controller
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
+        $filter['type'] = isset($request->type) ? $request->type :'all';
         $response = new stdClass();
         $response->statement = [];
         $response->ifIamSupporter = null;
@@ -140,7 +172,7 @@ class StatementController extends Controller
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
-                            array_push($response->statement, $val);
+                            ($filter['type']==$val['status'] || $filter['type']=='all') ? array_push($response->statement, $val) : null;    
                         }
                     }
                 }

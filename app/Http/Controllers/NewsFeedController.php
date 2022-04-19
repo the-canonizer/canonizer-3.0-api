@@ -57,7 +57,6 @@ class NewsFeedController extends Controller
      * )
      */
 
-
     public function getNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedValidationRules(), $this->validationMessages->getNewsFeedValidationMessages());
@@ -119,32 +118,32 @@ class NewsFeedController extends Controller
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
      *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number is required",
+     *                   property="newsfeed_id",
+     *                   description="ID of the newsfeed",
      *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
+     *                   property="submitter_nick_id",
+     *                   description="Submitter nick name id",
      *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                  property="display_text",
-     *                  description="display text is required",
+     *                  description="Display text is required",
      *                  required=true,
      *                  type="array",
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="link is required",
+     *                   description="Link is required",
      *                   required=true,
      *                   type="array",
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="availability for child is required",
+     *                   description="Availability for child is required",
      *                   required=true,
      *                   type="array",
      *               ),
@@ -152,7 +151,8 @@ class NewsFeedController extends Controller
      *       )
      *   ), 
      *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
 
@@ -231,19 +231,19 @@ class NewsFeedController extends Controller
      *               ),
      *               @OA\Property(
      *                  property="display_text",
-     *                  description="display text is required",
+     *                  description="Display text is required",
      *                  required=true,
      *                  type="string",
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="link is required",
+     *                   description="Link is required",
      *                   required=true,
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="availability for child is required",
+     *                   description="Availability for child is required",
      *                   required=true,
      *                   type="boolean",
      *               ),
@@ -322,8 +322,8 @@ class NewsFeedController extends Controller
      *       )  
      *    ),
      *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=404, description="Record not found"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      *  )
      */
 
@@ -348,6 +348,41 @@ class NewsFeedController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/edit-camp-newsfeed",
+     *   tags={"Camp"},
+     *   summary="edit camp newsfeed",
+     *   description="This is used to get  a record for updating camp newsfeed.",
+     *   operationId="editCampNewsFeed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="edit camp newsfeed",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Camp newsfeed id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *           )
+     *       )  
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     *  )
+     */
     public function editNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
