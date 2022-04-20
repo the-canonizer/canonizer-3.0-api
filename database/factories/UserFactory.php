@@ -14,6 +14,7 @@ class UserFactory extends Factory
      * @var string
      */
     protected $model = User::class;
+    static $id = 1;
 
     /**
      * Define the model's default state.
@@ -23,7 +24,7 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-
+            'id'=> 1,
             'first_name' => $this->faker->name,
             'last_name'=>'test',
             'email' => $this->faker->unique()->safeEmail,
