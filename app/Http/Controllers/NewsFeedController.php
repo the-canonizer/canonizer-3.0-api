@@ -166,10 +166,12 @@ class NewsFeedController extends Controller
         $display_text = $request->display_text;
         $submitterNickId = $request->submitter_nick_id;
         $link = $request->link;
+        $userId=$request->user()->id;
+        $userType=$request->user()->type;
         $availableForChild = $request->available_for_child;
         try {
             $newsFeed = NewsFeed::findOrFail($newsFeedId);
-            if ($newsFeed->author_id != $request->user()->id && $request->user()->type != "admin") {
+            if ($newsFeed->author_id != $userId && $userType != "admin") {
                 return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
             }
             $topicNum = $newsFeed->topic_num;
@@ -179,6 +181,7 @@ class NewsFeedController extends Controller
             $news = new NewsFeed();
             $news->topic_num =  $topicNum;
             $news->camp_num =  $campNum;
+            $news->author_id = $userId;
             $news->display_text = $display_text;
             $news->link = $link;
             $news->submitter_nick_id = $submitterNickId;
