@@ -121,12 +121,12 @@ class UploadController extends Controller
 
         try{
 
-            $uploadFiles = [];
+          /*  $uploadFiles = [];
             foreach($all['file'] as $k => $file){
                 $six_digit_random_number = random_int(100000, 999999);
                 $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
-                /** Upload File to S3 */
+                /** Upload File to S3 *
                 $result = Aws::UploadFile($filename,$file);
                 $response = $result->toArray();
 
@@ -146,9 +146,9 @@ class UploadController extends Controller
                 array_push($uploadFiles,$data);
 
             }
-            Upload::insert($uploadFiles);
+            Upload::insert($uploadFiles);*/
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), '', '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), $all, '');
 
         } catch (\Throwable $e) {
 
