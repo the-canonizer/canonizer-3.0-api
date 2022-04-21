@@ -116,7 +116,7 @@ class UploadController extends Controller
 
         $all = $request->all();
 
-        echo "<pre>"; print_r($all); exit;
+        //echo "<pre>"; print_r($all); exit;
         $user = $request->user();
 
         try{
