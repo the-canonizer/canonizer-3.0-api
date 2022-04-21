@@ -119,6 +119,18 @@ class StatementController extends Controller
      *                  required=true,
      *                  type="integer",
      *              )
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
      *         )
      *      )
      *   ),
@@ -135,6 +147,8 @@ class StatementController extends Controller
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
         $filter['type'] = isset($request->type) ? $request->type :'all';
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
         $response = new stdClass();
         $response->statement = [];
         $response->ifIamSupporter = null;
@@ -159,8 +173,11 @@ class StatementController extends Controller
                         $starttime = time();
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
+                        $val['objector_nick_name']=null;
                         if ($val->objector_nick_id !== NULL) {
                             $val['status'] = "objected";
+                             $val['objector_nick_name']=$val->objectorNickName->nick_name;
+                             $val->unsetRelation('objectorNickName');
                         } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
                             $val['status'] = "in_review";
                         } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {

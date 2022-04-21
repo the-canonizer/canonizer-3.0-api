@@ -61,29 +61,13 @@ class GetCampStatementHistoryTest extends TestCase
             "camp_num" => "1",
             "type" => "all"
         ];
-        print sprintf("\n post NewsFeed ", 200, PHP_EOL);
+        print sprintf("\n with correct form data ", 200, PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)->post(
             '/api/v3/get-statement-history',
             $data
         );
         $this->assertEquals(200, $this->response->status());
-    }
-
-    /**
-     * Check Api without user Auth
-     */
-    public function testGetCampStatementHistorywithoutUserAuth()
-    {
-        $data = [
-            'newsfeed_id' => 299
-        ];
-        print sprintf("\n post NewsFeed ", 200, PHP_EOL);
-        $this->post(
-            '/api/v3/get-statement-history',
-            $data
-        );
-        $this->assertEquals(401, $this->response->status());
     }
 
      /**
@@ -96,7 +80,7 @@ class GetCampStatementHistoryTest extends TestCase
             "camp_num" => "1",
             "type" => "all"
         ];
-        print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
+        print sprintf("\n Test API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/get-statement-history', $data);
         $this->seeJsonStructure([
@@ -115,4 +99,23 @@ class GetCampStatementHistoryTest extends TestCase
             ]
         ]);
     }
+
+    /**
+     * Check Api with as_of filter value bydate without as_of_date
+     * validation
+     */
+    public function testGetCampStatementHistoryApiWithoutFilterDate()
+    {
+        $invalidData = [
+            'topic_num' => 45,
+            'camp_num' => 1,
+            "type" => "all",
+            'as_of' => "bydate"
+        ];
+
+        print sprintf("Test with invalid values");
+        $response = $this->call('POST', '/api/v3/get-statement-history', $invalidData);
+        $this->assertEquals(400, $response->status());
+    }
+
 }

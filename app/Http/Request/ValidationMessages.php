@@ -332,7 +332,9 @@ class ValidationMessages
         return([
             'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
-            'type.in' => trans('message.validation_get_statementHistory.type_in')
+            'type.in' => trans('message.validation_get_statementHistory.type_in'),
+            'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required'),
         ]);
     }
 
