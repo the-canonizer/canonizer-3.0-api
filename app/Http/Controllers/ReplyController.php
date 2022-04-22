@@ -79,16 +79,30 @@ class ReplyController extends Controller
         try {
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
-            $result = Reply::where('thread_id', $id)->where('is_delete','0')->paginate($per_page);
-            $allNicknames = Util::getPaginatorResponse($result);
-            if (empty($allNicknames)) {
+            $result = Reply::Join('nick_name', 'nick_name.id', '=', 'post.user_id')
+            ->select('post.*','nick_name.nick_name')
+            ->where('thread_id', $id)->where('is_delete','0')->paginate($per_page);
+
+
+            $response = Util::getPaginatorResponse($result);
+
+            if (empty($response)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+
+            foreach($response->items as $value){
+                $isMyPost = false;
+                $allNicname = Nickname::personNicknameArray();
+                if(in_array($value->user_id,$allNicname)){
+                    $isMyPost = true;
+                }
+                $value->is_my_post = $isMyPost;
+            }
             $status = 200;
             $message = trans('message.success.success');
-            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $response, null);
         } catch (Throwable $ex) {
             $status = 400;
             $message = trans('message.error.exception');
