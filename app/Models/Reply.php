@@ -16,8 +16,8 @@ class Reply extends Model
         parent::boot(); 
 
         self::creating(function($model){
-            $model->created_at = time();
-            $model->updated_at = time();
+            $model->created_at = date('Y-m-d H:i:s');
+            $model->updated_at = date('Y-m-d H:i:s');
         });
 
         self::created(function($model){
@@ -25,7 +25,7 @@ class Reply extends Model
         });
 
         self::updating(function($model){
-            $model->updated_at = time();
+            $model->updated_at = date('Y-m-d H:i:s');
         });
 
         self::updated(function($model){
@@ -33,7 +33,7 @@ class Reply extends Model
         });
 
         self::deleting(function($model){
-            $model->updated_at = time();
+            $model->updated_at = date('Y-m-d H:i:s');
         });
 
         self::deleted(function($model){

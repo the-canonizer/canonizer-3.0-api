@@ -299,6 +299,18 @@ class ValidationRules
             'camp_num' => 'required',
             'topic_num' => 'required',
             'topic_name' => 'required',
+            'thread_id' => 'required',
+        ]);
+    }
+
+    public function getPostUpdateValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+            'thread_id' => 'required',
         ]);
     }
 }

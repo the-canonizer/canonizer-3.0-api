@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Throwable;
 use App\Facades\Util;
 use App\Models\Reply;
@@ -42,13 +43,13 @@ class ReplyController extends Controller
         $body_text = strip_tags(trim(html_entity_decode($request->body)));
         if ( ! preg_replace('/\s+/u', '', $body_text) ) {
             $status = 400;
-            $message = trans('message.thread.body_regex');
+            $message = trans('message.post.body_regex');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
         try {
             $thread = Reply::create([
                 'user_id'  => $request->nick_name,
-                'body'     => $request->body,
+                'body'     => $body_text,
                 'c_thread_id'  => $request->thread_id,
             ]);
             if ($thread) {
@@ -65,6 +66,66 @@ class ReplyController extends Controller
                 $message = trans('message.post.create_failed');
             }
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function postList(Request $request, $id)
+    {
+        
+        try {
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+
+            $result = Reply::where('c_thread_id', $id)->paginate($per_page);
+            $allNicknames = Util::getPaginatorResponse($result);
+            if (empty($allNicknames)) {
+                $status = 400;
+                $message = trans('message.error.exception');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
+        } catch (Throwable $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
+    public function update(Request $request, Validate $validate, $id)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getPostUpdateValidationRules(), $this->validationMessages->getPostUpdateValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $body_text = strip_tags(trim(html_entity_decode($request->body)));
+        if ( ! preg_replace('/\s+/u', '', $body_text) ) {
+            $status = 400;
+            $message = trans('message.post.body_regex');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    
+        try {
+            $update = ["body" => $body_text];
+            $post = Reply::find($id);
+            if(!$post){
+                $status = 400;
+                $message = trans('message.post.post_not_exist');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $post->update($update);
+            $status = 200;
+            $message = trans('message.post.update_success');
+            // Return Url after creating post Successfully
+            $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
+            CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url,$request->body, $request->thread_id, $request->nick_name, $request->topic_name,$id);
+            return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');

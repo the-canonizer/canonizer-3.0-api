@@ -344,6 +344,19 @@ class ValidationMessages
             'camp_num.required' => trans('message.post.camp_num_required'),
             'topic_num.required' => trans('message.post.topic_num_required'),
             'topic_name.required' => trans('message.post.topic_name_required'),
+            'thread_id.required' => trans('message.post.thread_id_required'),
+        ];
+    }
+
+    public function getPostUpdateValidationMessages(): array
+    {
+        return [
+            'body.regex' => trans('message.post.body_regex'),
+            'body.required' => trans('message.post.body_regex'),
+            'camp_num.required' => trans('message.post.camp_num_required'),
+            'topic_num.required' => trans('message.post.topic_num_required'),
+            'topic_name.required' => trans('message.post.topic_name_required'),
+            'thread_id.required' => trans('message.post.thread_id_required'),
         ];
     }
 }
