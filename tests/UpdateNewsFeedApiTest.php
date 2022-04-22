@@ -24,11 +24,11 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiWithEmptyValues()
     {
         $emptyData = [
-            "topic_num" => "",
-            "camp_num" => "",
+            "newsfeed_id"=>"",
             "display_text" => "",
             "link" => "",
-            "available_for_child" => ""
+            "available_for_child" => "",
+            "submitter_nick_id"=>""
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
@@ -43,11 +43,11 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiWithInvalidData()
     {
         $invalidData = [
-            "topic_num" => 2,
-            "camp_num" => 1,
-            "display_text" => ["xyz"],
-            "link" => ["facebook.com", "youtube.com"],
-            "available_for_child" => [1, 1]
+            "newsfeed_id"=>"abc",
+            "display_text" => "xyz",
+            "link" => "facebook.com",
+            "available_for_child" => 1,
+            "submitter_nick_id"=>"abc"
         ];
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
@@ -61,11 +61,11 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiStatus()
     {
         $data = [
-            "topic_num" => 2,
-            "camp_num" => 1,
-            "display_text" => ["xyz", "abc"],
-            "link" => ["facebook.com", "youtube.com"],
-            "available_for_child" => [1, 1]
+            "newsfeed_id"=>1,
+            "display_text" => "abc",
+            "link" => "facebook.com",
+            "available_for_child" =>  1,
+            "submitter_nick_id"=>1010
         ];
         print sprintf("\n Update NewsFeed ", 200, PHP_EOL);
         $user = User::factory()->make();

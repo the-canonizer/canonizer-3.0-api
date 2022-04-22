@@ -272,7 +272,7 @@ class CampController extends Controller
                 $livecamp->nick_name=$livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp,$filter);
                 $camp[]=$livecamp;
-                $indexs=['topic_num','camp_num','key_words','camp_about_url','nick_name'];
+                $indexs=['topic_num','camp_num','camp_name','key_words','camp_about_url','nick_name'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp[0]['parentCamps']=$parentCamp;
             }
