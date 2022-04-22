@@ -233,7 +233,10 @@ return [
     ],
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
+        'type_in' => "Please enter a valid type value (objected, in_review, live, old, all) or leave it empty",
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
     ],
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",

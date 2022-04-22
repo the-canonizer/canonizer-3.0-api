@@ -95,6 +95,49 @@ class StatementController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/get-statement-history",
+     *   tags={"Camp"},
+     *   summary="get camp newsfeed",
+     *   description="This API is used to get camp statement history.",
+     *   operationId="getCampStatementHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get camp statement history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              )
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function getStatementHistory(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementHistoryValidationRules(), $this->validationMessages->getStatementHistoryValidationMessages());
@@ -103,6 +146,9 @@ class StatementController extends Controller
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
+        $filter['type'] = isset($request->type) ? $request->type :'all';
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
         $response = new stdClass();
         $response->statement = [];
         $response->ifIamSupporter = null;
@@ -127,8 +173,11 @@ class StatementController extends Controller
                         $starttime = time();
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
+                        $val['objector_nick_name']=null;
                         if ($val->objector_nick_id !== NULL) {
                             $val['status'] = "objected";
+                             $val['objector_nick_name']=$val->objectorNickName->nick_name;
+                             $val->unsetRelation('objectorNickName');
                         } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
                             $val['status'] = "in_review";
                         } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {
@@ -140,7 +189,7 @@ class StatementController extends Controller
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
-                            array_push($response->statement, $val);
+                            ($filter['type']==$val['status'] || $filter['type']=='all') ? array_push($response->statement, $val) : null;    
                         }
                     }
                 }
