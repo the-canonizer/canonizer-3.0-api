@@ -50,7 +50,7 @@ class ReplyController extends Controller
             $thread = Reply::create([
                 'user_id'  => $request->nick_name,
                 'body'     => $body_text,
-                'c_thread_id'  => $request->thread_id,
+                'thread_id'  => $request->thread_id,
             ]);
             if ($thread) {
                 $data = $thread;
@@ -79,7 +79,7 @@ class ReplyController extends Controller
         try {
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
-            $result = Reply::where('c_thread_id', $id)->paginate($per_page);
+            $result = Reply::where('thread_id', $id)->paginate($per_page);
             $allNicknames = Util::getPaginatorResponse($result);
             if (empty($allNicknames)) {
                 $status = 400;

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Reply extends Model
 {
     protected $table = 'post';
-    protected $guarded = [];
     public $timestamps = false;
 
 
@@ -43,7 +42,7 @@ class Reply extends Model
 
     // Fillable Columns
 
-    protected $fillable = ['c_thread_id', 'user_id', 'body'];
+    protected $fillable = ['thread_id', 'user_id', 'body'];
 
     public function owner()
     {
