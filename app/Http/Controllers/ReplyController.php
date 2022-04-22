@@ -79,7 +79,7 @@ class ReplyController extends Controller
         try {
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
-            $result = Reply::where('thread_id', $id)->paginate($per_page);
+            $result = Reply::where('thread_id', $id)->where('is_delete','0')->paginate($per_page);
             $allNicknames = Util::getPaginatorResponse($result);
             if (empty($allNicknames)) {
                 $status = 400;
@@ -125,6 +125,29 @@ class ReplyController extends Controller
             // Return Url after creating post Successfully
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url,$request->body, $request->thread_id, $request->nick_name, $request->topic_name,$id);
+            return $this->resProvider->apiJsonResponse($status, $message, $post, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function isDelete($id)
+    {
+
+        try {
+            $update = ["is_delete" => '1'];
+            $post = Reply::find($id);
+            if(!$post){
+                $status = 400;
+                $message = trans('message.post.post_not_exist');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            $post->update($update);
+            $status = 200;
+            $message = trans('message.post.delete_success');
+
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {
             $status = 400;

@@ -89,6 +89,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('post/save','ReplyController@store');
         $router->get('post/list/{id}','ReplyController@postList');
         $router->put('post/update/{id}','ReplyController@update');
+        $router->delete('post/delete/{id}','ReplyController@isDelete');
 
     });
 

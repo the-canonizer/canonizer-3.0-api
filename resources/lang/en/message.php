@@ -249,6 +249,7 @@ return [
         'thread_id_required' => 'Thread id is required.',
         'post_not_exist' => "Post id doesn't exist.",
         'update_success' => 'Body of the post updated successfully.',
+        'delete_success' => 'Post deleted successfully.',
     ]
 
 ];

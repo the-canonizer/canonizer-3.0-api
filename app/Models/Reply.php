@@ -42,7 +42,7 @@ class Reply extends Model
 
     // Fillable Columns
 
-    protected $fillable = ['thread_id', 'user_id', 'body'];
+    protected $fillable = ['thread_id', 'user_id', 'body', 'is_delete'];
 
     public function owner()
     {
