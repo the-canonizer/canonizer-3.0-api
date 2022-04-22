@@ -79,7 +79,7 @@ class ReplyController extends Controller
         try {
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
-            $result = Reply::Join('nick_name', 'nick_name.id', '=', 'post.user_id')
+            $result = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
             ->select('post.*','nick_name.nick_name')
             ->where('thread_id', $id)->where('is_delete','0')->paginate($per_page);
 
