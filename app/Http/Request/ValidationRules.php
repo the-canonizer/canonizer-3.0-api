@@ -290,4 +290,15 @@ class ValidationRules
             'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
         ]);
     }
+
+    public function getPostStoreValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+        ]);
+    }
 }

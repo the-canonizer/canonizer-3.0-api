@@ -237,6 +237,15 @@ return [
         'type_required' => 'Type field is required.',
         'id_not_exist' => 'Given thread id does not exist in the database.',
         'update_success' => 'Thread title updated successfully.',
+    ],
+    'post' => [
+        'nick_name_required' => 'Nick name field is required.',
+        'body_regex' => 'Nick name field is required.',
+        'create_success' => 'Post Created Successfully!',
+        'create_failed' => 'Fail to create post, please try later.',
+        'camp_num_required' => 'Camp num is required.',
+        'topic_num_required' => 'Topic num is required.',
+        'topic_name_required' => 'Topic name is required.',
     ]
 
 ];
