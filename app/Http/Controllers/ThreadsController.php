@@ -537,7 +537,7 @@ class ThreadsController extends Controller
         }
     
         try {
-            $update = ["title"=>$request->title];
+            $update = ["title" => $request->title];
             $threads = Thread::find($id);
             if(!$threads){
                 $status = 400;

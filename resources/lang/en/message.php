@@ -235,8 +235,8 @@ return [
         'create_failed' => 'Fail to create thread, please try later.',
         'not_authorized' => 'You are not authorized to access this API.',
         'type_required' => 'Type field is required.',
-        'id_not_exist' => 'Given thread id does not exist in the database.',
-        'update_success' => 'Thread title updated successfully.',
+        'id_not_exist' => "Thread doesn't exist.",
+        'update_success' => 'Title of the thread updated successfully.',
     ]
 
 ];
