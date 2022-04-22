@@ -49,7 +49,7 @@ class ReplyController extends Controller
         try {
             $thread = Reply::create([
                 'user_id'  => $request->nick_name,
-                'body'     => $body_text,
+                'body'     => $request->body,
                 'thread_id'  => $request->thread_id,
             ]);
             if ($thread) {
@@ -126,7 +126,7 @@ class ReplyController extends Controller
         }
     
         try {
-            $update = ["body" => $body_text];
+            $update = ["body" => $request->body];
             $post = Reply::find($id);
             if(!$post){
                 $status = 400;
