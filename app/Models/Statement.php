@@ -60,10 +60,18 @@ class Statement extends Model
     public static function checkIfFileInUse($shortCode = '')
     {
         if($shortCode){
-
             $result = self::where('value', 'like', '%' . $shortCode . '%')->count();
             return ($result > 0) ? true : false;
         }
         return false;
     }
+
+    public static function getHistory($topicnum, $campnum) {
+        return self::where('topic_num', $topicnum)->where('camp_num', $campnum)->latest('submit_time')->get();
+    }
+
+    public function objectorNickName() {
+        return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
+    }
+
 }

@@ -128,22 +128,16 @@ return [
         'not_found' => 'No record found against provided id.',
     ],
     'validation_update_newsfeed' => [
-        'display_text_*_required' => 'Display text is required.',
-        'display_text_*_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
-        'display_text_*_max' => 'Display text may not be greater than 256 characters.',
+        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
+        'display_text_max' => 'Display text may not be greater than 256 characters.',
         'display_text_required' => 'Display text is required',
-        'display_text_array' => 'Display text should be an array',
-        'link_*_regex' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
-        'link_*_required' => 'Link is required.',
-        'link_size' => 'Size of all arrays must be same',
-        'link_array' => 'Link should be an array',
-        'link_required' => 'Link is required',
-        'available_for_child_*_boolean' => "Please enter boolean value for children's availability",
+        'link_regex' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
+        'link_required' => 'Link is required.',
+        'available_for_child_boolean' => "Please enter boolean value for children's availability",
         'available_for_child_required' => 'Availability for child is required',
-        'available_for_child_array' => 'Availability for child should be an array',
-        'available_for_child_size' => 'Size of all arrays must be same',
-        'topic_num_required' => 'Topic number is required.',
-        'camp_num_required' => 'Camp number is required'
+        'submitter_nick_id_required' => 'Submitter nick name id is required',  
+        'newsfeed_id_required' => "Newsfeed id is required.",
+        'not_found' => 'No record found against provided id.',
     ],
 
     'phone_number' => [
@@ -198,6 +192,7 @@ return [
         'image_name_required' => 'Please provide name for every file.',
         'folder_has_files_can_not_delete' => 'This folder contains files, hence can not be deleted.',
         'folder_deleted' => 'Folder has been deleted successfully.',
+        'not_found' => 'Record not found.',
         'folder_not_found' => "Folder you are trying to delete does not exists or already deleted.",
         'file_not_found' => "File you are trying to delete does not exists or already deleted.",
         'file_in_use' => "You can not delete this file, as this is used in one or more statements.",
@@ -237,6 +232,16 @@ return [
         'type_required' => 'Type field is required.',
         'id_not_exist' => "Thread doesn't exist.",
         'update_success' => 'Title of the thread updated successfully.',
-    ]
-
+    ],
+    'validation_get_statementHistory' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required",
+        'type_in' => "Please enter a valid type value (objected, in_review, live, old, all) or leave it empty",
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+    ],
+    'validation_edit_newsfeed' => [
+        'newsfeed_id_required' => "Newsfeed id is required.",
+        'not_found' => 'No record found against provided id.',
+    ],
 ];

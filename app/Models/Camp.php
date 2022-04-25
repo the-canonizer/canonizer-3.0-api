@@ -45,7 +45,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function getAgreementTopic($filter = array())
     {
-        $filterName = $filter['asOf'];
+        $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
             $filter['asOf'] = 'default';
         }
@@ -88,20 +88,20 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function agreementTopicByDateFilter($filter)
     {
-        $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
+        $asOfdate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
         return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
             ->join('namespace', 'topic.namespace_id', '=', 'namespace.id')
             ->where('camp.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)
-            ->where('topic.go_live_time', '<=', $asofdate)
+            ->where('topic.go_live_time', '<=', $asOfdate)
             ->latest('topic.go_live_time')->first();
     }
 
     public static function getLiveCamp($filter = array())
     {
-        $filterName = $filter['asOf'];
+        $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
             $filter['asOf'] = 'other';
         }

@@ -48,7 +48,7 @@ class DeleteNewsFeedApiTest extends TestCase
     public function testDeleteNewsFeedApiStatus()
     {
         $data = [
-            'newsfeed_id' => 299
+            'newsfeed_id' => 238
         ];
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
         $user = User::factory()->make();
@@ -74,6 +74,4 @@ class DeleteNewsFeedApiTest extends TestCase
         );
         $this->assertEquals(401, $this->response->status());
     }
-
-
 }
