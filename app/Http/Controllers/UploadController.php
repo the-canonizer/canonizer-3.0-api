@@ -59,6 +59,13 @@ class UploadController extends Controller
 
         try {
 
+            if(isset($all['id']) && $all['id']){
+                $folder = FileFolder::where('id',$all['id'])->first();
+                $folder->name = $all['name'];
+                $folder->update();
+                return $this->resProvider->apiJsonResponse(200, trans('message.uploads.folder_name_updated'), $folder, '');
+            }
+
             $folder = new FileFolder();
             $folder->name = $all['name'];
             $folder->user_id = $user->id;
