@@ -75,9 +75,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
         $router->post('/user/deactivate', ['uses' => 'UserController@deactivateUser']);
         $router->post('add-folder','UploadController@addFolder');
-        $router->post('upload-files','UploadController@uploadFileToS3');
+        //$router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
-        //$router->get('/uploaded-files', 'UploadController@getUploadedFiles');
+        $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
@@ -89,7 +89,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
     });
 
-    $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
+    $router->post('upload-files','UploadController@uploadFileToS3');
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
 });
