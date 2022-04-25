@@ -115,14 +115,14 @@ class UploadController extends Controller
 
 
         $all = $request->all();
-        $user = $request->user();
+        //$user = $request->user();
 
         try{
 
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);
-                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
+                $filename = User::ownerCode(1) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
                 /** Upload File to S3 */
                 $result = Aws::UploadFile($filename,$file);
@@ -131,7 +131,7 @@ class UploadController extends Controller
                 $fileShortCode = Util::generateShortCode();
                 $data = [
                     'file_name' => trim($all['name'][$k]),
-                    'user_id' => $user->id,
+                    'user_id' => 1,
                     'short_code' => $fileShortCode, 
                     'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
