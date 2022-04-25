@@ -7,15 +7,15 @@ use App\Facades\Util;
 
 class Support extends Model
 {
-    
+
     protected $primaryKey = 'support_id';
     protected $table = 'support';
     public $timestamps = false;
 
 
-    protected $fillable = ['nick_name_id','topic_num','camp_num','delegate_nick_name_id','start','end','flags','support_order'];
+    protected $fillable = ['nick_name_id', 'topic_num', 'camp_num', 'delegate_nick_name_id', 'start', 'end', 'flags', 'support_order'];
 
-   
+
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -23,21 +23,37 @@ class Support extends Model
      */
     protected $hidden = [];
 
-    public function getStartAttribute($value){
+    public function getStartAttribute($value)
+    {
         return date("Y-m-d", strtotime($value));
     }
 
-    public static function getDirectSupporter($topic_num,$camp_num=1) {
-		$as_of_time = time();
-		return Support::where('topic_num','=',$topic_num)
-		                ->where('camp_num','=',$camp_num)
-                        ->where('delegate_nick_name_id',0)
-                        ->whereRaw("(start <= $as_of_time) and ((end = 0) or (end > $as_of_time))")
-                        ->orderBy('start','DESC')
-                        ->groupBy('nick_name_id')
-						->select(['nick_name_id','support_order','topic_num','camp_num'])
-                        ->get();
-	}
+    public static function getDirectSupporter($topic_num, $camp_num = 1)
+    {
+        $as_of_time = time();
+        return Support::where('topic_num', '=', $topic_num)
+            ->where('camp_num', '=', $camp_num)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw("(start <= $as_of_time) and ((end = 0) or (end > $as_of_time))")
+            ->orderBy('start', 'DESC')
+            ->groupBy('nick_name_id')
+            ->select(['nick_name_id', 'support_order', 'topic_num', 'camp_num'])
+            ->get();
+    }
 
+    public static function ifIamSupporter($topic_num, $camp_num, $nick_names, $submit_time = null, $delayed = false)
+    {
+        if ($submit_time) {
+            if ($delayed) {
+                $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->where('start', '>', $submit_time)->first();
+            } else {
+                $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->where('start', '<=', $submit_time)->first();
+            }
+        } else {
+            $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->first();
+        }
+        
+        return !empty($support) ? $support->nick_name_id : 0; 
+    }
     
 }

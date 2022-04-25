@@ -34,6 +34,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('/get-algorithms','AlgorithmController@getAll');
     $router->get('/get-languages','ProfileController@getLanguages');
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
+    $router->post('/get-statement-history','StatementController@getStatementHistory');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -85,6 +86,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('thread/save','ThreadsController@store');
         $router->put('thread/update/{id}','ThreadsController@update');
+        $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
         $router->post('post/save','ReplyController@store');
         $router->get('post/list/{id}','ReplyController@postList');
@@ -92,7 +94,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('post/delete/{id}','ReplyController@isDelete');
 
     });
-
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
 });

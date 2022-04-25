@@ -57,7 +57,6 @@ class NewsFeedController extends Controller
      * )
      */
 
-
     public function getNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedValidationRules(), $this->validationMessages->getNewsFeedValidationMessages());
@@ -74,7 +73,6 @@ class NewsFeedController extends Controller
                 ->orderBy('order_id', 'ASC')->get();
 
             if ($news->isEmpty() && !empty($camp) && $camp->parent_camp_num != null) {
-                
                 $neCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $neCampNum)
@@ -82,16 +80,15 @@ class NewsFeedController extends Controller
                     ->where('available_for_child', '=', 1)
                     ->orderBy('order_id', 'ASC')->get();
             }
-
             foreach ($news as $newsfeed) {
-                $newsfeed->delete_flag = false;
+                $newsfeed->owner_flag = false;
                 $newsfeed->submit_time = date('Y-m-d H:i A', $newsfeed->submit_time);
                 $newsfeed->submitter_nick_name = $newsfeed->nickName ? $newsfeed->nickName->nick_name : "";
                 if ($request->user()) {
-                    ($newsfeed->author_id == $request->user()->id || $request->user()->type == "admin") ?  $newsfeed->delete_flag = true : $newsfeed->delete_flag = false;
+                    ($newsfeed->author_id == $request->user()->id || $request->user()->type == "admin") ?  $newsfeed->owner_flag = true : $newsfeed->owner_flag = false;
                 }
             }
-            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'delete_flag'];
+            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'owner_flag'];
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
@@ -121,32 +118,32 @@ class NewsFeedController extends Controller
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
      *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number is required",
+     *                   property="newsfeed_id",
+     *                   description="ID of the newsfeed",
      *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
+     *                   property="submitter_nick_id",
+     *                   description="Submitter nick name id",
      *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                  property="display_text",
-     *                  description="display text is required",
+     *                  description="Display text is required",
      *                  required=true,
      *                  type="array",
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="link is required",
+     *                   description="Link is required",
      *                   required=true,
      *                   type="array",
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="availability for child is required",
+     *                   description="Availability for child is required",
      *                   required=true,
      *                   type="array",
      *               ),
@@ -154,50 +151,48 @@ class NewsFeedController extends Controller
      *       )
      *   ), 
      *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
 
     public function updateNewsFeed(Request $request, Validate $validate)
     {
-        $sizeLimit = $request->display_text ? count($request->display_text) : 0;
-        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedUpdateValidationRules($sizeLimit), $this->validationMessages->getNewsFeedUpdateValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedUpdateValidationRules(), $this->validationMessages->getNewsFeedUpdateValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $campNum = $request->camp_num;
-        $topicNum = $request->topic_num;
+        $newsFeedId = $request->newsfeed_id;
         $display_text = $request->display_text;
+        $submitterNickId = $request->submitter_nick_id;
         $link = $request->link;
-        $available_for_child = $request->available_for_child;
-        $submittime = time();
-        NewsFeed::where('camp_num', '=', $campNum)
-            ->where('topic_num', '=', $topicNum)
-            ->where('end_time', '=', null)
-            ->update(['end_time' => $submittime]);
-
-        for ($i = 0; $i < count($display_text); $i++) {
+        $userId=$request->user()->id;
+        $userType=$request->user()->type;
+        $availableForChild = $request->available_for_child;
+        try {
+            $newsFeed = NewsFeed::findOrFail($newsFeedId);
+            if ($newsFeed->author_id != $userId && $userType != "admin") {
+                return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
+            }
+            $topicNum = $newsFeed->topic_num;
+            $campNum = $newsFeed->camp_num;
+            $newsFeed->end_time = time();
+            $newsFeed->save();
             $news = new NewsFeed();
-            $news->topic_num = $topicNum;
-            $news->camp_num = $campNum;
-            $news->display_text = $display_text[$i];
-            $news->link = $link[$i];
-            $news->available_for_child = !empty($available_for_child[$i]) ? $available_for_child[$i] : 0;
+            $news->topic_num =  $topicNum;
+            $news->camp_num =  $campNum;
+            $news->author_id = $userId;
+            $news->display_text = $display_text;
+            $news->link = $link;
+            $news->submitter_nick_id = $submitterNickId;
+            $news->available_for_child = $availableForChild;
             $news->submit_time = time();
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
-        }
-
-        try {
-            $news = NewsFeed::where('topic_num', '=', $topicNum)
-                ->where('camp_num', '=', $campNum)
-                ->where('end_time', '=', null)
-                ->orderBy('order_id', 'ASC')->get();
-            if ($news) {
-                $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submit_time'];
-                $news = $this->resourceProvider->jsonResponse($indexes, $news);
-            }
+            $temp[]=$news;
+            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
+            $news = $this->resourceProvider->jsonResponse($indexes, $temp);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
@@ -239,19 +234,19 @@ class NewsFeedController extends Controller
      *               ),
      *               @OA\Property(
      *                  property="display_text",
-     *                  description="display text is required",
+     *                  description="Display text is required",
      *                  required=true,
      *                  type="string",
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="link is required",
+     *                   description="Link is required",
      *                   required=true,
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="availability for child is required",
+     *                   description="Availability for child is required",
      *                   required=true,
      *                   type="boolean",
      *               ),
@@ -276,8 +271,8 @@ class NewsFeedController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $nickNameIds=Nickname::getNicknamesIdsByUserId($request->user()->id);
-        if(!in_array($request->submitter_nick_id,$nickNameIds)){
+        $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+        if (!in_array($request->submitter_nick_id, $nickNameIds)) {
             return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
         }
         try {
@@ -330,8 +325,8 @@ class NewsFeedController extends Controller
      *       )  
      *    ),
      *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=404, description="Record not found"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      *  )
      */
 
@@ -348,8 +343,68 @@ class NewsFeedController extends Controller
             if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
                 $newsFeed->delete();
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
+            } else {
+                return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
             }
-            return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
+    /**
+     * @OA\Post(path="/edit-camp-newsfeed",
+     *   tags={"Camp"},
+     *   summary="edit camp newsfeed",
+     *   description="This is used to get  a record for updating camp newsfeed.",
+     *   operationId="editCampNewsFeed",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="edit camp newsfeed",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Camp newsfeed id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *           )
+     *       )  
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     *  )
+     */
+    public function editNewsFeed(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $newsId = $request->newsfeed_id;
+        $userId = $request->user()->id;
+        $temp = [];
+        try {
+            $newsFeed = NewsFeed::findOrFail($newsId);
+            if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
+                $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
+                $temp[] = $newsFeed;
+                $newsFeed = $this->resourceProvider->jsonResponse($indexes, $temp);
+            } else {
+                return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $newsFeed, '',);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }

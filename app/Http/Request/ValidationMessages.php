@@ -165,22 +165,16 @@ class ValidationMessages
     public function getNewsFeedUpdateValidationMessages(): array
     {
         return([
-            'display_text.*.required' => trans('message.validation_update_newsfeed.display_text_*_required'),
-            "display_text.*.regex" => trans('message.validation_update_newsfeed.display_text_*_regex'),
-            "display_text.*.max" => trans('message.validation_update_newsfeed.display_text_*_max'),
             'display_text.required' => trans('message.validation_update_newsfeed.display_text_required'),
-            'display_text.array' => trans('message.validation_update_newsfeed.display_text_array'),
-            "link.*.regex" => trans('message.validation_update_newsfeed.link_*_regex'),
-            "link.*.required" => trans('message.validation_update_newsfeed.link_*_required'),
-            'link.size' => trans('message.validation_update_newsfeed.link_size'),
-            'link.array' => trans('message.validation_update_newsfeed.link_array'),
-            'link.required' => trans('message.validation_update_newsfeed.link_required'),
-            "available_for_child.*.boolean" => trans('message.validation_update_newsfeed.available_for_child_*_boolean'),
+            "display_text.regex" => trans('message.validation_update_newsfeed.display_text_regex'),
+            "display_text.max" => trans('message.validation_update_newsfeed.display_text_max'),
+            "link.regex" => trans('message.validation_update_newsfeed.link_regex'),
+            "link.required" => trans('message.validation_update_newsfeed.link_required'),
+            "available_for_child.boolean" => trans('message.validation_update_newsfeed.available_for_child_boolean'),
             'available_for_child.required' => trans('message.validation_update_newsfeed.available_for_child_required'),
-            'available_for_child.array' => trans('message.validation_update_newsfeed.available_for_child_array'),
-            'available_for_child.size' => trans('message.validation_update_newsfeed.available_for_child_size'),
-            'topic_num.required' => trans('message.validation_update_newsfeed.topic_num_required'),
-            'camp_num.required' => trans('message.validation_update_newsfeed.camp_num_required'),
+            'newsfeed_id.required' => trans('message.validation_update_newsfeed.newsfeed_id_required'),
+            'newsfeed_id.exists' => trans('message.validation_update_newsfeed.not_found'),
+            'submitter_nick_id.required'  => trans('message.validation_update_newsfeed.submitter_nick_id_required'),
         ]);
     }
 
@@ -223,6 +217,14 @@ class ValidationMessages
         return [
             'newsfeed_id.required' => trans('message.validation_delete_newsfeed.newsfeed_id_required'),
             'newsfeed_id.exists' => trans('message.validation_delete_newsfeed.not_found')
+        ];
+    }
+
+    public function getNewsFeedEditValidationMessages(): array
+    {
+        return [
+            'newsfeed_id.required' => trans('message.validation_edit_newsfeed.newsfeed_id_required'),
+            'newsfeed_id.exists' => trans('message.validation_edit_newsfeed.not_found')
         ];
     }
     
@@ -332,6 +334,17 @@ class ValidationMessages
             'title.required' => trans('message.thread.title_required'),
             'title.max' => trans('message.thread.title_max')
         ];
+    }
+    
+    public function getStatementHistoryValidationMessages(): array
+    {
+        return([
+            'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
+            'type.in' => trans('message.validation_get_statementHistory.type_in'),
+            'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required'),
+        ]);
     }
 
     
