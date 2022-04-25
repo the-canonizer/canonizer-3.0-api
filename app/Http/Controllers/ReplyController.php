@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
-use phpDocumentor\Reflection\Types\Nullable;
 
 class ReplyController extends Controller
 {
@@ -31,6 +30,109 @@ class ReplyController extends Controller
         $this->validationMessages = new ValidationMessages;
         $this->resProvider = $resProvider;
     }
+
+    /**
+     * @OA\POST(path="/post/save",
+     *   tags={"Post"},
+     *   summary="save thread",
+     *   description="This is use for save post",
+     *   operationId="postSave",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="body",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="nick_name",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="thread_id",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="camp_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_name",
+     *                  type="string"
+     *              )
+     *          )
+     *     )
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="user_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="thread_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="body",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="created_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="updated_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="id",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
 
     public function store(Request $request, Validate $validate)
     {
@@ -73,6 +175,153 @@ class ReplyController extends Controller
         }
     }
 
+      /**
+     * @OA\GET(path="/post/list/{id}",
+     *   tags={"Post"},
+     *   summary="list post",
+     *   description="This is use for get post list",
+     *   operationId="postList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="page",
+     *         in="url",
+     *         required=false,
+     *         description="Add page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="per_page",
+     *         in="url",
+     *         required=false,
+     *         description="Add per_page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="like",
+     *         in="url",
+     *         required=false,
+     *         description="Add like field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="items",
+     *                                              type="object",
+     *                                                  @OA\Property(
+     *                                                      property="id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="user_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="camp_id",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                  @OA\Property(
+     *                                                      property="topic_id",
+     *                                                      type="integer"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="title",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="body",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="created_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="nick_name",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_updated_at",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="post_count",
+     *                                                      type="integer"
+     *                                                 )
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="current_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="per_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="last_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="total_rows",
+     *                                              type=""
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="from",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="to",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function postList(Request $request, $id)
     {
         
@@ -110,6 +359,113 @@ class ReplyController extends Controller
         }
     }
 
+     /**
+     * @OA\put(path="/post/update/{id}",
+     *   tags={"Post"},
+     *   summary="update thread",
+     *   description="This is use for update post",
+     *   operationId="updateSave",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="body",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="nick_name",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="thread_id",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="camp_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_num",
+     *                  type="string"
+     *              ),
+     *               @OA\Property(
+     *                  property="topic_name",
+     *                  type="string"
+     *              )
+     *          )
+     *     )
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="user_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="thread_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="body",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="created_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="updated_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="id",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="is_delete",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
     public function update(Request $request, Validate $validate, $id)
     {
 
@@ -146,6 +502,72 @@ class ReplyController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+     /**
+     * @OA\Delete(path="/post/delete/{id}",
+     *   tags={"Post"},
+     *   summary="delete post",
+     *   description="This API is use for delete post",
+     *   operationId="postDelete",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Delete a record from this id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *         response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *              @OA\Property(
+     *                   property="status_code",
+     *                   type="integer"
+     *               ),
+     *               @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *               ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *             @OA\Property(
+     *                property="data",
+     *                type="string",
+     *             ),
+     *        ),
+     *     ),
+     *
+     *
+     *     @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
 
     public function isDelete($id)
     {
