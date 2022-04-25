@@ -108,10 +108,10 @@ class UploadController extends Controller
      */
     public function uploadFileToS3(Request $request, Validate $validate) 
     {
-        $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
+       /* $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
+        }*/
 
 
         $all = $request->all();
