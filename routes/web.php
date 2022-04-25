@@ -77,7 +77,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('add-folder','UploadController@addFolder');
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
-        $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
+        //$router->get('/uploaded-files', 'UploadController@getUploadedFiles');
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
@@ -88,6 +88,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
     });
+
+    $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
 });
