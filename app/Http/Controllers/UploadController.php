@@ -108,22 +108,21 @@ class UploadController extends Controller
      */
     public function uploadFileToS3(Request $request, Validate $validate) 
     {
-       /* $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getUploadFileValidationRules(), $this->validationMessages->getUploadFileValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }*/
+        }
 
 
         $all = $request->all();
-        echo "<pre>"; print_r($all); exit;
-        //$user = $request->user();
+        $user = $request->user();
 
         try{
 
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);
-                $filename = User::ownerCode(1) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
+                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
                 /** Upload File to S3 */
                 $result = Aws::UploadFile($filename,$file);
@@ -132,7 +131,7 @@ class UploadController extends Controller
                 $fileShortCode = Util::generateShortCode();
                 $data = [
                     'file_name' => trim($all['name'][$k]),
-                    'user_id' => 1,
+                    'user_id' => $user->id,
                     'short_code' => $fileShortCode, 
                     'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
