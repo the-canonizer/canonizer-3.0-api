@@ -230,6 +230,8 @@ return [
         'create_failed' => 'Fail to create thread, please try later.',
         'not_authorized' => 'You are not authorized to access this API.',
         'type_required' => 'Type field is required.',
+        'id_not_exist' => "Thread doesn't exist.",
+        'update_success' => 'Title of the thread updated successfully.',
     ],
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",

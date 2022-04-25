@@ -288,6 +288,13 @@ class ValidationRules
             'type' => 'required',
         ]);
     }
+
+    public function getThreadUpdateValidationRules(): array
+    {
+        return ([
+            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
+        ]);
+    }
     
     public function getStatementHistoryValidationRules(): array
     {

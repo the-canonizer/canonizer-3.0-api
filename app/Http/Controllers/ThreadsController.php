@@ -425,4 +425,134 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+     /**
+     * @OA\PUT(path="/thread/update",
+     *   tags={"Thread"},
+     *   summary="update thread",
+     *   description="This is use for update thread",
+     *   operationId="threadUpdate",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="url",
+     *         required=true,
+     *         description="send thread id in url",
+     *         @OA\Schema(
+     *              type="Value Parameters"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="title",
+     *                  type="string"
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="user_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="title",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="body",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="camp_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="topic_id",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="created_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="updated_at",
+     *                                              type="string"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="id",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function update(Request $request, Validate $validate, $id)
+    {
+
+        $validationErrors = $validate->validate($request, $this->rules->getThreadUpdateValidationRules(), $this->validationMessages->getThreadUpdateValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+    
+        try {
+            $update = ["title" => $request->title];
+            $threads = Thread::find($id);
+            if(!$threads){
+                $threads = null;
+                $status = 400;
+                $message = trans('message.thread.id_not_exist');
+            }else{
+                $threads->update($update);
+                $status = 200;
+                $message = trans('message.thread.update_success');
+            }
+            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
 }
