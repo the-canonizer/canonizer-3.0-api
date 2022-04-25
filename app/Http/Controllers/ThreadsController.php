@@ -147,12 +147,12 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
-        if (count($thread_flag) > 0) {
-            $status = 400;
-            $message = trans('message.thread.title_unique');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        }
+        // $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+        // if (count($thread_flag) > 0) {
+        //     $status = 400;
+        //     $message = trans('message.thread.title_unique');
+        //     return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        // }
         try {
             $thread = Thread::create([
                 'user_id'  => $request->nick_name,

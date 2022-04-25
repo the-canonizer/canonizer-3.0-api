@@ -56,19 +56,20 @@ class CampForum
             $i = 0;
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
+                $user_id = $user->id ?? null;
                 $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
                 $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
                 $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
                 $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicid, $campnum);
-                $support_list[$user->id] = $supported_camp_list;
+                $support_list[$user_id] = $supported_camp_list;
                 $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
                 if ($ifalsoSubscriber) {
-                    $support_list_data = Camp::getSubscriptionList($user->id, $topicid, $campnum);
-                    $supporter_and_subscriber[$user->id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
+                    $support_list_data = Camp::getSubscriptionList($user_id, $topicid, $campnum);
+                    $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
                 }
                 $bcc_user[] = $user;
-                $userExist[] = $user->id;
+                $userExist[] = $user_id;
             }
             if ($subscribers && count($subscribers) > 0) {
                 foreach ($subscribers as $sub) {
@@ -89,15 +90,13 @@ class CampForum
         if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
 
             foreach ($filtered_bcc_user as $user) {
-                $bcc_email = CampForum::getReceiver($user->email);
-
-                $data['support_list'] = $support_list[$user->id];
-                if (isset($supporter_and_subscriber[$user->id]) && isset($supporter_and_subscriber[$user->id]['also_subscriber']) && $supporter_and_subscriber[$user->id]['also_subscriber']) {
-                    $data['also_subscriber'] = $supporter_and_subscriber[$user->id]['also_subscriber'];
-                    $data['sub_support_list'] = $supporter_and_subscriber[$user->id]['sub_support_list'];
+                $data['support_list'] = $support_list[$user_id];
+                if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
+                    $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
+                    $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
                 try {
-                    Event::dispatch(new CampForumThreadMailEvent($user->email, $user, $link, $data));
+                    Event::dispatch(new CampForumThreadMailEvent($user->email ?? null, $user, $link, $data));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -109,10 +108,9 @@ class CampForum
         if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {
             $data['subscriber'] = 1;
             foreach ($filtered_sub_user as $userSub) {
-                $subscriber_bcc_email = CampForum::getReceiver($userSub->email);
                 $data['support_list'] = $subscribe_list[$userSub->id];
                 try {
-                    Event::dispatch(new CampForumThreadMailEvent($userSub->email, $userSub, $link, $data));
+                    Event::dispatch(new CampForumThreadMailEvent($userSub->email ?? null, $userSub, $link, $data));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -275,18 +273,19 @@ class CampForum
             $subscribers = Camp::getCampSubscribers($topicid, $camp_id);
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
+                $user_id = $user->id ?? null;$user_id = $user->id ?? null;
                 $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
                 $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
                 $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
                 $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicid, $campnum);
-                $support_list[$user->id] = $supported_camp_list;
+                $support_list[$user_id] = $supported_camp_list;
                 $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
                 if ($ifalsoSubscriber) {
-                    $support_list_data = Camp::getSubscriptionList($user->id, $topicid, $campnum);
-                    $supporter_and_subscriber[$user->id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
+                    $support_list_data = Camp::getSubscriptionList($user_id, $topicid, $campnum);
+                    $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
                 }
-                $userExist[] = $user->id;
+                $userExist[] = $user_id;
                 $bcc_user[] = $user;
             }
             if ($subscribers && count($subscribers) > 0) {
@@ -307,14 +306,14 @@ class CampForum
 
         if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
             foreach ($filtered_bcc_user as $user) {
-                $data['support_list'] = $support_list[$user->id];
-                if (isset($supporter_and_subscriber[$user->id]) && isset($supporter_and_subscriber[$user->id]['also_subscriber']) && $supporter_and_subscriber[$user->id]['also_subscriber']) {
-                    $data['also_subscriber'] = $supporter_and_subscriber[$user->id]['also_subscriber'];
-                    $data['sub_support_list'] = $supporter_and_subscriber[$user->id]['sub_support_list'];
+                $data['support_list'] = $support_list[$user_id];
+                if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
+                    $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
+                    $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
 
                 try {
-                    Event::dispatch(new CampForumPostMailEvent($user->email, $user, $link, $data));
+                    Event::dispatch(new CampForumPostMailEvent($user->email ?? null, $user, $link, $data));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
