@@ -118,7 +118,6 @@ class UploadController extends Controller
         $user = $request->user();
 
         try{
-
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);
@@ -136,7 +135,7 @@ class UploadController extends Controller
                     'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
                     'folder_id'=> isset($all['folder_id']) ? $all['folder_id'] : '',
-                    'file_path' => 'hgnjgf',//$response['ObjectURL'],
+                    'file_path' => $response['ObjectURL'],
                     'created_at' => time(),
                     'updated_at' => time()
                 ];
