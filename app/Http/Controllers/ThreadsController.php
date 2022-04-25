@@ -540,13 +540,14 @@ class ThreadsController extends Controller
             $update = ["title" => $request->title];
             $threads = Thread::find($id);
             if(!$threads){
+                $threads = null;
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }else{
+                $threads->update($update);
+                $status = 200;
+                $message = trans('message.thread.update_success');
             }
-            $threads->update($update);
-            $status = 200;
-            $message = trans('message.thread.update_success');
             return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
