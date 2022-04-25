@@ -33,6 +33,8 @@ return [
         'user_remove'  => 'User remove successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
+        'subscribed'  => 'Subscribed successfully.',
+        'unsubscribed'  => 'Unsubscribed successfully.',
         
     ],
     'general' => [
@@ -240,5 +242,15 @@ return [
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
+    ],
+    'validation_subscription_camp' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required",
+        'checked_boolean' => "Please enter boolean value for Checked",
+        'checked_required' => 'Checked is required',
+        'subscription_id_required' => "Subscription id is required in case of unsubscribe",
+        'subscription_id_not_found' => "No record found against provided subscription id.",
+        'already_subscribed' => "Already subscribed.",
+        'already_unsubscribed' => "Already unsubscribed.",
     ],
 ];

@@ -334,8 +334,21 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
-            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required'),
+            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
         ]);
+    }
+
+    public function getAllCampSubscriptionValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_subscription_camp.topic_num_required'),
+            'camp_num.required' => trans('message.validation_subscription_camp.camp_num_required'),
+            "checked.boolean" => trans('message.validation_subscription_camp.checked_boolean'),
+            'checked.required' => trans('message.validation_subscription_camp.checked_required'),
+            'subscription_id.required_if' => trans('message.validation_subscription_camp.subscription_id_required'),
+            'subscription_id.exists' => trans('message.validation_subscription_camp.subscription_id_not_found'),
+
+        ];
     }
 
 }

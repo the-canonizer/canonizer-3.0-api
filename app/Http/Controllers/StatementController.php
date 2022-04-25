@@ -173,23 +173,26 @@ class StatementController extends Controller
                         $starttime = time();
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
-                        $val['objector_nick_name']=null;
+                        $val->objector_nick_name=null;
+                        $val->go_live_time= date('m/d/Y, H:i:s A', $val->go_live_time);
+                        $val->submit_time= date('m/d/Y, H:i:s A', $val->submit_time);
+                       
                         if ($val->objector_nick_id !== NULL) {
-                            $val['status'] = "objected";
-                             $val['objector_nick_name']=$val->objectorNickName->nick_name;
+                            $val->status = "objected";
+                             $val->objector_nick_name=$val->objectorNickName->nick_name;
                              $val->unsetRelation('objectorNickName');
                         } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
-                            $val['status'] = "in_review";
+                            $val->status = "in_review";
                         } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {
                             $currentLive = 1;
-                            $val['status'] = "live";
+                            $val->status = "live";
                         } else {
-                            $val['status'] = "old";
+                            $val->status = "old";
                         }
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
-                            ($filter['type']==$val['status'] || $filter['type']=='all') ? array_push($response->statement, $val) : null;    
+                            ($filter['type']==$val->status || $filter['type']=='all') ? array_push($response->statement, $val) : null;    
                         }
                     }
                 }

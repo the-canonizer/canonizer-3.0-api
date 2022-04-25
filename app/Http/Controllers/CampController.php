@@ -18,6 +18,8 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
+use App\Models\CampSubscription;
+use stdClass;
 
 class CampController extends Controller
 {
@@ -149,7 +151,7 @@ class CampController extends Controller
             } else {
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
-           
+
             $nextCampNum =  Camp::where('topic_num', $request->topic_num)
                 ->latest('submit_time')->first();
             $nextCampNum->camp_num++;
@@ -171,11 +173,11 @@ class CampController extends Controller
             ];
 
             $camp = Camp::create($input);
-           
+
             if ($camp) {
 
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
-                $camp_id= $camp->camp_num ?? 1;
+                $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
                 $filter['campNum'] = $camp_id;
@@ -187,8 +189,8 @@ class CampController extends Controller
                         "link" =>  $link,
                         "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
-                    ];                 
-                   Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                    ];
+                    Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -211,8 +213,8 @@ class CampController extends Controller
         }
     }
 
-  /**
-    * @OA\Post(path="/get-camp-record",
+    /**
+     * @OA\Post(path="/get-camp-record",
      *   tags={"Camp"},
      *   summary="get camp record",
      *   description="Used to get camp record.",
@@ -265,23 +267,28 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
-        $camp=[];
-        try {  
+        $camp = [];
+        try {
             $livecamp = Camp::getLiveCamp($filter);
-            if ($livecamp) {                        
-                $livecamp->nick_name=$livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
-                $parentCamp = Camp::campNameWithAncestors($livecamp,$filter);
-                $camp[]=$livecamp;
-                $indexs=['topic_num','camp_num','camp_name','key_words','camp_about_url','nick_name'];
+            if ($livecamp) {
+                $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
+                $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
+                $livecamp->campSubscriptionId = null;
+                if ($request->user()) {
+                    $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
+                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : null;
+                }
+                $camp[] = $livecamp;
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
-                $camp[0]['parentCamps']=$parentCamp;
+                $camp[0]['parentCamps'] = $parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
-    
+
     /**
      * @OA\POST(path="/camp/allParent",
      *   tags={"Camp"},
@@ -545,9 +552,10 @@ class CampController extends Controller
     public function getAllAboutNickName(Request $request, Validate $validate)
     {
         try {
-            $allNicknames =DB::table('nick_name')
-            ->select(DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
-            )->orderBy('nick_name', 'ASC')->get();
+            $allNicknames = DB::table('nick_name')
+                ->select(
+                    DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
+                )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 $status = 400;
                 $message = trans('message.error.exception');
@@ -564,7 +572,7 @@ class CampController extends Controller
         }
     }
 
-      /**
+    /**
      * @OA\POST(path="/camp/getTopicNickNameUsed",
      *   tags={"Camp"},
      *   summary="Get Topic Nick Name Used",
@@ -665,6 +673,47 @@ class CampController extends Controller
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
+    }
+
+    public function campSubscription(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAllCampSubscriptionValidationRules(), $this->validationMessages->getAllCampSubscriptionValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $all = $request->all();
+            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : null;
+            $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $all['camp_num'])->where('topic_num', '=', $all['topic_num'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
+            if ($all['checked'] && empty($campSubscriptionData)) {
+                $campSubscription = new CampSubscription;
+                $campSubscription->user_id = $request->user()->id;
+                $campSubscription->topic_num = $all['topic_num'];
+                $campSubscription->camp_num = $all['camp_num'];
+                $campSubscription->subscription_start = strtotime(date('Y-m-d H:i:s'));
+                $msg = trans('message.success.subscribed');
+            } elseif ($all['checked'] && $campSubscriptionData) {
+                return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_subscribed'), [], '');
+            } else {
+                $campSubscription = CampSubscription::where('user_id', '=', $request->user()->id)->where('id', '=', $subscription_id)->where('subscription_end', '=', null)->first();
+                if (empty($campSubscription)) {
+                    return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_unsubscribed'), [], '');
+                }
+                $campSubscription->subscription_end = strtotime(date('Y-m-d H:i:s'));
+                $msg = trans('message.success.unsubscribed');
+            }
+            $campSubscription->save();
+            $subscriptionId = ($subscription_id) ? null : $campSubscription->id;
+            $response = new stdClass();
+            $response->msg = $msg;
+            $response->subscriptionId = $subscriptionId;
+            $indexes = ['msg', 'subscriptionId'];
+            $data[0] = $response;
+            $data = $this->resourceProvider->jsonResponse($indexes, $data);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 }
