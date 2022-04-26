@@ -90,7 +90,7 @@ class ValidationRules
     public function getForgotPasswordSendOtpValidationRules(): array
     {
         return ([
-            'email' => 'required|string|email|max:225',
+            'email' => 'required|string|email|max:225|regex:/^\S*$/u',
         ]);
     }
 

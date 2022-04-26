@@ -99,7 +99,10 @@ class ValidationMessages
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
         return([
+            'email' => trans('message.validation_forgot_password.email_required'),
             'email.required' => trans('message.validation_forgot_password.email_required'),
+            'email.regex' => trans('message.validation_forgot_password.email_required'),
+            'email.max' => trans('message.validation_forgot_password.email_max'),
         ]);
     }
 

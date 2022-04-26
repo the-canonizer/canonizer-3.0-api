@@ -77,7 +77,8 @@ return [
         'otp_required' => 'The OTP field is required.',
         'email_required' => 'Please enter a valid email address',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-        'current_password_required' => 'The current password field is required.'
+        'current_password_required' => 'The current password field is required.',
+        'email_max' => 'Email can not be more than 225 characters.'
     ],
     'validation_camp_store' => [
         'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
