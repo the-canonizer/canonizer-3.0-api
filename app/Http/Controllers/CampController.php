@@ -676,6 +676,59 @@ class CampController extends Controller
         }
     }
 
+    /**
+     * @OA\POST(path="/camp/subscription",
+     *   tags={"Camp"},
+     *   summary="Subscribe or unsubscribe to a camp or all topic camps",
+     *   description="This API is used to subscribe or unsubscribe to a specific camp or all topic camps.",
+     *   operationId="campSubscription",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Subscribe or unsubscribe to a camp or topic",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="checked",
+     *                   description="Subscribe or unsubscribe",
+     *                   required=true,
+     *                   type="boolean",
+     *               ),
+     *               @OA\Property(
+     *                   property="subscription_id",
+     *                   description="Previous subscription id",
+     *                   required=false,
+     *                   type="integer",
+     *               ),
+     *           )
+     *       )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function campSubscription(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAllCampSubscriptionValidationRules(), $this->validationMessages->getAllCampSubscriptionValidationMessages());
