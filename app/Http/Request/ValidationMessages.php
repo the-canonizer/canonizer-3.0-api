@@ -347,4 +347,20 @@ class ValidationMessages
         ]);
     }
 
+    public function getAddDirectSupportMessages(): array
+    {
+        return([
+            'nick_name_id.required' => trans('message.support_validation.nick_name_required'),
+            'camps.required' => trans('message.support_validation.camps_required'),
+            'camps.min'=> trans('message.support_validation.camps_required'),
+            'topic_num.required'=> trans('message.support_validation.topic_num_required'),
+            'topic_num.integer'=> trans('message.support_validation.topic_num_required'),
+            'camps.*.camp_num.required' => trans('message.support_validation.camp_num_required'),
+            'camps.*.support_order.required' => trans('message.support_validation.support_order_required'),
+            'camps.*.camp_num.integer' => trans('message.support_validation.camp_num_invalid'),
+            'camps.*.support_order.integer' => trans('message.support_validation.support_order_invalid'),
+            
+         ]);
+    }
+
 }

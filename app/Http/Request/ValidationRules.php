@@ -306,4 +306,15 @@ class ValidationRules
             'as_of_date' => 'required_if:as_of,bydate'
         ];
     }
+
+    public function getAddDirectSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required',
+            'camps' => 'required|array|min:1',
+            'camps.*.camp_num' => 'required|integer',
+            'camps.*.support_order' => 'required|integer'
+        ];
+    }
 }
