@@ -273,10 +273,10 @@ class CampController extends Controller
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                $livecamp->campSubscriptionId = null;
+                $livecamp->campSubscriptionId = "";
                 if ($request->user()) {
                     $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : null;
+                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : "";
                 }
                 $camp[] = $livecamp;
                 $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
@@ -737,7 +737,7 @@ class CampController extends Controller
         }
         try {
             $all = $request->all();
-            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : null;
+            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : "";
             $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $all['camp_num'])->where('topic_num', '=', $all['topic_num'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
             if ($all['checked'] && empty($campSubscriptionData)) {
                 $campSubscription = new CampSubscription;
@@ -757,7 +757,7 @@ class CampController extends Controller
                 $msg = trans('message.success.unsubscribed');
             }
             $campSubscription->save();
-            $subscriptionId = ($subscription_id) ? null : $campSubscription->id;
+            $subscriptionId = ($subscription_id) ? "" : $campSubscription->id;
             $response = new stdClass();
             $response->msg = $msg;
             $response->subscriptionId = $subscriptionId;
