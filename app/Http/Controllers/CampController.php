@@ -273,10 +273,10 @@ class CampController extends Controller
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                $livecamp->campSubscriptionId = null;
+                $livecamp->campSubscriptionId = "";
                 if ($request->user()) {
                     $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : null;
+                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : "";
                 }
                 $camp[] = $livecamp;
                 $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
@@ -676,6 +676,59 @@ class CampController extends Controller
         }
     }
 
+    /**
+     * @OA\POST(path="/camp/subscription",
+     *   tags={"Camp"},
+     *   summary="Subscribe or unsubscribe to a camp or all topic camps",
+     *   description="This API is used to subscribe or unsubscribe to a specific camp or all topic camps.",
+     *   operationId="campSubscription",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Subscribe or unsubscribe to a camp or topic",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="checked",
+     *                   description="Subscribe or unsubscribe",
+     *                   required=true,
+     *                   type="boolean",
+     *               ),
+     *               @OA\Property(
+     *                   property="subscription_id",
+     *                   description="Previous subscription id",
+     *                   required=false,
+     *                   type="integer",
+     *               ),
+     *           )
+     *       )
+     *   ), 
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function campSubscription(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAllCampSubscriptionValidationRules(), $this->validationMessages->getAllCampSubscriptionValidationMessages());
@@ -684,7 +737,7 @@ class CampController extends Controller
         }
         try {
             $all = $request->all();
-            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : null;
+            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : "";
             $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $all['camp_num'])->where('topic_num', '=', $all['topic_num'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
             if ($all['checked'] && empty($campSubscriptionData)) {
                 $campSubscription = new CampSubscription;
@@ -704,7 +757,7 @@ class CampController extends Controller
                 $msg = trans('message.success.unsubscribed');
             }
             $campSubscription->save();
-            $subscriptionId = ($subscription_id) ? null : $campSubscription->id;
+            $subscriptionId = ($subscription_id) ? "" : $campSubscription->id;
             $response = new stdClass();
             $response->msg = $msg;
             $response->subscriptionId = $subscriptionId;
