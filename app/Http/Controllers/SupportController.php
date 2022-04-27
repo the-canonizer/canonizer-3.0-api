@@ -189,4 +189,30 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+
+    /**
+     * 
+     */
+
+    public function addDelegateSupport(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAddDelegateSupportRule(), $this->validationMessages->getAddDelegateSupportMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $user = $request->user();
+        $userId = $user->id;
+        $all = $request->all();  
+        echo "<pre>"; print_r($all); exit;      
+
+        try{
+
+
+
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }

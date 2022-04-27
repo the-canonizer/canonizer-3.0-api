@@ -89,6 +89,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
         $router->post('support/add', 'SupportController@addDirectSupport');
+        $router->post('support/add-delegate', 'SupportController@addDelegateSupport');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');

@@ -363,4 +363,14 @@ class ValidationMessages
          ]);
     }
 
+    public function getAddDelegateSupportMessages(): array
+    {
+        return([
+            'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
+            'delegate_to_nick_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
+            'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
+            
+         ]);
+    }
+
 }

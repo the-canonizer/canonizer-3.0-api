@@ -317,4 +317,13 @@ class ValidationRules
             'camps.*.support_order' => 'required|integer'
         ];
     }
+
+    public function getAddDelegateSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'delegate_to_nick_id' => 'required|integer'
+        ];
+    }
 }
