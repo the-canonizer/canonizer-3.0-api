@@ -142,8 +142,8 @@ class UploadController extends Controller
                     'short_code' => $fileShortCode, 
                     'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
-                    'folder_id'=> isset($all['folder_id']) ? $all['folder_id'] : '',
-                    'file_path' => 'hgnjgf',//$response['ObjectURL'],
+                    'folder_id'=> (isset($all['folder_id']) && !empty($all['folder_id'])) ? $all['folder_id'] : null,
+                    'file_path' => $response['ObjectURL'],
                     'created_at' => time(),
                     'updated_at' => time()
                 ];
