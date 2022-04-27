@@ -90,7 +90,7 @@ class ValidationRules
     public function getForgotPasswordSendOtpValidationRules(): array
     {
         return ([
-            'email' => 'required|string|email|max:225',
+            'email' => 'required|string|email|max:225|regex:/^\S*$/u',
         ]);
     }
 
@@ -293,6 +293,29 @@ class ValidationRules
     {
         return ([
             'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
+        ]);
+    }
+
+    public function getPostStoreValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+            'thread_id' => 'required',
+        ]);
+    }
+
+    public function getPostUpdateValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+            'thread_id' => 'required',
         ]);
     }
     

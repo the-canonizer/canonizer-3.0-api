@@ -79,7 +79,8 @@ return [
         'otp_required' => 'The OTP field is required.',
         'email_required' => 'Please enter a valid email address',
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
-        'current_password_required' => 'The current password field is required.'
+        'current_password_required' => 'The current password field is required.',
+        'email_max' => 'Email can not be more than 225 characters.'
     ],
     'validation_camp_store' => [
         'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
@@ -233,8 +234,21 @@ return [
         'create_failed' => 'Fail to create thread, please try later.',
         'not_authorized' => 'You are not authorized to access this API.',
         'type_required' => 'Type field is required.',
-        'id_not_exist' => "Thread doesn't exist.",
-        'update_success' => 'Title of the thread updated successfully.',
+        'id_not_exist' => 'Given thread id does not exist in the database.',
+        'update_success' => 'Thread title updated successfully.',
+    ],
+    'post' => [
+        'nick_name_required' => 'Nick name field is required.',
+        'body_regex' => 'Nick name field is required.',
+        'create_success' => 'Post Created Successfully!',
+        'create_failed' => 'Fail to create post, please try later.',
+        'camp_num_required' => 'Camp num is required.',
+        'topic_num_required' => 'Topic num is required.',
+        'topic_name_required' => 'Topic name is required.',
+        'thread_id_required' => 'Thread id is required.',
+        'post_not_exist' => "Post id doesn't exist.",
+        'update_success' => 'Body of the post updated successfully.',
+        'delete_success' => 'Post deleted successfully.',
     ],
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",
