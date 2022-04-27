@@ -99,7 +99,10 @@ class ValidationMessages
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
         return([
+            'email' => trans('message.validation_forgot_password.email_required'),
             'email.required' => trans('message.validation_forgot_password.email_required'),
+            'email.regex' => trans('message.validation_forgot_password.email_required'),
+            'email.max' => trans('message.validation_forgot_password.email_max'),
         ]);
     }
 
@@ -343,8 +346,46 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
-            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required'),
+            'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
         ]);
+    }
+
+    public function getPostStoreValidationMessages(): array
+    {
+        return [
+            'body.regex' => trans('message.post.body_regex'),
+            'body.required' => trans('message.post.body_regex'),
+            'nick_name.required' => trans('message.post.nick_name_required'),
+            'camp_num.required' => trans('message.post.camp_num_required'),
+            'topic_num.required' => trans('message.post.topic_num_required'),
+            'topic_name.required' => trans('message.post.topic_name_required'),
+            'thread_id.required' => trans('message.post.thread_id_required'),
+        ];
+    }
+
+    public function getPostUpdateValidationMessages(): array
+    {
+        return [
+            'body.regex' => trans('message.post.body_regex'),
+            'body.required' => trans('message.post.body_regex'),
+            'camp_num.required' => trans('message.post.camp_num_required'),
+            'topic_num.required' => trans('message.post.topic_num_required'),
+            'topic_name.required' => trans('message.post.topic_name_required'),
+            'thread_id.required' => trans('message.post.thread_id_required'),
+        ];
+    }
+
+    public function getAllCampSubscriptionValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_subscription_camp.topic_num_required'),
+            'camp_num.required' => trans('message.validation_subscription_camp.camp_num_required'),
+            "checked.boolean" => trans('message.validation_subscription_camp.checked_boolean'),
+            'checked.required' => trans('message.validation_subscription_camp.checked_required'),
+            'subscription_id.required_if' => trans('message.validation_subscription_camp.subscription_id_required'),
+            'subscription_id.exists' => trans('message.validation_subscription_camp.subscription_id_not_found'),
+
+        ];
     }
 
 }

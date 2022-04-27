@@ -124,7 +124,7 @@ class ForgotPasswordController extends Controller
                 $message = trans('message.success.forgot_password');
             } else {
                 $status = 400;
-                $message = trans('message.error.email_invalid');
+                $message = trans('message.error.email_not_registered');
             }
             return $this->resProvider->apiJsonResponse($status, $message, '', '');
         } catch (Exception $e) {
