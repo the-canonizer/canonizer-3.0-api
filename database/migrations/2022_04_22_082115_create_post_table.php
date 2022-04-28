@@ -13,7 +13,7 @@ class CreatePostTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('thread')) {
+        if (!Schema::hasTable('post')) {
             Schema::create('post', function (Blueprint $table) {
                 $table->id();
                 $table->integer('user_id');
