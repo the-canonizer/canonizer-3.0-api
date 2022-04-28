@@ -370,12 +370,12 @@ class ThreadsController extends Controller
             if ($request->type == config('global.thread_type.allThread')) {
                 $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
                     ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id','nick_name','post_updated_at')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 $status = 200;
                 $message = trans('message.success.success');
@@ -389,7 +389,7 @@ class ThreadsController extends Controller
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
             $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
                 ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name' ,'post.updated_at as post_updated_at')
+                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name' ,'post.updated_at as post_updated_at')
                 ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -408,12 +408,12 @@ class ThreadsController extends Controller
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::Join('post', 'thread.id', '=', 'post.thread_id')
                     ->Join('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id','nick_name','post_updated_at')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
             $status = 200;
