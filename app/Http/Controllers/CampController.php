@@ -282,6 +282,7 @@ class CampController extends Controller
                 $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp[0]['parentCamps'] = $parentCamp;
+                $camp=$camp[0];    
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
