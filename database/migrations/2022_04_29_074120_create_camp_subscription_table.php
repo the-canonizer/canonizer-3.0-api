@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
-class CreateCamSubscriptionTable extends Migration
+class CreateCampSubscriptionTable extends Migration
 {
     /**
      * Run the migrations.
@@ -17,7 +17,7 @@ class CreateCamSubscriptionTable extends Migration
     {
         DB::unprepared(File::get("database/data/camp_subscription_file.sql"));
     }
-    
+
     /**
      * Reverse the migrations.
      *
@@ -25,6 +25,6 @@ class CreateCamSubscriptionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cam_subscription');
+        Schema::dropIfExists('camp_subscription');
     }
 }
