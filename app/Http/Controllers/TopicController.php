@@ -258,6 +258,7 @@ class TopicController extends Controller
                 $topicRecord[] = $topic;
                 $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
+                $topicRecord=$topicRecord[0];
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
