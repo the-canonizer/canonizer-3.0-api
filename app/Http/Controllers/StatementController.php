@@ -91,7 +91,7 @@ class StatementController extends Controller
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -146,7 +146,7 @@ class StatementController extends Controller
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
-        $filter['type'] = isset($request->type) ? $request->type :'all';
+        $filter['type'] = isset($request->type) ? $request->type : 'all';
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $response = new stdClass();
@@ -173,14 +173,14 @@ class StatementController extends Controller
                         $starttime = time();
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
-                        $val->objector_nick_name=null;
-                        $val->go_live_time= date('m/d/Y, H:i:s A', $val->go_live_time);
-                        $val->submit_time= date('m/d/Y, H:i:s A', $val->submit_time);
-                       
+                        $val->objector_nick_name = null;
+                        $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
+                        $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
+                    
                         if ($val->objector_nick_id !== NULL) {
                             $val->status = "objected";
-                             $val->objector_nick_name=$val->objectorNickName->nick_name;
-                             $val->unsetRelation('objectorNickName');
+                            $val->objector_nick_name = $val->objectorNickName->nick_name;
+                            $val->unsetRelation('objectorNickName');
                         } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
                             $val->status = "in_review";
                         } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {
@@ -192,7 +192,7 @@ class StatementController extends Controller
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
-                            ($filter['type']==$val->status || $filter['type']=='all') ? array_push($response->statement, $val) : null;    
+                            ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
                         }
                     }
                 }
@@ -212,11 +212,11 @@ class StatementController extends Controller
                 }
             }
             $indexes = ['statement', 'topic', 'liveCamp', 'parentCamp', 'ifSupportDelayed', 'ifIamSupporter'];
-            $data[0]=$response;
+            $data[0] = $response;
             $data = $this->resourceProvider->jsonResponse($indexes, $data);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }

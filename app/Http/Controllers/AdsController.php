@@ -17,7 +17,7 @@ class AdsController extends Controller
     public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
     {
         $this->rules = $rules;
-        $this->validationMessages = $validationMessages ;
+        $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
         $this->resProvider = $respProvider;
     }
@@ -53,12 +53,12 @@ class AdsController extends Controller
         try {
             $page = Page::where('name', $pageName)->first();
             if ($page && $page->has('ads')) {
-                $indexs=['client_id','slot','format','adtest','is_responsive','status'];
+                $indexs = ['client_id', 'slot', 'format', 'adtest', 'is_responsive', 'status'];
                 $ads = $this->resourceProvider->jsonResponse($indexs, $page->ads);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
