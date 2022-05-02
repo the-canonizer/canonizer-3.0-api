@@ -249,7 +249,7 @@ class TopicController extends Controller
         $filter['campNum'] = $request->camp_num;
         try {
             $topic = Camp::getAgreementTopic($filter);
-            $topic->topicSubscriptionId="";
+            $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
@@ -258,11 +258,11 @@ class TopicController extends Controller
                 $topicRecord[] = $topic;
                 $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
+                $topicRecord = $topicRecord[0];
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
 }
