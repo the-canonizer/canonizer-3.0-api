@@ -205,11 +205,21 @@ class SupportController extends Controller
         $user = $request->user();
         $userId = $user->id;
         $all = $request->all();  
-        echo "<pre>"; print_r($all); exit;      
 
         try{
+            $topicNum = $all['topic_num'];
+            $delagtedToUser = $all['delegate_to_user_id'];
 
+            // get all camps being supported by delegatedToUser
+            $support = self::getSupporInTopicByUserId($topicNum,$delagtedToUser);
 
+            // add delegation support
+            self::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
+
+            $supports = Support::getUserActiveSupportInTopic($topicNum,$userId);
+            foreach($supports as $support){
+
+            }
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

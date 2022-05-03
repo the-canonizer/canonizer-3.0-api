@@ -8,10 +8,12 @@ use App\Events\SendOtpEvent;
 use App\Events\WelcomeMailEvent;
 use App\Listeners\ExampleListener;
 use App\Listeners\SendOtpListener;
+use App\Events\CampForumPostMailEvent;
 use App\Listeners\WelcomeMailListener;
 use App\Events\CampForumThreadMailEvent;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Events\ForgotPasswordSendOtpEvent;
+use App\Listeners\CampForumPostMailListener;
 use App\Listeners\CampForumThreadMailListener;
 use App\Listeners\ThankToSubmitterMailListener;
 use App\Listeners\ForgotPasswordSendOtpListener;
@@ -42,6 +44,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         CampForumThreadMailEvent::class => [
             CampForumThreadMailListener::class,
+        ],
+        CampForumPostMailEvent::class => [
+            CampForumPostMailListener::class,
         ],
     ];
 }

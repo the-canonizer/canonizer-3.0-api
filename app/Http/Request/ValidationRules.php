@@ -90,7 +90,7 @@ class ValidationRules
     public function getForgotPasswordSendOtpValidationRules(): array
     {
         return ([
-            'email' => 'required|string|email|max:225',
+            'email' => 'required|string|email|max:225|regex:/^\S*$/u',
         ]);
     }
 
@@ -295,6 +295,29 @@ class ValidationRules
             'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
         ]);
     }
+
+    public function getPostStoreValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+            'thread_id' => 'required',
+        ]);
+    }
+
+    public function getPostUpdateValidationRules(): array
+    {
+        return ([
+            'body' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
+            'thread_id' => 'required',
+        ]);
+    }
     
     public function getStatementHistoryValidationRules(): array
     {
@@ -323,7 +346,18 @@ class ValidationRules
         return [
             'topic_num' => 'required|integer',
             'nick_name_id' => 'required|integer',
-            'delegate_to_nick_id' => 'required|integer'
+            'delegate_to_user_id' => 'required|integer'
+        ];
+    }
+
+    public function getAllCampSubscriptionValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'checked' => 'required|boolean',
+            'subscription_id' => 'required_if:checked,false|exists:camp_subscription,id'
+
         ];
     }
 }
