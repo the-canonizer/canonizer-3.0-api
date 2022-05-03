@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePostTable extends Migration
+class AddTopicIdInThreadTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,10 @@ class CreatePostTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('post')) {
-            Schema::create('post', function (Blueprint $table) {
-                $table->id();
-                $table->integer('user_id');
-                $table->integer('c_thread_id');
-                $table->text('body');
-                $table->timestamps();
+       
+        if (Schema::hasTable('thread') && !Schema::hasColumn('thread', 'topic_id')) {
+            Schema::table('thread', function (Blueprint $table) {
+                $table->integer('topic_id');
             });
         }
     }
@@ -31,6 +28,8 @@ class CreatePostTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('post');
+        Schema::table('thread', function (Blueprint $table) {
+            //
+        });
     }
 }

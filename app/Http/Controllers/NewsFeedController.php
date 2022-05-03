@@ -92,7 +92,7 @@ class NewsFeedController extends Controller
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -166,8 +166,8 @@ class NewsFeedController extends Controller
         $display_text = $request->display_text;
         $submitterNickId = $request->submitter_nick_id;
         $link = $request->link;
-        $userId=$request->user()->id;
-        $userType=$request->user()->type;
+        $userId = $request->user()->id;
+        $userType = $request->user()->type;
         $availableForChild = $request->available_for_child;
         try {
             $newsFeed = NewsFeed::findOrFail($newsFeedId);
@@ -190,12 +190,12 @@ class NewsFeedController extends Controller
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
-            $temp[]=$news;
+            $temp[] = $news;
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -290,7 +290,7 @@ class NewsFeedController extends Controller
             $news->save();
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -347,7 +347,7 @@ class NewsFeedController extends Controller
                 return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');
             }
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -406,7 +406,7 @@ class NewsFeedController extends Controller
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $newsFeed, '',);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }

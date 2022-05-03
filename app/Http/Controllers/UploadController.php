@@ -324,7 +324,7 @@ class UploadController extends Controller
         try{
             $folder = FileFolder::where('id',$id)->first();
             if(!$folder){
-                return $this->resProvider->apiJsonResponse(400, trans('message.uploads.not_found'), null, null);
+                return $this->resProvider->apiJsonResponse(200, trans('message.uploads.not_found'), null, null);
             }
 
             $files = Upload::where('folder_id', '=' ,$id)->orderBy('created_at','DESC')->get();

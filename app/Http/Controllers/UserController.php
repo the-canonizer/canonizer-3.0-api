@@ -436,12 +436,12 @@ class UserController extends Controller
             $user = User::where('email', '=', $username)->first();
 
             if (empty($user)) {
-                $status = 401;
+                $status = 400;
                 $message = trans('message.error.email_not_registered');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if (!Hash::check($password, $user->password)) {
-                $status = 401;
+                $status = 400;
                 $message = trans('message.error.password_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
@@ -777,7 +777,7 @@ class UserController extends Controller
             $user = User::where('email', '=', $request->username)->first();
 
             if (empty($user) || $request->otp != $user->otp) {
-                $status = 401;
+                $status = 400;
                 $message = trans('message.error.otp_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }

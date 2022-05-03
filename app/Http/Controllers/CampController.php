@@ -281,11 +281,12 @@ class CampController extends Controller
                 $camp[] = $livecamp;
                 $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
-                $camp[0]['parentCamps'] = $parentCamp;
+                $camp = $camp[0];
+                $camp['parentCamps'] = $parentCamp;
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -757,16 +758,17 @@ class CampController extends Controller
                 $msg = trans('message.success.unsubscribed');
             }
             $campSubscription->save();
-            $subscriptionId = ($subscription_id) ? "" : $campSubscription->id;
+            $subscriptionId = ($subscription_id && !$all['checked']) ? "" : $campSubscription->id;
             $response = new stdClass();
             $response->msg = $msg;
             $response->subscriptionId = $subscriptionId;
             $indexes = ['msg', 'subscriptionId'];
             $data[0] = $response;
             $data = $this->resourceProvider->jsonResponse($indexes, $data);
+            $data = $data[0];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
