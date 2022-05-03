@@ -6,7 +6,7 @@ return [
         'update_profile' => 'Failed to update profile, please try again.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
-        'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email or mobile. If not then you can request for new code by clicking on the button below.',
+        'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',
         'otp_failed' => 'Failed to Send OTP.',
         'otp_not_match' => 'OTP does not match',
         'email_not_registered' => 'Email is not registered with us!',
