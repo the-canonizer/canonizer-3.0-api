@@ -375,7 +375,7 @@ class ThreadsController extends Controller
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id','nick_name','post_updated_at')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 $status = 200;
                 $message = trans('message.success.success');
@@ -413,7 +413,7 @@ class ThreadsController extends Controller
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id','nick_name','post_updated_at')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
             $status = 200;
