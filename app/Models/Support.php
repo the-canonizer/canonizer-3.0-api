@@ -65,81 +65,88 @@ class Support extends Model
       *  5. All these above will work in recursive ways
     */
 
-    public static function addDelegationSupport($support = array(),$topicNum, $nickNameID,$deleagtedNicknameId)
+    public static function addDelegationSupport($support = array(),$topicNum, $nickNameId,$deleagtedNicknameId)
     {
-        $existingSupport =  self::getSupporInTopicByUserId($topicNum,$nickNameID);
-        
-        if(!empty($existingSupport)){
-            $delegator = self::getDelegatorForNicknameId($topicNum,$nickNameID);
-            self::removeSupport($topicNum,$nickNameID);            
-
-            if(isset($delegator) && !empty($delegator)){
-                foreach($delegation as $delegator){
-                    return self::addDelegationSupportInCamps($support, $topicNum, $delegator->nick_name_id, $delgator_delegated_nick_name_id);
-                }
-            }
-
-            return;
+        $existingSupport =  self::getActiveSupporInTopic($topicNum,$nickNameId);
+        $delegators = [];
+        if(count($existingSupport) > 0)
+        {
+            $delegators = self::getDelegatorForNicknameId($topicNum,$nickNameId);
+            self::removeSupport($topicNum,$nickNameId);
+           
         }
 
-        //add support
-        self::addSupport($support,$topicNum,$nickNameID,$deleagtedNicknameId);
+        self::addSupport($support,$topicNum,$nickNameId,$deleagtedNicknameId);  
 
-        return;
+        if(isset($delegators) && count($delegators) > 0){
+            foreach($delegators as $delegator){
+                return self::addDelegationSupport($support, $topicNum, $delegator->nick_name_id, $delegator->delegate_nick_name_id);
+            }
+        }
     }
 
-    public static function addSupport($support,$topicNum,$nickNameID,$deleagtedNicknameId)
+    /**
+     *  Add Support
+     *  @param support is array of support for which new support is to be added
+     */
+    public static function addSupport($support,$topicNum,$nickNameId,$deleagtedNicknameId)
     {
         foreach($support as $sp){
 
            $model = new Support();
            $model->topic_num = $topicNum;
            $model->camp_num = $sp->camp_num;
-           $model->nick_name_id = $nickNameID;
-           $model->delegated_nick_name_id = $deleagtedNicknameId;
+           $model->nick_name_id = $nickNameId;
+           $model->delegate_nick_name_id = $deleagtedNicknameId;
            $model->support_order = $sp->support_order;
            $model->start =time();
-           $model-save();
+           $model->save();
 
         }
         return;
 
     }
 
-    public static function getSupporInTopicByUserId($topic_num, $userId)
+    /**
+     *  Get Active support
+     *  @param $topicNum is integer, topic number
+     *  @param $nicknameId  nick id of user from which topic is being supported and yet not ended.
+     *  
+     */
+    public static function getActiveSupporInTopic($topicNum, $nickNameId)
     {
-        $usersNickNames = Nickname::getNicknamesIdsByUserId($userId);
+        $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
 
-        $supports = self::where('topic_num', '=', $topic_num)->whereIn('nick_name_id', $usersNickNames)
-                        ->where('end', '=', 0)->get();
-
+        $supports = self::where('topic_num', '=', $topicNum)->whereIn('nick_name_id', $usersNickNames)
+                        ->where('end', '=', '0')->get();
+    
         return $supports;
     }
 
-    public static function getDelegatorForNicknameId($topicNum, $nickNameID){
-        $support = self::where('topic_num', '=', $topic_num)->whereIn('delegate_nick_name_id', [$nickNameID])
+    /**
+     *  Fetch the delegator of given NickID in specified topic
+     */
+    public static function getDelegatorForNicknameId($topicNum, $nickNameId){
+        $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
+
+        $delegatorsSupport = self::where('topic_num', '=', $topicNum)->whereIn('delegate_nick_name_id', $usersNickNames)
         ->where('end', '=', 0)->get();
+
+        return $delegatorsSupport;
     }
 
-    public static function removeSupport($usersNickNames, $topicNum, $campNum='')
+    /**
+     * Remove support from of user from topic
+     * This will remove support from all nicknames of that user with nick id @param $nickNameId
+     * 
+     */
+    public static function removeSupport($topicNum, $nickNameId, $campNum='')
     {
-        $supports = self::where('topic_num', '=', $topic_num)->whereIn('nick_name_id', $usersNickNames)
-        ->update(['end' => 0]);
+        $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
 
-        self::removeDelegatesSupport($usersNickNames,$topicNum);
-        return;
-    }
+        $supports = self::where('topic_num', '=', $topicNum)->whereIn('nick_name_id', $usersNickNames)
+        ->update(['end' => time()]);
 
-
-    public function removeDelegatesSupport($usersNickNames,$topicNum){
-        $support = self::where('topic_num', '=', $topic_num)->whereIn('delegate_nick_name_id', $usersNickNames)
-        ->where('end', '=', 0)->get();
-
-        if(!empty($support)){
-            foreach($support as $sp){
-               self::removeSupport([$sp->nick_name_id],$topicNum);
-            }
-        }
         return;
     }
     

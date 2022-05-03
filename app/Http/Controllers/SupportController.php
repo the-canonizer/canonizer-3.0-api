@@ -208,14 +208,15 @@ class SupportController extends Controller
 
         try{
             $topicNum = $all['topic_num'];
-            $delagtedToUser = $all['delegate_to_user_id'];
+            $nicknameId = $all['nick_name_id'];
+            $delegatedNickId = $all['delegate_to_user_id'];
 
             // get all camps being supported by delegatedToUser
-            $support = self::getSupporInTopicByUserId($topicNum,$delagtedToUser);
+            $support = Support::getActiveSupporInTopic($topicNum,$delegatedNickId);
 
             // add delegation support
-            self::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
-
+            $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
+           
             return $this->resProvider->apiJsonResponse(200, trans('message.success.succes'), '','');
 
         } catch (\Throwable $e) {

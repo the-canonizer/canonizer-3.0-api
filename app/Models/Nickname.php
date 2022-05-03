@@ -253,5 +253,16 @@ class Nickname extends Model {
 
         return null;
     }
+
+    public static function getAllNicknamesByNickId($nickId)
+    {
+        $userId = self::getUserIDByNickNameId($nickId);
+        
+        if($userId){
+            return $allNickNames = self::getNicknamesIdsByUserId($userId);
+        }
+
+        return [];        
+    }
     
 }
