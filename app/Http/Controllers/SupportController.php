@@ -217,7 +217,7 @@ class SupportController extends Controller
             // add delegation support
             $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
            
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.succes'), '','');
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

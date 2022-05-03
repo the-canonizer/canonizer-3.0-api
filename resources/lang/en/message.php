@@ -263,7 +263,8 @@ return [
     ],
     'support'  => [
         'add_direct_support' => 'Support added successfully.',
-        'add_delegate_support' => 'You have delegated your support successfully.'
+        'add_delegate_support' => 'You have delegated your support successfully.',
+        'add_delegation_support' => 'Support delegated successfully.'
 
     ],
     'support_validation' => [
