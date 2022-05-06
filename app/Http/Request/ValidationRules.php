@@ -336,7 +336,7 @@ class ValidationRules
             'topic_num' => 'required',
             'camp_num' => 'required',
             'checked' => 'required|boolean',
-            'subscription_id' => 'required_if:checked,false|exists:camp_subscription,id'
+            'subscription_id' => 'required_if:checked,false'
         ];
     }
 }
