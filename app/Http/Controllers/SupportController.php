@@ -130,4 +130,16 @@ class SupportController extends Controller
         }
 
     }
+
+
+    /**
+     * @OA\Post(path="/support/remove",
+     * 
+     * 
+     */
+
+     public function removeSupport(Request $request)
+     {
+         echo "<pre>"; print_r($request->all()); exit;
+     }
 }

@@ -93,6 +93,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->put('post/update/{id}','ReplyController@update');
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
+        $router->post('support/remove','SupportController@removeSupport');
+        $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
