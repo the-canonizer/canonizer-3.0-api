@@ -2,18 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AddNickNameRequest;
-use App\Http\Requests\UpdateNickNameRequest;
+
 use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Models\Support;
 use App\Models\Camp;
 use App\Models\Topic;
 use DB;
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
+use App\Helpers\ResponseInterface;
+use App\Http\Request\Validate;
+use App\Http\Resources\ErrorResource;
+use App\Http\Resources\SuccessResource;
 
 
 class SupportController extends Controller
 {
+
+    private ValidationRules $rules;
+
+    private ValidationMessages $validationMessages;
+
+    public function __construct(ResponseInterface $resProvider)
+    {
+        $this->rules = new ValidationRules;
+        $this->validationMessages = new ValidationMessages;
+        $this->resProvider = $resProvider;
+    }
     
 
     /**
@@ -129,5 +145,76 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
 
+    }
+
+
+    /** @OA\Get(path="/add-direct-support",
+     *   tags={"addSupport"},
+     * 
+     */
+
+
+    public function addDirectSupport(Request $request, Validate $validate)
+    {
+        
+        $validationErrors = $validate->validate($request, $this->rules->getAddDirectSupportRule(), $this->validationMessages->getAddDirectSupportMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        try{
+            $all = $request->all();
+            $supports = [];
+            if(isset($all['camps'])){
+                foreach($all['camps'] as $camp){
+                    $data = [
+                    'topic_num' => $all['topic_num'],
+                    'nick_name_id' => $all['nick_name_id'],
+                    'camp_num' => $camp['camp_num'],
+                    'support_order' => $camp['support_order'],
+                    'start' => time()
+                    ];
+                    array_push($supports,$data);
+                }
+                Support::insert($supports);
+                
+                return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+
+            }
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+
+    /**
+     * 
+     */
+
+    public function addDelegateSupport(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAddDelegateSupportRule(), $this->validationMessages->getAddDelegateSupportMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        
+        $all = $request->all();  
+
+        try{
+            $topicNum = $all['topic_num'];
+            $nicknameId = $all['nick_name_id'];
+            $delegatedNickId = $all['delegate_to_user_id'];
+
+            // get all camps being supported by delegatedToUser
+            $support = Support::getActiveSupporInTopic($topicNum,$delegatedNickId);
+
+            // add delegation support
+            $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
+           
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
+
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }

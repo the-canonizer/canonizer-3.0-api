@@ -261,6 +261,26 @@ return [
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
     ],
+    'support'  => [
+        'add_direct_support' => 'Support added successfully.',
+        'add_delegate_support' => 'You have delegated your support successfully.',
+        'add_delegation_support' => 'Support delegated successfully.'
+
+    ],
+    'support_validation' => [
+        'nick_name_required' => 'Nick name is required',
+        'topic_num_required' => 'Invalid topic or no topic submitted.',
+        'camps_required' => "Atleast one camp should be submitted to add the support.",
+        'camp_num_required' => "Camp number missing.",
+        "camp_num_invalid" => "Invalid camp number submitted.",
+        "support_order_required" => "Support order is missing.",
+        'support_order_invalid' => "Invalid support order submitted, it can only be integer."
+    ],
+    'delegate_support_validation' => [
+        'nick_name_required' => 'Nick name is required',
+        'topic_num_required' => 'Invalid topic or no topic submitted.',
+        'delegate_nick_name_required' => 'Invalid delegation, please provide valid delegated user.'
+    ],
     'validation_subscription_camp' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required",

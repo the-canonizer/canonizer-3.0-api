@@ -330,6 +330,26 @@ class ValidationRules
         ];
     }
 
+    public function getAddDirectSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required',
+            'camps' => 'required|array|min:1',
+            'camps.*.camp_num' => 'required|integer',
+            'camps.*.support_order' => 'required|integer'
+        ];
+    }
+
+    public function getAddDelegateSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'delegate_to_user_id' => 'required|integer'
+        ];
+    }
+
     public function getAllCampSubscriptionValidationRules(): array
     {
         return [
