@@ -140,6 +140,14 @@ class SupportController extends Controller
 
      public function removeSupport(Request $request)
      {
-         echo "<pre>"; print_r($request->all()); exit;
+         $data = $request->all();
+
+         //case 1 removing direct support
+         if($data['type'] == 'direct'){
+             
+         }
+
+
+         //case 2 removing delegate support
      }
 }
