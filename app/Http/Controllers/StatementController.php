@@ -14,6 +14,7 @@ use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
+use App\Library\wiki_parser\wikiParser as wikiParser;
 use stdClass;
 
 class StatementController extends Controller
@@ -85,8 +86,19 @@ class StatementController extends Controller
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $campStatement->go_live_time = date('m/d/Y, H:i:s A', $campStatement->go_live_time);
+                $rootUrl = str_replace("/public","",$request->root());
+                $rootUrl = str_replace("/index.php","",$rootUrl);
+                $WikiParser = new wikiParser;
+                $output = $WikiParser->parse($campStatement->value);
+                $finalStatement = str_replace("http://canonizer.com",$rootUrl,$output);
+                $finalStatement = str_replace("http://www.canonizer.com",$rootUrl,$finalStatement);
+                $finalStatement = str_replace("https://www.canonizer.com",$rootUrl,$finalStatement);
+                $finalStatement = str_replace("https://canonizer.com",$rootUrl,$finalStatement);
+                $finalStatement = str_replace("\r\n","",$finalStatement);
+                $finalStatement = str_replace("/>\n","/>",$finalStatement);
+                $campStatement->parsed_value=$finalStatement;
                 $statement[] = $campStatement;
-                $indexs = ['id', 'value', 'note', 'go_live_time'];
+                $indexs = ['id', 'value','parsed_value' ,'note', 'go_live_time'];
                 $statement = $this->resourceProvider->jsonResponse($indexs, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
@@ -176,7 +188,7 @@ class StatementController extends Controller
                         $val->objector_nick_name = null;
                         $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
                         $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
-                    
+
                         if ($val->objector_nick_id !== NULL) {
                             $val->status = "objected";
                             $val->objector_nick_name = $val->objectorNickName->nick_name;
