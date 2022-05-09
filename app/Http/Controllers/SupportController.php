@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AddNickNameRequest;
-use App\Http\Requests\UpdateNickNameRequest;
+
 use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Models\Support;
@@ -163,9 +162,6 @@ class SupportController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $user = $request->user();
-        $userId = $user->id;
-
         try{
             $all = $request->all();
             $supports = [];
@@ -201,9 +197,7 @@ class SupportController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-        $user = $request->user();
-        $userId = $user->id;
+        
         $all = $request->all();  
 
         try{

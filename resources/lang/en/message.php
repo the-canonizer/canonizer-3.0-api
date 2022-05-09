@@ -151,7 +151,7 @@ return [
 
     'otp' => [
         'required' => 'OTP is required.',
-        'valid_digits' => 'Enter valid 6 digits OTP.'
+        'valid_digits' => 'Please enter 6-digit code.'
     ],
 
     'verify_otp' => [
