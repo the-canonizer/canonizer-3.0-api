@@ -50,6 +50,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
         $router->post('/user/reSendOtp','UserController@reSendOtp');
         $router->get('thread/list','ThreadsController@threadList');
+        $router->get('post/list/{id}','ReplyController@postList');
     });
 
     //Route Group to access api with user access token
@@ -91,7 +92,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('support/add', 'SupportController@addDirectSupport');
         $router->post('support/add-delegate', 'SupportController@addDelegateSupport');
         $router->post('post/save','ReplyController@store');
-        $router->get('post/list/{id}','ReplyController@postList');
         $router->put('post/update/{id}','ReplyController@update');
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
