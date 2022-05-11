@@ -86,19 +86,10 @@ class StatementController extends Controller
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $campStatement->go_live_time = date('m/d/Y, H:i:s A', $campStatement->go_live_time);
-                $rootUrl = str_replace("/public","",$request->root());
-                $rootUrl = str_replace("/index.php","",$rootUrl);
                 $WikiParser = new wikiParser;
-                $output = $WikiParser->parse($campStatement->value);
-                $finalStatement = str_replace("http://canonizer.com",$rootUrl,$output);
-                $finalStatement = str_replace("http://www.canonizer.com",$rootUrl,$finalStatement);
-                $finalStatement = str_replace("https://www.canonizer.com",$rootUrl,$finalStatement);
-                $finalStatement = str_replace("https://canonizer.com",$rootUrl,$finalStatement);
-                $finalStatement = str_replace("\r\n","",$finalStatement);
-                $finalStatement = str_replace("/>\n","/>",$finalStatement);
-                $campStatement->parsed_value=$finalStatement;
+                $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $statement[] = $campStatement;
-                $indexs = ['id', 'value','parsed_value' ,'note', 'go_live_time'];
+                $indexs = ['id', 'value', 'parsed_value', 'note', 'go_live_time'];
                 $statement = $this->resourceProvider->jsonResponse($indexs, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
@@ -186,21 +177,24 @@ class StatementController extends Controller
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
                         $val->objector_nick_name = null;
+                        switch ($val) {
+                            case $val->objector_nick_id !== NULL:
+                                $val->status = "objected";
+                                $val->objector_nick_name = $val->objectorNickName->nick_name;
+                                $val->unsetRelation('objectorNickName');
+                                break;
+                            case $currentTime < $val->go_live_time && $currentTime >= $val->submit_time:
+                                $val->status = "in_review";
+                                break;
+                            case $currentLive != 1 && $currentTime >= $val->go_live_time:
+                                $currentLive = 1;
+                                $val->status = "live";
+                                break;
+                            default:
+                                $val->status = "old";
+                        }
                         $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
                         $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
-
-                        if ($val->objector_nick_id !== NULL) {
-                            $val->status = "objected";
-                            $val->objector_nick_name = $val->objectorNickName->nick_name;
-                            $val->unsetRelation('objectorNickName');
-                        } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
-                            $val->status = "in_review";
-                        } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {
-                            $currentLive = 1;
-                            $val->status = "live";
-                        } else {
-                            $val->status = "old";
-                        }
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
@@ -209,17 +203,16 @@ class StatementController extends Controller
                     }
                 }
             } else {
-                $statementHistory = Statement::getHistory($filter['topicNum'], $filter['campNum']);
                 if (count($statementHistory) > 0) {
                     foreach ($statementHistory as $arr) {
                         $submittime = $arr->submit_time;
                         $starttime = $currentTime;
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
-                    }
-                    if (($arr->grace_period < 1 && $interval < 0) || $currentTime > $arr->go_live_time) {
-                        $arr['status'] = "live";
-                        array_push($response->statement, $arr);
+                        if (($arr->grace_period < 1 && $interval < 0) || $currentTime >= $arr->go_live_time) {
+                            $arr['status'] = "live";
+                            array_push($response->statement, $arr);
+                        }
                     }
                 }
             }
