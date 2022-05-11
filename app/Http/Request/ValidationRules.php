@@ -182,7 +182,7 @@ class ValidationRules
     {
         return [
             'display_text' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
-            'link' => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            'link' => 'required|regex:#[-a-zA-Z0-9@:%_\+.~\#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~\#?&//=]*)?#si',
             'available_for_child' => 'required|boolean',
             'newsfeed_id' => 'required|exists:news_feed,id',
             'submitter_nick_id' => 'required'
@@ -263,8 +263,8 @@ class ValidationRules
             'topic_num' => 'required',
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
-            "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required',
+            "link" => 'required|regex:#[-a-zA-Z0-9@:%_\+.~\#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~\#?&//=]*)?#si',
+            "display_text" => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
             "submitter_nick_id" => 'required'
         ];
     }
