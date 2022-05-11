@@ -191,7 +191,7 @@ class ValidationRules
 
     public function getCampStoreValidationRules(): array
     {
-        $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+        $regex = '/(http(s?):\/\/)([a-z0-9\-]+\.)+[a-z]{2,4}(\.[a-z]{2,4})*(\/[^ ]+)*/i';
 
         return ([
             'nick_name' => 'required',
