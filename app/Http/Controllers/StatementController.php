@@ -198,6 +198,8 @@ class StatementController extends Controller
                         if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
                             continue;
                         } else {
+                            $WikiParser = new wikiParser;
+                            $val->parsed_value = $WikiParser->parse($val->value);
                             ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
                         }
                     }
@@ -209,8 +211,11 @@ class StatementController extends Controller
                         $starttime = $currentTime;
                         $endtime = $submittime + 60 * 60;
                         $interval = $endtime - $starttime;
-                        if (($arr->grace_period < 1 && $interval < 0) || $currentTime >= $arr->go_live_time) {
+                        if ((($arr->grace_period < 1 && $interval < 0) || $currentTime >= $arr->go_live_time) && $arr->objector_nick_id == NULL && $currentLive != 1) {
+                            $currentLive = 1;
                             $arr['status'] = "live";
+                            $WikiParser = new wikiParser;
+                            $arr->parsed_value = $WikiParser->parse($arr->value);
                             array_push($response->statement, $arr);
                         }
                     }
