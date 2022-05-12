@@ -210,6 +210,8 @@ return [
         'available_for_child_required' => 'Availability for child is required.',
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
+        'display_text_max' => 'Display text may not be greater than 256 characters.',
+        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [

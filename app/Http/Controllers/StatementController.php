@@ -156,65 +156,18 @@ class StatementController extends Controller
         $response->statement = [];
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
-        $currentTime = time();
-        $currentLive = 0;
-        $nickNames = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
+            $response->topic->go_live_time=date('m/d/Y, H:i:s A', $response->topic->go_live_time);
+            $response->topic->submit_time=date('m/d/Y, H:i:s A', $response->topic->submit_time);
             $response->liveCamp = Camp::getLiveCamp($filter);
+            $response->liveCamp->go_live_time=date('m/d/Y, H:i:s A', $response->liveCamp->go_live_time);
+            $response->liveCamp->submit_time=date('m/d/Y, H:i:s A', $response->liveCamp->submit_time);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
-            $statementHistory = Statement::getHistory($filter['topicNum'], $filter['campNum']);
-            $submitTime = (count($statementHistory)) ? $statementHistory[0]->submit_time : null;
             if ($request->user()) {
-                $nickNames = Nickname::personNicknameArray();
-                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
-                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, $delayed = true);
-                if (count($statementHistory) > 0) {
-                    foreach ($statementHistory as $val) {
-                        $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
-                        $submittime = $val->submit_time;
-                        $starttime = time();
-                        $endtime = $submittime + 60 * 60;
-                        $interval = $endtime - $starttime;
-                        $val->objector_nick_name = null;
-                        switch ($val) {
-                            case $val->objector_nick_id !== NULL:
-                                $val->status = "objected";
-                                $val->objector_nick_name = $val->objectorNickName->nick_name;
-                                $val->unsetRelation('objectorNickName');
-                                break;
-                            case $currentTime < $val->go_live_time && $currentTime >= $val->submit_time:
-                                $val->status = "in_review";
-                                break;
-                            case $currentLive != 1 && $currentTime >= $val->go_live_time:
-                                $currentLive = 1;
-                                $val->status = "live";
-                                break;
-                            default:
-                                $val->status = "old";
-                        }
-                        $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
-                        $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
-                        if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
-                            continue;
-                        } else {
-                            ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
-                        }
-                    }
-                }
+                $response=Statement::getHistoryAuthUsers($response, $filter, $request);
             } else {
-                if (count($statementHistory) > 0) {
-                    foreach ($statementHistory as $arr) {
-                        $submittime = $arr->submit_time;
-                        $starttime = $currentTime;
-                        $endtime = $submittime + 60 * 60;
-                        $interval = $endtime - $starttime;
-                        if (($arr->grace_period < 1 && $interval < 0) || $currentTime >= $arr->go_live_time) {
-                            $arr['status'] = "live";
-                            array_push($response->statement, $arr);
-                        }
-                    }
-                }
+                $response=Statement::getHistoryUnAuthUsers($response, $filter);
             }
             $indexes = ['statement', 'topic', 'liveCamp', 'parentCamp', 'ifSupportDelayed', 'ifIamSupporter'];
             $data[0] = $response;
@@ -224,4 +177,6 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+ 
 }

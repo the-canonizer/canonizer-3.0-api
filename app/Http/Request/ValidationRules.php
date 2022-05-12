@@ -264,7 +264,7 @@ class ValidationRules
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
             "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required',
+            "display_text" => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
             "submitter_nick_id" => 'required'
         ];
     }
