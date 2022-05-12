@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Statement;
-use App\Models\Nickname;
-use App\Models\Support;
 use App\Models\Camp;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
