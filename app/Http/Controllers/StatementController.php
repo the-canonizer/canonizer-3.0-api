@@ -83,7 +83,7 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time = date('m/d/Y, H:i:s A', $campStatement->go_live_time);
+                $campStatement->go_live_time = date('m/d/Y, h:i:s A', $campStatement->go_live_time);
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $statement[] = $campStatement;
@@ -156,11 +156,11 @@ class StatementController extends Controller
         $response->ifSupportDelayed = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
-            $response->topic->go_live_time=date('m/d/Y, H:i:s A', $response->topic->go_live_time);
-            $response->topic->submit_time=date('m/d/Y, H:i:s A', $response->topic->submit_time);
+            $response->topic->go_live_time=date('m/d/Y, h:i:s A', $response->topic->go_live_time);
+            $response->topic->submit_time=date('m/d/Y, h:i:s A', $response->topic->submit_time);
             $response->liveCamp = Camp::getLiveCamp($filter);
-            $response->liveCamp->go_live_time=date('m/d/Y, H:i:s A', $response->liveCamp->go_live_time);
-            $response->liveCamp->submit_time=date('m/d/Y, H:i:s A', $response->liveCamp->submit_time);
+            $response->liveCamp->go_live_time=date('m/d/Y, h:i:s A', $response->liveCamp->go_live_time);
+            $response->liveCamp->submit_time=date('m/d/Y, h:i:s A', $response->liveCamp->submit_time);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
             if ($request->user()) {
                 $response=Statement::getHistoryAuthUsers($response, $filter, $request);

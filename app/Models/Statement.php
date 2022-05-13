@@ -117,8 +117,8 @@ class Statement extends Model
                 } else {
                     $WikiParser = new wikiParser;
                     $val->parsed_value = $WikiParser->parse($val->value);
-                    $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
-                    $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
+                    $val->go_live_time = date('m/d/Y, h:i:s A', $val->go_live_time);
+                    $val->submit_time = date('m/d/Y, h:i:s A', $val->submit_time);
                     ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
                 }
             }
