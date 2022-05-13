@@ -416,4 +416,11 @@ class ValidationMessages
         ];
     }
 
+    public function getTopicNickNameListValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_get_topic_nick_name_list.topic_num_required')
+        ];
+    }
+
 }

@@ -293,4 +293,7 @@ return [
         'already_subscribed' => "Already subscribed.",
         'already_unsubscribed' => "Already unsubscribed.",
     ],
+    'validation_get_topic_nick_name_list' => [
+        'topic_num_required' => "Topic number is required."
+    ]
 ];

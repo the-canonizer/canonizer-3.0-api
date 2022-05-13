@@ -359,4 +359,11 @@ class ValidationRules
             'subscription_id' => 'required_if:checked,false'
         ];
     }
+
+    public function geTopicNickNameListValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required'
+        ];
+    }
 }

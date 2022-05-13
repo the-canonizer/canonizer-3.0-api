@@ -6,10 +6,23 @@ use App\Http\Requests\AddNickNameRequest;
 use App\Http\Requests\UpdateNickNameRequest;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
-
+use App\Http\Request\Validate;
+use App\Http\Resources\ErrorResource;
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResourceInterface;
+use App\Http\Request\ValidationRules;
+use App\Http\Request\ValidationMessages;
 
 class NicknameController extends Controller
 {
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    {
+        $this->rules = $rules;
+        $this->validationMessages = $validationMessages;
+        $this->resourceProvider  = $resProvider;
+        $this->resProvider = $respProvider;
+    }
+
     /**
      * @OA\POST(path="/add-nick-name",
      *   tags={"User"},
@@ -84,12 +97,10 @@ class NicknameController extends Controller
 
             $nickname = Nickname::createNickname($user->id, $request->all());
             return $this->resProvider->apiJsonResponse(200, trans('message.success.nick_name_add'), $nickname, '');
-
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
     }
 
     /**
@@ -122,7 +133,8 @@ class NicknameController extends Controller
      *   @OA\Response(response=200, description="Update successfully",  @OA\Schema(ref="#/components/schemas/Nickname"))
      * )
      */
-    public function updateNickName($id, UpdateNickNameRequest $request){
+    public function updateNickName($id, UpdateNickNameRequest $request)
+    {
 
         try {
             $nickname = Nickname::findOrFail($id);
@@ -130,7 +142,6 @@ class NicknameController extends Controller
             $nickname->update();
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.nick_name_update'), $nickname, '');
-
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -154,10 +165,24 @@ class NicknameController extends Controller
             $allNicknames = Nickname::getAllNicknames($user->id);
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $allNicknames, '');
-
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
 
+    public function getTopicNickNameList(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->geTopicNickNameListValidationRules(), $this->validationMessages->getTopicNickNameListValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $Nicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
+            $indexes = ['id', 'nick_name'];
+            $Nicknames = $this->resourceProvider->jsonResponse($indexes, $Nicknames);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $Nicknames, '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }
