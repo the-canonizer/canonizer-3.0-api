@@ -29,9 +29,9 @@ class TopicSupport
 
             $allDirectDelegates = Support::getActiveDelegators($topicNum, $allNickNames);
 
-            Support::removeSupportWithAllNicknames($topicNum, $campNum, $nickNamesArray);
+            Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
 
-            Support::promoteDelegatesToDirect($topicNum, $nickNamesArray);
+            Support::promoteDelegatesToDirect($topicNum, $allNickNames);
 
             $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates);
 
@@ -54,11 +54,12 @@ class TopicSupport
     public static function sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates)
     {
         $promotedDelegatesIds = [];
+        $to = [];
         $topicFilter = ['topicNum' => $topicNum];
-        $campFilter = ['topicNum' => $topicNum, 'campNum' => 2];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
 
         $topic = Camp::getAgreementTopic($topicFilter);
-        $camp  = self::getForumLiveCamp($campFilter);
+        $camp  = self::getLiveCamp($campFilter);
         $promotedFrom = Nickname::getNickName($nickNameId);
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
@@ -129,7 +130,17 @@ class TopicSupport
     public static function getCampLink($topic, $camp)
     {
         return  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
-    }    
+    }  
+    
+    /**
+     * [getLiveCamp description]
+     * @param array $filter [contains topicNum, campNum]
+     * @return object  [camp]
+     */
+    public static function getLiveCamp($filter)
+    {
+        return Camp::getLiveCamp($filter);
+    }
 
     
 }

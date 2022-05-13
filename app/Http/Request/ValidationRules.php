@@ -252,7 +252,7 @@ class ValidationRules
         return([
             'file' => 'required',
             'file.*' => 'max:5120',
-            'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
+            //'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
             'name.*' => 'required'
         ]);
     }
