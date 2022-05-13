@@ -191,7 +191,7 @@ class ValidationRules
 
     public function getCampStoreValidationRules(): array
     {
-        $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+        $regex = '/(http(s?):\/\/)([a-z0-9\-]+\.)+[a-z]{2,4}(\.[a-z]{2,4})*(\/[^ ]+)*/i';
 
         return ([
             'nick_name' => 'required',
@@ -252,7 +252,7 @@ class ValidationRules
         return([
             'file' => 'required',
             'file.*' => 'max:5120',
-            'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
+            //'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
             'name.*' => 'required'
         ]);
     }
@@ -330,13 +330,33 @@ class ValidationRules
         ];
     }
 
+    public function getAddDirectSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required',
+            'camps' => 'required|array|min:1',
+            'camps.*.camp_num' => 'required|integer',
+            'camps.*.support_order' => 'required|integer'
+        ];
+    }
+
+    public function getAddDelegateSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'delegate_to_user_id' => 'required|integer'
+        ];
+    }
+
     public function getAllCampSubscriptionValidationRules(): array
     {
         return [
             'topic_num' => 'required',
             'camp_num' => 'required',
             'checked' => 'required|boolean',
-            'subscription_id' => 'required_if:checked,false|exists:camp_subscription,id'
+            'subscription_id' => 'required_if:checked,false'
         ];
     }
 }
