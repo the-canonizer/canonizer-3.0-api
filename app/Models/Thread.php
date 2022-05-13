@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
 use Laravel\Lumen\Auth\Authorizable;
@@ -42,5 +43,20 @@ class Thread extends Model implements AuthenticatableContract, AuthorizableContr
         self::deleted(function ($model) {
             // ... code here
         });
+    }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+    }
+
+    public function getPostUpdatedAtAttribute($date)
+    {
+        return Carbon::parse($date)->timestamp;
     }
 }
