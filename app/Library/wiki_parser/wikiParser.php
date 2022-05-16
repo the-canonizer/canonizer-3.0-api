@@ -150,8 +150,7 @@ class wikiParser
                 $wiki_text = $this->parseSection($parsing_section_name, $wiki_text);
             }            
         }
-		
-		
+        $wiki_text = preg_replace("((?:https?:\/\/)(?:www.)?canonizer\.com\/?)", url(), $wiki_text);
         return $wiki_text;
     }
 
@@ -226,4 +225,3 @@ class wikiParser
 }
 
 }
-?>

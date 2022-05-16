@@ -94,12 +94,16 @@ class Util
      * @return string
      */
 
-    public function getTopicCampUrl($topic_num,$camp_num,$topic,$camp,$currentTime = null):string
+    public static function getTopicCampUrl($topic_num,$camp_num,$topic,$camp,$currentTime = null):string
     {
         $urlPortion = self::getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp); 
-       
-        $urlPortion = $urlPortion.'?currentTime='.$currentTime.'';
-        
+
+        if(isset($currentTime) && $currentTime)
+        {
+            $urlPortion = $urlPortion.'?currentTime='.$currentTime.'';
+        }else{
+            $urlPortion = $urlPortion;
+        }                
         return env('APP_URL_FRONT_END').('/topic/' .$urlPortion);
     }
 
@@ -111,7 +115,7 @@ class Util
      * @return string
      */
 
-    public function getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp):string
+    public static function getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp):string
     {
         $topic_name = '';
         $camp_name = '';
