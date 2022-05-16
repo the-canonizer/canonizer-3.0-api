@@ -124,16 +124,19 @@ class Util
         }
         if($camp && isset($camp->camp_name)){
               $camp_name = $camp->camp_name;
+            }else{
+                $camp_name = "Aggreement";
             }
         $topic_id_name = $topic_num;
         $camp_num_name = $camp_num;
         if($topic_name!=''){
-            $topic_id_name = $topic_num . "-" . preg_replace('/[^A-Za-z0-9\-]/', '-',$topic_name);
+            $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $topic_name);
+            $topic_id_name = $topic_num . "-" . $title;
         }
         if($camp_name!=''){
-                $camp_num_name = $camp_num."-".preg_replace('/[^A-Za-z0-9\-]/', '-', $camp->camp_name);
+            $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $camp_name);
+            $camp_num_name = $camp_num . "-" . $campName;
         }
-        
         return $topic_id_name . '/' . $camp_num_name;
     }
 
