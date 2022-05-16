@@ -4,27 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Helpers\ActivityLogger;
+use App\Models\ActivityLog;
+use App\Models\ActivityUser;
+use App\Http\Request\Validate;
+use App\Facades\Util;
 
 class ActivityController extends Controller
 {
-    public function getAds(Request $request, Validate $validate)
+    public function getActivityLog(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getAdsValidationRules(), $this->validationMessages->getAdsValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-        $pageName = $request->page_name;
-        $ads = [];
+        // $validationErrors = $validate->validate($request, $this->rules->getAdsValidationRules(), $this->validationMessages->getAdsValidationMessages());
+        // if ($validationErrors) {
+        //     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        // }
+        $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
         try {
-            $page = Page::where('name', $pageName)->first();
-            if ($page && $page->has('ads')) {
-                $indexs = ['client_id', 'slot', 'format', 'adtest', 'is_responsive', 'status'];
-                $ads = $this->resourceProvider->jsonResponse($indexs, $page->ads);
-            }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $ads, '');
+            $log = ActivityUser::whereHas('Activity', function ($query) use ($per_page) { 
+                $query->where('log_name', "News Added");
+            })->with(['Activity' => function ($query) use ( $per_page ) {
+                $query->where('log_name', "News Added");
+            }])->where('user_id',$request->user()->id)->latest()->paginate($per_page);
+            $log = Util::getPaginatorResponse($log);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
+
+
+
+//with(['Activity'])
