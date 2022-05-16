@@ -173,6 +173,10 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return User::where('id', $id)->first();
     }
 
+    public function getUserFullName()
+    {
+       return ucfirst($this->first_name). ' ' . ucfirst($this->middle_name) . ' ' . ucfirst($this->last_name);
+    }
 
     // Set as username any column from users table
     public function findForPassport($username)

@@ -13,6 +13,7 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\Nickname;
+use App\Helpers\ActivityLogger;
 
 class NewsFeedController extends Controller
 {
@@ -190,6 +191,7 @@ class NewsFeedController extends Controller
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
+            ActivityLogger::logActivity("News Updated", $news, $topicNum, $campNum, $request->user());
             $temp[] = $news;
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
@@ -288,6 +290,7 @@ class NewsFeedController extends Controller
             $nextOrder = NewsFeed::where('topic_num', '=', $request->topic_num)->where('camp_num', '=', $request->camp_num)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
+            ActivityLogger::logActivity("News Added", $news, $request->topic_num, $request->camp_num, $request->user());
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -342,6 +345,7 @@ class NewsFeedController extends Controller
         try {
             if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
                 $newsFeed->delete();
+                ActivityLogger::logActivity("News Deleted", $newsFeed, $newsFeed->topic_num, $newsFeed->camp_num, $request->user());
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
             } else {
                 return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');

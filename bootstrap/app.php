@@ -66,7 +66,7 @@ $app->configure('services');
 $app->configure('mail');
 $app->configure('message');
 $app->configure('global');
-
+$app->configure('activitylog');
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -122,6 +122,9 @@ $app->register(\Anik\Form\FormRequestServiceProvider::class);
 /* Form request */
 $app->register(\Anik\Form\FormRequestServiceProvider::class);
 
+/* Activity Logger */
+$app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
@@ -138,5 +141,12 @@ $app->router->group([
 ], function ($router) {
     require __DIR__.'/../routes/web.php';
 });
+
+if (! function_exists('config_path')) {
+    function config_path($path = '')
+    {
+        return app()->basePath() . '/config' . ($path ? '/' . $path : $path);
+    }
+}
 
 return $app;
