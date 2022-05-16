@@ -143,6 +143,13 @@ class CampController extends Controller
         }
         try {
 
+            $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
+            if (!empty($result)) {
+                $status = 400;
+                $message = trans('message.validation_camp_store.camp_name_unique');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
             $current_time = time();
 
             ## check if mind_expert topic and camp abt nick name id is null then assign nick name as about nickname ##

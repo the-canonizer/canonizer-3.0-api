@@ -168,13 +168,14 @@ class TopicController extends Controller
                         "type" => "topic",
                         "link" => $historylink,
                         "historylink" => env('APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num,
-                        "object" => $topic->topic_name . " / " . $camp->camp_name,
+                        "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
                     $message = $e->getMessage();
+                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
                 }
                 $data = $topic;
                 $status = 200;
