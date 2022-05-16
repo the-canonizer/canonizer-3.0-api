@@ -146,8 +146,9 @@ class CampController extends Controller
             $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
             if (!empty($result)) {
                 $status = 400;
-                $message = trans('message.validation_camp_store.camp_name_unique');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
+                $message = trans('message.error.invalid_data');
+                return $this->resProvider->apiJsonResponse($status, $message, null, $error);
             }
 
             $current_time = time();
