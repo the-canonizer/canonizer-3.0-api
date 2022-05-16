@@ -178,4 +178,17 @@ class Util
         return  "can-" . $random_string;
     }
 
+    public static function topicHistoryLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement' , $type)
+    {
+        $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
+        $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
+        $topicId = $topicNum . "-" . $title;
+        $campId = $campNum . "-" . $campName;
+        if($type == "topic"){
+            return env('APP_URL_FRONT_END') . '/topic/history/' . $topicId;
+        }else{
+            return env('APP_URL_FRONT_END') . '/camp/history/' . $topicId . '/' . $campId;
+        }
+    }
+
 }

@@ -195,7 +195,7 @@ class CampController extends Controller
                     $dataEmail = (object) [
                         "type" => "camp",
                         "link" =>  $link,
-                        "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
+                        "historylink" => Util::topicHistoryLink($topic->topic_num,$camp->camp_num, $topic->topic_name,$camp->camp_name,'camp'),
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));

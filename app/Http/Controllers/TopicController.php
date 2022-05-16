@@ -163,11 +163,12 @@ class TopicController extends Controller
                     $filter['asOf'] = $request->asof;
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
-                    $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $historylink = Util::topicHistoryLink($topic->topic_num,1, $topic->topic_name,'Aggreement','topic');
                     $dataEmail = (object) [
                         "type" => "topic",
-                        "link" => $historylink,
-                        "historylink" => env('APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num,
+                        "link" => $link,
+                        "historylink" => $historylink,
                         "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
