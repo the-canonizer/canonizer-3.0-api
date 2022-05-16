@@ -288,7 +288,7 @@ class ValidationMessages
     {
         return  ([
             'file.required' => trans('message.uploads.image_required'),
-            'file.*.mimes' => trans('message.uploads.image_mimes'),
+            //'file.*.mimes' => trans('message.uploads.image_mimes'),
             'file.*.max' => trans('message.uploads.image_size'),
             'name.*.required' => trans('message.uploads.image_name_required'),
 
@@ -304,6 +304,8 @@ class ValidationMessages
             'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
             'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
             'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
+            "display_text.regex" => trans('message.validation_store_newsfeed.display_text_regex'),
+            "display_text.max" => trans('message.validation_store_newsfeed.display_text_max'),
             'submitter_nick_id.required' => trans('message.validation_store_newsfeed.submitter_nick_id_required'),
         ];
     }

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Statement;
-use App\Models\Nickname;
-use App\Models\Support;
 use App\Models\Camp;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
@@ -14,6 +12,7 @@ use App\Helpers\ResponseInterface;
 use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
+use App\Library\wiki_parser\wikiParser as wikiParser;
 use stdClass;
 
 class StatementController extends Controller
@@ -84,9 +83,11 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time = date('m/d/Y, H:i:s A', $campStatement->go_live_time);
+                $campStatement->go_live_time = date('m/d/Y, h:i:s A', $campStatement->go_live_time);
+                $WikiParser = new wikiParser;
+                $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $statement[] = $campStatement;
-                $indexs = ['id', 'value', 'note', 'go_live_time'];
+                $indexs = ['id', 'value', 'parsed_value', 'note', 'go_live_time'];
                 $statement = $this->resourceProvider->jsonResponse($indexs, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
@@ -153,63 +154,18 @@ class StatementController extends Controller
         $response->statement = [];
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
-        $currentTime = time();
-        $currentLive = 0;
-        $nickNames = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
+            $response->topic->go_live_time=date('m/d/Y, h:i:s A', $response->topic->go_live_time);
+            $response->topic->submit_time=date('m/d/Y, h:i:s A', $response->topic->submit_time);
             $response->liveCamp = Camp::getLiveCamp($filter);
+            $response->liveCamp->go_live_time=date('m/d/Y, h:i:s A', $response->liveCamp->go_live_time);
+            $response->liveCamp->submit_time=date('m/d/Y, h:i:s A', $response->liveCamp->submit_time);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
-            $statementHistory = Statement::getHistory($filter['topicNum'], $filter['campNum']);
-            $submitTime = (count($statementHistory)) ? $statementHistory[0]->submit_time : null;
             if ($request->user()) {
-                $nickNames = Nickname::personNicknameArray();
-                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
-                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, $delayed = true);
-                if (count($statementHistory) > 0) {
-                    foreach ($statementHistory as $val) {
-                        $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
-                        $submittime = $val->submit_time;
-                        $starttime = time();
-                        $endtime = $submittime + 60 * 60;
-                        $interval = $endtime - $starttime;
-                        $val->objector_nick_name = null;
-                        $val->go_live_time = date('m/d/Y, H:i:s A', $val->go_live_time);
-                        $val->submit_time = date('m/d/Y, H:i:s A', $val->submit_time);
-                    
-                        if ($val->objector_nick_id !== NULL) {
-                            $val->status = "objected";
-                            $val->objector_nick_name = $val->objectorNickName->nick_name;
-                            $val->unsetRelation('objectorNickName');
-                        } elseif ($currentTime < $val->go_live_time && $currentTime >= $val->submit_time) {
-                            $val->status = "in_review";
-                        } elseif ($currentLive != 1 && $currentTime >= $val->go_live_time) {
-                            $currentLive = 1;
-                            $val->status = "live";
-                        } else {
-                            $val->status = "old";
-                        }
-                        if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
-                            continue;
-                        } else {
-                            ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
-                        }
-                    }
-                }
+                $response=Statement::getHistoryAuthUsers($response, $filter, $request);
             } else {
-                $statementHistory = Statement::getHistory($filter['topicNum'], $filter['campNum']);
-                if (count($statementHistory) > 0) {
-                    foreach ($statementHistory as $arr) {
-                        $submittime = $arr->submit_time;
-                        $starttime = $currentTime;
-                        $endtime = $submittime + 60 * 60;
-                        $interval = $endtime - $starttime;
-                    }
-                    if (($arr->grace_period < 1 && $interval < 0) || $currentTime > $arr->go_live_time) {
-                        $arr['status'] = "live";
-                        array_push($response->statement, $arr);
-                    }
-                }
+                $response=Statement::getHistoryUnAuthUsers($response, $filter);
             }
             $indexes = ['statement', 'topic', 'liveCamp', 'parentCamp', 'ifSupportDelayed', 'ifIamSupporter'];
             $data[0] = $response;
@@ -219,4 +175,6 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+ 
 }
