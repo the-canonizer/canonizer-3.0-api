@@ -52,7 +52,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return self::agreementTopicAsOfFilter($filter);
     }
 
-    private function agreementTopicAsOfFilter($filter)
+    private static function agreementTopicAsOfFilter($filter)
     {
         $asOfFilter = [
             'default' => self::agreementTopicDefaultAsOfFilter($filter),
@@ -103,12 +103,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
-            $filter['asOf'] = 'other';
+            $filter['asOf'] = 'default';
         }
         return self::liveCampAsOfFilter($filter);
     }
 
-    private function liveCampAsOfFilter($filter)
+    private static function liveCampAsOfFilter($filter)
     {
         $asOfFilter = [
             'default' => self::liveCampDefaultAsOfFilter($filter),

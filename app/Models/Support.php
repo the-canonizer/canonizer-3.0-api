@@ -116,9 +116,7 @@ class Support extends Model
     public static function getActiveSupporInTopic($topicNum, $nickNameId)
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
-
-        $supports = self::where('topic_num', '=', $topicNum)->whereIn('nick_name_id', $usersNickNames)
-                        ->where('end', '=', '0')->get();
+        $supports = self::getActiveSupporInTopicWithAllNicknames($topicNum,$usersNickNames);       
     
         return $supports;
     }
@@ -126,12 +124,11 @@ class Support extends Model
     /**
      *  Fetch the delegator of given NickID in specified topic
      */
-    public static function getDelegatorForNicknameId($topicNum, $nickNameId){
+    public static function getDelegatorForNicknameId($topicNum, $nickNameId)
+    {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
-
-        $delegatorsSupport = self::where('topic_num', '=', $topicNum)->whereIn('delegate_nick_name_id', $usersNickNames)
-        ->where('end', '=', 0)->get();
-
+        $delegatorsSupport = self::getActiveDelegators($topicNum, $usersNickNames);
+        
         return $delegatorsSupport;
     }
 
@@ -143,9 +140,67 @@ class Support extends Model
     public static function removeSupport($topicNum, $nickNameId, $campNum='')
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
+        self::removeSupportWithAllNicknames($topicNum, $campNum, $usersNickNames);
 
-        $supports = self::where('topic_num', '=', $topicNum)->whereIn('nick_name_id', $usersNickNames)
-        ->update(['end' => time()]);
+        return;
+    }
+
+    /*
+     * Remove Direct Support
+     
+    public static function removeDirectSupport($topicNum ,$campNum = '', $nickNamesArray = array(), $action='')
+    {
+        if((isset($action) && $action == 'all') || $cammNum == '')  //abandon entire topic and promote deleagte
+        {
+           
+            ///$getAllActiveSupport = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNamesArray);
+
+            self::removeSupportWithAllNicknames($topicNum, $campNum, $nickNamesArray);
+            self::promoteDelegatesToDirect($topicNum, $nickNamesArray);
+
+            return;
+            
+        }
+
+
+    }*/
+
+    public static function getActiveDelegators($topicNum, $usersNickNames)
+    {
+        $delegators = self::where('topic_num', '=', $topicNum)
+                                ->whereIn('delegate_nick_name_id', $usersNickNames)
+                                ->where('end', '=', 0)
+                                ->get();
+
+        return $delegators;
+
+    }
+
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum,$nickNames)
+    {
+        $supports = self::where('topic_num', '=', $topicNum)
+                        ->whereIn('nick_name_id', $nickNames)
+                        ->orderBy('support_order', 'ASC')
+                        ->where('end', '=', '0')->get();
+
+        return $supports;
+    }
+
+    public static function removeSupportWithAllNicknames($topicNum,$campNum='', $nickNames = array())
+    {
+        $supports = self::where('topic_num', '=', $topicNum)
+                    ->whereIn('nick_name_id', $nickNames)
+                    ->update(['end' => time()]);
+
+        return;
+    }
+
+    public static function promoteDelegatesToDirect($topicNum, $nickNames)
+    {
+        $supports = self::where('topic_num', '=', $topicNum)
+                    ->whereIn('delegate_nick_name_id', $nickNames)
+                    ->where('end', '=', 0)
+                    ->update(['delegate_nick_name_id' => 0]);
 
         return;
     }

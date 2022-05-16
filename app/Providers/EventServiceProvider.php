@@ -17,6 +17,8 @@ use App\Listeners\CampForumPostMailListener;
 use App\Listeners\CampForumThreadMailListener;
 use App\Listeners\ThankToSubmitterMailListener;
 use App\Listeners\ForgotPasswordSendOtpListener;
+use App\Events\PromotedDelegatesMailEvent;
+use App\Listeners\PromotedDelegatesMailListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -47,6 +49,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         CampForumPostMailEvent::class => [
             CampForumPostMailListener::class,
+        ],
+        PromotedDelegatesMailEvent::class => [
+            PromotedDelegatesMailListener::class,
         ],
     ];
 }

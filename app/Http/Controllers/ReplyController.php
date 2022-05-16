@@ -330,7 +330,7 @@ class ReplyController extends Controller
 
             $result = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
             ->select('post.*','nick_name.nick_name')
-            ->where('thread_id', $id)->where('is_delete','0')->paginate($per_page);
+            ->where('thread_id', $id)->where('is_delete','0')->latest()->paginate($per_page);
 
 
             $response = Util::getPaginatorResponse($result);

@@ -15,6 +15,7 @@ use App\Helpers\ResponseInterface;
 use App\Http\Request\Validate;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
+use App\Helpers\TopicSupport;
 
 
 class SupportController extends Controller
@@ -148,6 +149,7 @@ class SupportController extends Controller
     }
 
 
+
     /** @OA\Get(path="/add-direct-support",
      *   tags={"addSupport"},
      * 
@@ -217,4 +219,37 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(path="/support/remove",
+     * 
+     * 
+     */
+
+    public function removeSupport(Request $request)
+    {
+        $all = $request->all();
+        $user = $request->user();
+        $userId = $user->id;
+        $topicNum =$all['topic_num'];
+        $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        $action = $all['action']; // all OR partial
+        $type = isset($all['type']) ? $all['type'] : '';
+        $nickNameId = $all['nick_name_id'];
+
+        try{
+            //case 1 removing direct support
+            if($type == 'direct'){              
+
+                //$allNickNames = Nickname::getNicknamesIdsByUserId($userId);
+                TopicSupport::removeDirectSupport($topicNum, $campNum, $nickNameId, $action, $type);
+
+                return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
+            }
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
 }
