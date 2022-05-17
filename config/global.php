@@ -9,4 +9,5 @@ return [
         "myPrticipate" => "participate",
         "top10" => "most_replies",
     ],
+    'APP_URL_FRONT_END'=>env('APP_URL_FRONT_END'),
 ];
