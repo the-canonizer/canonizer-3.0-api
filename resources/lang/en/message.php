@@ -295,4 +295,10 @@ return [
         'already_subscribed' => "Already subscribed.",
         'already_unsubscribed' => "Already unsubscribed.",
     ],
+    'validation_get_activity_log' => [
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+        'log_type_required' => "Log type is required.",
+        'log_type_in' => "Please enter a valid Log Type value (topic/camps, threads)",
+    ]
 ];

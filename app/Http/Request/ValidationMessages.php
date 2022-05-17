@@ -416,4 +416,13 @@ class ValidationMessages
         ];
     }
 
+    public function getActivityLogValidationMessages(): array
+    {
+        return [
+            'per_page.required' => trans('message.validation_get_activity_log.per_page_required'),
+            'page.required' => trans('message.validation_get_activity_log.page_required'),
+            'log_type.required' => trans('message.validation_get_activity_log.log_type_required'),
+            'log_type.in' => trans('message.validation_get_activity_log.log_type_in')
+        ];
+    }
 }

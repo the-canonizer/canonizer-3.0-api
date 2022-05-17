@@ -359,4 +359,13 @@ class ValidationRules
             'subscription_id' => 'required_if:checked,false'
         ];
     }
+
+    public function getActivityLogValidationRules(): array
+    {
+        return [
+            'per_page' => 'required',
+            'page' => 'required',
+            'log_type' => 'required|in:topic/camps,threads'
+        ];
+    }
 }
