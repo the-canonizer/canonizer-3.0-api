@@ -14,6 +14,8 @@ use App\Models\MobileCarrier;
 use App\Events\SendOtpEvent;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
+use App\Models\User;
+use App\Models\Nickname;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -364,5 +366,44 @@ class ProfileController extends Controller
             return (new ErrorResource($res))->response()->setStatusCode(400);
         }
 
+    }
+
+    /**
+     * 
+     */
+    public function getUserProfile(Request $request, $id)
+    {
+        $user = User::getUserById($id);
+
+        try{
+            if(!empty($user)){
+                $userArray = $user->toArray();
+                $privateFlags = explode(",",$user->private_flags);
+                foreach($privateFlags as $private)
+                {
+                    unset($userArray[$private]);
+                }
+
+                $publicNickNames = Nickname::getAllNicknames($id, 0);
+                $userArray['nick_names'] = $publicNickNames;
+
+                $status = 200;
+                $message = trans('message.success.success');
+                $data = $userArray;
+                $error = null;
+
+
+            }else{
+                $status = 404;
+                $message = trans('message.error.user_not_exist');
+                $data = null;
+                $error = trans('message.error.user_not_exist');
+            }
+
+            return $this->resProvider->apiJsonResponse($status, $message, $data, $error);
+
+        }catch(Exception $e){
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, null);
+        }
     }
 }
