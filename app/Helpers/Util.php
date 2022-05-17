@@ -101,10 +101,8 @@ class Util
         if(isset($currentTime) && $currentTime)
         {
             $urlPortion = $urlPortion.'?currentTime='.$currentTime.'';
-        }else{
-            $urlPortion = $urlPortion;
-        }                
-        return env('APP_URL_FRONT_END').('/topic/' .$urlPortion);
+        }              
+        return config('global.APP_URL_FRONT_END').('/topic/' .$urlPortion);
     }
 
     /**
@@ -122,18 +120,20 @@ class Util
         if($topic && isset($topic->topic_name)){
                 $topic_name = ($topic->topic_name !='') ? $topic->topic_name: $topic->title;
         }
-        if($camp && isset($camp->camp_name)){
-              $camp_name = $camp->camp_name;
-            }
+       
+        $camp_name = ($camp && isset($camp->camp_name)) ? $camp->camp_name : 'Agreement';
+
         $topic_id_name = $topic_num;
         $camp_num_name = $camp_num;
+        $regex  = '/[^A-Za-z0-9\-]/';
         if($topic_name!=''){
-            $topic_id_name = $topic_num . "-" . preg_replace('/[^A-Za-z0-9\-]/', '-',$topic_name);
+            $title = preg_replace($regex, '-', $topic_name);
+            $topic_id_name = $topic_num . "-" . $title;
         }
         if($camp_name!=''){
-                $camp_num_name = $camp_num."-".preg_replace('/[^A-Za-z0-9\-]/', '-', $camp->camp_name);
+            $campName = preg_replace($regex, '-', $camp_name);
+            $camp_num_name = $camp_num . "-" . $campName;
         }
-        
         return $topic_id_name . '/' . $camp_num_name;
     }
 
@@ -173,6 +173,17 @@ class Util
         }
     
         return  "can-" . $random_string;
+    }
+
+    public static function topicHistoryLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement' , $type)
+    {
+        $regex  = '/[^A-Za-z0-9\-]/';
+        $title = preg_replace($regex, '-', $title);
+        $campName = preg_replace($regex, '-', $campName);
+        $topicId = $topicNum . "-" . $title;
+        $campId = $campNum . "-" . $campName;
+       
+        return ($type == "topic") ? config('global.APP_URL_FRONT_END') . '/topic/history/' . $topicId : config('global.APP_URL_FRONT_END') . '/camp/history/' . $topicId . '/' . $campId;
     }
 
 }
