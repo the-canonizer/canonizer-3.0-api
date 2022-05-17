@@ -195,7 +195,7 @@ class ValidationRules
 
         return ([
             'nick_name' => 'required',
-            'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'camp_name' => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
