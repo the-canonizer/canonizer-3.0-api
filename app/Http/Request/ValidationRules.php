@@ -366,4 +366,13 @@ class ValidationRules
             'topic_num' => 'required'
         ];
     }
+
+    public function getActivityLogValidationRules(): array
+    {
+        return [
+            'per_page' => 'required',
+            'page' => 'required',
+            'log_type' => 'required|in:topic/camps,threads'
+        ];
+    }
 }
