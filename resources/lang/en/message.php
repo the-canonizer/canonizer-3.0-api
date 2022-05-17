@@ -15,7 +15,8 @@ return [
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
-        'camp_alreday_exist' => 'Camp name has already been taken.'
+        'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_data' => 'The given data was invalid.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -210,6 +211,8 @@ return [
         'available_for_child_required' => 'Availability for child is required.',
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
+        'display_text_max' => 'Display text may not be greater than 256 characters.',
+        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [

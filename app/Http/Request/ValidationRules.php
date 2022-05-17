@@ -195,7 +195,7 @@ class ValidationRules
 
         return ([
             'nick_name' => 'required',
-            'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'camp_name' => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
@@ -264,7 +264,7 @@ class ValidationRules
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
             "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required',
+            "display_text" => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
             "submitter_nick_id" => 'required'
         ];
     }
