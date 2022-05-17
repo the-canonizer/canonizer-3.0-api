@@ -273,13 +273,13 @@ class CampController extends Controller
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                $livecamp->campSubscriptionId = "";
+                $livecamp->campSubscription = "";
                 if ($request->user()) {
-                    $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : "";
+                    $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                    $livecamp->campSubscription = $campSubscriptionData;
                 }
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscription'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
