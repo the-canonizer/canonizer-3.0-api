@@ -292,7 +292,11 @@ class ValidationRules
     public function getThreadUpdateValidationRules(): array
     {
         return ([
-            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
+            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
         ]);
     }
 
