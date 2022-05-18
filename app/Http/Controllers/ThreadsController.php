@@ -538,6 +538,13 @@ class ThreadsController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+        if (count($thread_flag) > 0) {
+            $status = 400;
+            $message = trans('message.thread.title_unique');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
     
         try {
             $update = ["title" => $request->title];
