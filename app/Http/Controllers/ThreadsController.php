@@ -539,12 +539,7 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
-        if (count($thread_flag) > 0) {
-            $status = 400;
-            $message = trans('message.thread.title_unique');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        }
+    
     
         try {
             $update = ["title" => $request->title];
@@ -554,6 +549,14 @@ class ThreadsController extends Controller
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
+                if($threads->title !=$request->title){
+                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+                    if (count($thread_flag) > 0) {
+                        $status = 400;
+                        $message = trans('message.thread.title_unique');
+                        return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                    }
+                }
                 $threads->update($update);
                 $status = 200;
                 $message = trans('message.thread.update_success');
