@@ -792,7 +792,7 @@ class CampController extends Controller
                     $join->on('camp_subscription.camp_num', '=', 'camp.camp_num');
                 })
                 ->select('camp_subscription.*', 'camp.camp_name as camp_name', 'topic.topic_name as title')
-                ->where('user_id', $userId)->where('subscription_end', NULL)->get();
+                ->where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
 
 
                 $campSubscriptionList = [];
