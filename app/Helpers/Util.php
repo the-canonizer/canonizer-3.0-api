@@ -292,6 +292,12 @@ class Util
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
+        // //$items = array_values($items);
+        // dd($items);
+        // $items =[];
+        // foreach($items as $k => $i){
+        //     $items[] = $i;
+        // }
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 

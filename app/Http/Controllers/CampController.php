@@ -836,7 +836,7 @@ class CampController extends Controller
 
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             $currentPage = $request->page;
-            $paginate = Util::paginate($campSubscriptionList,$per_page ,$currentPage);
+            $paginate = Util::paginate(array_values($campSubscriptionList),$per_page ,$currentPage);
             $collection = Util::getPaginatorResponse($paginate);
             $status = 200;
             $message = trans('message.success.success');
