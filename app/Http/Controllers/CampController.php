@@ -780,6 +780,125 @@ class CampController extends Controller
         }
     }
 
+
+     /**
+     * @OA\GET(path="/camp/subscription/list/",
+     *   tags={"Camp"},
+     *   summary="list posubscriptionst",
+     *   description="This is use for get subscription list",
+     *   operationId="subscriptionList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="page",
+     *         in="url",
+     *         required=false,
+     *         description="Add page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="per_page",
+     *         in="url",
+     *         required=false,
+     *         description="Add per_page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="items",
+     *                                              type="object",
+     *                                                  @OA\Property(
+     *                                                      property="topic_num",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                 @OA\Property(
+     *                                                      property="title",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="title_link",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="is_remove_subscription",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="subscription_id",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="camps",
+     *                                                      type="object"
+     *                                                 )
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="current_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="per_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="last_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="total_rows",
+     *                                              type=""
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="from",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="to",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function campSubscriptionList(Request $request)
     {
 
@@ -799,15 +918,16 @@ class CampController extends Controller
                 foreach($result as $k => $subscription){
     
                     if(isset($campSubscriptionList[$subscription->topic_num])){
-                        $tempCamp = [
-                            'camp_num' => $subscription->camp_num,
-                            'camp_name' => $subscription->camp_name,
-                            'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
-                            'subscription_start' => $subscription->subscription_start,
-                            'subscription_id' => $subscription->id,
-                        ];
-                        array_push($campSubscriptionList[$subscription->topic_num]['camps'],$tempCamp);
-    
+                        if(($subscription->camp_num != 0)){
+                            $tempCamp = [
+                                'camp_num' => $subscription->camp_num,
+                                'camp_name' => $subscription->camp_name,
+                                'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
+                                'subscription_start' => $subscription->subscription_start,
+                                'subscription_id' => $subscription->id,
+                            ];
+                            array_push($campSubscriptionList[$subscription->topic_num]['camps'],$tempCamp);
+                        }
                     }else{
 
                         $flag = ($subscription->camp_num == 0) ? true : false;
