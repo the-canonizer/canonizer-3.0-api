@@ -36,6 +36,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
     $router->post('/get-statement-history','StatementController@getStatementHistory');
     $router->get('user/profile/{id}','ProfileController@getUserProfile');
+    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCaomps');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
