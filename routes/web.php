@@ -98,6 +98,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('camp/subscription','CampController@campSubscription');
         $router->post('support/remove','SupportController@removeSupport');
         $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
+        $router->get('camp/subscription/list','CampController@campSubscriptionList');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
