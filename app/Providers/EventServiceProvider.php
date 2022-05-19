@@ -19,6 +19,8 @@ use App\Listeners\ThankToSubmitterMailListener;
 use App\Listeners\ForgotPasswordSendOtpListener;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Listeners\PromotedDelegatesMailListener;
+use App\Events\LogActivityEvent;
+use App\Listeners\LogActivityListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -52,6 +54,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         PromotedDelegatesMailEvent::class => [
             PromotedDelegatesMailListener::class,
+        ],
+        LogActivityEvent::class => [
+            LogActivityListener::class,
         ],
     ];
 }

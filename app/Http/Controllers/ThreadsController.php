@@ -15,6 +15,8 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
+use App\Events\LogActivityEvent;
+use Illuminate\Support\Facades\Event;
 
 class ThreadsController extends Controller
 {
@@ -169,6 +171,7 @@ class ThreadsController extends Controller
                 // Return Url after creating thread Successfully
                 $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
+                Event::dispatch(new LogActivityEvent("threads", $return_url, 'Thread Created', $thread, $request->topic_num, $request->camp_num, $request->user()));
             } else {
                 $data = null;
                 $status = 400;

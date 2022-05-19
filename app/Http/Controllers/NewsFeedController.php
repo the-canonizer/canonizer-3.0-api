@@ -13,6 +13,8 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\Nickname;
+use App\Events\LogActivityEvent;
+use Illuminate\Support\Facades\Event;
 use App\Helpers\ActivityLogger;
 
 
@@ -193,7 +195,7 @@ class NewsFeedController extends Controller
             $news->order_id = ++$nextOrder;
             $news->save();
             $url="/topic/".$news->topic_num."/".$news->camp_num;
-            ActivityLogger::logActivity("topic/camps", $url, 'News updated', $news, $topicNum, $campNum, $request->user());
+            Event::dispatch(new LogActivityEvent("topic/camps", $url, 'News updated', $news, $topicNum, $campNum, $request->user()));
             $temp[] = $news;
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
@@ -293,7 +295,7 @@ class NewsFeedController extends Controller
             $news->order_id = ++$nextOrder;
             $news->save();
             $url="/topic/".$news->topic_num."/".$news->camp_num;
-            ActivityLogger::logActivity("topic/camps", $url,'News added', $news, $request->topic_num, $request->camp_num, $request->user());
+            Event::dispatch(new LogActivityEvent("topic/camps", $url,'News added', $news, $request->topic_num, $request->camp_num, $request->user()));
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
