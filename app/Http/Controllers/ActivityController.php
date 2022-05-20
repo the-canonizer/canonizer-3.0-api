@@ -23,6 +23,54 @@ class ActivityController extends Controller
         $this->resProvider = $respProvider;
     }
 
+   /**
+     * @OA\Post(path="/get-activity-log",
+     *   tags={"Activity Log"},
+     *   summary="Get activity log",
+     *   description="This is used to get activity log.",
+     *   operationId="GetActivityLog",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get activity log",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Number of records per page",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="page",
+     *                   description="page number",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="log_type",
+     *                   description="Type of log",
+     *                   required=true,
+     *                   type="string",
+     *               )
+     *           )
+     *       )  
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     *  )
+     */
+
     public function getActivityLog(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getActivityLogValidationRules(), $this->validationMessages->getActivityLogValidationMessages());
