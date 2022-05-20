@@ -152,12 +152,12 @@ class TopicSupport
      */
     public static function getAllSupportedCampsByUserId($userId)
     {
-        $response = DB::select("CALL user_support('delegate', 1)");
+        $response = DB::select("CALL user_support('delegate', $userId)");
         $supportedCamps = [];
         $supportedCamps = self::groupCampsByNickId($response, $userId, $supportedCamps);
        
 
-        $response = DB::select("CALL user_support('direct', 1)");
+        $response = DB::select("CALL user_support('direct', $userId)");
         $supportedCamps = self::groupCampsByNickId($response, $userId, $supportedCamps);
 
        return $supportedCamps;
