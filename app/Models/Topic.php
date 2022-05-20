@@ -101,6 +101,6 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = url('topic/' . $topicId . '/' . $campId);
+        return $link = config('global.APP_URL_FRONT_END').('/topic/' . $topicId . '/' . $campId);
     }
 }
