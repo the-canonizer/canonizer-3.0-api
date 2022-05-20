@@ -319,7 +319,7 @@ class ProfileController extends Controller
                     "error"       => null,
                     "data"        => null
                 ];
-                return (new SuccessResource($res))->response()->setStatusCode(200);
+                return (new SuccessResource($res))->response()->setStatusCode(400);
             }
 
         }catch(Exception $e){
