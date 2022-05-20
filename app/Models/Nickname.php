@@ -50,11 +50,18 @@ class Nickname extends Model {
         return $nickname;
     }
 
-    public static function getAllNicknames($userID)
+    public static function getAllNicknames($userID, $private='')
     {
         $ownerCode = Util::canon_encode($userID);
 
-        $nicknames = self::where('owner_code', $ownerCode)->get();
+        if(isset($private) && $private != '')
+        {
+            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->get();
+        }else
+        {
+            $nicknames = self::where('owner_code', $ownerCode)->get();
+        }
+        
         return $nicknames;
     }
     
@@ -252,6 +259,17 @@ class Nickname extends Model {
         }
 
         return null;
+    }
+
+    public static function getAllNicknamesByNickId($nickId)
+    {
+        $userId = self::getUserIDByNickNameId($nickId);
+        
+        if($userId){
+            return $allNickNames = self::getNicknamesIdsByUserId($userId);
+        }
+
+        return [];        
     }
     
 }

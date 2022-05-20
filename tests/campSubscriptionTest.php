@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Camp;
 use App\Models\User;
 
 class campSubscriptionTest extends TestCase
@@ -99,5 +100,20 @@ class campSubscriptionTest extends TestCase
         $user = User::factory()->make();
         $this->post('/api/v3/camp/subscription', []);
         $this->assertEquals(401,  $this->response->status());
+    }
+
+    public function testGetCampSubscriptionListInvalidData(){
+        print sprintf("\n Get camp subscription List Invalid Data %d %s",400, PHP_EOL);
+        $response = $this->call('GET', '/api/v3/camp/subscription/list/');
+        $this->assertEquals(401, $response->status()); 
+    }
+
+    public function testGetCampSubscriptionListValidData(){
+        print sprintf(" \n  Get camp subscription List Valid Data %d %s", 200,PHP_EOL);
+        $camp = Camp::factory()->make();
+
+        $this->actingAs($camp)
+        ->get('/api/v3/camp/subscription/list?page=1&per_page=10');
+        $this->assertEquals(200, $this->response->status());
     }
 }

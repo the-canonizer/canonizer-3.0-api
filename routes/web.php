@@ -35,6 +35,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('/get-languages','ProfileController@getLanguages');
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
     $router->post('/get-statement-history','StatementController@getStatementHistory');
+    $router->get('user/profile/{id}','ProfileController@getUserProfile');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -50,6 +51,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
         $router->post('/user/reSendOtp','UserController@reSendOtp');
         $router->get('thread/list','ThreadsController@threadList');
+        $router->get('post/list/{id}','ReplyController@postList');
     });
 
     //Route Group to access api with user access token
@@ -88,11 +90,15 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->put('thread/update/{id}','ThreadsController@update');
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
+        $router->post('support/add', 'SupportController@addDirectSupport');
+        $router->post('support/add-delegate', 'SupportController@addDelegateSupport');
         $router->post('post/save','ReplyController@store');
-        $router->get('post/list/{id}','ReplyController@postList');
         $router->put('post/update/{id}','ReplyController@update');
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
+        $router->post('support/remove','SupportController@removeSupport');
+        $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
+        $router->get('camp/subscription/list','CampController@campSubscriptionList');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
 use App\Models\Camp;
@@ -10,6 +11,7 @@ use App\Models\Topic;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\CampSubscription;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -18,8 +20,6 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Models\CampSubscription;
-use stdClass;
 
 class CampController extends Controller
 {
@@ -143,6 +143,14 @@ class CampController extends Controller
         }
         try {
 
+            $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
+            if (!empty($result)) {
+                $status = 400;
+                $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
+                $message = trans('message.error.invalid_data');
+                return $this->resProvider->apiJsonResponse($status, $message, null, $error);
+            }
+
             $current_time = time();
 
             ## check if mind_expert topic and camp abt nick name id is null then assign nick name as about nickname ##
@@ -187,7 +195,7 @@ class CampController extends Controller
                     $dataEmail = (object) [
                         "type" => "camp",
                         "link" =>  $link,
-                        "historylink" => env('APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '/' . $camp->camp_num,
+                        "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -769,6 +777,194 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+
+     /**
+     * @OA\GET(path="/camp/subscription/list/",
+     *   tags={"Camp"},
+     *   summary="list posubscriptionst",
+     *   description="This is use for get subscription list",
+     *   operationId="subscriptionList",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="page",
+     *         in="url",
+     *         required=false,
+     *         description="Add page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="per_page",
+     *         in="url",
+     *         required=false,
+     *         description="Add per_page field in query parameters",
+     *         @OA\Schema(
+     *              type="Query Parameters"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object",
+     *                                          @OA\Property(
+     *                                              property="items",
+     *                                              type="object",
+     *                                                  @OA\Property(
+     *                                                      property="topic_num",
+     *                                                      type="integer"
+     *                                                  ),
+     *                                                 @OA\Property(
+     *                                                      property="title",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="title_link",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="is_remove_subscription",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="subscription_id",
+     *                                                      type="string"
+     *                                                 ),
+     *                                                 @OA\Property(
+     *                                                      property="camps",
+     *                                                      type="object"
+     *                                                 )
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="current_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="per_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="last_page",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="total_rows",
+     *                                              type=""
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="from",
+     *                                              type="integer"
+     *                                          ),
+     *                                          @OA\Property(
+     *                                              property="to",
+     *                                              type="integer"
+     *                                          )
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
+    public function campSubscriptionList(Request $request)
+    {
+
+        try {
+            $user = $request->user();
+            $userId = $user->id;
+            $result = CampSubscription::leftJoin('topic', 'camp_subscription.topic_num', '=', 'topic.topic_num')
+                ->leftJoin('camp', function ($join) {
+                    $join->on('camp_subscription.topic_num', '=', 'camp.topic_num');
+                    $join->on('camp_subscription.camp_num', '=', 'camp.camp_num');
+                })
+                ->select('camp_subscription.*', 'camp.camp_name as camp_name', 'topic.topic_name as title')
+                ->where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
+
+
+                $campSubscriptionList = [];
+                foreach($result as $k => $subscription){
+    
+                    if(isset($campSubscriptionList[$subscription->topic_num])){
+                        if(($subscription->camp_num != 0)){
+                            $tempCamp = [
+                                'camp_num' => $subscription->camp_num,
+                                'camp_name' => $subscription->camp_name,
+                                'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
+                                'subscription_start' => $subscription->subscription_start,
+                                'subscription_id' => $subscription->id,
+                            ];
+                            array_push($campSubscriptionList[$subscription->topic_num]['camps'],$tempCamp);
+                        }
+                    }else{
+
+                        $flag = ($subscription->camp_num == 0) ? true : false;
+                        $camps=[];
+                        if(($subscription->camp_num != 0)){
+                            $camps = array(
+                                [
+                                    'camp_num' => $subscription->camp_num,
+                                    'camp_name' => $subscription->camp_name,
+                                    'camp_link' =>  Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
+                                    'subscription_start' => $subscription->subscription_start,
+                                    'subscription_id' => $subscription->id,
+                                ]
+                                );
+                        }
+                        $campSubscriptionList[$subscription->topic_num] = array(
+                            'topic_num' => $subscription->topic_num,
+                            'title' => $subscription->title,
+                            'title_link' => Topic::topicLink($subscription->topic_num,1,$subscription->title),
+                            'is_remove_subscription' => $flag,
+                            'subscription_id' => $subscription->id,
+                            'camps' => $camps,
+                        );
+                    }
+                }
+
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            $currentPage = $request->page;
+            $paginate = Util::paginate(array_values($campSubscriptionList),$per_page ,$currentPage);
+            $collection = Util::getPaginatorResponse($paginate);
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $collection, null);
+        } catch (Throwable $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
         }
     }
 }

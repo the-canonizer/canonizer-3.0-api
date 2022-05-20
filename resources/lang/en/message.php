@@ -15,7 +15,8 @@ return [
         'reg_failed'       => 'Your Registration failed Please try again!',
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
-        'camp_alreday_exist' => 'Camp name has already been taken.'
+        'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_data' => 'The given data was invalid.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -151,7 +152,7 @@ return [
 
     'otp' => [
         'required' => 'OTP is required.',
-        'valid_digits' => 'Enter valid 6 digits OTP.'
+        'valid_digits' => 'Please enter 6-digit code.'
     ],
 
     'verify_otp' => [
@@ -210,6 +211,8 @@ return [
         'available_for_child_required' => 'Availability for child is required.',
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
+        'display_text_max' => 'Display text may not be greater than 256 characters.',
+        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
@@ -239,7 +242,7 @@ return [
     ],
     'post' => [
         'nick_name_required' => 'Nick name field is required.',
-        'body_regex' => 'Nick name field is required.',
+        'body_regex' => 'Reply field is required.',
         'create_success' => 'Post Created Successfully!',
         'create_failed' => 'Fail to create post, please try later.',
         'camp_num_required' => 'Camp num is required.',
@@ -247,7 +250,7 @@ return [
         'topic_name_required' => 'Topic name is required.',
         'thread_id_required' => 'Thread id is required.',
         'post_not_exist' => "Post id doesn't exist.",
-        'update_success' => 'Body of the post updated successfully.',
+        'update_success' => 'Post Updated Successfully',
         'delete_success' => 'Post deleted successfully.',
     ],
     'validation_get_statementHistory' => [
@@ -260,6 +263,27 @@ return [
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
+    ],
+    'support'  => [
+        'add_direct_support' => 'Support added successfully.',
+        'add_delegate_support' => 'You have delegated your support successfully.',
+        'add_delegation_support' => 'Support delegated successfully.',
+        'complete_support_removed' => 'Support removed successfully.'
+
+    ],
+    'support_validation' => [
+        'nick_name_required' => 'Nick name is required',
+        'topic_num_required' => 'Invalid topic or no topic submitted.',
+        'camps_required' => "Atleast one camp should be submitted to add the support.",
+        'camp_num_required' => "Camp number missing.",
+        "camp_num_invalid" => "Invalid camp number submitted.",
+        "support_order_required" => "Support order is missing.",
+        'support_order_invalid' => "Invalid support order submitted, it can only be integer."
+    ],
+    'delegate_support_validation' => [
+        'nick_name_required' => 'Nick name is required',
+        'topic_num_required' => 'Invalid topic or no topic submitted.',
+        'delegate_nick_name_required' => 'Invalid delegation, please provide valid delegated user.'
     ],
     'validation_subscription_camp' => [
         'topic_num_required' => "Topic number is required.",

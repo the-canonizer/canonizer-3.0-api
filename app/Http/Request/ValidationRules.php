@@ -191,11 +191,11 @@ class ValidationRules
 
     public function getCampStoreValidationRules(): array
     {
-        $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+        $regex = '/(http(s?):\/\/)([a-z0-9\-]+\.)+[a-z]{2,4}(\.[a-z]{2,4})*(\/[^ ]+)*/i';
 
         return ([
             'nick_name' => 'required',
-            'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'camp_name' => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
@@ -252,7 +252,7 @@ class ValidationRules
         return([
             'file' => 'required',
             'file.*' => 'max:5120',
-            'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
+            //'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
             'name.*' => 'required'
         ]);
     }
@@ -264,7 +264,7 @@ class ValidationRules
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
             "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required',
+            "display_text" => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
             "submitter_nick_id" => 'required'
         ];
     }
@@ -292,7 +292,9 @@ class ValidationRules
     public function getThreadUpdateValidationRules(): array
     {
         return ([
-            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/'
+            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
         ]);
     }
 
@@ -330,13 +332,33 @@ class ValidationRules
         ];
     }
 
+    public function getAddDirectSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required',
+            'camps' => 'required|array|min:1',
+            'camps.*.camp_num' => 'required|integer',
+            'camps.*.support_order' => 'required|integer'
+        ];
+    }
+
+    public function getAddDelegateSupportRule(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'delegate_to_user_id' => 'required|integer'
+        ];
+    }
+
     public function getAllCampSubscriptionValidationRules(): array
     {
         return [
             'topic_num' => 'required',
             'camp_num' => 'required',
             'checked' => 'required|boolean',
-            'subscription_id' => 'required_if:checked,false|exists:camp_subscription,id'
+            'subscription_id' => 'required_if:checked,false'
         ];
     }
 }

@@ -1,6 +1,6 @@
 <?php namespace App\Library {
     class General{
-
+        
         public static function canon_encode($id=''){
             $code = 'Malia' . $id . 'Malia';
             $code = base64_encode($code);

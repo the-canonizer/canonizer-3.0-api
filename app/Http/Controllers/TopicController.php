@@ -132,6 +132,7 @@ class TopicController extends Controller
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
+                Util::dispatchJob($topic, 1, 1);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -163,18 +164,20 @@ class TopicController extends Controller
                     $filter['asOf'] = $request->asof;
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
-                    $historylink = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $historylink = Util::topicHistoryLink($topic->topic_num,1, $topic->topic_name,'Aggreement','topic');
                     $dataEmail = (object) [
                         "type" => "topic",
-                        "link" => $historylink,
-                        "historylink" => env('APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num,
-                        "object" => $topic->topic_name . " / " . $camp->camp_name,
+                        "link" => $link,
+                        "historylink" => $historylink,
+                        "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
                     $message = $e->getMessage();
+                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
                 }
                 $data = $topic;
                 $status = 200;
@@ -251,7 +254,7 @@ class TopicController extends Controller
             $topic = Camp::getAgreementTopic($filter);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
-                $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
+                $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             if ($topic) {

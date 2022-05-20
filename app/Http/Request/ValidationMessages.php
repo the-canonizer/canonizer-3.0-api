@@ -288,7 +288,7 @@ class ValidationMessages
     {
         return  ([
             'file.required' => trans('message.uploads.image_required'),
-            'file.*.mimes' => trans('message.uploads.image_mimes'),
+            //'file.*.mimes' => trans('message.uploads.image_mimes'),
             'file.*.max' => trans('message.uploads.image_size'),
             'name.*.required' => trans('message.uploads.image_name_required'),
 
@@ -304,6 +304,8 @@ class ValidationMessages
             'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
             'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
             'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
+            "display_text.regex" => trans('message.validation_store_newsfeed.display_text_regex'),
+            "display_text.max" => trans('message.validation_store_newsfeed.display_text_max'),
             'submitter_nick_id.required' => trans('message.validation_store_newsfeed.submitter_nick_id_required'),
         ];
     }
@@ -335,7 +337,9 @@ class ValidationMessages
         return [
             'title.regex' => trans('message.thread.title_regex'),
             'title.required' => trans('message.thread.title_required'),
-            'title.max' => trans('message.thread.title_max')
+            'title.max' => trans('message.thread.title_max'),
+            'camp_num.required' => trans('message.thread.camp_num_required'),
+            'topic_num.required' => trans('message.thread.topic_num_required'),
         ];
     }
     
@@ -348,6 +352,32 @@ class ValidationMessages
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
         ]);
+    }
+
+    public function getAddDirectSupportMessages(): array
+    {
+        return([
+            'nick_name_id.required' => trans('message.support_validation.nick_name_required'),
+            'camps.required' => trans('message.support_validation.camps_required'),
+            'camps.min'=> trans('message.support_validation.camps_required'),
+            'topic_num.required'=> trans('message.support_validation.topic_num_required'),
+            'topic_num.integer'=> trans('message.support_validation.topic_num_required'),
+            'camps.*.camp_num.required' => trans('message.support_validation.camp_num_required'),
+            'camps.*.support_order.required' => trans('message.support_validation.support_order_required'),
+            'camps.*.camp_num.integer' => trans('message.support_validation.camp_num_invalid'),
+            'camps.*.support_order.integer' => trans('message.support_validation.support_order_invalid'),
+            
+         ]);
+    }
+
+    public function getAddDelegateSupportMessages(): array
+    {
+        return([
+            'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
+            'delegate_to_user_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
+            'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
+            
+         ]);
     }
 
     public function getPostStoreValidationMessages(): array
