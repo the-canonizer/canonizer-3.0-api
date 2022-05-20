@@ -240,7 +240,7 @@ return [
     ],
     'post' => [
         'nick_name_required' => 'Nick name field is required.',
-        'body_regex' => 'Nick name field is required.',
+        'body_regex' => 'Reply field is required.',
         'create_success' => 'Post Created Successfully!',
         'create_failed' => 'Fail to create post, please try later.',
         'camp_num_required' => 'Camp num is required.',
@@ -248,7 +248,7 @@ return [
         'topic_name_required' => 'Topic name is required.',
         'thread_id_required' => 'Thread id is required.',
         'post_not_exist' => "Post id doesn't exist.",
-        'update_success' => 'Body of the post updated successfully.',
+        'update_success' => 'Post Updated Successfully',
         'delete_success' => 'Post deleted successfully.',
     ],
     'validation_get_statementHistory' => [

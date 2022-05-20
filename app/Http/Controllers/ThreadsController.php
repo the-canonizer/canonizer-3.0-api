@@ -372,8 +372,9 @@ class ThreadsController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
                 $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
-                    ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name','post.updated_at as post_updated_at')
+                    ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+                    ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -391,8 +392,9 @@ class ThreadsController extends Controller
             }
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
             $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
-                ->leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name' ,'post.updated_at as post_updated_at')
+                ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+                ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
                 ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -410,8 +412,9 @@ class ThreadsController extends Controller
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::Join('post', 'thread.id', '=', 'post.thread_id')
-                    ->Join('nick_name', 'nick_name.id', '=', 'post.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'nick_name.nick_name as nick_name','post.updated_at as post_updated_at')
+                    ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
+                    ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -538,6 +541,8 @@ class ThreadsController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+    
     
         try {
             $update = ["title" => $request->title];
@@ -547,6 +552,14 @@ class ThreadsController extends Controller
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
+                if($threads->title !=$request->title){
+                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+                    if (count($thread_flag) > 0) {
+                        $status = 400;
+                        $message = trans('message.thread.title_unique');
+                        return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                    }
+                }
                 $threads->update($update);
                 $status = 200;
                 $message = trans('message.thread.update_success');
