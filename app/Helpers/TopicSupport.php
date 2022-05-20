@@ -10,6 +10,7 @@ use App\Models\Support;
 use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
 use App\Events\PromotedDelegatesMailEvent;
+use DB;
 
 
 class TopicSupport
@@ -140,6 +141,97 @@ class TopicSupport
     public static function getLiveCamp($filter)
     {
         return Camp::getLiveCamp($filter);
+    }
+
+    /**
+     * [getAllSupportedCampsByUser] 
+     *  This function will return all supported camps group by nickname ID
+     * @param $id is user id
+     * @return array of all supporte camps group by nickname id
+     *   
+     */
+    public static function getAllSupportedCampsByUserId($userId)
+    {
+        $response = DB::select("CALL user_support('delegate', 1)");
+        $supportedCamps = [];
+        $supportedCamps = self::groupCampsByNickId($response, $userId, $supportedCamps);
+       
+
+        $response = DB::select("CALL user_support('direct', 1)");
+        $supportedCamps = self::groupCampsByNickId($response, $userId, $supportedCamps);
+
+       return $supportedCamps;
+        
+    }
+
+
+    public static function groupCampsByNickId($response, $userId, $directSupports = [])
+    {
+       
+        foreach($response as $k => $support){
+            if(isset($directSupports[$support->nick_name_id])){
+
+                if(isset($directSupports[$support->nick_name_id]['topic'][$support->topic_num])){
+                    $tempCamp = [
+                        'camp_num' => $support->camp_num,
+                        'camp_name' => $support->camp_name,
+                        'support_order'=> $support->support_order,
+                        'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
+                        'support_added' => date('Y-m-d',$support->start)
+                    ];
+                    array_push($directSupports[$support->nick_name_id]['topic'][$support->topic_num]['camps'],$tempCamp);
+
+                }else{
+                    $directSupports[$support->nick_name_id]['topic'][$support->topic_num] = array(
+                        'topic_num' => $support->topic_num,
+                        'title' => $support->title,
+                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                        'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '',
+                        'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
+                        'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '' ,
+                        'delegated_to_nick_name_link' => isset($support->delegate_user_id) ? Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num,  $support->camp_num) : '',
+                        'camps' => array(
+                                [
+                                    'camp_num' => $support->camp_num,
+                                    'camp_name' => $support->camp_name,
+                                    'support_order' => $support->support_order,
+                                    'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
+                                    'support_added' => date('Y-m-d',$support->start)
+
+                                ]
+                        ),
+                    );
+                }
+            }else{
+                $directSupports[$support->nick_name_id] = array(
+                    'nick_name_id' => $support->nick_name_id,
+                    'nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '', 
+                    'topic' =>array(
+                        $support->topic_num => array(
+                            'topic_num' => $support->topic_num,
+                            'title' => $support->title,
+                            'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                            'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '' ,
+                            'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
+                            'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '',
+                            'delegated_to_nick_name_link' => isset($support->delegate_user_id) ? Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num,  $support->camp_num) : '',
+                            'camps' => array(
+                                    [
+                                        'camp_num' => $support->camp_num,
+                                        'camp_name' => $support->camp_name,
+                                        'support_order' => $support->support_order,
+                                        'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
+                                        'support_added' => date('Y-m-d',$support->start)
+
+                                    ]
+                            ),
+                        )
+                    )
+                );
+
+            }            
+        }
+        return $directSupports;
     }
 
     

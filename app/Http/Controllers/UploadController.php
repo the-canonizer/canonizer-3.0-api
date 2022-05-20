@@ -125,7 +125,6 @@ class UploadController extends Controller
         $user = $request->user();
 
         try{
-
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
 use App\Models\User;
 use App\Models\Nickname;
+use App\Helpers\TopicSupport;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -404,6 +405,37 @@ class ProfileController extends Controller
 
         }catch(Exception $e){
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, null);
+        }
+    }
+
+     /**
+     * @OA\Post(path="/user/all-supported-camps",
+     */
+    public function getUserSupportedCaomps(Request $request, $id)
+    {
+        try{
+
+            $user = User::getUserById($id);
+
+            if(isset($user) && !empty($user))
+            {
+                $supportedCamps = TopicSupport::getAllSupportedCampsByUserId($id);
+
+                $status = 200;
+                $message =  trans('message.success.success');
+                $data = $supportedCamps;
+                $error = null;
+
+            }else{
+                $status = 404;
+                $message = trans('message.error.user_not_exist');
+                $data = null;
+                $error = trans('message.error.user_not_exist'); 
+            }
+            return $this->resProvider->apiJsonResponse($status, $message, $data, $error);
+
+        }catch(Exception $e){
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
         }
     }
 }
