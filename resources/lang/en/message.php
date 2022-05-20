@@ -132,7 +132,6 @@ return [
         'not_found' => 'No record found against provided id.',
     ],
     'validation_update_newsfeed' => [
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
         'display_text_required' => 'Display text is required',
         'link_regex' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
@@ -212,7 +211,6 @@ return [
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
