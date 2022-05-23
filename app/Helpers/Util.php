@@ -11,7 +11,9 @@ use App\Jobs\CanonizerService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 class Util
 {
 
@@ -276,6 +278,21 @@ class Util
             Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
         }
         
+    }
+
+     /**
+     * @param $items
+     * @param $perPage
+     * @param $page
+     * @param $options
+     * @return ?object
+     */
+
+    public function paginate($items, $perPage, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 
 }
