@@ -20,7 +20,9 @@ class ActivityLogger
         if ($log_type == 'threads') {
             $users = CampForum::getThreadLogUsers($topic_num, $camp_num);
         } elseif($log_type == 'topic/camps') {
-            $users = Camp::getCampSubscribers($topic_num, $camp_num);
+            $subscribers = Camp::getCampSubscribers($topic_num, $camp_num);
+            $supporters = Camp::getDirectCampSupporterIds($topic_num, $camp_num);
+            $users = array_unique(array_merge($subscribers, $supporters));
         }
         foreach ($users as $user) {
             $activityUser = new ActivityUser();
