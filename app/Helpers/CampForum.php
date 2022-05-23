@@ -273,7 +273,8 @@ class CampForum
             $subscribers = Camp::getCampSubscribers($topicid, $camp_id);
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
-                $user_id = $user->id ?? null;$user_id = $user->id ?? null;
+                $user_id = $user->id ?? null;
+                $user_id = $user->id ?? null;
                 $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
                 $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
@@ -341,8 +342,8 @@ class CampForum
     {
         $subscriptionUser = [];
         $userExist = [];
-        $userIds= [];
-        $subUser=[];
+        $userIds = [];
+        $subUser = [];
         $filter['topicNum'] = $topicid;
         $filter['asOf'] = '';
         $filter['campNum'] = $campnum;
@@ -357,11 +358,10 @@ class CampForum
                 $subUser[] = $user;
                 $userExist[] = $userId;
             }
-            if ($subscribers && count($subscribers) > 0) {
+            if ($subscribers) {
                 foreach ($subscribers as $sub) {
                     if (!in_array($sub, $userExist, true)) {
-                        $userSub = User::find($sub);
-                        $subscriptionUser[] = $userSub;
+                        $subscriptionUser[] = User::find($sub);
                     }
                 }
             }
@@ -370,15 +370,14 @@ class CampForum
         $filteredSubUser = array_unique(array_filter($subscriptionUser, function ($e) use ($userExist) {
             return !in_array($e->id, $userExist);
         }));
-        if (isset($filtered_user) && count($filtered_user) > 0) {
-
+        if (count($filtered_user) > 0) {
             foreach ($filtered_user as $user) {
-                array_push($userIds, $user->id);    
+                $userIds[]=$user->id;
             }
         }
-        if (isset($filteredSubUser) && count($filteredSubUser) > 0) {
+        if ( count($filteredSubUser) > 0) {
             foreach ($filteredSubUser as $userSub) {
-                array_push($userIds, $user->id);
+                $userIds[]=$userSub->id;
             }
         }
         return $userIds;

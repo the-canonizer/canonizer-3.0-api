@@ -367,9 +367,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         self::$chilcampArray = [];
     }
 
-    public static function getCampSubscription($filter, $userid = null)
+    public static function getCampSubscription($filter, $userid = null) :array
     {
-        $returnArr = array('flag' => 0, 'camp' => [], 'camp_subscription_data' => []);
+        $returnArr = array('flag' => 0, 'camp_subscription_data' => []);
         $camp_subscription = \App\Models\CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
         $flag = sizeof($camp_subscription) > 0  || 0;
         if (!$flag) {
@@ -396,14 +396,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                             ->on("camp.camp_num", "=", "camp_subscription.camp_num");
                     })->where('user_id', '=', $userid)->where('camp_subscription.camp_num', '=', $camp)->where('camp_subscription.topic_num', '=', $filter['topicNum'])->where('camp_subscription.subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('camp_subscription.subscription_end', '=', null)->orWhere('camp_subscription.subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->orderBy('camp.go_live_time', 'DESC')->limit(1)->get();
                     if (sizeof($camp_subscription) > 0) {
-                        $onecamp = self::liveCampByDateFilter($filter);
                         $returnArr = array('flag' => $flag, 'camp_subscription_data' => $camp_subscription);
                         break;
                     }
                 }
             }
         } else {
-            $onecamp = self::liveCampByDateFilter($filter);
             $returnArr = array('flag' => 1, 'camp_subscription_data' => $camp_subscription);
         }
         return $returnArr;

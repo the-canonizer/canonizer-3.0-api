@@ -77,7 +77,7 @@ class ActivityController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $perPage = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+        $perPage = $request->per_page ?? config('global.per_page');
         $logType=$request->log_type;
         try {
             $log = ActivityUser::whereHas('Activity', function ($query) use ($logType) { 
