@@ -286,14 +286,12 @@ class CampController extends Controller
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
                 if ($request->user()) {
                     $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
-                    $livecamp->subdata= $campSubscriptionData;
                     $livecamp->flag = $campSubscriptionData['flag'];
                     $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id'])?$campSubscriptionData['camp_subscription_data'][0]['subscription_id']:null;
-                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id'])? $campSubscriptionData['camp_subscription_data'][0]['subscription_id']:null;
                     $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name'])? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] :null;
                 }
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag','subscriptionId ','subscriptionCampName'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag','subscriptionId','subscriptionCampName'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
