@@ -281,7 +281,6 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             if ($livecamp) {
-                
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
                 if ($request->user()) {
