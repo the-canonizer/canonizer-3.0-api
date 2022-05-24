@@ -31,7 +31,7 @@ return [
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
-        'user_remove'  => 'User remove successfully.',
+        'user_remove'  => 'User removed successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
         'subscribed'  => 'Subscribed successfully.',
