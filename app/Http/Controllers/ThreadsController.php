@@ -171,7 +171,7 @@ class ThreadsController extends Controller
                 // Return Url after creating thread Successfully
                 $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
-                Event::dispatch(new LogActivityEvent("threads", $return_url, 'Thread Created', $thread, $request->topic_num, $request->camp_num, $request->user()));
+                Event::dispatch(new LogActivityEvent("threads", $return_url, 'Thread created', $thread, $request->topic_num, $request->camp_num, $request->user()));
             } else {
                 $data = null;
                 $status = 400;
@@ -536,14 +536,10 @@ class ThreadsController extends Controller
 
     public function update(Request $request, Validate $validate, $id)
     {
-
         $validationErrors = $validate->validate($request, $this->rules->getThreadUpdateValidationRules(), $this->validationMessages->getThreadUpdateValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-    
-    
         try {
             $update = ["title" => $request->title];
             $threads = Thread::find($id);
@@ -561,6 +557,8 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
+                $url = 'forum/' . $request->topic_num . '/' . $request->camp_num . '/threads';
+                Event::dispatch(new LogActivityEvent("threads", $url, 'Thread updated', $threads, $request->topic_num, $request->camp_num, $request->user()));
                 $status = 200;
                 $message = trans('message.thread.update_success');
             }

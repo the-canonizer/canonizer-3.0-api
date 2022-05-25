@@ -20,6 +20,7 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
+use App\Events\LogActivityEvent;
 
 class TopicController extends Controller
 {
@@ -173,6 +174,8 @@ class TopicController extends Controller
                         "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                    $url="/topic/".$topic->topic_num."/1";
+                    Event::dispatch(new LogActivityEvent("topic/camps", $url,'topic created', $topic, $topic->topic_num, 1, $request->user()));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
