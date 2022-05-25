@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 
-class CanonizerService implements ShouldQueue
+class CanonizerService implements ShouldQueue, ShouldBeUnique
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -24,6 +25,16 @@ class CanonizerService implements ShouldQueue
     public function __construct($data)
     {
         $this->canonizerData = $data;
+    }
+
+    /**
+     * The unique ID of the job.
+     *
+     * @return string
+     */
+    public function uniqueId()
+    {
+        return $this->canonizerData['topic_num'];
     }
 
     /**
