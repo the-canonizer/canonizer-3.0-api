@@ -66,6 +66,7 @@ $app->configure('services');
 $app->configure('mail');
 $app->configure('message');
 $app->configure('global');
+$app->configure('activitylog');
 
 /*
 |--------------------------------------------------------------------------
@@ -122,6 +123,8 @@ $app->register(\Anik\Form\FormRequestServiceProvider::class);
 /* Form request */
 $app->register(\Anik\Form\FormRequestServiceProvider::class);
 
+/* Activity Logger */
+$app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

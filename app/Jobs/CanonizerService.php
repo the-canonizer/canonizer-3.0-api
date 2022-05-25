@@ -23,7 +23,6 @@ class CanonizerService implements ShouldQueue
      */
     public function __construct($data)
     {
-      //  dd($data);
         $this->canonizerData = $data;
     }
 
@@ -34,7 +33,6 @@ class CanonizerService implements ShouldQueue
      */
     public function handle()
     {
-       // Log::error("xyzzz");
         // Get payload of the job to log
         $jobPayload = $this->job->getRawBody();
         $updateAll = 0;
@@ -60,14 +58,16 @@ class CanonizerService implements ShouldQueue
             return;
         }
         $endpoint = $appURL."/".$endpointCSStoreTree;
-       // Log::info("endpoint: ". $endpoint. "requestBody: ". json_encode($requestBody));
+       
         $headers = array('Content-Type:multipart/form-data');
 
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
-       // dd($response);
-       // Log::info( $response);
+       
         if(isset($response)) {
             $responseData = json_decode($response, true)['data'];
+            $responseStatus = (bool) json_decode($response, true)['success'] === true ? 'Success' : 'Failed';
+            $responseCode = json_decode($response, true)['code'] ? json_decode($response, true)['code'] : 404;
+
             if(isset($responseData)) {
                 $responseData = json_encode($responseData[0]);
             } else {
@@ -75,8 +75,8 @@ class CanonizerService implements ShouldQueue
             }
             ProcessedJob::create([
                 'payload'   => $jobPayload,
-                'status'    => (bool)$response['success'] === true ? 'Success' : 'Failed',
-                'code'      => $response['code'],
+                'status'    => $responseStatus,
+                'code'      => $responseCode,
                 'response'  => $responseData,
                 'topic_num' => $this->canonizerData['topic_num'],
             ]);

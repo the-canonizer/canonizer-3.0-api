@@ -31,7 +31,7 @@ return [
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
-        'user_remove'  => 'User remove successfully.',
+        'user_remove'  => 'User removed successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
         'subscribed'  => 'Subscribed successfully.',
@@ -132,7 +132,6 @@ return [
         'not_found' => 'No record found against provided id.',
     ],
     'validation_update_newsfeed' => [
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
         'display_text_required' => 'Display text is required',
         'link_regex' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
@@ -212,7 +211,6 @@ return [
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
@@ -296,4 +294,10 @@ return [
         'already_subscribed' => "Already subscribed.",
         'already_unsubscribed' => "Already unsubscribed.",
     ],
+    'validation_get_activity_log' => [
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+        'log_type_required' => "Log type is required.",
+        'log_type_in' => "Please enter a valid Log Type value (topic/camps, threads)",
+    ]
 ];
