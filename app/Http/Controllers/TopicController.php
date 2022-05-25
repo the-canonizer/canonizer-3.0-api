@@ -20,7 +20,7 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
-use App\Events\LogActivityEvent;
+use App\Jobs\ActivityLoggerJob;
 
 class TopicController extends Controller
 {
@@ -166,7 +166,7 @@ class TopicController extends Controller
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
                     $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
-                    $historylink = Util::topicHistoryLink($topic->topic_num,1, $topic->topic_name,'Aggreement','topic');
+                    $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
                     $dataEmail = (object) [
                         "type" => "topic",
                         "link" => $link,
@@ -174,8 +174,17 @@ class TopicController extends Controller
                         "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                    $url="/topic/".$topic->topic_num."/1";
-                    Event::dispatch(new LogActivityEvent("topic/camps", $url,'topic created', $topic, $topic->topic_num, 1, $request->user()));
+                    $url = "/topic/" . $topic->topic_num . "/1";
+                    $activitLogData = [
+                        'log_type' =>  "topic/camps",
+                        'activity' => 'Topic created',
+                        'url' => $url,
+                        'model' => $topic,
+                        'topic_num' => $topic->topic_num,
+                        'camp_num' =>  1,
+                        'user' => $request->user()
+                    ];
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
