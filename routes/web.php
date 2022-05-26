@@ -85,8 +85,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('/delete-camp-newsfeed','NewsFeedController@deleteNewsFeed');
-        $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
-        $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('thread/save','ThreadsController@store');
         $router->put('thread/update/{id}','ThreadsController@update');
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
@@ -99,7 +97,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('camp/subscription','CampController@campSubscription');
         $router->post('support/remove','SupportController@removeSupport');
         $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
+        $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
+        $router->post('support-order/update','SupportController@updateSupportOrder');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');

@@ -20,6 +20,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
+use App\Events\LogActivityEvent;
 
 class CampController extends Controller
 {
@@ -199,7 +200,8 @@ class CampController extends Controller
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                } catch (Throwable $e) {
+                    Event::dispatch(new LogActivityEvent("topic/camps", $link, 'Camp created', $camp, $filter['topicNum'], $filter['campNum'], $request->user()));
+                } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
                     $message = $e->getMessage();
@@ -281,13 +283,14 @@ class CampController extends Controller
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                $livecamp->campSubscriptionId = "";
                 if ($request->user()) {
-                    $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : "";
+                    $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                    $livecamp->flag = $campSubscriptionData['flag'];
+                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id'])?$campSubscriptionData['camp_subscription_data'][0]['subscription_id']:null;
+                    $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name'])? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] :null;
                 }
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag','subscriptionId','subscriptionCampName'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;

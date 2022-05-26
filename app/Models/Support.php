@@ -186,11 +186,20 @@ class Support extends Model
         return $supports;
     }
 
-    public static function removeSupportWithAllNicknames($topicNum,$campNum='', $nickNames = array())
+    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array())
     {
-        $supports = self::where('topic_num', '=', $topicNum)
+        if(!empty($campNum))
+        {
+            $supports = self::where('topic_num', '=', $topicNum)
+                    ->whereIn('camp_num', $campNum)
                     ->whereIn('nick_name_id', $nickNames)
                     ->update(['end' => time()]);
+        }else
+        {
+            $supports = self::where('topic_num', '=', $topicNum)
+                    ->whereIn('nick_name_id', $nickNames)
+                    ->update(['end' => time()]);
+        }
 
         return;
     }

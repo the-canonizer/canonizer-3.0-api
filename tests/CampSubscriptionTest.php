@@ -3,7 +3,7 @@
 use App\Models\Camp;
 use App\Models\User;
 
-class campSubscriptionTest extends TestCase
+class CampSubscriptionTest extends TestCase
 {
     /**
      * Check Api with empty form data
