@@ -338,48 +338,4 @@ class CampForum
         }
     }
 
-    public static function getThreadLogUsers($topicid, $campnum)
-    {
-        $subscriptionUser = [];
-        $userExist = [];
-        $userIds = [];
-        $subUser = [];
-        $filter['topicNum'] = $topicid;
-        $filter['asOf'] = '';
-        $filter['campNum'] = $campnum;
-        $camp = CampForum::getForumLiveCamp($filter);
-        $subCampIds = CampForum::getForumAllChildCamps($camp);
-        foreach ($subCampIds as $camp_id) {
-            $directSupporter = CampForum::getDirectCampSupporter($topicid, $camp_id);
-            $subscribers = Camp::getCampSubscribers($topicid, $camp_id);
-            foreach ($directSupporter as $supporter) {
-                $user = CampForum::getUserFromNickId($supporter->nick_name_id);
-                $userId = $user->id ?? null;
-                $subUser[] = $user;
-                $userExist[] = $userId;
-            }
-            if ($subscribers) {
-                foreach ($subscribers as $sub) {
-                    if (!in_array($sub, $userExist, true)) {
-                        $subscriptionUser[] = User::find($sub);
-                    }
-                }
-            }
-        }
-        $filtered_user = array_unique($subUser);
-        $filteredSubUser = array_unique(array_filter($subscriptionUser, function ($e) use ($userExist) {
-            return !in_array($e->id, $userExist);
-        }));
-        if (count($filtered_user) > 0) {
-            foreach ($filtered_user as $user) {
-                $userIds[]=$user->id;
-            }
-        }
-        if ( count($filteredSubUser) > 0) {
-            foreach ($filteredSubUser as $userSub) {
-                $userIds[]=$userSub->id;
-            }
-        }
-        return $userIds;
-    }
 }

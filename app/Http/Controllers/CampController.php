@@ -20,7 +20,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Events\LogActivityEvent;
+use App\Jobs\ActivityLoggerJob;
 
 class CampController extends Controller
 {
@@ -200,7 +200,16 @@ class CampController extends Controller
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                    Event::dispatch(new LogActivityEvent("topic/camps", $link, 'Camp created', $camp, $filter['topicNum'], $filter['campNum'], $request->user()));
+                    $activitLogData = [
+                        'log_type' =>  "topic/camps",
+                        'activity' => 'Camp created',
+                        'url' => $link,
+                        'model' => $camp,
+                        'topic_num' => $filter['topicNum'],
+                        'camp_num' =>   $filter['campNum'],
+                        'user' => $request->user()
+                    ];
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
