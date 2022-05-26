@@ -235,12 +235,11 @@ class TopicSupport
     }
 
 
-    public static function groupCampsForNickId($results, $nickname)
+    public static function groupCampsForNickId($results, $nickname,$namespaceId = 1)
     {
         $supports[$nickname->id] = [];
         $supports[$nickname->id]['nick_name_id'] = $nickname->id;
         $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
-
         
         foreach ($results as $rs) {
             $topic_num = $rs->topic_num;
@@ -284,7 +283,7 @@ class TopicSupport
                 $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
                 $supports[$nickname->id]['topic'][$topic_num]['title'] = $title;
                 $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-
+                $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
                 if($rs->delegate_nick_name_id){
                     $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
                 }

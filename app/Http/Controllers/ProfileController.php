@@ -465,7 +465,7 @@ class ProfileController extends Controller
                 }               
 
                 $supportResponse = $nickName->getNicknameSupportedCampList($namespace,['nofilter' => true],$topicNum);
-                $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName);
+                $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
 
                 $data['profile'] = $userArray;
                 $data['support_list'] = $support;
