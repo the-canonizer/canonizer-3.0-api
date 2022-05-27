@@ -217,8 +217,6 @@ class Nickname extends Model {
         where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
         (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by u.submit_time DESC";
         $results = DB::select($sql);
-
-        echo "<pre>"; print_r($results); exit;
         $supports = [];
         foreach ($results as $rs) {
             $topic_num = $rs->topic_num;
