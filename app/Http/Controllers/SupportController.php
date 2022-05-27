@@ -242,11 +242,10 @@ class SupportController extends Controller
 
         try{
             //case 1 removing direct support
-            if($type == 'direct'){              
+            if($type == 'direct'){  
 
-                //$allNickNames = Nickname::getNicknamesIdsByUserId($userId);
                 TopicSupport::removeDirectSupport($topicNum, $campNum, $nickNameId, $action, $type, $orderUpdate);
-
+                
                 return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
             }
         } catch (\Throwable $e) {

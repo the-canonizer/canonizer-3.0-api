@@ -19,11 +19,14 @@ class TopicSupport
 
     public  static function removeDirectSupport($topicNum, $campNum = '', $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
     {
-        $supportSwitchCase = [
-            'all' => self::removeCompleteSupport($topicNum, $campNum , $nickNameId, $action , $type),
-            'partial'  => self::removePartialSupport($topicNum, $campNum , $nickNameId, $action,  $type, $orderUpdate),
-        ];
-        return $supportSwitchCase[$action];
+        if(isset($action) && $action == 'all')
+        {
+            return self::removeCompleteSupport($topicNum, $campNum , $nickNameId, $action , $type);
+        
+        }else if(isset($action) && $action == 'partial')
+        {
+            return self::removePartialSupport($topicNum, $campNum , $nickNameId, $action,  $type, $orderUpdate);
+        }
     }
 
     /**
@@ -37,12 +40,17 @@ class TopicSupport
             $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
 
             $getAllActiveSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
-            $campNum = $getAllActiveSupport[0]->camp_num;  // First choice camp number  of topic
+            
+            if($getAllActiveSupport->count() == 0){ 
+                return;
+            }
+
+            $campNum = isset($getAllActiveSupport[0]->camp_num) ?  $getAllActiveSupport[0]->camp_num : '';  // First choice camp number  of topic
 
             $allDirectDelegates = Support::getActiveDelegators($topicNum, $allNickNames);
-
-            Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
-
+           
+            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames);
+            
             Support::promoteDelegatesToDirect($topicNum, $allNickNames);
 
             $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates);
