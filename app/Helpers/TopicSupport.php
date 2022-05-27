@@ -17,22 +17,22 @@ class TopicSupport
 {
 
 
-    public  static function removeDirectSupport($topicNum, $campNum = '', $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
+    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $campNum , $nickNameId, $action , $type);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type);
         
         }else if(isset($action) && $action == 'partial')
         {
-            return self::removePartialSupport($topicNum, $campNum , $nickNameId, $action,  $type, $orderUpdate);
+            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate);
         }
     }
 
     /**
      * Remove Direct Support
      */
-    public static function removeCompleteSupport($topicNum, $campNum = '', $nickNameId, $action = 'all', $type = 'direct')
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct')
     { 
 
         if((isset($action) && $action == 'all') || $campNum == '')  //abandon entire topic and promote deleagte
@@ -67,25 +67,30 @@ class TopicSupport
      * Also remove support from those camps for delegated supporter
      * 
      */
-    public static function removePartialSupport($topicNum, $campNum = '', $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
+    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
-        $campArray = explode(',', trim($campNum));
+       // $campArray = explode(',', trim($campNum));
 
-        self::removeSupport($topicNum,$campArray,$allNickNames);
+        if(!empty($removeCamps)){
 
-        self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
-        
-        $nicknameModel = Nickname::getNickName($nickNameId);
-        $topicFilter = ['topicNum' => $topicNum];
-        $topicModel = Camp::getAgreementTopic($topicFilter);
+            self::removeSupport($topicNum,$removeCamps,$allNickNames);
 
-        foreach($campArray as $camp)
-        {
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter);
+    
+            foreach($removeCamps as $camp)
+            {
+    
+                $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
+                $campModel  = self::getLiveCamp($campFilter);
+                //self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+            }
+        }
 
-            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
-            $campModel  = self::getLiveCamp($campFilter);
-            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+        if(isset($orderUpdate) && !empty($orderUpdate)){
+            self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
         }
 
         return;
@@ -332,8 +337,8 @@ class TopicSupport
             {
                 foreach($delegators as $delegator)
                 {
-                    $delegatorsNickArray = self::getAllNickNamesOfNickID($delegators->nick_name_id);
-                    return self::reorderSupport($order, $topicNum, $delegatorsNickArray);
+                    $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
+                    return self::reorderSupport($orders, $topicNum, $delegatorsNickArray);
                 }
             }
 
