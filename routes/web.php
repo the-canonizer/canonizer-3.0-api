@@ -36,7 +36,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
     $router->post('/get-statement-history','StatementController@getStatementHistory');
     $router->get('user/profile/{id}','ProfileController@getUserProfile');
-    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCaomps');
+    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
+    $router->get('user/supports/{id}','ProfileController@getUserSupports');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -100,6 +101,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
         $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
+        $router->post('support-order/update','SupportController@updateSupportOrder');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
