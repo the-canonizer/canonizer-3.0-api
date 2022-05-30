@@ -33,6 +33,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $hidden = [];
 
+    public function topic()
+    {
+        return $this->hasOne('App\Models\Topic', 'topic_num', 'topic_num')
+            ->where('go_live_time', '<=', time())
+            ->where('objector_nick_id', '=', NULL)
+            ->orderBy('go_live_time', 'DESC');
+    }
+
     public static function campLink($topicNum, $campNum, $title, $campName)
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
@@ -229,7 +237,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $filter['topicNum'] = $camp->topic_num;
                 $filter['asOf'] = '';
                 $filter['campNum'] = $camp->parent_camp_num;
-                $pcamp = self::getLiveCamp($filter); 
+                $pcamp = self::getLiveCamp($filter);
                 return self::getAllParent($pcamp, $camparray);
             }
         }
@@ -255,9 +263,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $onecamp = self::getLiveCamp($filter);
         } else {
             $onecamp = self::where('topic_num', $topic_num)
-            ->where('objector_nick_id', '=', NULL)
-            ->where('go_live_time', '<=', time())
-            ->latest('submit_time')->first();
+                ->where('objector_nick_id', '=', NULL)
+                ->where('go_live_time', '<=', time())
+                ->latest('submit_time')->first();
         }
         $childCampData = [];
         $parent_camps = [];
@@ -367,7 +375,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         self::$chilcampArray = [];
     }
 
-    public static function getCampSubscription($filter, $userid = null) :array
+    public static function getCampSubscription($filter, $userid = null): array
     {
         $returnArr = array('flag' => 0, 'camp_subscription_data' => []);
         $camp_subscription = \App\Models\CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();

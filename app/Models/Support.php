@@ -204,5 +204,76 @@ class Support extends Model
 
         return;
     }
-    
+
+    public static function getAllSupporters($topic,$camp,$excludeNickID){
+        $nickNametoExclude = [$excludeNickID];
+        $support = self::where('topic_num','=',$topic)->where('camp_num','=',$camp)
+                ->where('end','=',0)
+                ->where('nick_name_id','!=',$excludeNickID)
+                ->where('delegate_nick_name_id',0)->groupBy('nick_name_id')->get(); 
+        $camp = Camp::where('camp_num','=',$camp)->where('topic_num','=',$topic)->first();
+        $allChildren = Camp::getAllChildCamps($camp);
+        $supportCount = 0;
+        if(sizeof($support) > 0 || count($support) >0){
+            foreach($support as $sp){
+                array_push( $nickNametoExclude, $sp->nick_name_id);
+            }
+        }
+        if(sizeof($allChildren) > 0 ){
+        foreach($allChildren as $campnum){
+            $supportData = self::where('topic_num',$topic)->where('camp_num',$campnum)->whereNotIn('nick_name_id',$nickNametoExclude)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
+            if(count($supportData) > 0){
+                    foreach($supportData as $sp){
+                        array_push($nickNametoExclude, $sp->nick_name_id);
+                    }
+                    $supportCount = $supportCount + count($supportData);
+                }
+            }
+        }
+        return count($support)+$supportCount;
+    }
+
+    public static function ifIamSingleSupporter($topic_num,$camp_num=0,$userNicknames) {
+        $othersupports = [];
+        $supportFlag = 1;
+        if($camp_num != 0){
+         $othersupports = self::where('topic_num',$topic_num)->where('camp_num',$camp_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
+         }else{
+             $othersupports = self::where('topic_num',$topic_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
+         }
+ 
+ 
+         $othersupports->filter(function($item) use($camp_num){
+             if($camp_num){
+                 return $item->camp_num == $camp_num;
+             }
+         });
+        
+         if(count($othersupports) > 0){
+                 $supportFlag = 0;
+         }else{
+             if($camp_num != 0){
+                 $camp = Camp::where('camp_num','=',$camp_num)->where('topic_num','=',$topic_num)->first();
+                 Camp::clearChildCampArray();
+                 $allChildren = Camp::getAllChildCamps($camp);
+                 if(sizeof($allChildren) > 0 ){
+                     foreach($allChildren as $campnum){
+                         $support = self::where('topic_num',$topic_num)->where('camp_num',$campnum)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
+                         if(sizeof($support) > 0){
+                             $supportFlag = 0;
+                             break;
+                         }
+                     }
+                 }
+             }else{
+                 $support = self::where('topic_num',$topic_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
+                       if(sizeof($support) > 0){
+                             $supportFlag = 0;
+                         }
+             }
+             
+         }
+         return  $supportFlag;
+        
+     }	
 }

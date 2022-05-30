@@ -370,4 +370,18 @@ class ValidationRules
             'log_type' => 'required|in:topic/camps,threads'
         ];
     }
+
+    public function getStatementStoreValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'statement' => 'required',
+            'nick_name' => 'required',
+            'submitter' => 'required', 
+            'parent_camp_num' => 'required', 
+            'statement_id' => 'required_if:objection,1',
+            'objection_reason' => 'required_if:objection,1'
+        ];
+    }
 }

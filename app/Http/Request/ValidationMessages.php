@@ -25,7 +25,7 @@ class ValidationMessages
     public function getRegistrationValidationMessages(): array
     {
         return ([
-            'password.regex'=> trans('message.validation_registration.password_regex'),
+            'password.regex' => trans('message.validation_registration.password_regex'),
             'first_name.regex' => trans('message.validation_registration.first_name_regex'),
             'first_name.required' => trans('message.validation_registration.first_name_required'),
             'first_name.max' => trans('message.validation_registration.first_name_max'),
@@ -69,7 +69,7 @@ class ValidationMessages
 
     public function getChangePasswordValidationMessages(): array
     {
-        return([
+        return ([
             'new_password.regex' => trans('message.validation_change_password.new_password_regex'),
             'new_password.required' => trans('message.validation_change_password.new_password_required'),
             'current_password.required' => trans('message.validation_change_password.current_password_required'),
@@ -82,7 +82,7 @@ class ValidationMessages
 
     public function getUpdateProfileValidationMessages(): array
     {
-        return([
+        return ([
             'first_name.required' => trans('message.validation_update_profile.first_name_required'),
             'first_name.regex' => trans('message.validation_update_profile.first_name_regex'),
             'last_name.required' => trans('message.validation_update_profile.last_name_required'),
@@ -98,7 +98,7 @@ class ValidationMessages
 
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
-        return([
+        return ([
             'email' => trans('message.validation_forgot_password.email_required'),
             'email.required' => trans('message.validation_forgot_password.email_required'),
             'email.regex' => trans('message.validation_forgot_password.email_required'),
@@ -108,7 +108,7 @@ class ValidationMessages
 
     public function getForgotPasswordVerifyOtpValidationMessages(): array
     {
-        return([
+        return ([
             'otp.required' => trans('message.validation_forgot_password.otp_required'),
             'username.required' => trans('message.validation_forgot_password.email_required'),
         ]);
@@ -116,7 +116,7 @@ class ValidationMessages
 
     public function getForgotPasswordUpdateValidationMessages(): array
     {
-        return([
+        return ([
             'username.required' => trans('message.validation_forgot_password.username_required'),
             'new_password.regex' => trans('message.validation_forgot_password.new_password_regex'),
             'current_password.required' => trans('message.validation_forgot_password.current_password_required'),
@@ -167,7 +167,7 @@ class ValidationMessages
     }
     public function getNewsFeedUpdateValidationMessages(): array
     {
-        return([
+        return ([
             'display_text.required' => trans('message.validation_update_newsfeed.display_text_required'),
             "display_text.max" => trans('message.validation_update_newsfeed.display_text_max'),
             "link.regex" => trans('message.validation_update_newsfeed.link_regex'),
@@ -182,7 +182,7 @@ class ValidationMessages
 
     public function getCampStoreValidationMessages(): array
     {
-        return([
+        return ([
             'camp_name.regex' => trans('message.validation_camp_store.camp_name_regex'),
             'nick_name.required' => trans('message.validation_camp_store.nick_name_required'),
             'camp_name.required' => trans('message.validation_camp_store.camp_name_required'),
@@ -199,7 +199,7 @@ class ValidationMessages
 
     public function getTopicStoreValidationMessages(): array
     {
-        return([
+        return ([
             'topic_name.required' => trans('message.validation_topic_store.topic_name_required'),
             'topic_name.max' => trans('message.validation_topic_store.topic_name_max'),
             'topic_name.regex' => trans('message.validation_topic_store.topic_name_regex'),
@@ -232,7 +232,7 @@ class ValidationMessages
     
     public function getAllParentCampValidationMessages(): array
     {
-        return([
+        return ([
             'topic_num.required' => trans('message.get_all_parent_camp.topic_num_required'),
         ]);
     }
@@ -285,7 +285,7 @@ class ValidationMessages
 
     public function getUploadFileValidationMessages(): array
     {
-        return  ([
+        return ([
             'file.required' => trans('message.uploads.image_required'),
             //'file.*.mimes' => trans('message.uploads.image_mimes'),
             'file.*.max' => trans('message.uploads.image_size'),
@@ -343,7 +343,7 @@ class ValidationMessages
     
     public function getStatementHistoryValidationMessages(): array
     {
-        return([
+        return ([
             'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
@@ -354,23 +354,23 @@ class ValidationMessages
 
     public function getAddDirectSupportMessages(): array
     {
-        return([
+        return ([
             'nick_name_id.required' => trans('message.support_validation.nick_name_required'),
             'camps.required' => trans('message.support_validation.camps_required'),
-            'camps.min'=> trans('message.support_validation.camps_required'),
-            'topic_num.required'=> trans('message.support_validation.topic_num_required'),
-            'topic_num.integer'=> trans('message.support_validation.topic_num_required'),
+            'camps.min' => trans('message.support_validation.camps_required'),
+            'topic_num.required' => trans('message.support_validation.topic_num_required'),
+            'topic_num.integer' => trans('message.support_validation.topic_num_required'),
             'camps.*.camp_num.required' => trans('message.support_validation.camp_num_required'),
             'camps.*.support_order.required' => trans('message.support_validation.support_order_required'),
             'camps.*.camp_num.integer' => trans('message.support_validation.camp_num_invalid'),
             'camps.*.support_order.integer' => trans('message.support_validation.support_order_invalid'),
-            
-         ]);
+
+        ]);
     }
 
     public function getAddDelegateSupportMessages(): array
     {
-        return([
+        return ([
             'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
             'delegate_to_user_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
             'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
@@ -423,6 +423,20 @@ class ValidationMessages
             'page.required' => trans('message.validation_get_activity_log.page_required'),
             'log_type.required' => trans('message.validation_get_activity_log.log_type_required'),
             'log_type.in' => trans('message.validation_get_activity_log.log_type_in')
+        ];
+    }
+
+    public function getStatementStoreValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_store_statement.topic_num_required'),
+            'camp_num.required' => trans('message.validation_store_statement.camp_num_required'),
+            'statement.required' => trans('message.validation_store_statement.statement_required'),
+            'nick_name.required' => trans('message.validation_store_statement.nick_name_required'),
+            'submitter.required' => trans('message.validation_store_statement.submitter_required'),
+            'parent_camp_num.required' => trans('message.validation_store_statement.parent_camp_num_required'),
+            'statement_id.required_if' => trans('message.validation_store_statement.statement_id_required_if'),
+            'objection_reason.required_if' => trans('message.validation_store_statement.objection_reason_required_if'),
         ];
     }
 }

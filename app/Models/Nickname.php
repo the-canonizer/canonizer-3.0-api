@@ -272,4 +272,16 @@ class Nickname extends Model {
         return [];        
     }
     
+    public static function personNicknameIds() {
+        if (Auth::check()) {
+            $userid = Auth::user()->id;
+
+            $encode = General::canon_encode($userid);
+
+            return DB::table('nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();
+        }
+        return [];
+    }
+
+    
 }
