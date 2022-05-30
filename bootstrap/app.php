@@ -67,6 +67,7 @@ $app->configure('mail');
 $app->configure('message');
 $app->configure('global');
 $app->configure('activitylog');
+$app->configure('database');
 
 /*
 |--------------------------------------------------------------------------
