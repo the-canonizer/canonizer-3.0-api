@@ -97,7 +97,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->put('post/update/{id}','ReplyController@update');
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
-        $router->post('support/remove','SupportController@removeSupport');
+        $router->post('support/update','SupportController@removeSupport');
         $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
         $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
