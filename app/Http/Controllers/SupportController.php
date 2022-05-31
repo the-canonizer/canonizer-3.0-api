@@ -234,7 +234,8 @@ class SupportController extends Controller
         $user = $request->user();
         $userId = $user->id;
         $topicNum =$all['topic_num'];
-        $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        //$campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        $removeCamps = isset($all['remove_camps']) && $all['remove_camps'] ? $all['remove_camps'] : [];
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'];
@@ -244,7 +245,7 @@ class SupportController extends Controller
             //case 1 removing direct support
             if($type == 'direct'){  
 
-                TopicSupport::removeDirectSupport($topicNum, $campNum, $nickNameId, $action, $type, $orderUpdate);
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);
                 
                 return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
             }

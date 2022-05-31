@@ -26,7 +26,7 @@ class SupportUpdateApiTest extends TestCase
     public function testUnauthorizedUserCannotRemoveSupport()
     {
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/support/remove', []);
+        $response = $this->call('POST', '/api/v3/support/update', []);
         $this->assertEquals(401, $response->status());
     }
 
@@ -38,7 +38,7 @@ class SupportUpdateApiTest extends TestCase
         $user = User::factory()->make();
         $data = [];
         $this->actingAs($user)
-        ->post('/api/v3/support/remove',$data);
+        ->post('/api/v3/support/update',$data);
         $this->assertEquals(500, $this->response->status());
     }
 
@@ -48,14 +48,14 @@ class SupportUpdateApiTest extends TestCase
         $user = User::factory()->make();
         $data = [
             "topic_num" => '1',
-            'camp_num' =>'',
+            'camp_num' =>[],
             "nick_name_id" => 1,
             "action" => 'all',
             'type'=>'direct',
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/support/remove',$data);
+        ->post('/api/v3/support/update',$data);
         $this->assertEquals(200, $this->response->status());
     }
 
