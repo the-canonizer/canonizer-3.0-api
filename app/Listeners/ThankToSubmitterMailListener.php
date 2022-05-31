@@ -12,7 +12,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class ThankToSubmitterMailListener implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
- 
+    
+    public function viaQueue()
+    {
+        return env('QUEUE_SERVICE_NAME');
+    }
+    
     /**
      * Handle the event.
      *
