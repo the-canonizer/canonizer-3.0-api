@@ -928,7 +928,7 @@ class CampController extends Controller
 
 
             $campSubscriptionList = [];
-
+            // return response()->json($result);
             foreach($result as $subscription){
                 $flag = false;
                 if(isset($campSubscriptionList[$subscription->topic_num])){
@@ -943,6 +943,7 @@ class CampController extends Controller
                         $campSubscriptionList[$subscription->topic_num]['camps'][] = $tempCamp;
                     } else {
                         $campSubscriptionList[$subscription->topic_num]['is_remove_subscription'] = true;
+                        $campSubscriptionList[$subscription->topic_num]['subscription_id'] = $subscription->id;
                     }
                 }else{
                     $camps=[];
@@ -967,6 +968,7 @@ class CampController extends Controller
                     );
                 }
             }
+            return response()->json($campSubscriptionList);
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             $currentPage = $request->page;
             $paginate = Util::paginate(array_values($campSubscriptionList),$per_page ,$currentPage);
