@@ -185,6 +185,7 @@ return [
         'successfully_linked' => 'Your social account is linked successfully',
         'already_linked' => 'Email is already linked with another account',
         'not_linked' => 'Your social account is not linked with any user',
+        'email_not_received' => 'Your email address is not returned from social account. You have to enter the email address.',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",
