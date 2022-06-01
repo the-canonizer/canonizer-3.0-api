@@ -9,14 +9,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CampForumPostMailListener implements ShouldQueue
+class SupportRemovedMailListener implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
-
-    public function viaQueue()
-    {
-        return env('QUEUE_SERVICE_NAME');
-    }
  
     /**
      * Handle the event.
@@ -26,11 +21,9 @@ class CampForumPostMailListener implements ShouldQueue
      */
     public function handle($event)
     {
-  
         $user = $event->user;
-        $email = $event->email;
-        $link = $event->link;
+        $to = $event->to;
         $data = $event->data;
-        Mail::to($email)->send(new CampForumPostMail($user,$link,$data));
+        Mail::to($to)->send(new SupportRemovedMail($user,$data));
     }
 }

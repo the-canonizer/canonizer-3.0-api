@@ -169,7 +169,6 @@ class ValidationMessages
     {
         return([
             'display_text.required' => trans('message.validation_update_newsfeed.display_text_required'),
-            "display_text.regex" => trans('message.validation_update_newsfeed.display_text_regex'),
             "display_text.max" => trans('message.validation_update_newsfeed.display_text_max'),
             "link.regex" => trans('message.validation_update_newsfeed.link_regex'),
             "link.required" => trans('message.validation_update_newsfeed.link_required'),
@@ -304,7 +303,6 @@ class ValidationMessages
             'link.regex' => trans('message.validation_store_newsfeed.link_regix'),
             'available_for_child.required' => trans('message.validation_store_newsfeed.available_for_child_required'),
             'display_text.required' => trans('message.validation_store_newsfeed.display_text_required'),
-            "display_text.regex" => trans('message.validation_store_newsfeed.display_text_regex'),
             "display_text.max" => trans('message.validation_store_newsfeed.display_text_max'),
             'submitter_nick_id.required' => trans('message.validation_store_newsfeed.submitter_nick_id_required'),
         ];
@@ -418,4 +416,28 @@ class ValidationMessages
         ];
     }
 
+    public function getActivityLogValidationMessages(): array
+    {
+        return [
+            'per_page.required' => trans('message.validation_get_activity_log.per_page_required'),
+            'page.required' => trans('message.validation_get_activity_log.page_required'),
+            'log_type.required' => trans('message.validation_get_activity_log.log_type_required'),
+            'log_type.in' => trans('message.validation_get_activity_log.log_type_in')
+        ];
+    }
+
+    public function getPostVerifyEmailValidationMessages(): array
+    {
+        return ([
+            'client_id.required' => trans('message.social.client_id_required'),
+            'client_secret.required' => trans('message.social.client_secret_required'),
+            'provider.required' => trans('message.social.provider_required'),
+            'code.required' => trans('message.social.code_required'),
+            'email' => trans('message.validation_forgot_password.email_required'),
+            'email.required' => trans('message.validation_forgot_password.email_required'),
+            'email.regex' => trans('message.validation_forgot_password.email_required'),
+            'email.max' => trans('message.validation_forgot_password.email_max'),
+            'otp.required' => trans('message.validation_forgot_password.otp_required'),
+        ]);
+    }
 }

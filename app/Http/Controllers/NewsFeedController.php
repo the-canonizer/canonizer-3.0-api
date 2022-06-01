@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\TopicSupport;
 use Exception;
 use App\Models\NewsFeed;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\Nickname;
+use App\Jobs\ActivityLoggerJob;
+use App\Helpers\Util;
 
 class NewsFeedController extends Controller
 {
@@ -190,6 +193,22 @@ class NewsFeedController extends Controller
             $nextOrder = NewsFeed::where('topic_num', '=', $topicNum)->where('camp_num', '=', $campNum)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
+            $topicFilter = ['topicNum' => $news->topic_num];
+            $campFilter = ['topicNum' => $news->topic_num, 'campNum' => $news->camp_num];
+            $topic = Camp::getAgreementTopic($topicFilter);
+            $camp  = TopicSupport::getLiveCamp($campFilter);
+            $url = Util::getTopicCampUrl($news->topic_num, $news->camp_num, $topic, $camp, time());
+            $activitLogData = [
+                'log_type' =>  "topic/camps",
+                'activity' => 'News updated',
+                'url' => $url,
+                'model' => $news,
+                'topic_num' => $topicNum,
+                'camp_num' =>  $campNum,
+                'user' => $request->user(),
+                'nick_name' => Nickname::getNickName($submitterNickId)->nick_name
+            ];
+            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             $temp[] = $news;
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
@@ -288,6 +307,22 @@ class NewsFeedController extends Controller
             $nextOrder = NewsFeed::where('topic_num', '=', $request->topic_num)->where('camp_num', '=', $request->camp_num)->max('order_id');
             $news->order_id = ++$nextOrder;
             $news->save();
+            $topicFilter = ['topicNum' => $request->topic_num];
+            $campFilter = ['topicNum' => $request->topic_num, 'campNum' => $request->camp_num];
+            $topic = Camp::getAgreementTopic($topicFilter);
+            $camp  = TopicSupport::getLiveCamp($campFilter);
+            $url = Util::getTopicCampUrl($request->topic_num, $request->camp_num, $topic, $camp, time());
+            $activitLogData = [
+                'log_type' =>  "topic/camps",
+                'activity' => 'News added',
+                'url' => $url,
+                'model' => $news,
+                'topic_num' => $request->topic_num,
+                'camp_num' => $request->camp_num,
+                'user' => $request->user(),
+                'nick_name' => Nickname::getNickName($request->submitter_nick_id)->nick_name
+            ];
+            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -342,6 +377,22 @@ class NewsFeedController extends Controller
         try {
             if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
                 $newsFeed->delete();
+                $topicFilter = ['topicNum' => $newsFeed->topic_num];
+                $campFilter = ['topicNum' => $newsFeed->topic_num, 'campNum' => $newsFeed->camp_num];
+                $topic = Camp::getAgreementTopic($topicFilter);
+                $camp  = TopicSupport::getLiveCamp($campFilter);
+                $url = Util::getTopicCampUrl($newsFeed->topic_num, $newsFeed->camp_num, $topic, $camp, time());
+                $activitLogData = [
+                    'log_type' =>  "topic/camps",
+                    'activity' => 'News deleted',
+                    'url' => $url,
+                    'model' => $newsFeed,
+                    'topic_num' => $newsFeed->topic_num,
+                    'camp_num' =>  $newsFeed->camp_num,
+                    'user' => $request->user(),
+                    'nick_name' => Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name
+                ];
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
             } else {
                 return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');

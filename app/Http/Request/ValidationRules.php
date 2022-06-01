@@ -181,8 +181,8 @@ class ValidationRules
     public function getNewsFeedUpdateValidationRules(): array
     {
         return [
-            'display_text' => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
-            'link' => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
+            'display_text' => 'required|max:256',
+            'link' =>['required','regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|^[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})/'],
             'available_for_child' => 'required|boolean',
             'newsfeed_id' => 'required|exists:news_feed,id',
             'submitter_nick_id' => 'required'
@@ -263,8 +263,8 @@ class ValidationRules
             'topic_num' => 'required',
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
-            "link" => 'required|regex:/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-            "display_text" => 'required|max:256|regex:/^[a-zA-Z0-9.\s]+$/',
+            "link" => ['required','regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|^[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})/'],
+            "display_text" => 'required|max:256',
             "submitter_nick_id" => 'required'
         ];
     }
@@ -360,5 +360,26 @@ class ValidationRules
             'checked' => 'required|boolean',
             'subscription_id' => 'required_if:checked,false'
         ];
+    }
+
+    public function getActivityLogValidationRules(): array
+    {
+        return [
+            'per_page' => 'required',
+            'page' => 'required',
+            'log_type' => 'required|in:topic/camps,threads'
+        ];
+    }
+
+    public function getPostVerifyEmailValidationRules(): array
+    {
+        return ([
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'provider' => 'required',
+            'code' => 'required',
+            'otp' => 'required',
+            'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
+        ]);
     }
 }
