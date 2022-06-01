@@ -25,8 +25,9 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         parent::boot(); 
 
         self::creating(function($model){
-            $model->created_at = date('Y-m-d H:i:s');
-            $model->updated_at = date('Y-m-d H:i:s');
+            $currentTimestamp = time();
+            $model->created_at = $currentTimestamp;
+            $model->updated_at = $currentTimestamp;
         });
 
         self::created(function($model){
@@ -34,7 +35,7 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         });
 
         self::updating(function($model){
-            $model->updated_at = date('Y-m-d H:i:s');
+            $model->updated_at = time();
         });
 
         self::updated(function($model){
@@ -42,7 +43,7 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         });
 
         self::deleting(function($model){
-            $model->updated_at = date('Y-m-d H:i:s');
+            $model->updated_at = time();
         });
 
         self::deleted(function($model){
@@ -59,13 +60,4 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->belongsTo('App\Model\Nickname'::class, 'user_id');
     }
 
-    public function getCreatedAtAttribute($date)
-    {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
-    }
-
-    public function getUpdatedAtAttribute($date)
-    {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
-    }
 }
