@@ -191,17 +191,18 @@ class StatementController extends Controller
                 $camp = Camp::getLiveCamp($filter);
                 $parentcampnum = isset($camp->parent_camp_num) ? $camp->parent_camp_num : 0;
                 $parentcamp = Camp::campNameWithAncestors($camp, $filter);
-                $nickNames = Nickname::topicNicknameUsed($statement->topic_num);
+                $nickName = Nickname::topicNicknameUsed($statement->topic_num);
                 $statement->go_live_time = date('m/d/Y, h:i:s A', $statement->go_live_time);
                 $WikiParser = new wikiParser;
                 $statement->parsed_value = $WikiParser->parse($statement->value);
-                $response[0] = new stdClass();
-                $response[0]->statement = $statement;
-                $response[0]->topic = $topic;
-                $response[0]->parent_camp = $parentcamp;
-                $response[0]->nick_names = $nickNames;
-                $response[0]->parentcampnum = $parentcampnum;
-                $indexs = ['statement', 'topic', 'parent_camp', 'nick_names', 'parentcampnum'];
+                $data = new stdClass();
+                $data->statement = $statement;
+                $data->topic = $topic;
+                $data->parent_camp = $parentcamp;
+                $data->nick_name = $nickName;
+                $data->parentcampnum = $parentcampnum;
+                $response[0]=$data;
+                $indexs = ['statement', 'topic', 'parent_camp', 'nick_name', 'parentcampnum'];
                 $response = $this->resourceProvider->jsonResponse($indexs, $response);
                 $response=$response[0];
             }
@@ -288,15 +289,6 @@ class StatementController extends Controller
                 $statement->grace_period = 1;
             }
             $statement->save();
-            if ($eventtype == "create") {
-                try{
-                }catch(\Swift_TransportException $e){
-                } 
-             } else if ($eventtype == "OBJECTION") {
-                try{
-                }catch(\Swift_TransportException $e){
-                } 
-            } 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
