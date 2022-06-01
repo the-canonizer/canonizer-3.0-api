@@ -175,11 +175,10 @@ class TopicController extends Controller
                         "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                    $url = "/topic/" . $topic->topic_num . "/1";
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
                         'activity' => 'Topic created',
-                        'url' => $url,
+                        'url' => $link,
                         'model' => $topic,
                         'topic_num' => $topic->topic_num,
                         'camp_num' =>  1,

@@ -575,7 +575,9 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
-                $url = 'forum/' . $request->topic_num . '/' . $request->camp_num . '/threads';
+                $topic_name = CampForum::getTopicName($threads->topic_id);
+                $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
+                $url = 'forum/' . $request->topic_num . '-' .  $topic_name . '/'  . $request->camp_num . '-' .$camp_name. '/threads';
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',

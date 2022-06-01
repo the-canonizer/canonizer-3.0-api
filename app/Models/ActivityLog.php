@@ -10,11 +10,11 @@ class ActivityLog extends Model
 
     public function getCreatedAtAttribute($date)
     {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i:s');
+        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
     }
 
     public function getUpdatedAtAttribute($date)
     {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i:s');
+        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
     }
 }
