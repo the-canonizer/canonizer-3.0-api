@@ -177,7 +177,8 @@ class ThreadsController extends Controller
                     'model' => $thread,
                     'topic_num' => $request->topic_num,
                     'camp_num' =>   $request->camp_num,
-                    'user' => $request->user()
+                    'user' => $request->user(),
+                    'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             } else {
@@ -379,7 +380,10 @@ class ThreadsController extends Controller
             $threads = null;
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
-                $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
+                $query = Thread::leftJoin('post', function($join) {
+                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->where('post.is_delete',0);
+                    })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
@@ -399,7 +403,10 @@ class ThreadsController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
-            $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
+            $query = Thread::leftJoin('post', function($join) {
+                    $join->on('thread.id', '=', 'post.thread_id');
+                    $join->where('post.is_delete',0);
+                })
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                 ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
@@ -419,7 +426,10 @@ class ThreadsController extends Controller
             }
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
-                $query = Thread::Join('post', 'thread.id', '=', 'post.thread_id')
+                $query = Thread::Join('post', function($join) {
+                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->where('post.is_delete',0);
+                    })
                     ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
@@ -565,7 +575,9 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
-                $url = 'forum/' . $request->topic_num . '/' . $request->camp_num . '/threads';
+                $topic_name = CampForum::getTopicName($threads->topic_id);
+                $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
+                $url = 'forum/' . $request->topic_num . '-' .  $topic_name . '/'  . $request->camp_num . '-' .$camp_name. '/threads';
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',
@@ -573,7 +585,8 @@ class ThreadsController extends Controller
                     'model' => $threads,
                     'topic_num' => $request->topic_num,
                     'camp_num' =>   $request->camp_num,
-                    'user' => $request->user()
+                    'user' => $request->user(),
+                    'nick_name' => Nickname::getNickName($threads->user_id)->nick_name
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 $status = 200;

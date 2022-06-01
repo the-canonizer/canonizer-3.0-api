@@ -1145,9 +1145,13 @@ class UserController extends Controller
             $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
             if(empty($social_user)) {
                 if(empty($providerEmail)) {
-                    $status = 400;
+                    $status = 407;
                     $message = trans('message.social.not_linked');
-                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                    $data = [
+                        "code" => $request->code,
+                        "provider" => $request->provider,
+                    ];
+                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
                 }
                 $user = User::where(['email' => $providerEmail])->first();
                 if (empty($user)) {
@@ -1828,5 +1832,93 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         }
         return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
+    }
+
+
+    public function postVerifyEmail(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getPostVerifyEmailValidationRules(), $this->validationMessages->getPostVerifyEmailValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $provider = $request->provider;
+            $providerEmail = '';
+            $providerId = 0;
+            $providerUserName = '';
+
+            $user = User::where('email', '=', $request->email)->first();
+            if (empty($user) || $request->otp != $user->otp) {
+                $status = 400;
+                $message = trans('message.error.otp_not_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
+            if($provider == 'twitter') {
+                $code = $request->code;
+                $twitter = TwitterOauthToken::where(['access_token' => $code])->latest()->first();
+                if(empty($twitter)){
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $connection = new TwitterOAuth(env('TWITTER_CLIENT_ID'), env('TWITTER_CLIENT_SECRET'), $twitter->access_token, $twitter->access_secret);
+                $twitterUser = $connection->get('account/verify_credentials',['include_email' => true]);
+
+                if($connection->getLastHttpCode() != 200 || empty($twitterUser->id)) {
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $providerEmail = $twitterUser->email ?? $request->email;
+                $providerId = $twitterUser->id;
+                $providerUserName = $twitterUser->name ?? $twitterUser->screen_name;
+            }else {
+                $userSocial = Socialite::driver($provider)->stateless()->user();
+                if (empty($userSocial)) {
+                    $status = 400;
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+                $providerEmail = $userSocial->getEmail() ?? $request->email;
+                $providerUserName = $userSocial->getName();
+                $providerId = $userSocial->getId();
+            }
+            $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
+            if(empty($social_user)) {
+                $user = User::where(['email' => $providerEmail])->first();
+                if (empty($user)) {
+                    $splitName = Util::split_name($providerUserName);
+                    $user = User::create([
+                        'first_name'    => $splitName[0],
+                        'last_name'     => $splitName[1],
+                        'email'         => $providerEmail,
+                        'status'        => 1
+                    ]);
+                    $nickname = $user->first_name . '-' . $user->last_name;
+                    $this->createNickname($user->id, $nickname);
+                }
+                $this->createSocialUser($providerId, $providerEmail, $providerUserName, $provider, $user->id);
+            }else {
+                $user = User::find($social_user->user_id);
+            }
+
+            $postUrl = URL::to('/') . '/oauth/token';
+            $payload = [
+                'grant_type' => 'password',
+                'client_id' => $request->client_id,
+                'client_secret' => $request->client_secret,
+                'username' => $user->email,
+                'password' => env('PASSPORT_MASTER_PASSWORD'),
+                'scope' => '*',
+            ];
+            $generateToken = Util::httpPost($postUrl, $payload);
+            User::where('email', '=', $request->email)->update(['otp' => '', 'status' => 1]);
+            return $this->getTokenResponse($generateToken, $user);
+        } catch (Exception $ex) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        }
     }
 }

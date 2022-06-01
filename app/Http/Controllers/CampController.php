@@ -184,8 +184,8 @@ class CampController extends Controller
             $camp = Camp::create($input);
 
             if ($camp) {
-
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -207,7 +207,8 @@ class CampController extends Controller
                         'model' => $camp,
                         'topic_num' => $filter['topicNum'],
                         'camp_num' =>   $filter['campNum'],
-                        'user' => $request->user()
+                        'user' => $request->user(),
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {  

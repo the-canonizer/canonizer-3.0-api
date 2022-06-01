@@ -23,6 +23,11 @@ class WelcomeMailListener implements ShouldQueue
       //  $this->onQueue('mail');
     }
 
+    public function viaQueue()
+    {
+        return env('QUEUE_SERVICE_NAME');
+    }
+
 
     /**
      * Handle the event.

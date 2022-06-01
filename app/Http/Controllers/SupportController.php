@@ -234,24 +234,52 @@ class SupportController extends Controller
         $user = $request->user();
         $userId = $user->id;
         $topicNum =$all['topic_num'];
-        $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        //$campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        $removeCamps = isset($all['remove_camps']) && $all['remove_camps'] ? $all['remove_camps'] : [];
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'];
+        $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
             //case 1 removing direct support
-            if($type == 'direct'){              
+            if($type == 'direct'){  
 
-                //$allNickNames = Nickname::getNicknamesIdsByUserId($userId);
-                TopicSupport::removeDirectSupport($topicNum, $campNum, $nickNameId, $action, $type);
-
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);
+                
                 return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
             }
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-    }   
+    }
+    
+    /**
+     * @OA\Post(path="/support-order/update",
+     * 
+     * 
+     */
+    public function updateSupportOrder(Request $request)
+    {
+        $all = $request->all();
+        $topicNum =$all['topic_num'];
+        $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        $nickNameId = $all['nick_name_id'];
+        $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
+
+        try{
+           
+            $allNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
+            TopicSupport::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.order_update'), '','');
+            
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+
+    }
 
 }

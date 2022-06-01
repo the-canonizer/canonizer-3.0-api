@@ -384,4 +384,16 @@ class ValidationRules
             'objection_reason' => 'required_if:objection,1'
         ];
     }
+    
+    public function getPostVerifyEmailValidationRules(): array
+    {
+        return ([
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'provider' => 'required',
+            'code' => 'required',
+            'otp' => 'required',
+            'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
+        ]);
+    }
 }

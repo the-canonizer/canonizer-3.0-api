@@ -25,38 +25,25 @@ class Thread extends Model implements AuthenticatableContract, AuthorizableContr
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->created_at = date('Y-m-d H:i:s');
-            $model->updated_at = date('Y-m-d H:i:s');
+            $currentTimestamp = time();
+            $model->created_at = $currentTimestamp;
+            $model->updated_at = $currentTimestamp;
         });
         self::created(function ($model) {
             // ... code here
         });
         self::updating(function ($model) {
-            $model->updated_at = date('Y-m-d H:i:s');
+            $model->updated_at = time();
         });
         self::updated(function ($model) {
             // ... code here
         });
         self::deleting(function ($model) {
-            $model->updated_at = date('Y-m-d H:i:s');
+            $model->updated_at = time();
         });
         self::deleted(function ($model) {
             // ... code here
         });
     }
 
-    public function getCreatedAtAttribute($date)
-    {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
-    }
-
-    public function getUpdatedAtAttribute($date)
-    {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
-    }
-
-    public function getPostUpdatedAtAttribute($date)
-    {
-        return Carbon::parse($date)->timestamp;
-    }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Facades\Util;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Auth\Authenticatable;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
@@ -345,7 +346,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $filter['campNum'] = $subs->camp_num;
                 $topic = self::getLiveCamp($filter);
                 $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
-                $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topic->title != '') ? $topic->title : $topic->camp_name);
                 $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());
                 if ($subs->camp_num == 0) {
                     $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());

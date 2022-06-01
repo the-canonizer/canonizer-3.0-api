@@ -36,7 +36,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('mobile-carrier','ProfileController@mobileCarrier');
     $router->post('/get-statement-history','StatementController@getStatementHistory');
     $router->get('user/profile/{id}','ProfileController@getUserProfile');
-    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCaomps');
+    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
+    $router->get('user/supports/{id}','ProfileController@getUserSupports');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -53,6 +54,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/reSendOtp','UserController@reSendOtp');
         $router->get('thread/list','ThreadsController@threadList');
         $router->get('post/list/{id}','ReplyController@postList');
+        $router->post('/user/postVerifyEmail','UserController@postVerifyEmail');
     });
 
     //Route Group to access api with user access token
@@ -95,12 +97,13 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->put('post/update/{id}','ReplyController@update');
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
-        $router->post('support/remove','SupportController@removeSupport');
+        $router->post('support/update','SupportController@removeSupport');
         $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
         $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
         $router->get('/edit-camp-statement/{id}', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
+        $router->post('support-order/update','SupportController@updateSupportOrder');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
