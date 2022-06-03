@@ -179,6 +179,34 @@ class StatementController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/edit-camp-statement/{id}",
+     *   tags={"Camp"},
+     *   summary="Get statement",
+     *   description="Used to get statement details.",
+     *   operationId="getStatement",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="get a camp statment from this id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function editStatement($id)
     {
         try {
