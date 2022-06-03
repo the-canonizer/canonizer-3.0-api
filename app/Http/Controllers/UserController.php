@@ -1145,8 +1145,8 @@ class UserController extends Controller
             $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
             if(empty($social_user)) {
                 if(empty($providerEmail)) {
-                    $status = 407;
-                    $message = trans('message.social.not_linked');
+                    $status = 422;
+                    $message = trans('message.social.email_not_received');
                     $data = [
                         "code" => $request->code,
                         "provider" => $request->provider,
