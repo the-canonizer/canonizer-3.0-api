@@ -52,8 +52,8 @@ class Support extends Model
         } else {
             $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->first();
         }
-        
-        return !empty($support) ? $support->nick_name_id : 0; 
+
+        return !empty($support) ? $support->nick_name_id : 0;
     }
 
 
@@ -62,24 +62,22 @@ class Support extends Model
      *   2.  if yes, then find any sub-deleagted which will go recursively
      *   3. remove support for existing.
      *   4. add new support 
-      *  5. All these above will work in recursive ways
-    */
+     *  5. All these above will work in recursive ways
+     */
 
-    public static function addDelegationSupport($support = array(),$topicNum, $nickNameId,$deleagtedNicknameId)
+    public static function addDelegationSupport($support = array(), $topicNum, $nickNameId, $deleagtedNicknameId)
     {
-        $existingSupport =  self::getActiveSupporInTopic($topicNum,$nickNameId);
+        $existingSupport =  self::getActiveSupporInTopic($topicNum, $nickNameId);
         $delegators = [];
-        if(count($existingSupport) > 0)
-        {
-            $delegators = self::getDelegatorForNicknameId($topicNum,$nickNameId);
-            self::removeSupport($topicNum,$nickNameId);
-           
+        if (count($existingSupport) > 0) {
+            $delegators = self::getDelegatorForNicknameId($topicNum, $nickNameId);
+            self::removeSupport($topicNum, $nickNameId);
         }
 
-        self::addSupport($support,$topicNum,$nickNameId,$deleagtedNicknameId);  
+        self::addSupport($support, $topicNum, $nickNameId, $deleagtedNicknameId);
 
-        if(isset($delegators) && count($delegators) > 0){
-            foreach($delegators as $delegator){
+        if (isset($delegators) && count($delegators) > 0) {
+            foreach ($delegators as $delegator) {
                 return self::addDelegationSupport($support, $topicNum, $delegator->nick_name_id, $delegator->delegate_nick_name_id);
             }
         }
@@ -89,22 +87,20 @@ class Support extends Model
      *  Add Support
      *  @param support is array of support for which new support is to be added
      */
-    public static function addSupport($support,$topicNum,$nickNameId,$deleagtedNicknameId)
+    public static function addSupport($support, $topicNum, $nickNameId, $deleagtedNicknameId)
     {
-        foreach($support as $sp){
+        foreach ($support as $sp) {
 
-           $model = new Support();
-           $model->topic_num = $topicNum;
-           $model->camp_num = $sp->camp_num;
-           $model->nick_name_id = $nickNameId;
-           $model->delegate_nick_name_id = $deleagtedNicknameId;
-           $model->support_order = $sp->support_order;
-           $model->start =time();
-           $model->save();
-
+            $model = new Support();
+            $model->topic_num = $topicNum;
+            $model->camp_num = $sp->camp_num;
+            $model->nick_name_id = $nickNameId;
+            $model->delegate_nick_name_id = $deleagtedNicknameId;
+            $model->support_order = $sp->support_order;
+            $model->start = time();
+            $model->save();
         }
         return;
-
     }
 
     /**
@@ -116,8 +112,8 @@ class Support extends Model
     public static function getActiveSupporInTopic($topicNum, $nickNameId)
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
-        $supports = self::getActiveSupporInTopicWithAllNicknames($topicNum,$usersNickNames);       
-    
+        $supports = self::getActiveSupporInTopicWithAllNicknames($topicNum, $usersNickNames);
+
         return $supports;
     }
 
@@ -128,7 +124,7 @@ class Support extends Model
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         $delegatorsSupport = self::getActiveDelegators($topicNum, $usersNickNames);
-        
+
         return $delegatorsSupport;
     }
 
@@ -137,7 +133,7 @@ class Support extends Model
      * This will remove support from all nicknames of that user with nick id @param $nickNameId
      * 
      */
-    public static function removeSupport($topicNum, $nickNameId, $campNum='')
+    public static function removeSupport($topicNum, $nickNameId, $campNum = '')
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         self::removeSupportWithAllNicknames($topicNum, $campNum, $usersNickNames);
@@ -168,37 +164,34 @@ class Support extends Model
     public static function getActiveDelegators($topicNum, $usersNickNames)
     {
         $delegators = self::where('topic_num', '=', $topicNum)
-                                ->whereIn('delegate_nick_name_id', $usersNickNames)
-                                ->where('end', '=', 0)
-                                ->get();
+            ->whereIn('delegate_nick_name_id', $usersNickNames)
+            ->where('end', '=', 0)
+            ->get();
 
         return $delegators;
-
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum,$nickNames)
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames)
     {
         $supports = self::where('topic_num', '=', $topicNum)
-                        ->whereIn('nick_name_id', $nickNames)
-                        ->orderBy('support_order', 'ASC')
-                        ->where('end', '=', '0')->get();
+            ->whereIn('nick_name_id', $nickNames)
+            ->orderBy('support_order', 'ASC')
+            ->where('end', '=', '0')->get();
 
         return $supports;
     }
 
     public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array())
     {
-        if(!empty($campNum))
-        {
+        if (!empty($campNum)) {
             $supports = self::where('topic_num', '=', $topicNum)
-                    ->whereIn('camp_num', $campNum)
-                    ->whereIn('nick_name_id', $nickNames)
-                    ->update(['end' => time()]);
-        }else
-        {
+                ->whereIn('camp_num', $campNum)
+                ->whereIn('nick_name_id', $nickNames)
+                ->update(['end' => time()]);
+        } else {
             $supports = self::where('topic_num', '=', $topicNum)
-                    ->whereIn('nick_name_id', $nickNames)
-                    ->update(['end' => time()]);
+                ->whereIn('nick_name_id', $nickNames)
+                ->update(['end' => time()]);
         }
 
         return;
@@ -206,83 +199,98 @@ class Support extends Model
 
     public static function promoteDelegatesToDirect($topicNum, $nickNames)
     {
-        $supports = self::where('topic_num', '=', $topicNum)
-                    ->whereIn('delegate_nick_name_id', $nickNames)
-                    ->where('end', '=', 0)
-                    ->update(['delegate_nick_name_id' => 0]);
-
-        return;
+        self::where('topic_num', '=', $topicNum)
+            ->whereIn('delegate_nick_name_id', $nickNames)
+            ->where('end', '=', 0)
+            ->update(['delegate_nick_name_id' => 0]);
     }
 
-    public static function getAllSupporters($topic,$camp,$excludeNickID){
-        $nickNametoExclude = [$excludeNickID];
-        $support = self::where('topic_num','=',$topic)->where('camp_num','=',$camp)
-                ->where('end','=',0)
-                ->where('nick_name_id','!=',$excludeNickID)
-                ->where('delegate_nick_name_id',0)->groupBy('nick_name_id')->get(); 
-        $camp = Camp::where('camp_num','=',$camp)->where('topic_num','=',$topic)->first();
+    public static function getAllSupporters($topic, $camp, $excludeNickID)
+    {
+        $nickNameToExclude = [$excludeNickID];
+        $support = self::where('topic_num', '=', $topic)->where('camp_num', '=', $camp)
+            ->where('end', '=', 0)
+            ->where('nick_name_id', '!=', $excludeNickID)
+            ->where('delegate_nick_name_id', 0)->groupBy('nick_name_id')->get();
+        $camp = Camp::where('camp_num', '=', $camp)->where('topic_num', '=', $topic)->first();
         $allChildren = Camp::getAllChildCamps($camp);
         $supportCount = 0;
-        if(sizeof($support) > 0 || count($support) >0){
-            foreach($support as $sp){
-                array_push( $nickNametoExclude, $sp->nick_name_id);
+        if (sizeof($support) > 0 || count($support) > 0) {
+            foreach ($support as $sp) {
+                $nickNameToExclude[] = $sp->nick_name_id;
             }
         }
-        if(sizeof($allChildren) > 0 ){
-        foreach($allChildren as $campnum){
-            $supportData = self::where('topic_num',$topic)->where('camp_num',$campnum)->whereNotIn('nick_name_id',$nickNametoExclude)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
-            if(count($supportData) > 0){
-                    foreach($supportData as $sp){
-                        array_push($nickNametoExclude, $sp->nick_name_id);
+        if (sizeof($allChildren) > 0) {
+            foreach ($allChildren as $campnum) {
+                $supportData = self::where('topic_num', $topic)
+                    ->where('camp_num', $campnum)
+                    ->whereNotIn('nick_name_id', $nickNameToExclude)
+                    ->where('delegate_nick_name_id', 0)
+                    ->where('end', '=', 0)
+                    ->orderBy('support_order', 'ASC')
+                    ->get();
+                if (count($supportData) > 0) {
+                    foreach ($supportData as $sp) {
+                        $nickNameToExclude[] = $sp->nick_name_id;
                     }
                     $supportCount = $supportCount + count($supportData);
                 }
             }
         }
-        return count($support)+$supportCount;
+        return count($support) + $supportCount;
     }
 
-    public static function ifIamSingleSupporter($topic_num,$camp_num=0,$userNicknames) {
+    public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
+    {
         $othersupports = [];
         $supportFlag = 1;
-        if($camp_num != 0){
-         $othersupports = self::where('topic_num',$topic_num)->where('camp_num',$camp_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
-         }else{
-             $othersupports = self::where('topic_num',$topic_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
-         }
- 
- 
-         $othersupports->filter(function($item) use($camp_num){
-             if($camp_num){
-                 return $item->camp_num == $camp_num;
-             }
-         });
-        
-         if(count($othersupports) > 0){
-                 $supportFlag = 0;
-         }else{
-             if($camp_num != 0){
-                 $camp = Camp::where('camp_num','=',$camp_num)->where('topic_num','=',$topic_num)->first();
-                 Camp::clearChildCampArray();
-                 $allChildren = Camp::getAllChildCamps($camp);
-                 if(sizeof($allChildren) > 0 ){
-                     foreach($allChildren as $campnum){
-                         $support = self::where('topic_num',$topic_num)->where('camp_num',$campnum)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
-                         if(sizeof($support) > 0){
-                             $supportFlag = 0;
-                             break;
-                         }
-                     }
-                 }
-             }else{
-                 $support = self::where('topic_num',$topic_num)->whereNotIn('nick_name_id',$userNicknames)->where('delegate_nick_name_id',0)->where('end','=',0)->orderBy('support_order','ASC')->get();
-                       if(sizeof($support) > 0){
-                             $supportFlag = 0;
-                         }
-             }
-             
-         }
-         return  $supportFlag;
-        
-     }	
+        $query = self::where('topic_num', $topic_num)
+            ->whereNotIn('nick_name_id', $userNicknames)
+            ->where('delegate_nick_name_id', 0)
+            ->where('end', '=', 0)
+            ->orderBy('support_order', 'ASC');
+        $query->when($camp_num != 0, function ($q) use ($camp_num) {
+            $q->where('camp_num', $camp_num);
+        });
+        $othersupports = $query->get();
+        $othersupports->filter(function ($item) use ($camp_num) {
+            if ($camp_num) {
+                return $item->camp_num == $camp_num;
+            }
+        });
+        if (count($othersupports) > 0) {
+            $supportFlag = 0;
+        } else {
+            if ($camp_num != 0) {
+                $camp = Camp::where('camp_num', '=', $camp_num)
+                    ->where('topic_num', '=', $topic_num)
+                    ->first();
+                Camp::clearChildCampArray();
+                $allChildren = Camp::getAllChildCamps($camp);
+                if (sizeof($allChildren) > 0) {
+                    foreach ($allChildren as $campnum) {
+                        $support = self::where('topic_num', $topic_num)
+                            ->where('camp_num', $campnum)
+                            ->whereNotIn('nick_name_id', $userNicknames)
+                            ->where('delegate_nick_name_id', 0)
+                            ->where('end', '=', 0)
+                            ->orderBy('support_order', 'ASC')->get();
+                        if (sizeof($support) > 0) {
+                            $supportFlag = 0;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                $support = self::where('topic_num', $topic_num)
+                    ->whereNotIn('nick_name_id', $userNicknames)
+                    ->where('delegate_nick_name_id', 0)->where('end', '=', 0)
+                    ->orderBy('support_order', 'ASC')->get();
+                if (sizeof($support) > 0) {
+                    $supportFlag = 0;
+                }
+            }
+        }
+        return  $supportFlag;
+    }
 }
