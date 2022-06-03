@@ -926,42 +926,30 @@ class CampController extends Controller
                 ->select('camp_subscription.*', 'camp.camp_name as camp_name', 'topic.topic_name as title')
                 ->where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
 
-
             $campSubscriptionList = [];
             foreach($result as $subscription){
+                $tempCamp = [
+                    'camp_num' => $subscription->camp_num,
+                    'camp_name' => $subscription->camp_name,
+                    'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
+                    'subscription_start' => $subscription->subscription_start,
+                    'subscription_id' => $subscription->id,
+                ];
                 if(isset($campSubscriptionList[$subscription->topic_num])){
                     if($subscription->camp_num != 0){
-                        $tempCamp = [
-                            'camp_num' => $subscription->camp_num,
-                            'camp_name' => $subscription->camp_name,
-                            'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
-                            'subscription_start' => $subscription->subscription_start,
-                            'subscription_id' => $subscription->id,
-                        ];
                         $campSubscriptionList[$subscription->topic_num]['camps'][] = $tempCamp;
                     } else {
                         $campSubscriptionList[$subscription->topic_num]['is_remove_subscription'] = true;
                         $campSubscriptionList[$subscription->topic_num]['subscription_id'] = $subscription->id;
                     }
                 }else{
-                    $camps=[];
-                    $flag = ($subscription->camp_num == 0) ? true : false;
-                    if($subscription->camp_num != 0){
-                        $camps[] = [
-                                'camp_num' => $subscription->camp_num,
-                                'camp_name' => $subscription->camp_name,
-                                'camp_link' =>  Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
-                                'subscription_start' => $subscription->subscription_start,
-                                'subscription_id' => $subscription->id,
-                            ];
-                    }
                     $campSubscriptionList[$subscription->topic_num] = array(
                         'topic_num' => $subscription->topic_num,
                         'title' => $subscription->title,
                         'title_link' => Topic::topicLink($subscription->topic_num,1,$subscription->title),
-                        'is_remove_subscription' => $flag,
+                        'is_remove_subscription' => ($subscription->camp_num == 0),
                         'subscription_id' => $subscription->id,
-                        'camps' => $camps,
+                        'camps' => ($subscription->camp_num == 0) ? [] : [ $tempCamp ],
                     );
                 }
             }
