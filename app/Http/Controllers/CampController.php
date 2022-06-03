@@ -929,9 +929,8 @@ class CampController extends Controller
 
             $campSubscriptionList = [];
             foreach($result as $subscription){
-                $flag = false;
                 if(isset($campSubscriptionList[$subscription->topic_num])){
-                    if(($subscription->camp_num != 0)){
+                    if($subscription->camp_num != 0){
                         $tempCamp = [
                             'camp_num' => $subscription->camp_num,
                             'camp_name' => $subscription->camp_name,
@@ -946,7 +945,8 @@ class CampController extends Controller
                     }
                 }else{
                     $camps=[];
-                    if(($subscription->camp_num != 0)){
+                    $flag = ($subscription->camp_num == 0) ? true : false;
+                    if($subscription->camp_num != 0){
                         $camps[] = [
                                 'camp_num' => $subscription->camp_num,
                                 'camp_name' => $subscription->camp_name,
@@ -954,8 +954,6 @@ class CampController extends Controller
                                 'subscription_start' => $subscription->subscription_start,
                                 'subscription_id' => $subscription->id,
                             ];
-                    } else {
-                        $flag = true;
                     }
                     $campSubscriptionList[$subscription->topic_num] = array(
                         'topic_num' => $subscription->topic_num,
