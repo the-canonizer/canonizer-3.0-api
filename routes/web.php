@@ -55,6 +55,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('thread/list','ThreadsController@threadList');
         $router->get('post/list/{id}','ReplyController@postList');
         $router->post('/user/postVerifyEmail','UserController@postVerifyEmail');
+        $router->post('/user/reSendOtpVerifyEmail','UserController@reSendOtpVerifyEmail');
     });
 
     //Route Group to access api with user access token
