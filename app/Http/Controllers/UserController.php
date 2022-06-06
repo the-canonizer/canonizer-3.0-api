@@ -1933,22 +1933,11 @@ class UserController extends Controller
         try {
             $provider = $request->provider;
             $user = User::where('email', '=', $request->email)->first();
-
             $authCode = mt_rand(100000, 999999);
             if ($user) {
                 $user->otp = $authCode;
                 $user->update();
-                try {
-                    Event::dispatch(new SendOtpEvent($user));
-                } catch (Throwable $e) {
-                    $status = 403;
-                    $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
-                }
-                $status = 200;
-                $message = trans('message.success.forgot_password');
             } else {
-
                 if ($provider == 'twitter') {
                     $code = $request->code;
                     $twitter = TwitterOauthToken::where(['access_token' => $code])->latest()->first();
@@ -1979,6 +1968,7 @@ class UserController extends Controller
                     $providerUserName = $userSocial->getName();
                     $providerId = $userSocial->getId();
                 }
+
                 $splitName = Util::split_name($providerUserName);
                 $user = User::create([
                     'first_name'    => $splitName[0],
@@ -1989,9 +1979,16 @@ class UserController extends Controller
                 ]);
                 $nickname = $user->first_name . '-' . $user->last_name;
                 $this->createNickname($user->id, $nickname);
-                $status = 200;
-                $message = trans('message.success.forgot_password');
             }
+            try {
+                Event::dispatch(new SendOtpEvent($user));
+            } catch (Throwable $e) {
+                $status = 403;
+                $message = trans('message.error.otp_failed');
+                return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+            }
+            $status = 200;
+            $message = trans('message.success.forgot_password');
             return $this->resProvider->apiJsonResponse($status, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
