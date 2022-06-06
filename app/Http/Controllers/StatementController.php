@@ -240,6 +240,85 @@ class StatementController extends Controller
         }
     }
 
+     /**
+     * @OA\Post(path="/store-camp-statement",
+     *   tags={"Camp"},
+     *   summary="Store/update/object camp statement",
+     *   description="This API is used to store, update and object camp statement.",
+     *   operationId="Store/update/object-CampStatementHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get camp statement history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="nick_name",
+     *                   description="Nick name of the user",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="note",
+     *                   description="Note for camp statement",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent camp number of camp where adding statement",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="submitter",
+     *                   description="Nick name id of user who previously added statement",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="statement",
+     *                   description="Camp statement",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection",
+     *                   description="True if user want to object a statement",
+     *                   required=false,
+     *                   type="boolean",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection_reason",
+     *                   description="Objection reason in case user is objecting to a statement",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="statement_id",
+     *                   description="Id of statement objected",
+     *                   required=false,
+     *                   type="integer",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function storeStatement(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
