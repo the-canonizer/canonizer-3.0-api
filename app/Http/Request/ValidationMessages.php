@@ -454,4 +454,14 @@ class ValidationMessages
             'email.max' => trans('message.validation_forgot_password.email_max'),
         ]);
     }
+
+    public function getCampBreadCrumbValidationMessages(): array
+    {
+        return [
+            'as_of.in' => trans('message.validation_get_camp_bread_crumb.as_of_in'),
+            'as_of_date.required_if' => trans('message.validation_get_camp_bread_crumb.as_of_date_required'),
+            'topic_num.required' => trans('message.validation_get_camp_bread_crumb.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_camp_bread_crumb.camp_num_required')
+        ];
+    }
 }
