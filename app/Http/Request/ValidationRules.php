@@ -382,4 +382,15 @@ class ValidationRules
             'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
         ]);
     }
+
+    public function getReSendOtpVerifyEmailValidationRules(): array
+    {
+        return ([
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'provider' => 'required',
+            'code' => 'required',
+            'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
+        ]);
+    }
 }

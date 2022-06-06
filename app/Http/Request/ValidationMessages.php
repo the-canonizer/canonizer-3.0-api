@@ -440,4 +440,18 @@ class ValidationMessages
             'otp.required' => trans('message.validation_forgot_password.otp_required'),
         ]);
     }
+
+    public function getReSendOtpVerifyEmailValidationMessages(): array
+    {
+        return ([
+            'client_id.required' => trans('message.social.client_id_required'),
+            'client_secret.required' => trans('message.social.client_secret_required'),
+            'provider.required' => trans('message.social.provider_required'),
+            'code.required' => trans('message.social.code_required'),
+            'email' => trans('message.validation_forgot_password.email_required'),
+            'email.required' => trans('message.validation_forgot_password.email_required'),
+            'email.regex' => trans('message.validation_forgot_password.email_required'),
+            'email.max' => trans('message.validation_forgot_password.email_max'),
+        ]);
+    }
 }
