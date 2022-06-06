@@ -10,6 +10,7 @@ use App\Models\Support;
 use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
 use App\Events\PromotedDelegatesMailEvent;
+use App\Events\SupportRemovedMailEvent;
 use DB;
 
 
@@ -30,12 +31,33 @@ class TopicSupport
     }
 
     /**
-     * Remove Direct Support
+     * [remove delegate support]
+     * @param integer $topicNum is topic number
+     * @param integer $nickId is nick_name_id of user removeing delegation support
+     * @param integer $delegateNickId is nick_name_id of user from whome delegation is removed
+     * 
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct')
-    { 
+    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId)
+    {
+        
+        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $delegateNickNameId); 
+        return;
+    }
 
-        if((isset($action) && $action == 'all') || $campNum == '')  //abandon entire topic and promote deleagte
+
+    /**
+     * [Remove Direct Support completely]
+     * [And promote direct delegates to direct supporter with notification]
+     * @param integer $topicNum is topic number
+     * @param array $removeCamps are list of camps to be removed
+     * @param integer $nickNameId is nick_name_id of removing user
+     * @param string $action defines remove status [all|partial]
+     * @param string $type defines support type [direct|delegate]
+     */
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '')
+    { 
+        
+        if((isset($action) && $action == 'all') || empty($removeCamps))  //abandon entire topic and promote deleagte
         {
             $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
 
@@ -46,16 +68,16 @@ class TopicSupport
             }
 
             $campNum = isset($getAllActiveSupport[0]->camp_num) ?  $getAllActiveSupport[0]->camp_num : '';  // First choice camp number  of topic
-
             $allDirectDelegates = Support::getActiveDelegators($topicNum, $allNickNames);
-           
-            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames);
             
-            Support::promoteDelegatesToDirect($topicNum, $allNickNames);
+            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames);
 
-            $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates);
+            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0){
+            
+                Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
+                $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+            }
 
-            //TopicSupport::sendEmailToSupportersAndSubscribers($topicNum, $campNum, $nickNameId, $promotedDelegates);
             return;
             
         }
@@ -104,21 +126,30 @@ class TopicSupport
      * @param integer $nickNameId [Nick id of user removing support]
      * @return array $promotedDelegates [array of promoted delegates Ids]
      */
-    public static function sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates)
+    public static function sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId='')
     {
-        $promotedDelegatesIds = [];
+       $promotedDelegatesIds = [];
         $to = [];
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
 
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
-        $promotedFrom = Nickname::getNickName($nickNameId);
+        $promotedFrom = Nickname::getNickName($nickNameId);       
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum,$campNum,$topic,$camp);
-        $subject = "You have been promoted as direct supporter";
+        if(isset($delegateNickNameId) && $delegateNickNameId != ''){
 
+            $promotedTo = Nickname::getNickName($delegateNickNameId);        
+            $subject = "Your delegation support has been promoted up.";
+
+        }else{
+
+            $subject = "You have been promoted as direct supporter.";
+        }
+        
+        $object = $topic->topic_name ." / ".$camp->camp_name;
         $data['topic_num'] = $topicNum;
         $data['camp_num'] = $campNum;
         $data['promotedFrom'] = $promotedFrom;
@@ -128,6 +159,15 @@ class TopicSupport
         $data['topic_link'] = $topicLink;
         $data['camp_link'] = $campLink;   
         $data['url_portion'] =  $seoUrlPortion;
+        $data['delegate_nick_name_id'] =  $delegateNickNameId;
+        $data['promotedTo'] = isset($promotedTo) ? $promotedTo : [];
+        $data['topic_name'] = $topic->topic_name;
+        $data['camp_name'] = $camp->camp_name;
+        $data['nick_name_id'] = $promotedFrom->id;
+        $data['nick_name'] = $promotedFrom->nick_name;
+        $data['support_action'] = "deleted"; //default will be 'added'        
+        $data['object'] = $object;
+        
 
         foreach($allDirectDelegates as $promoted)
         {
@@ -135,12 +175,13 @@ class TopicSupport
             $user_id = $promotedUser->id ?? null;
             $promotedDelegates[] = $promotedUser->user_id;
             $to[] = $promotedUser->email;
-
         }
-
         try 
         {
-            Event::dispatch(new PromotedDelegatesMailEvent($to, $promotedFrom, $data));
+            Event::dispatch(new PromotedDelegatesMailEvent($to, $promotedFrom, $data)); 
+
+            $data['subject'] = $promotedFrom->nick_name . " has removed their support from ".$object. ".";           
+            self::SendEmailToSubscribersAndSupporters($data);
 
         } catch (Throwable $e) 
         {
@@ -475,6 +516,7 @@ class TopicSupport
         $campNum = $data['camp_num'] ; 
         $topic = $data['topic'];  
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $topic_name_space_id = $data['namespace_id'];
          
         
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);

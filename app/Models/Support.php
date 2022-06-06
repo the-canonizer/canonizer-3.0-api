@@ -170,6 +170,7 @@ class Support extends Model
         $delegators = self::where('topic_num', '=', $topicNum)
                                 ->whereIn('delegate_nick_name_id', $usersNickNames)
                                 ->where('end', '=', 0)
+                                ->groupBy('nick_name_id')
                                 ->get();
 
         return $delegators;
@@ -204,12 +205,13 @@ class Support extends Model
         return;
     }
 
-    public static function promoteDelegatesToDirect($topicNum, $nickNames)
+    public static function promoteUpDelegates($topicNum, $nickNames, $delgateNickNameId = '')
     {
+        $delgateNickNameId = (isset($delgateNickNameId) && !empty($delgateNickNameId)) ? $delgateNickNameId : 0;  
         $supports = self::where('topic_num', '=', $topicNum)
                     ->whereIn('delegate_nick_name_id', $nickNames)
                     ->where('end', '=', 0)
-                    ->update(['delegate_nick_name_id' => 0]);
+                    ->update(['delegate_nick_name_id' => $delgateNickNameId]);
 
         return;
     }
