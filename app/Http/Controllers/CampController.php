@@ -943,7 +943,7 @@ class CampController extends Controller
                         'title' => $subscription->title,
                         'title_link' => Topic::topicLink($subscription->topic_num,1,$topic->topic_name ?? ''),
                         'is_remove_subscription' => ($subscription->camp_num == 0),
-                        'subscription_id' => $subscription->id,
+                        'subscription_id' => ($subscription->camp_num == 0) ? $subscription->id : 0,
                         'camps' => ($subscription->camp_num == 0) ? [] : [ $tempCamp ],
                     );
                 }
