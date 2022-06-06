@@ -918,20 +918,15 @@ class CampController extends Controller
         try {
             $user = $request->user();
             $userId = $user->id;
-            $result = CampSubscription::leftJoin('topic', 'camp_subscription.topic_num', '=', 'topic.topic_num')
-                ->leftJoin('camp', function ($join) {
-                    $join->on('camp_subscription.topic_num', '=', 'camp.topic_num');
-                    $join->on('camp_subscription.camp_num', '=', 'camp.camp_num');
-                })
-                ->select('camp_subscription.*', 'camp.camp_name as camp_name', 'topic.topic_name as title')
-                ->where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
-
+            $result = CampSubscription::where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
             $campSubscriptionList = [];
             foreach($result as $subscription){
+                $topic = Topic::getLiveTopic($subscription->topic_num, 'default');
+                $camp = ($subscription->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $subscription->topic_num, 'campNum' => $subscription->camp_num, 'asOf' => 'default']) : null;
                 $tempCamp = [
                     'camp_num' => $subscription->camp_num,
                     'camp_name' => $subscription->camp_name,
-                    'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
+                    'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$topic->topic_name ?? '',$camp->camp_name ?? ''),
                     'subscription_start' => $subscription->subscription_start,
                     'subscription_id' => $subscription->id,
                 ];
@@ -946,7 +941,7 @@ class CampController extends Controller
                     $campSubscriptionList[$subscription->topic_num] = array(
                         'topic_num' => $subscription->topic_num,
                         'title' => $subscription->title,
-                        'title_link' => Topic::topicLink($subscription->topic_num,1,$subscription->title),
+                        'title_link' => Topic::topicLink($subscription->topic_num,1,$topic->topic_name ?? ''),
                         'is_remove_subscription' => ($subscription->camp_num == 0),
                         'subscription_id' => $subscription->id,
                         'camps' => ($subscription->camp_num == 0) ? [] : [ $tempCamp ],
