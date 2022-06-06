@@ -186,6 +186,7 @@ return [
         'successfully_linked' => 'Your social account is linked successfully',
         'already_linked' => 'Email is already linked with another account',
         'not_linked' => 'Your social account is not linked with any user',
+        'email_not_received' => 'Your email address is not returned from social account. You have to enter the email address.',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",
@@ -268,7 +269,8 @@ return [
         'add_delegate_support' => 'You have delegated your support successfully.',
         'add_delegation_support' => 'Support delegated successfully.',
         'complete_support_removed' => 'Support removed successfully.',
-        'order_update' => 'Support order updated successfully'
+        'order_update' => 'Support order updated successfully',
+        'delegate_support_removed' => 'Your delegation has been removed successfully.'
 
     ],
     'support_validation' => [

@@ -24,6 +24,8 @@ class PromotedDelegatesMailListener implements ShouldQueue
         $user = $event->user;
         $to = $event->to;
         $data = $event->data;
+
+        echo "<pre>"; print_r($data); exit;
         Mail::to($to)->send(new PromotedDelegatesMail($user,$data));
     }
 }

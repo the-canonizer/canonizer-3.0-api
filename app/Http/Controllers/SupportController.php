@@ -154,6 +154,7 @@ class SupportController extends Controller
 
     /** @OA\Get(path="/add-direct-support",
      *   tags={"addSupport"},
+     * )
      * 
      */
 
@@ -223,8 +224,10 @@ class SupportController extends Controller
     }
 
     /**
-     * @OA\Post(path="/support/remove",
-     * 
+     * @OA\Post(path="/support/update",
+     *  tags = "{updateSupport}"
+     *  description = "This action handle remove / re-order  the support for both direct and delegate supporter"
+     * ) 
      * 
      */
 
@@ -245,10 +248,11 @@ class SupportController extends Controller
             //case 1 removing direct support
             if($type == 'direct'){  
 
-                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
                 
-                return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
             }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -280,6 +284,33 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
 
+    }
+
+
+    /**
+     * @OA\Post(path="/support/update",
+     *  tags = "{updateSupport}"
+     *  description = "This action handle remove / re-order  the support for both direct and delegate supporter"
+     * ) 
+     * 
+     */
+
+    public function removeDelegateSupport(Request $request)
+    {
+        $all = $request->all();
+        $topicNum =$all['topic_num'];
+        $nickNameId = $all['nick_name_id'];
+        $delegateNickNameId = $all['delegate_nick_name_id'];
+
+        try{
+            
+            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId);                
+            
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.delegate_support_removed'), '','');
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 
 }
