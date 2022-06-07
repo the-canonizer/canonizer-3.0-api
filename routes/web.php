@@ -37,7 +37,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/get-statement-history','StatementController@getStatementHistory');
     $router->get('user/profile/{id}','ProfileController@getUserProfile');
     $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
-    $router->get('user/supports/{id}','ProfileController@getUserSupports');
+    $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -99,7 +99,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('post/delete/{id}','ReplyController@isDelete');
         $router->post('camp/subscription','CampController@campSubscription');
         $router->post('support/update','SupportController@removeSupport');
-        $router->post('remove/delegate-support','SupportController@removeDelegateSupport');
+        $router->post('support/remove-delegate','SupportController@removeDelegateSupport');
         $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
         $router->post('support-order/update','SupportController@updateSupportOrder');
