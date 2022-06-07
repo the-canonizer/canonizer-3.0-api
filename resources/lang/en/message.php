@@ -36,7 +36,8 @@ return [
         'otp_verified'  => 'OTP verified successfully.',
         'subscribed'  => 'Subscribed successfully.',
         'unsubscribed'  => 'Unsubscribed successfully.',
-        
+        'statement_create'  => 'Statement submitted successfully.',
+        'statement_object'  => 'Objection submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -302,5 +303,21 @@ return [
         'page_required' => "Page number is required.",
         'log_type_required' => "Log type is required.",
         'log_type_in' => "Please enter a valid Log Type value (topic/camps, threads)",
+    ],
+    'validation_store_statement' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number number is required.",
+        'statement_required' => "Statement is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'parent_camp_num_required' => "Parent camp number is required.",
+        'statement_id_required_if' => "Statement id is required.",
+        'objection_reason_required_if' => "Objection reason is required.",
+    ],
+    'validation_get_camp_bread_crumb' => [
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
     ]
 ];
