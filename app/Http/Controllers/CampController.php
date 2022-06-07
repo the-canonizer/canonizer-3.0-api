@@ -922,9 +922,10 @@ class CampController extends Controller
             foreach ($result as $subscription) {
                 $topic = Topic::getLiveTopic($subscription->topic_num, 'default');
                 $camp = ($subscription->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $subscription->topic_num, 'campNum' => $subscription->camp_num, 'asOf' => 'default']) : null;
+                //echo "<pre>"; print_r($camp->camp_name);die;
                 $tempCamp = [
                     'camp_num' => $subscription->camp_num,
-                    'camp_name' => $subscription->camp_name,
+                    'camp_name' => $camp->camp_name ?? '',
                     'camp_link' => Camp::campLink($subscription->topic_num, $subscription->camp_num, $topic->topic_name ?? '', $camp->camp_name ?? ''),
                     'subscription_start' => $subscription->subscription_start,
                     'subscription_id' => $subscription->id,
@@ -939,7 +940,7 @@ class CampController extends Controller
                 } else {
                     $campSubscriptionList[$subscription->topic_num] = array(
                         'topic_num' => $subscription->topic_num,
-                        'title' => $subscription->title,
+                        'title' => $topic->topic_name ?? '',
                         'title_link' => Topic::topicLink($subscription->topic_num, 1, $topic->topic_name ?? ''),
                         'is_remove_subscription' => ($subscription->camp_num == 0),
                         'subscription_id' => ($subscription->camp_num == 0) ? $subscription->id : 0,
