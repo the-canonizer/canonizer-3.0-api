@@ -16,7 +16,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use stdClass;
-use App\Facades\Util;
+use App\Helpers\Util;
 
 class StatementController extends Controller
 {
@@ -325,11 +325,12 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        $all = $request->all();
+        $filters['topicNum'] = $all['topic_num'];
+        $filters['campNum'] = $all['camp_num'];
+        $filters['asOf'] = 'default';
+        $go_live_time = time();
         try {
-            $all = $request->all();
-            $filters['topicNum'] = $all['topic_num'];
-            $filters['campNum'] = $all['camp_num'];
-            $filters['asOf'] = 'default';
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
             $statement = new Statement();
@@ -339,7 +340,6 @@ class StatementController extends Controller
             $statement->note = isset($all['note']) ? $all['note'] : "";
             $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
             $statement->submitter_nick_id = $all['nick_name'];
-            $go_live_time = time();
             $statement->go_live_time = $go_live_time;
             $statement->language = 'English';
             $statement->grace_period = 1;

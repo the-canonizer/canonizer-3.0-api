@@ -244,55 +244,59 @@ class Support extends Model
 
     public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
     {
-        $othersupports = [];
         $supportFlag = 1;
+
         $query = self::where('topic_num', $topic_num)
             ->whereNotIn('nick_name_id', $userNicknames)
             ->where('delegate_nick_name_id', 0)
             ->where('end', '=', 0)
             ->orderBy('support_order', 'ASC');
+
         $query->when($camp_num != 0, function ($q) use ($camp_num) {
             $q->where('camp_num', $camp_num);
         });
-        $othersupports = $query->get();
-        $othersupports->filter(function ($item) use ($camp_num) {
+
+        $otherSupports = $query->get();
+        $otherSupports->filter(function ($item) use ($camp_num) {
             if ($camp_num) {
                 return $item->camp_num == $camp_num;
             }
         });
-        if (count($othersupports) > 0) {
-            $supportFlag = 0;
-        } else {
-            if ($camp_num != 0) {
-                $camp = Camp::where('camp_num', '=', $camp_num)
-                    ->where('topic_num', '=', $topic_num)
-                    ->first();
-                Camp::clearChildCampArray();
-                $allChildren = Camp::getAllChildCamps($camp);
-                if (sizeof($allChildren) > 0) {
-                    foreach ($allChildren as $campnum) {
-                        $support = self::where('topic_num', $topic_num)
-                            ->where('camp_num', $campnum)
-                            ->whereNotIn('nick_name_id', $userNicknames)
-                            ->where('delegate_nick_name_id', 0)
-                            ->where('end', '=', 0)
-                            ->orderBy('support_order', 'ASC')->get();
-                        if (sizeof($support) > 0) {
-                            $supportFlag = 0;
-                            break;
-                        }
-                    }
-                }
-            } else {
-                $support = self::where('topic_num', $topic_num)
-                    ->whereNotIn('nick_name_id', $userNicknames)
-                    ->where('delegate_nick_name_id', 0)->where('end', '=', 0)
-                    ->orderBy('support_order', 'ASC')->get();
-                if (sizeof($support) > 0) {
-                    $supportFlag = 0;
-                }
+
+        if ( count($otherSupports) ) {
+            return 0;
+        }
+
+        if ( !$camp_num ) {
+            $support = self::where('topic_num', $topic_num)
+                ->whereNotIn('nick_name_id', $userNicknames)
+                ->where('delegate_nick_name_id', 0)->where('end', '=', 0)
+                ->orderBy('support_order', 'ASC')->count();
+            if ( $support )
+                return 0;
+
+        }
+
+        $camp = Camp::where('camp_num', '=', $camp_num)
+            ->where('topic_num', '=', $topic_num)
+            ->first();
+
+        Camp::clearChildCampArray();
+        $allChildren = Camp::getAllChildCamps($camp);
+
+        foreach ($allChildren as $campnum) {
+            $support = self::where('topic_num', $topic_num)
+                ->where('camp_num', $campnum)
+                ->whereNotIn('nick_name_id', $userNicknames)
+                ->where('delegate_nick_name_id', 0)
+                ->where('end', '=', 0)
+                ->orderBy('support_order', 'ASC')->get();
+
+            if (sizeof($support) > 0) {
+                return 0;
             }
         }
+
         return  $supportFlag;
     }
 }
