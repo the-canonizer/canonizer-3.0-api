@@ -396,4 +396,25 @@ class ValidationRules
             'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
         ]);
     }
+
+    public function getReSendOtpVerifyEmailValidationRules(): array
+    {
+        return ([
+            'client_id' => 'required',
+            'client_secret' => 'required',
+            'provider' => 'required',
+            'code' => 'required',
+            'email' =>  'required|string|email|max:225|regex:/^\S*$/u',
+        ]);
+    }
+
+    public function getCampBreadCrumbValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'as_of' => 'in:default,review,bydate',
+            'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
 }

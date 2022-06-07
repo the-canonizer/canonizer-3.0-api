@@ -270,7 +270,8 @@ return [
         'add_delegation_support' => 'Support delegated successfully.',
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
-        'delegate_support_removed' => 'Your delegation has been removed successfully.'
+        'delegate_support_removed' => 'Your delegation has been removed successfully.',
+        'delegate_invalid_request' => 'Invalid request, please try again later.'
 
     ],
     'support_validation' => [
@@ -312,5 +313,11 @@ return [
         'parent_camp_num_required' => "Parent camp number is required.",
         'statement_id_required_if' => "Statement id is required.",
         'objection_reason_required_if' => "Objection reason is required.",
+    ],
+    'validation_get_camp_bread_crumb' => [
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
     ]
 ];

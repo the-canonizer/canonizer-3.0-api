@@ -37,7 +37,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/get-statement-history','StatementController@getStatementHistory');
     $router->get('user/profile/{id}','ProfileController@getUserProfile');
     $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
-    $router->get('user/supports/{id}','ProfileController@getUserSupports');
+    $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
+    $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
 
     $router->post('/client_token','UserController@clientToken');
     //Route Group to access api with client token
@@ -55,6 +56,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('thread/list','ThreadsController@threadList');
         $router->get('post/list/{id}','ReplyController@postList');
         $router->post('/user/postVerifyEmail','UserController@postVerifyEmail');
+        $router->post('/user/reSendOtpVerifyEmail','UserController@reSendOtpVerifyEmail');
     });
 
     //Route Group to access api with user access token
