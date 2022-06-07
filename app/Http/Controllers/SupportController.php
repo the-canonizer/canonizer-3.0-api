@@ -302,6 +302,10 @@ class SupportController extends Controller
         $nickNameId = $all['nick_name_id'];
         $delegateNickNameId = $all['delegate_nick_name_id'];
 
+        if(!$delegateNickNameId || !$topicNum || !$nickNameId){
+            return $this->resProvider->apiJsonResponse(400, trans('message.support.delegate_invalid_request'), '', $e->getMessage());
+        }
+
         try{
             
             TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId);                

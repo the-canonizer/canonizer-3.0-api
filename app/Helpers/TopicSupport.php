@@ -561,9 +561,9 @@ class TopicSupport
                     $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
                 try {
-                    if($data['support_action'] == 'deleted'){
-                        Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
-                    }
+                    
+                    Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
+                   
                     
                 } catch (Throwable $e) {
                     $data = null;
