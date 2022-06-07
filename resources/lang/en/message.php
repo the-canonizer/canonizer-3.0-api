@@ -269,7 +269,8 @@ return [
         'add_delegation_support' => 'Support delegated successfully.',
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
-        'delegate_support_removed' => 'Your delegation has been removed successfully.'
+        'delegate_support_removed' => 'Your delegation has been removed successfully.',
+        'delegate_invalid_request' => 'Invalid request, please try again later.'
 
     ],
     'support_validation' => [

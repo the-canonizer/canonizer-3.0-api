@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Bus\Queueable;
-use App\Mail\CampForumPostMail;
+use App\Mail\SupportRemovedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
