@@ -10,7 +10,7 @@ use App\Models\Support;
 class Statement extends Model
 {
     protected $table = 'statement';
-
+    public $timestamps = false;
     public static function getLiveStatement($filter = array())
     {
         $filterName = $filter['asOf'];
