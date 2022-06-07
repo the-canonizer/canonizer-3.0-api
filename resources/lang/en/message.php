@@ -302,5 +302,11 @@ return [
         'page_required' => "Page number is required.",
         'log_type_required' => "Log type is required.",
         'log_type_in' => "Please enter a valid Log Type value (topic/camps, threads)",
-    ]
+    ],
+    'validation_get_camp_bread_crumb' => [
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
+    ],
 ];
