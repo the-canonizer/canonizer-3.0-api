@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Models;
-use Carbon\Carbon;
+
 use Illuminate\Database\Eloquent\Model;
+use App\Helpers\Util;
 
 class ActivityLog extends Model
 {
@@ -10,11 +11,11 @@ class ActivityLog extends Model
 
     public function getCreatedAtAttribute($date)
     {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
+       return Util::convertDateFormatToUnix($date);
     }
 
     public function getUpdatedAtAttribute($date)
     {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
+        return Util::convertDateFormatToUnix($date);
     }
 }

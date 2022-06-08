@@ -297,5 +297,9 @@ class Util
 
     public static function convertUnixToDateFormat($unix_time) {
         return date('m/d/Y, h:i:s A', $unix_time);
-   }
+    }
+
+    public static function convertDateFormatToUnix($dateTime) {
+        return strtotime($dateTime);
+    }
 }

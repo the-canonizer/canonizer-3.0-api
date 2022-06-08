@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityUser extends Model
@@ -11,6 +10,17 @@ class ActivityUser extends Model
     protected $fillable = [
         'activity_id', 'user_id', 'viewed'
     ];
+    public $timestamps = false;
+
+    public static function boot()
+    {
+        parent::boot(); 
+        self::creating(function($model){
+            $currentTimestamp = time();
+            $model->created_at = $currentTimestamp;
+            $model->updated_at = $currentTimestamp;
+        });
+    }
 
     public function Activity()
     {
@@ -21,13 +31,4 @@ class ActivityUser extends Model
         return $this->belongsTo('\App\Models\User', 'user_id', 'id');
     }
 
-    public function getCreatedAtAttribute($date)
-    {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
-    }
-
-    public function getUpdatedAtAttribute($date)
-    {
-        return Carbon::createFromTimestamp(strtotime($date))->format('Y-m-d h:i A');
-    }
 }
