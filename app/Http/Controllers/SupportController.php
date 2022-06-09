@@ -317,4 +317,46 @@ class SupportController extends Controller
         }
     }
 
+    /**
+     * 
+     * 
+     */
+
+     public function checkIfSupportExist(Request $request)
+     {
+         
+        $data = $request->all();
+
+        try{
+
+            $topicNum = isset($data['topic_num']) ? $data['topic_num'] : '';
+            $campNum =  isset($data['camp_num']) ? $data['camp_num'] : '';
+            $nickNameId =  isset($data['nick_id']) ? $data['nick_id'] : '';
+
+
+            if(!$topicNum || !$campNum || !$nickNameId)
+            {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '','');
+            }
+
+            $support = Support::checkIfSupportExists($topicNum,[$nickNameId],[$campNum]);
+            if($support){
+                $message = trans('message.support.support_exist');
+                $data['support_flag'] = 1;
+            }else{
+                $message = trans('message.support.support_not_exist');
+                $data['support_flag'] = 0;
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, $data,'');
+
+
+         } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+         }
+            
+
+     }
+
 }

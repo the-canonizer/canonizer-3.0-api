@@ -172,7 +172,7 @@ class Support extends Model
         return $delegators;
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames)
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $camps = array())
     {
         $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
@@ -298,5 +298,16 @@ class Support extends Model
         }
 
         return  $supportFlag;
+    }
+
+    public static function checkIfSupportExists($topicNum, $nickNameId = [], $camps = [])
+    {
+
+        $support = self::where('topic_num', '=', $topicNum)
+        ->whereIn('nick_name_id', $nickNameId)
+        ->whereIn('camp_num', $camps)
+        ->where('end', '=', '0')->count();
+        
+        return $support;
     }
 }
