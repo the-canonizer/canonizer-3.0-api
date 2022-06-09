@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use App\Models\ActivityUser;
+use App\Models\ActivityLog;
 use App\Http\Request\Validate;
 use App\Facades\Util;
 use App\Helpers\ResponseInterface;
@@ -84,6 +85,20 @@ class ActivityController extends Controller
                 $query->where('log_name', $logType);
             })->with('Activity')->where('user_id',$request->user()->id)->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getTopicActivityLog(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicActivityLogValidationRules(), $this->validationMessages->getTopicActivityLogValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
