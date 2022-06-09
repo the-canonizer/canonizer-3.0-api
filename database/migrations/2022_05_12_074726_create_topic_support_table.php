@@ -1,9 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class CreateTopicSupportTable extends Migration
 {
@@ -14,7 +13,15 @@ class CreateTopicSupportTable extends Migration
      */
     public function up()
     {
-        DB::unprepared(File::get("database/data/topic_support_file.sql"));
+        if (!Schema::hasTable('topic_support')) {
+            Schema::create('topic_support', function (Blueprint $table) {
+                $table->increments('id');
+                $table->integer('topic_num')->default(0);
+                $table->integer('nick_name_id')->nullable();
+                $table->integer('delegate_nick_id')->nullable();
+                $table->integer('submit_time')->nullable();
+            });
+        }
     }
 
     /**

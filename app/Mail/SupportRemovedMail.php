@@ -23,6 +23,6 @@ class SupportRemovedMail extends Mailable {
     //build the message.
     public function build() 
     {
-        return $this->markdown('emails.supportRemovedMail')->subject($data['subject']);  
+        return $this->markdown('emails.supportRemovedMail')->subject($this->data['subject']);  
     }
 }

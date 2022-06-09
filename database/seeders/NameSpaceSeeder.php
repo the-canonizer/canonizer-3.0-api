@@ -165,6 +165,18 @@ class NameSpaceSeeder extends Seeder
                 'name'      => 'sandy_city',
                 'label'     => '/government/sandy_city/'
             ],
+            [
+                'id'        => 28,
+                'parent_id' => 0,
+                'name'      => 'sports',
+                'label'     => '/sports/'
+            ],
+            [
+                'id'        => 29,
+                'parent_id' => 28,
+                'name'      => 'SBCL',
+                'label'     => '/sports/SBCL/'
+            ],
         );
 
         foreach ($namespaces as $ns) {

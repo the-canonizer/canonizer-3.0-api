@@ -12,7 +12,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class CampForumThreadMailListener implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
- 
+   
+    public function viaQueue()
+    {
+        return env('QUEUE_SERVICE_NAME');
+    }
     /**
      * Handle the event.
      *
@@ -21,11 +25,11 @@ class CampForumThreadMailListener implements ShouldQueue
      */
     public function handle($event)
     {
-  
+
         $user = $event->user;
         $email = $event->email;
         $link = $event->link;
         $data = $event->data;
-        Mail::to($email)->send(new CampForumThreadMail($user,$link,$data));
+        Mail::to($email)->send(new CampForumThreadMail($user, $link, $data));
     }
 }

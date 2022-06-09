@@ -21,6 +21,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
 use App\Jobs\ActivityLoggerJob;
+use App\Models\Nickname;
 
 class TopicController extends Controller
 {
@@ -174,15 +175,15 @@ class TopicController extends Controller
                         "object" => $topic->topic_name . " / " . $topic->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                    $url = "/topic/" . $topic->topic_num . "/1";
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
                         'activity' => 'Topic created',
-                        'url' => $url,
+                        'url' => $link,
                         'model' => $topic,
                         'topic_num' => $topic->topic_num,
                         'camp_num' =>  1,
-                        'user' => $request->user()
+                        'user' => $request->user(),
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {

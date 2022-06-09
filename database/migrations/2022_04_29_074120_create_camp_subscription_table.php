@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class CreateCampSubscriptionTable extends Migration
 {
@@ -15,7 +13,16 @@ class CreateCampSubscriptionTable extends Migration
      */
     public function up()
     {
-        DB::unprepared(File::get("database/data/camp_subscription_file.sql"));
+        if (!Schema::hasTable('camp_subscription')) {
+            Schema::create('camp_subscription', function (Blueprint $table) {
+                $table->increments('id');
+                $table->integer('user_id')->nullable();
+                $table->integer('topic_num')->default(0);
+                $table->integer('camp_num')->default(0);
+                $table->integer('subscription_start')->nullable();
+                $table->integer('subscription_end')->nullable();
+            });
+        }
     }
 
     /**

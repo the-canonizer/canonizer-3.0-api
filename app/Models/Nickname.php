@@ -118,9 +118,14 @@ class Nickname extends Model {
                 if (empty($mystatement)) {
                     $mytopic = Topic::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
                     if (empty($mytopic)) {
-                        $mythread = Thread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
-                        if (!empty($mythread)) {
-                            $usedNickid = $mythread->user_id;
+                        $myNews = NewsFeed::select('submitter_nick_id')->where('topic_num', $topic_num)->whereIn('submitter_nick_id', $personNicknameArray)->orderBy('submit_time', 'DESC')->first();
+                        if (empty($myNews)) {
+                            $mythread = Thread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                            if (!empty($mythread)) {
+                                $usedNickid = $mythread->user_id;
+                            }
+                        }else{
+                            $usedNickid = $myNews->submitter_nick_id;
                         }
                     } else {
                         $usedNickid = $mytopic->submitter_nick_id;
@@ -217,8 +222,6 @@ class Nickname extends Model {
         where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
         (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by u.submit_time DESC";
         $results = DB::select($sql);
-
-        echo "<pre>"; print_r($results); exit;
         $supports = [];
         foreach ($results as $rs) {
             $topic_num = $rs->topic_num;
@@ -316,5 +319,17 @@ class Nickname extends Model {
 
         return $results;
     }
+    
+    public static function personNicknameIds() {
+        if (Auth::check()) {
+            $userid = Auth::user()->id;
+
+            $encode = General::canon_encode($userid);
+
+            return DB::table('nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();
+        }
+        return [];
+    }
+
     
 }
