@@ -310,4 +310,14 @@ class Support extends Model
         
         return $support;
     }
+
+
+    public static function getDelgatedSupportInTopic($topicNum, $nickNames)
+    {
+        return Support::where('topic_num', $topicNum)
+            ->where('end', '=', 0)
+            ->where('delegate_nick_name_id','!=',0)
+            ->whereIn('nick_name_id', $nickNames)
+            ->get();
+    }
 }

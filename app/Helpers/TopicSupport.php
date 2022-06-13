@@ -591,5 +591,58 @@ class TopicSupport
         return;
     }
 
+    /**
+     * 
+     */
+    public static function checkSupportEligibilityAndWarning($topicNum, $campNum, $nickNames)
+    {
+        $returnData = [];
+        $returnData = self::checkIfDelegatorSupporter($topicNum, $nickNames);
+        if(!empty($returnData)){
+            return $returnData;
+        }
+
+        //$returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
+        if(!empty($returnData)){
+            return $returnData;
+        }
+
+        //$returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames);
+        if(!empty($returnData)){
+            return $returnData;
+        }
+
+       $returnData['warning'] = 'Support already exists.'; 
+       return $returnData;
+
+    }
+
+    /**
+     * 
+     */
+    public static function checkIfDelegatorSupporter($topicNum, $nickNames)
+    {
+        $returnData = [];
+        $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames);                
+        if ($delegatedSupport->count() > 0) {
+            $nickName = Nickname::getNickName($delegateSupportInTopic[0]->delegate_nick_name_id);
+            
+            $returnData['warning'] = "You have delegated your support to user ".$nickName->nick_name." under this topic. If you continue your delegated support will be removed.";
+            $removeCamps = [];
+            foreach($delegatedSupport as $support){
+                array_push($removeCamps, ['topic_num' => $support->topic_num, 'camp_num' => $support->camp_num]);
+            }
+
+            $returnData['remove_camps'] = $removeCamps;
+            $returnData['is_delegator'] = 1;
+            $returnData['support_flag'] = 1;
+            $returnData['topic_num'] = $topicNum;
+            $returnData['camp_num'] = $campNum;
+            $returnData['is_confirm'] = 1;
+        }
+
+        return $returnData;
+    }
+
     
 }
