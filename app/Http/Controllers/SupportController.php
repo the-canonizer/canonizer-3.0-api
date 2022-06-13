@@ -346,12 +346,15 @@ class SupportController extends Controller
 
             $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
             if($support){
-                $data = TopicSupport::checkSupportEligibilityAndWarning($topicNum, $campNum, $nickNames);
-                $message = trans('message.support.support_exist');
+
+                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
                 $data['support_flag'] = 1;
+                $message = trans('message.support.support_exist');
+
             }else{
+                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
+
                 $message = trans('message.support.support_not_exist');
-                $data['is_confirm'] = 0;
                 $data['support_flag'] = 0;
             }
 
