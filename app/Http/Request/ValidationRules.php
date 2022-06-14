@@ -326,7 +326,7 @@ class ValidationRules
         return [
             'topic_num' => 'required',
             'camp_num' => 'required',
-            'type' => 'in:objected,in_review,live,old,all',
+            'type' => 'in:objected,in_review,old,all',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
         ];

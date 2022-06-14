@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Models\Nickname;
-use App\Models\Support;
+use App\Facades\Util;
 
 class Statement extends Model
 {
@@ -69,27 +69,55 @@ class Statement extends Model
         return false;
     }
 
-    public static function getHistory($topicnum, $campnum)
-    {
-        return self::where('topic_num', $topicnum)->where('camp_num', $campnum)->latest('submit_time')->get();
-    }
-
     public function objectorNickName()
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
     }
 
-    public static function getHistoryAuthUsers($response, $filter, $request)
+    public function submitterNickName()
     {
-        $currentTime = time();
+        return $this->hasOne('App\Models\Nickname', 'id', 'submitter_nick_id');
+    }
+
+    public static function getStatementHistory($statement_query, $response, $filter, $campLiveStatement, $request = null)
+    {
+        $statement_query->when($filter['type'] == "objected", function ($q) use ($filter, $response) {
+            $response->statement = $q->where('objector_nick_id', '!=', NULL)
+                ->paginate($filter['per_page']);
+            $response->statement = Util::getPaginatorResponse($response->statement);
+        });
+        switch ($filter['type']) {
+            case "objected":
+                $response->statement = $statement_query->where('objector_nick_id', '!=', NULL);
+                break;
+            case "in_review":
+                $response->statement = $statement_query->where('go_live_time', '>', $filter['currentTime'])
+                    ->where('submit_time', '<=', $filter['currentTime']);
+                break;
+            case "old":
+                $response->statement = $statement_query->where('go_live_time', '<=', $filter['currentTime'])
+                    ->where('objector_nick_id', NULL)
+                    ->where('id', '!=', $campLiveStatement->id)
+                    ->where('submit_time', '<=', $filter['currentTime']);
+                break;
+            default:
+                $response->statement = isset($request) ?  $statement_query : $statement_query->where('go_live_time', '<=', $filter['currentTime']);
+        }
+        $response->statement = Util::getPaginatorResponse($response->statement->paginate($filter['per_page']));
+        $data = self::filterStatementHistory($response, $filter, $request);
+        return $data;
+    }
+
+
+    public static function filterStatementHistory($response, $filter, $request)
+    {
+        $data = $response->statement;
+        unset($response->statement);
+        $data->details = $response;
+        $statementHistory = [];
         $currentLive = 0;
-        $statementHistory = self::getHistory($filter['topicNum'], $filter['campNum']);
-        $submitTime = (count($statementHistory)) ? $statementHistory[0]->submit_time : null;
-        $nickNames = Nickname::personNicknameArray();
-        $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
-        $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, $delayed = true);
-        if (count($statementHistory) > 0) {
-            foreach ($statementHistory as $val) {
+        if (isset($data->items) && count($data->items) > 0) {
+            foreach ($data->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
                 $submittime = $val->submit_time;
                 $starttime = time();
@@ -102,50 +130,26 @@ class Statement extends Model
                         $val->objector_nick_name = $val->objectorNickName->nick_name;
                         $val->unsetRelation('objectorNickName');
                         break;
-                    case $currentTime < $val->go_live_time && $currentTime >= $val->submit_time:
+                    case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
                         $val->status = "in_review";
                         break;
-                    case $currentLive != 1 && $currentTime >= $val->go_live_time:
+                    case $currentLive != 1 && $filter['currentTime'] >= $val->go_live_time:
                         $currentLive = 1;
                         $val->status = "live";
                         break;
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && $request->user()->id != $submitterUserID) {
+                if ($interval > 0 && $val->grace_period > 0  && isset($request) && $request->user()->id != $submitterUserID) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
                     $val->parsed_value = $WikiParser->parse($val->value);
-                    $val->go_live_time = date('m/d/Y, h:i:s A', $val->go_live_time);
-                    $val->submit_time = date('m/d/Y, h:i:s A', $val->submit_time);
-                    ($filter['type'] == $val->status || $filter['type'] == 'all') ? array_push($response->statement, $val) : null;
+                    array_push($statementHistory, $val);
                 }
             }
+            $data->items = $statementHistory;
+            return  $data;
         }
-        return $response;
-    }
-    
-    public static function getHistoryUnAuthUsers($response, $filter)
-    {
-        $currentTime = time();
-        $currentLive = 0;
-        $statementHistory = self::getHistory($filter['topicNum'], $filter['campNum']);
-        if (count($statementHistory) > 0) {
-            foreach ($statementHistory as $arr) {
-                $submittime = $arr->submit_time;
-                $starttime = $currentTime;
-                $endtime = $submittime + 60 * 60;
-                $interval = $endtime - $starttime;
-                if ((($arr->grace_period < 1 && $interval < 0) || $currentTime >= $arr->go_live_time) && $arr->objector_nick_id == NULL && $currentLive != 1) {
-                    $currentLive = 1;
-                    $arr['status'] = "live";
-                    $WikiParser = new wikiParser;
-                    $arr->parsed_value = $WikiParser->parse($arr->value);
-                    array_push($response->statement, $arr);
-                }
-            }
-        }
-        return $response;
     }
 }
