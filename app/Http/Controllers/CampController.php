@@ -178,7 +178,7 @@ class CampController extends Controller
                 "camp_about_url" => $request->camp_about_url ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
-                "grace_period" => 1
+                "grace_period" => 0
             ];
 
             $camp = Camp::create($input);
