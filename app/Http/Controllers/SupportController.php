@@ -317,4 +317,55 @@ class SupportController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/add-direct-support",
+     * tags = "{support}",
+     * description = "This will check if nick name id has support in this camp or not"
+     * )
+     * 
+     */
+
+     public function checkIfSupportExist(Request $request)
+     {
+         
+        $data = $request->all();
+        $user = $request->user();
+        $userId = $user->id;
+
+        try{
+
+            $topicNum = isset($data['topic_num']) ? $data['topic_num'] : '';
+            $campNum =  isset($data['camp_num']) ? $data['camp_num'] : '';
+            $nickNames = Nickname::getNicknamesIdsByUserId($userId);
+
+
+            if(!$topicNum || !$campNum)
+            {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '','');
+            }
+
+            $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
+            if($support){
+
+                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
+                $data['support_flag'] = 1;
+                $message = trans('message.support.support_exist');
+
+            }else{
+                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
+
+                $message = trans('message.support.support_not_exist');
+                $data['support_flag'] = 0;
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, $data,'');
+
+
+         } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }            
+
+     }
+
 }

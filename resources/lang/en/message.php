@@ -271,7 +271,9 @@ return [
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
-        'delegate_invalid_request' => 'Invalid request, please try again later.'
+        'delegate_invalid_request' => 'Invalid request, please try again later.',
+        'support_exist' => 'This camp is already supported',
+        'support_not_exist' => "This camp doesn't have your support"
 
     ],
     'support_validation' => [

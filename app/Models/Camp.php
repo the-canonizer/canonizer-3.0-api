@@ -427,4 +427,55 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         return $users;
     }
+
+    public static function validateParentsupport($topicNum, $campNum, $userNicknames) 
+    {
+        $filter = self::getLiveCampFilter($topicNum, $campNum);
+        $oneCamp = self::getLiveCamp($filter);        
+
+        if ($oneCamp->count() <= 0) {
+            return 'notlive';
+        }       
+
+        $parentcamps = self::getAllParent($oneCamp);
+        $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
+        
+        if (count($mysupports))
+            return $mysupports;
+        else
+            return false;
+    }
+
+    public static function validateChildsupport($topicNum, $campNum, $userNicknames) 
+    {
+        $filter = self::getLiveCampFilter($topicNum, $campNum);
+        $oneCamp = self::getLiveCamp($filter);
+
+        $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
+        $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+
+        if (count($mysupports))
+            return $mysupports;
+        else
+            return false;
+    }
+
+    public static function getLiveCampFilter($topicNum, $campNum)
+    {
+        $filter =  ['topicNum' => $topicNum, 'campNum' => $campNum];
+        return $filter;
+    }
+
+    public static function getCampNameByTopicIdCampId($topicNum, $campNum, $as_of_time){
+        $parentCampName = "";
+        $filter = self::getLiveCampFilter($topicNum, $campNum);
+        $campDetails = self::getLiveCamp($filter);
+
+        //$campDetails = Camp::where('topic_num', $topicNum)->where('camp_num', '=', $campNum)->where('objector_nick_id', '=', NULL)->where('go_live_time', '<=', $as_of_time)->orderBy('submit_time', 'DESC')->first();
+        if(!empty($campDetails)) {
+
+            $parentCampName = $campDetails->camp_name;
+        }
+        return $parentCampName;
+    }
 }
