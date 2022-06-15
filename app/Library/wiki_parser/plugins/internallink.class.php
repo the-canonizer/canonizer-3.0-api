@@ -13,7 +13,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
 require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
-
+use App\Library\wiki_parser\wikiParser as wikiParser;
 class internallink implements startOfLine
 {
     const regular_expression = '/(\[\[(([^\]]*?)\:)?([^\]]*?)([\|]([^\]]*?))?\]\]([a-z]+)?)/i';
