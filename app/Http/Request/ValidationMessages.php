@@ -290,6 +290,7 @@ class ValidationMessages
             //'file.*.mimes' => trans('message.uploads.image_mimes'),
             'file.*.max' => trans('message.uploads.image_size'),
             'name.*.required' => trans('message.uploads.image_name_required'),
+            'name.*.unique' => trans('message.uploads.image_name_unique'),
 
         ]);
     }
