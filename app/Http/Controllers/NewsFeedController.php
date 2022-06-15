@@ -70,8 +70,7 @@ class NewsFeedController extends Controller
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
         $manageFlag = true;
-        $parentCampName = Null;
-        $parentCampUrl = Null;
+        $parentCampName = $parentCampUrl = Null;
         $camp = Camp::liveCampDefaultAsOfFilter($filter);
         try {
             $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
@@ -221,7 +220,7 @@ class NewsFeedController extends Controller
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             $temp[] = $news;
-            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
+            $indexes =NewsFeed::apiResponseIndexes();
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {
@@ -460,7 +459,7 @@ class NewsFeedController extends Controller
         try {
             $newsFeed = NewsFeed::findOrFail($newsId);
             if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
-                $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_id'];
+                $indexes = NewsFeed::apiResponseIndexes();
                 $temp[] = $newsFeed;
                 $newsFeed = $this->resourceProvider->jsonResponse($indexes, $temp);
             } else {
