@@ -81,33 +81,30 @@ class Statement extends Model
 
     public static function getStatementHistory($statement_query, $response, $filter, $campLiveStatement, $request = null)
     {
-        $statement_query->when($filter['type'] == "objected", function ($q) use ($filter, $response) {
-            $response->statement = $q->where('objector_nick_id', '!=', NULL)
-                ->paginate($filter['per_page']);
-            $response->statement = Util::getPaginatorResponse($response->statement);
+        $statement_query->when($filter['type'] == "objected", function ($q) {
+            $q->where('objector_nick_id', '!=', NULL);
         });
-        switch ($filter['type']) {
-            case "objected":
-                $response->statement = $statement_query->where('objector_nick_id', '!=', NULL);
-                break;
-            case "in_review":
-                $response->statement = $statement_query->where('go_live_time', '>', $filter['currentTime'])
-                    ->where('submit_time', '<=', $filter['currentTime']);
-                break;
-            case "old":
-                $response->statement = $statement_query->where('go_live_time', '<=', $filter['currentTime'])
-                    ->where('objector_nick_id', NULL)
-                    ->where('id', '!=', $campLiveStatement->id)
-                    ->where('submit_time', '<=', $filter['currentTime']);
-                break;
-            default:
-                $response->statement = isset($request) ?  $statement_query : $statement_query->where('go_live_time', '<=', $filter['currentTime']);
-        }
-        $response->statement = Util::getPaginatorResponse($response->statement->paginate($filter['per_page']));
-        $data = self::filterStatementHistory($response, $filter, $request);
-        return $data;
-    }
 
+        $statement_query->when($filter['type'] == "in_review" && $request, function ($q) use ($filter) {
+            $q->where('go_live_time', '>', $filter['currentTime'])
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+        
+        $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
+            $q->where('go_live_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('id', '!=', $campLiveStatement->id)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+
+        $statement_query->when($filter['type'] == "all" && !$request, function ($q) use ($filter) {
+            $q->where('go_live_time', '<=', $filter['currentTime']);
+        });
+
+        $response->statement = Util::getPaginatorResponse($statement_query->paginate($filter['per_page']));
+        $response = self::filterStatementHistory($response, $filter, $request);
+        return $response;
+    }
 
     public static function filterStatementHistory($response, $filter, $request)
     {
@@ -133,7 +130,7 @@ class Statement extends Model
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
                         $val->status = "in_review";
                         break;
-                    case $currentLive != 1 && $filter['currentTime'] >= $val->go_live_time:
+                    case $currentLive != 1 && $filter['currentTime'] >= $val->go_live_time && $filter['type'] != "old":
                         $currentLive = 1;
                         $val->status = "live";
                         break;
