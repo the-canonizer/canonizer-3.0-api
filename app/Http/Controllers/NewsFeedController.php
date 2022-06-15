@@ -16,6 +16,7 @@ use App\Http\Request\ValidationMessages;
 use App\Models\Nickname;
 use App\Jobs\ActivityLoggerJob;
 use App\Helpers\Util;
+use App\Helpers\CampForum;
 
 class NewsFeedController extends Controller
 {
@@ -68,6 +69,9 @@ class NewsFeedController extends Controller
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
+        $manageFlag = true;
+        $parentCampName = Null;
+        $parentCampUrl = Null;
         $camp = Camp::liveCampDefaultAsOfFilter($filter);
         try {
             $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
@@ -76,22 +80,29 @@ class NewsFeedController extends Controller
                 ->orderBy('order_id', 'ASC')->get();
 
             if ($news->isEmpty() && !empty($camp) && $camp->parent_camp_num != null) {
-                $neCampNum = $camp->parent_camp_num;
+                $parentCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
-                    ->where('camp_num', '=', $neCampNum)
+                    ->where('camp_num', '=', $parentCampNum)
                     ->where('end_time', '=', null)
                     ->where('available_for_child', '=', 1)
                     ->orderBy('order_id', 'ASC')->get();
+                $manageFlag = false;
+                $filter['campNum'] = $parentCampNum;
+                $topic = Camp::getAgreementTopic($filter);
+                $camp  = TopicSupport::getLiveCamp($filter);
+                $parentCampName = CampForum::getCampName($filter['topicNum'], $parentCampNum);
+                $parentCampUrl = Util::getTopicCampUrl($filter['topicNum'], $parentCampNum, $topic, $camp);
             }
             foreach ($news as $newsfeed) {
-                $newsfeed->owner_flag = false;
-                $newsfeed->submit_time = date('Y-m-d H:i A', $newsfeed->submit_time);
+                $newsfeed->parent_camp_url = $parentCampUrl;
+                $newsfeed->parent_camp_name = $parentCampName;
                 $newsfeed->submitter_nick_name = $newsfeed->nickName ? $newsfeed->nickName->nick_name : "";
                 if ($request->user()) {
-                    ($newsfeed->author_id == $request->user()->id || $request->user()->type == "admin") ?  $newsfeed->owner_flag = true : $newsfeed->owner_flag = false;
+                    ($newsfeed->author_id == $request->user()->id || $request->user()->type == "admin") ?
+                        ($newsfeed->owner_flag = true and $newsfeed->manage_flag = $manageFlag) : ($newsfeed->owner_flag = false and $newsfeed->manage_flag = false);
                 }
             }
-            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'owner_flag'];
+            $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'owner_flag', 'manage_flag', 'parent_camp_name', 'parent_camp_url'];
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
