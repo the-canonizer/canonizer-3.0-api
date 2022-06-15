@@ -20,6 +20,8 @@ use App\Helpers\ResourceInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
+use App\Jobs\ActivityLoggerJob;
+use App\Models\Nickname;
 
 class TopicController extends Controller
 {
@@ -127,7 +129,7 @@ class TopicController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => isset($request->note) ? $request->note : "",
-                "grace_period" => 1
+                "grace_period" => 0
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
@@ -165,14 +167,25 @@ class TopicController extends Controller
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
                     $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
-                    $historylink = Util::topicHistoryLink($topic->topic_num,1, $topic->topic_name,'Aggreement','topic');
+                    $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
                     $dataEmail = (object) [
                         "type" => "topic",
                         "link" => $link,
                         "historylink" => $historylink,
-                        "object" => $topic->topic_name . " / " . $topic->camp_name,
+                        "object" => $topic->topic_name . " / Agreement",
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                    $activitLogData = [
+                        'log_type' =>  "topic/camps",
+                        'activity' => 'Topic created',
+                        'url' => $link,
+                        'model' => $topic,
+                        'topic_num' => $topic->topic_num,
+                        'camp_num' =>  1,
+                        'user' => $request->user(),
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                    ];
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;

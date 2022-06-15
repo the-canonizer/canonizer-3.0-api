@@ -319,7 +319,7 @@ class ProfileController extends Controller
                     "error"       => null,
                     "data"        => null
                 ];
-                return (new SuccessResource($res))->response()->setStatusCode(200);
+                return (new SuccessResource($res))->response()->setStatusCode(400);
             }
 
         }catch(Exception $e){
@@ -373,7 +373,7 @@ class ProfileController extends Controller
      * 
      */
     public function getUserProfile(Request $request, $id)
-    {
+    {        
         $user = User::getUserById($id);
 
         try{
@@ -411,8 +411,9 @@ class ProfileController extends Controller
      /**
      * @OA\Post(path="/user/all-supported-camps",
      */
-    public function getUserSupportedCaomps(Request $request, $id)
+    public function getUserSupportedCamps(Request $request, $id)
     {
+       
         try{
 
             $user = User::getUserById($id);
@@ -432,6 +433,52 @@ class ProfileController extends Controller
                 $data = null;
                 $error = trans('message.error.user_not_exist'); 
             }
+            return $this->resProvider->apiJsonResponse($status, $message, $data, $error);
+
+        }catch(Exception $e){
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
+        }
+    }
+
+
+     /**
+     * @OA\Post(path="/user/supports/{id}",
+     */
+    public function getUserSupports(Request $request, $id)
+    {
+        $nickName = Nickname::find($id);
+        $data = [];
+        try{
+            if(isset($nickName) && !empty($nickName))
+            {
+                $all = $request->all();
+                $topicNum = isset($all['topicnum']) ? $all['topicnum'] : '';
+                $campNum = isset($all['campnum']) ? $all['campnum'] : '';
+                $namespace = (isset($all['namespace']) && !empty($all['namespace'])) ? $all['namespace'] : 1;
+                
+                $user = Nickname::getUserByNickName($id);
+                $userArray = $user->toArray();
+                $privateFlags = explode(",",$user->private_flags);
+                foreach($privateFlags as $private)
+                {
+                    unset($userArray[$private]);
+                }               
+
+                $supportResponse = $nickName->getNicknameSupportedCampList($namespace,['nofilter' => true],$topicNum);
+                $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
+
+                $data['profile'] = $userArray;
+                $data['support_list'] = $support;
+                $status = 200;
+                $message = trans('message.success.success');
+                $error = null;
+
+            }else{
+                $status = 404;
+                $message = trans('message.error.user_not_exist');
+                $data = null;
+                $error = trans('message.error.user_not_exist'); 
+            }   
             return $this->resProvider->apiJsonResponse($status, $message, $data, $error);
 
         }catch(Exception $e){

@@ -20,6 +20,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
+use App\Jobs\ActivityLoggerJob;
 
 class CampController extends Controller
 {
@@ -177,14 +178,14 @@ class CampController extends Controller
                 "camp_about_url" => $request->camp_about_url ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
-                "grace_period" => 1
+                "grace_period" => 0
             ];
 
             $camp = Camp::create($input);
 
             if ($camp) {
-
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -199,7 +200,18 @@ class CampController extends Controller
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
-                } catch (Throwable $e) {
+                    $activitLogData = [
+                        'log_type' =>  "topic/camps",
+                        'activity' => 'Camp created',
+                        'url' => $link,
+                        'model' => $camp,
+                        'topic_num' => $filter['topicNum'],
+                        'camp_num' =>   $filter['campNum'],
+                        'user' => $request->user(),
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                    ];
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
                     $message = $e->getMessage();
@@ -281,13 +293,14 @@ class CampController extends Controller
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
                 $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                $livecamp->campSubscriptionId = "";
                 if ($request->user()) {
-                    $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                    $livecamp->campSubscriptionId = isset($campSubscriptionData->id) ? $campSubscriptionData->id : "";
+                    $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                    $livecamp->flag = $campSubscriptionData['flag'];
+                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] : null;
+                    $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
                 }
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'campSubscriptionId'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -781,7 +794,7 @@ class CampController extends Controller
     }
 
 
-     /**
+    /**
      * @OA\GET(path="/camp/subscription/list/",
      *   tags={"Camp"},
      *   summary="list posubscriptionst",
@@ -901,62 +914,43 @@ class CampController extends Controller
 
     public function campSubscriptionList(Request $request)
     {
-
         try {
             $user = $request->user();
             $userId = $user->id;
-            $result = CampSubscription::leftJoin('topic', 'camp_subscription.topic_num', '=', 'topic.topic_num')
-                ->leftJoin('camp', function ($join) {
-                    $join->on('camp_subscription.topic_num', '=', 'camp.topic_num');
-                    $join->on('camp_subscription.camp_num', '=', 'camp.camp_num');
-                })
-                ->select('camp_subscription.*', 'camp.camp_name as camp_name', 'topic.topic_name as title')
-                ->where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
-
-
-                $campSubscriptionList = [];
-                foreach($result as $k => $subscription){
-    
-                    if(isset($campSubscriptionList[$subscription->topic_num])){
-                        if(($subscription->camp_num != 0)){
-                            $tempCamp = [
-                                'camp_num' => $subscription->camp_num,
-                                'camp_name' => $subscription->camp_name,
-                                'camp_link' => Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
-                                'subscription_start' => $subscription->subscription_start,
-                                'subscription_id' => $subscription->id,
-                            ];
-                            array_push($campSubscriptionList[$subscription->topic_num]['camps'],$tempCamp);
-                        }
-                    }else{
-
-                        $flag = ($subscription->camp_num == 0) ? true : false;
-                        $camps=[];
-                        if(($subscription->camp_num != 0)){
-                            $camps = array(
-                                [
-                                    'camp_num' => $subscription->camp_num,
-                                    'camp_name' => $subscription->camp_name,
-                                    'camp_link' =>  Camp::campLink($subscription->topic_num,$subscription->camp_num,$subscription->title,$subscription->camp_name),
-                                    'subscription_start' => $subscription->subscription_start,
-                                    'subscription_id' => $subscription->id,
-                                ]
-                                );
-                        }
-                        $campSubscriptionList[$subscription->topic_num] = array(
-                            'topic_num' => $subscription->topic_num,
-                            'title' => $subscription->title,
-                            'title_link' => Topic::topicLink($subscription->topic_num,1,$subscription->title),
-                            'is_remove_subscription' => $flag,
-                            'subscription_id' => $subscription->id,
-                            'camps' => $camps,
-                        );
+            $result = CampSubscription::where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
+            $campSubscriptionList = [];
+            foreach ($result as $subscription) {
+                $topic = Topic::getLiveTopic($subscription->topic_num, 'default');
+                $camp = ($subscription->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $subscription->topic_num, 'campNum' => $subscription->camp_num, 'asOf' => 'default']) : null;
+                //echo "<pre>"; print_r($camp->camp_name);die;
+                $tempCamp = [
+                    'camp_num' => $subscription->camp_num,
+                    'camp_name' => $camp->camp_name ?? '',
+                    'camp_link' => Camp::campLink($subscription->topic_num, $subscription->camp_num, $topic->topic_name ?? '', $camp->camp_name ?? ''),
+                    'subscription_start' => $subscription->subscription_start,
+                    'subscription_id' => $subscription->id,
+                ];
+                if (isset($campSubscriptionList[$subscription->topic_num])) {
+                    if ($subscription->camp_num != 0) {
+                        $campSubscriptionList[$subscription->topic_num]['camps'][] = $tempCamp;
+                    } else {
+                        $campSubscriptionList[$subscription->topic_num]['is_remove_subscription'] = true;
+                        $campSubscriptionList[$subscription->topic_num]['subscription_id'] = $subscription->id;
                     }
+                } else {
+                    $campSubscriptionList[$subscription->topic_num] = array(
+                        'topic_num' => $subscription->topic_num,
+                        'title' => $topic->topic_name ?? '',
+                        'title_link' => Topic::topicLink($subscription->topic_num, 1, $topic->topic_name ?? ''),
+                        'is_remove_subscription' => ($subscription->camp_num == 0),
+                        'subscription_id' => ($subscription->camp_num == 0) ? $subscription->id : 0,
+                        'camps' => ($subscription->camp_num == 0) ? [] : [$tempCamp],
+                    );
                 }
-
+            }
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             $currentPage = $request->page;
-            $paginate = Util::paginate(array_values($campSubscriptionList),$per_page ,$currentPage);
+            $paginate = Util::paginate(array_values($campSubscriptionList), $per_page, $currentPage);
             $collection = Util::getPaginatorResponse($paginate);
             $status = 200;
             $message = trans('message.success.success');
@@ -967,4 +961,72 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
         }
     }
+
+     /**
+     * @OA\Post(path="/api/v3/get-camp-breadcrumb",
+     *   tags={"Camp"},
+     *   summary="get camp bread crumb",
+     *   description="Used to get camp bread crumb.",
+     *   operationId="getCampBreadCrumb",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get camp bread crumb",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getCampBreadCrumb(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getCampBreadCrumbValidationRules(), $this->validationMessages->getCampBreadCrumbValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
+        $filter['campNum'] = $request->camp_num;
+        try {
+            $livecamp = Camp::getLiveCamp($filter);
+            $data = new stdClass();
+            $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
+            $indexs = ['bread_crumb'];
+            $response[] = $data;
+            $response = $this->resourceProvider->jsonResponse($indexs, $response);
+            $response=$response[0];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+    
 }

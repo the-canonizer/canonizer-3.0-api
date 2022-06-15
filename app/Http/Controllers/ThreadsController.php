@@ -15,6 +15,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
+use App\Jobs\ActivityLoggerJob;
 
 class ThreadsController extends Controller
 {
@@ -169,6 +170,17 @@ class ThreadsController extends Controller
                 // Return Url after creating thread Successfully
                 $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
+                $activitLogData = [
+                    'log_type' =>  "threads",
+                    'activity' => 'Thread created',
+                    'url' => $return_url,
+                    'model' => $thread,
+                    'topic_num' => $request->topic_num,
+                    'camp_num' =>   $request->camp_num,
+                    'user' => $request->user(),
+                    'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                ];
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             } else {
                 $data = null;
                 $status = 400;
@@ -368,7 +380,10 @@ class ThreadsController extends Controller
             $threads = null;
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
-                $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
+                $query = Thread::leftJoin('post', function($join) {
+                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->where('post.is_delete',0);
+                    })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
@@ -388,7 +403,10 @@ class ThreadsController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
-            $query = Thread::leftJoin('post', 'thread.id', '=', 'post.thread_id')
+            $query = Thread::leftJoin('post', function($join) {
+                    $join->on('thread.id', '=', 'post.thread_id');
+                    $join->where('post.is_delete',0);
+                })
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                 ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
@@ -408,7 +426,10 @@ class ThreadsController extends Controller
             }
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
-                $query = Thread::Join('post', 'thread.id', '=', 'post.thread_id')
+                $query = Thread::Join('post', function($join) {
+                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->where('post.is_delete',0);
+                    })
                     ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
@@ -533,14 +554,10 @@ class ThreadsController extends Controller
 
     public function update(Request $request, Validate $validate, $id)
     {
-
         $validationErrors = $validate->validate($request, $this->rules->getThreadUpdateValidationRules(), $this->validationMessages->getThreadUpdateValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-    
-    
         try {
             $update = ["title" => $request->title];
             $threads = Thread::find($id);
@@ -558,6 +575,20 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
+                $topic_name = CampForum::getTopicName($threads->topic_id);
+                $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
+                $url = 'forum/' . $request->topic_num . '-' .  $topic_name . '/'  . $request->camp_num . '-' .$camp_name. '/threads';
+                $activitLogData = [
+                    'log_type' =>  "threads",
+                    'activity' => 'Thread updated',
+                    'url' => $url,
+                    'model' => $threads,
+                    'topic_num' => $request->topic_num,
+                    'camp_num' =>   $request->camp_num,
+                    'user' => $request->user(),
+                    'nick_name' => Nickname::getNickName($threads->user_id)->nick_name
+                ];
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 $status = 200;
                 $message = trans('message.thread.update_success');
             }

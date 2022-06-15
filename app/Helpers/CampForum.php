@@ -273,7 +273,8 @@ class CampForum
             $subscribers = Camp::getCampSubscribers($topicid, $camp_id);
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
-                $user_id = $user->id ?? null;$user_id = $user->id ?? null;
+                $user_id = $user->id ?? null;
+                $user_id = $user->id ?? null;
                 $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
                 $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
@@ -336,4 +337,5 @@ class CampForum
             }
         }
     }
+
 }

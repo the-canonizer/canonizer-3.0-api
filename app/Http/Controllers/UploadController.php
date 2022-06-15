@@ -328,7 +328,6 @@ class UploadController extends Controller
             }
 
             $files = Upload::where('folder_id', '=' ,$id)->orderBy('created_at','DESC')->get();
-            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $files, null);
 
         }catch (\Throwable $e) {

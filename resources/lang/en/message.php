@@ -31,12 +31,13 @@ return [
         'topic_created' => 'Topic created successfully.',
         'camp_created' => 'Camp created successfully.',
         'password_reset' => 'Your password has been reset successfully.',
-        'user_remove'  => 'User remove successfully.',
+        'user_remove'  => 'User removed successfully.',
         'news_feed_add'  => 'Newsfeed added successfully.',
         'otp_verified'  => 'OTP verified successfully.',
         'subscribed'  => 'Subscribed successfully.',
         'unsubscribed'  => 'Unsubscribed successfully.',
-        
+        'statement_create'  => 'Statement submitted successfully.',
+        'statement_object'  => 'Objection submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -132,7 +133,6 @@ return [
         'not_found' => 'No record found against provided id.',
     ],
     'validation_update_newsfeed' => [
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
         'display_text_required' => 'Display text is required',
         'link_regex' => 'Link is invalid. (Example: https://www.example.com?post=1234)',
@@ -186,6 +186,7 @@ return [
         'successfully_linked' => 'Your social account is linked successfully',
         'already_linked' => 'Email is already linked with another account',
         'not_linked' => 'Your social account is not linked with any user',
+        'email_not_received' => 'Your email address is not returned from social account. You have to enter the email address.',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",
@@ -196,7 +197,7 @@ return [
         'image_name_required' => 'Please provide name for every file.',
         'folder_has_files_can_not_delete' => 'This folder contains files, hence can not be deleted.',
         'folder_deleted' => 'Folder has been deleted successfully.',
-        'not_found' => 'Record not found.',
+        'not_found' => 'Folder not found!',
         'folder_not_found' => "Folder you are trying to delete does not exists or already deleted.",
         'file_not_found' => "File you are trying to delete does not exists or already deleted.",
         'file_in_use' => "You can not delete this file, as this is used in one or more statements.",
@@ -212,7 +213,6 @@ return [
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
-        'display_text_regex' => 'Display text can only contain space, full stop (.) and alphanumeric characters.',
         'submitter_nick_id_required'=> 'Submitter nickname id is required.',
     ],
     'login' => [
@@ -268,7 +268,10 @@ return [
         'add_direct_support' => 'Support added successfully.',
         'add_delegate_support' => 'You have delegated your support successfully.',
         'add_delegation_support' => 'Support delegated successfully.',
-        'complete_support_removed' => 'Support removed successfully.'
+        'complete_support_removed' => 'Support removed successfully.',
+        'order_update' => 'Support order updated successfully',
+        'delegate_support_removed' => 'Your delegation has been removed successfully.',
+        'delegate_invalid_request' => 'Invalid request, please try again later.'
 
     ],
     'support_validation' => [
@@ -295,4 +298,26 @@ return [
         'already_subscribed' => "Already subscribed.",
         'already_unsubscribed' => "Already unsubscribed.",
     ],
+    'validation_get_activity_log' => [
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+        'log_type_required' => "Log type is required.",
+        'log_type_in' => "Please enter a valid Log Type value (topic/camps, threads)",
+    ],
+    'validation_store_statement' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number number is required.",
+        'statement_required' => "Statement is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'parent_camp_num_required' => "Parent camp number is required.",
+        'statement_id_required_if' => "Statement id is required.",
+        'objection_reason_required_if' => "Objection reason is required.",
+    ],
+    'validation_get_camp_bread_crumb' => [
+        'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
+        'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required"
+    ]
 ];

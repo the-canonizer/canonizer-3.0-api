@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Bus\Queueable;
-use App\Mail\CampForumPostMail;
+use App\Mail\PromotedDelegatesMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -24,6 +24,7 @@ class PromotedDelegatesMailListener implements ShouldQueue
         $user = $event->user;
         $to = $event->to;
         $data = $event->data;
+
         Mail::to($to)->send(new PromotedDelegatesMail($user,$data));
     }
 }

@@ -193,4 +193,5 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function ownerCode($userID){
         return $ownerCode = Util::canon_encode($userID);
     }
+
 }

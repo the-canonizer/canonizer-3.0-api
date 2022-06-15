@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  
 class PromotedDelegatesMail extends Mailable {
  
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
     public $user;
     public $data;
@@ -23,6 +23,9 @@ class PromotedDelegatesMail extends Mailable {
     //build the message.
     public function build() 
     {
-        return $this->markdown('emails.promotedDelegatesToDirectMail')->subject($data['subject']);  
+        if(isset($this->data['delegate_nick_name_id']) && !empty($this->data['delegate_nick_name_id'])){
+            return $this->markdown('emails.promotedDelegatesOneLevelUp')->subject($this->data['subject']);  
+        }else
+            return $this->markdown('emails.promotedDelegatesToDirectMail')->subject($this->data['subject']);  
     }
 }

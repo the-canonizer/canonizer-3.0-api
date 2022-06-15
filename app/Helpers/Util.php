@@ -249,8 +249,8 @@ class Util
                 'asOf'      => $asOf,
                 'updateAll' => $updateAll
             ];
-            // Dispact job when create a camp
-            dispatch(new CanonizerService($canonizerServiceData))->onQueue('canonizer-service');
+            // Dispatch job when create a camp/topic
+            dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
 
             // Incase the topic is mind expert then find all the affected topics 
             if($topic->topic_num == config('global.mind_expert_topic_num')) {
@@ -269,7 +269,7 @@ class Util
                             'updateAll' => 1
                         ];
                         // Dispact job when create a camp
-                        dispatch(new CanonizerService($canonizerServiceData))->onQueue('canonizer-service');
+                        dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
                            // ->unique(Topic::class, $topic->topic_num);
                     }
                 }
@@ -295,4 +295,11 @@ class Util
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 
+    public static function convertUnixToDateFormat($unix_time) {
+        return date('m/d/Y, h:i:s A', $unix_time);
+    }
+
+    public static function convertDateFormatToUnix($dateTime) {
+        return strtotime($dateTime);
+    }
 }
