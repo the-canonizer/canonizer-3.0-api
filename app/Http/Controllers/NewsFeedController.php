@@ -206,7 +206,8 @@ class NewsFeedController extends Controller
                 'topic_num' => $topicNum,
                 'camp_num' =>  $campNum,
                 'user' => $request->user(),
-                'nick_name' => Nickname::getNickName($submitterNickId)->nick_name
+                'nick_name' => Nickname::getNickName($submitterNickId)->nick_name,
+                'description' =>  $display_text
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             $temp[] = $news;
@@ -320,7 +321,8 @@ class NewsFeedController extends Controller
                 'topic_num' => $request->topic_num,
                 'camp_num' => $request->camp_num,
                 'user' => $request->user(),
-                'nick_name' => Nickname::getNickName($request->submitter_nick_id)->nick_name
+                'nick_name' => Nickname::getNickName($request->submitter_nick_id)->nick_name,
+                'description' =>  $request->display_text
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
@@ -390,7 +392,8 @@ class NewsFeedController extends Controller
                     'topic_num' => $newsFeed->topic_num,
                     'camp_num' =>  $newsFeed->camp_num,
                     'user' => $request->user(),
-                    'nick_name' => Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name
+                    'nick_name' => Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name,
+                    'description' =>  $newsFeed->display_text
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
