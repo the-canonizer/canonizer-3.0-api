@@ -49,9 +49,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/social/login','UserController@socialLogin');
         $router->post('/user/social/callback','UserController@socialCallback');
         $router->get('/country/list','UserController@countryList');
-        $router->post('/forgotpassword/send-otp','ForgotPasswordController@sendOtp');
-        $router->post('/forgotpassword/verify-otp','ForgotPasswordController@verifyOtp');
-        $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
+        $router->post('/forgot-password/send-otp','ForgotPasswordController@sendOtp');
+        $router->post('/forgot-password/verify-otp','ForgotPasswordController@verifyOtp');
+        $router->post('/forgot-password/update','ForgotPasswordController@updatePassword');
         $router->post('/user/resend-otp','UserController@reSendOtp');
         $router->get('thread/list','ThreadsController@threadList');
         $router->get('post/list/{id}','ReplyController@postList');
