@@ -7,7 +7,7 @@ use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class StatementComparisonApiTest extends TestCase
+class ThreadsApiTest extends TestCase
 {
 
     use WithoutMiddleware;
@@ -18,40 +18,60 @@ class StatementComparisonApiTest extends TestCase
      * @return void
      */
 
-    public function testStatementComparisonValidateFiled()
+    public function testThreadStoreValidateFiled()
     {
+        $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
 
         $rules = [
-            'ids' => 'required',
+            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'nick_name' => 'required',
+            'camp_num' => 'required',
+            'topic_num' => 'required',
+            'topic_name' => 'required',
         ];
 
-        $data = ['ids'=>[2,3]];
-            
+        $data = [
+            "title" => "Test 3",
+            "nick_name" => "449",
+            "camp_num" => "1",
+            "topic_num" => "290",
+            "topic_name" => "Saurabh singh te11s111t 142"
+        ];
+
         $v = $this->app['validator']->make($data, $rules);
         $this->assertTrue($v->passes());
     }
 
-    public function testStatementComparisonWithInvalidData()
+    public function testThreadStoreWithInvalidData()
     {
-        print sprintf(" \n Invalid Statement Comparison details submitted %d %s", 400, PHP_EOL);
+        print sprintf(" \n Invalid Thread Store details submitted %d %s", 400, PHP_EOL);
 
         $Thread = Thread::factory()->make();
         $parameter = [
-            "id" => "",
+            "title" => "",
+            "nick_name" => "",
+            "camp_num" => "",
+            "topic_num" => "",
+            "topic_name" => ""
         ];
 
-        $this->actingAs($Thread)->post('/api/v3/get-statement-comparison', $parameter);
+        $this->actingAs($Thread)->post('/api/v3/thread/save', $parameter);
         $this->assertEquals(400, $this->response->status());
     }
 
     public function testThreadStoreWithValidData()
     {
-        print sprintf(" \n Valid Statement Comparison details submitted %d %s", 200, PHP_EOL);
+        print sprintf(" \n Valid Thread Store details submitted %d %s", 200, PHP_EOL);
 
+        $rand = rand(10, 99);
         $parameters = [
-            "ids" => [2,3],
-          ];
-        $this->call('POST', '/api/v3/get-statement-comparison', $parameters);
+            "title" => "Test 3",
+            "nick_name" => "449",
+            "camp_num" => "1",
+            "topic_num" => "290",
+            "topic_name" => "Saurabh singh te11s111t 142"
+        ];
+        $this->call('POST', '/api/v3/thread/save', $parameters);
         $this->seeJsonStructure([
             'status_code',
             'message',
@@ -60,4 +80,33 @@ class StatementComparisonApiTest extends TestCase
         ]);
     }
 
+    public function testGetThreadListInvalidData(){
+        print sprintf("\n Get Thread List Invalid Data %d %s",400, PHP_EOL);
+        $response = $this->call('GET', '/api/v3/thread/list');
+        $this->assertEquals(400, $response->status()); 
+    }
+
+    public function testGetThreadListValidData(){
+        print sprintf(" \n  Get Thread List Valid Data %d %s", 200,PHP_EOL);
+        $Thread = Thread::factory()->make();
+
+        $this->actingAs($Thread)
+        ->get('/api/v3/thread/list?camp_num=4&topic_num=3&type=all');
+        $this->assertEquals(200, $this->response->status());
+    }
+
+    public function testThreadUpdateInvalidData(){
+        print sprintf("\n Get Thread Update Invalid Data %d %s",400, PHP_EOL);
+        $response = $this->call('PUT', '/api/v3/thread/update/465');
+        $this->assertEquals(400, $response->status()); 
+    }
+
+    public function testThreadUpdateValidData(){
+        print sprintf(" \n  Get Thread Update Valid Data %d %s", 200,PHP_EOL);
+        $Thread = Thread::factory()->make();
+        $parameters = ["title" => "Test 3"];
+        $this->actingAs($Thread)
+        ->put('/api/v3/thread/update/465', $parameters);
+        $this->assertEquals(200, $this->response->status());
+    }
 }
