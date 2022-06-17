@@ -382,20 +382,57 @@ class StatementController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/get-statement-comparison",
+     *   tags={"Statement"},
+     *   summary="get statement comparison",
+     *   description="This API is used for compare two statement.",
+     *   operationId="get-statement-comparison",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="ids",
+     *                  type="object",
+     *                  @OA\Property(
+     *                          property="status_code",
+     *                          type="array"
+     *                   ),
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
     public function getStatementComparison(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementComparisonValidationRules(), $this->validationMessages->getStatementComparisonValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        
-        $statement =[];
+
+        $statement = [];
         try {
-            $campStatement =  Statement::whereIn('id',$request->ids)->get();
+            $campStatement =  Statement::whereIn('id', $request->ids)->get();
             if ($campStatement) {
                 foreach ($campStatement as $val) {
                     $WikiParser = new wikiParser;
-                    $statement[]=array(
+                    $statement[] = array(
                         'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
                         'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
                         'object_time' => Util::convertUnixToDateFormat($val->object_time),
