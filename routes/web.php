@@ -45,18 +45,18 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
         $router->post('/user/login','UserController@loginUser');
-        $router->post('/verifyOtp','UserController@postVerifyOtp');
+        $router->post('/post-verify-otp','UserController@postVerifyOtp');
         $router->post('/user/social/login','UserController@socialLogin');
         $router->post('/user/social/callback','UserController@socialCallback');
         $router->get('/country/list','UserController@countryList');
-        $router->post('/forgotpassword/sendOtp','ForgotPasswordController@sendOtp');
-        $router->post('/forgotpassword/verifyOtp','ForgotPasswordController@verifyOtp');
+        $router->post('/forgotpassword/send-otp','ForgotPasswordController@sendOtp');
+        $router->post('/forgotpassword/verify-otp','ForgotPasswordController@verifyOtp');
         $router->post('/forgotpassword/update','ForgotPasswordController@updatePassword');
-        $router->post('/user/reSendOtp','UserController@reSendOtp');
+        $router->post('/user/resend-otp','UserController@reSendOtp');
         $router->get('thread/list','ThreadsController@threadList');
         $router->get('post/list/{id}','ReplyController@postList');
-        $router->post('/user/postVerifyEmail','UserController@postVerifyEmail');
-        $router->post('/user/reSendOtpVerifyEmail','UserController@reSendOtpVerifyEmail');
+        $router->post('/user/post-verify-email','UserController@postVerifyEmail');
+        $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
     });
 
     //Route Group to access api with user access token
@@ -74,11 +74,11 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('topic/save','TopicController@store');
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
-        $router->post('camp/allParent','CampController@getAllParentCamp');
-        $router->post('camp/getTopicNickNameUsed','CampController@getTopicNickNameUsed');
-        $router->get('camp/allAboutNickName','CampController@getAllAboutNickName');
+        $router->post('camp/all-parent','CampController@getAllParentCamp');
+        $router->post('camp/get-topic-nickname-used','CampController@getTopicNickNameUsed');
+        $router->get('camp/all-about-nickname','CampController@getAllAboutNickName');
         $router->get('/user/social/list','UserController@socialList');
-        $router->post('/user/social/socialLink', ['uses' => 'UserController@socialLink']);
+        $router->post('/user/social/social-link', ['uses' => 'UserController@socialLink']);
         $router->delete('/user/social/delete/{id}', ['uses' => 'UserController@socialDelete']);
         $router->post('/user/deactivate', ['uses' => 'UserController@deactivateUser']);
         $router->post('add-folder','UploadController@addFolder');
