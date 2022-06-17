@@ -388,24 +388,37 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        //   dd($request->ids); die;
-
+        
         $statement =[];
         try {
-            $campStatement =  Statement::find($request->ids);
-            if ($campStatement > 0) {
+            $campStatement =  Statement::whereIn('id',$request->ids)->get();
+            if ($campStatement) {
                 foreach ($campStatement as $val) {
-                    $val->go_live_time = Util::convertUnixToDateFormat($val->go_live_time);
                     $WikiParser = new wikiParser;
-                    $val->parsed_value = $WikiParser->parse($val->value);
-                    $statement[] = $val;
-                    $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time'];
-                    $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
+                    $statement[]=array(
+                        'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
+                        'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
+                        'object_time' => Util::convertUnixToDateFormat($val->object_time),
+                        'parsed_value' => $WikiParser->parse($val->value),
+                        'value' => $val->value,
+                        'topic_num' => $val->topic_num,
+                        'camp_num' => $val->camp_num,
+                        'id' => $val->id,
+                        'note' => $val->note,
+                        'submitter_nick_id' => $val->submitter_nick_id,
+                        'objector_nick_id' => $val->objector_nick_id,
+                        'object_reason' => $val->object_reason,
+                        'proposed' => $val->proposed,
+                        'replacement' => $val->replacement,
+                        'language' => $val->language,
+                        'grace_period' => $val->grace_period,
+                        'objector_nick_name' => $val->objector_nick_name,
+                    );
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
         }
     }
 }
