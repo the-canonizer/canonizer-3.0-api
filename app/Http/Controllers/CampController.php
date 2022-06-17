@@ -962,7 +962,7 @@ class CampController extends Controller
     }
 
      /**
-     * @OA\Post(path="/api/v3/get-camp-breadcrumb",
+     * @OA\Post(path="/get-camp-breadcrumb",
      *   tags={"Camp"},
      *   summary="get camp bread crumb",
      *   description="Used to get camp bread crumb.",
