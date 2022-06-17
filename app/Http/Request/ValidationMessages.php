@@ -479,7 +479,7 @@ class ValidationMessages
         ];
     }
 
-    public function getTopicActivityLogValidationMessages(): array
+    public function getCampActivityLogValidationMessages(): array
     {
         return [
             'camp_num.required' => trans('message.validation_get_topic_activity_log.camp_num_required'),

@@ -418,7 +418,7 @@ class ValidationRules
         ]);
     }
 
-    public function getTopicActivityLogValidationRules(): array
+    public function getCampActivityLogValidationRules(): array
     {
         return [
             'topic_num' => 'required|integer',

@@ -91,9 +91,9 @@ class ActivityController extends Controller
         }
     }
 
-    public function getTopicActivityLog(Request $request, Validate $validate)
+    public function getCampActivityLog(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getTopicActivityLogValidationRules(), $this->validationMessages->getTopicActivityLogValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getCampActivityLogValidationRules(), $this->validationMessages->getCampActivityLogValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }

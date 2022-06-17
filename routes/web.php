@@ -40,7 +40,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
     $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
     $router->post('/client_token','UserController@clientToken');
-    $router->post('get-topic-activity-log','ActivityController@getTopicActivityLog');
+    $router->post('get-camp-activity-log','ActivityController@getCampActivityLog');
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
