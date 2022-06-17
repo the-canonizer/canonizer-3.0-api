@@ -240,7 +240,7 @@ class StatementController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(path="/store-camp-statement",
      *   tags={"Camp"},
      *   summary="Store/update/object camp statement",
@@ -377,6 +377,33 @@ class StatementController extends Controller
             }
             $statement->save();
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getStatementComparison(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getStatementComparisonValidationRules(), $this->validationMessages->getStatementComparisonValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        //   dd($request->ids); die;
+
+        $statement =[];
+        try {
+            $campStatement =  Statement::find($request->ids);
+            if ($campStatement > 0) {
+                foreach ($campStatement as $val) {
+                    $val->go_live_time = Util::convertUnixToDateFormat($val->go_live_time);
+                    $WikiParser = new wikiParser;
+                    $val->parsed_value = $WikiParser->parse($val->value);
+                    $statement[] = $val;
+                    $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time'];
+                    $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
+                }
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

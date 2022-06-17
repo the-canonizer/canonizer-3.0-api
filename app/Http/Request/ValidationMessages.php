@@ -478,4 +478,11 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_camp_bread_crumb.camp_num_required')
         ];
     }
+
+    public function getStatementComparisonValidationMessages(): array
+    {
+        return [
+            'ids.required' => trans('message.statement_comparison.ids_required'),
+        ];
+    }
 }
