@@ -331,5 +331,12 @@ class Nickname extends Model {
         return [];
     }
 
+    public static function getUserByNickId($nick_id) {
+        $nickname = self::find($nick_id);
+        $userId = Util::canon_decode($nickname->owner_code);
+        $user = User::find($userId);
+        return $user->first_name.' '.$user->last_name;
+    }
+
     
 }

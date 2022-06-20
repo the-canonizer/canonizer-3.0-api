@@ -430,9 +430,9 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::whereIn('id', $request->ids)->get();
             if ($campStatement) {
+                $WikiParser = new wikiParser;
                 foreach ($campStatement as $val) {
-                    $WikiParser = new wikiParser;
-                    $statement[] = array(
+                    $statement['comparison'][] = array(
                         'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
                         'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
                         'object_time' => Util::convertUnixToDateFormat($val->object_time),
@@ -449,9 +449,23 @@ class StatementController extends Controller
                         'replacement' => $val->replacement,
                         'language' => $val->language,
                         'grace_period' => $val->grace_period,
-                        'objector_nick_name' => $val->objector_nick_name,
+                        'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
                     );
                 }
+                $filter['topicNum'] = $request->topic_num;
+                $filter['campNum'] = $request->camp_num;
+                $filter['asOf']="";
+                $filter['asOfDate']="";
+                $liveStatement=  Statement::getLiveStatement($filter);
+                $statement['liveStatement'] = $liveStatement;
+                if(isset($liveStatement)){
+                    $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
+                    $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
+                    $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
+                    $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
+                    $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
+                }
+
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
         } catch (Exception $e) {
