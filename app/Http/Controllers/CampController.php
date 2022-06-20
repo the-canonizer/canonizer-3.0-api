@@ -208,7 +208,8 @@ class CampController extends Controller
                         'topic_num' => $filter['topicNum'],
                         'camp_num' =>   $filter['campNum'],
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {  

@@ -317,4 +317,31 @@ class SupportController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="topic-support-list",
+     *  tags = "{topicSupport}"
+     *  description = "This will return support added in topic."
+     * ) 
+     * 
+     */
+
+    public function getSupportInTopic(Request $request)
+    {
+        $all = $request->all();
+        $topicNum = $all['topic_num'];
+        $user = $request->user();
+        $userId = $user->id;
+
+        try{
+            
+            $data = Support::getSupportedCampsList($topicNum, $userId);              
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+            
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+
+    }
+
 }
