@@ -480,6 +480,15 @@ class ValidationMessages
         ];
     }
 
+    public function getStatementComparisonValidationMessages(): array
+    {
+        return [
+            'ids.required' => trans('message.statement_comparison.ids_required'),
+            'topic_num.required' => trans('message.statement_comparison.topic_num_required'),
+            'camp_num.required' => trans('message.statement_comparison.camp_num_required'),
+        ];
+    }
+
     public function getCampActivityLogValidationMessages(): array
     {
         return [

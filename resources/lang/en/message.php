@@ -323,8 +323,13 @@ return [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
     ],
+    'statement_comparison' => [
+        'ids_required' => "Statement Ids is required.",
+        'topic_num_required' => "Topic Num is required.",
+        'camp_num_required' => "Camp Num is required.",
+    ],
     'support_warning' => [
-        'not_live' => "You can not submit your support to this camp as its not live yet.",
+        'not_live' => "You can not submit your support to this camp as its not live yet."
     ],
     'validation_get_topic_activity_log' => [
         'topic_num_required' => "Topic number is required.",
