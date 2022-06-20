@@ -139,7 +139,7 @@ return [
         'link_required' => 'Link is required.',
         'available_for_child_boolean' => "Please enter boolean value for children's availability",
         'available_for_child_required' => 'Availability for child is required',
-        'submitter_nick_id_required' => 'Submitter nick name id is required',  
+        'submitter_nick_id_required' => 'Submitter nick name id is required',
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
     ],
@@ -213,7 +213,7 @@ return [
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
-        'submitter_nick_id_required'=> 'Submitter nickname id is required.',
+        'submitter_nick_id_required' => 'Submitter nickname id is required.',
     ],
     'login' => [
         'username_required' => 'Email is required.',
@@ -324,5 +324,11 @@ return [
     ],
     'support_warning' => [
         'not_live' => "You can not submit your support to this camp as its not live yet.",
-    ]
+    ],
+    'validation_get_topic_activity_log' => [
+        'topic_num_required' => "Topic number is required.",
+        'topic_num_integer' => "Topic number can only be an integer.",
+        'camp_num_required' => "Camp number is required",
+        'camp_num_integer' => "Camp number can only be an integer."
+    ],
 ];

@@ -178,7 +178,7 @@ class CampController extends Controller
                 "camp_about_url" => $request->camp_about_url ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
-                "grace_period" => 1
+                "grace_period" => 0
             ];
 
             $camp = Camp::create($input);
@@ -208,7 +208,8 @@ class CampController extends Controller
                         'topic_num' => $filter['topicNum'],
                         'camp_num' =>   $filter['campNum'],
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {  
@@ -963,7 +964,7 @@ class CampController extends Controller
     }
 
      /**
-     * @OA\Post(path="/api/v3/get-camp-breadcrumb",
+     * @OA\Post(path="/get-camp-breadcrumb",
      *   tags={"Camp"},
      *   summary="get camp bread crumb",
      *   description="Used to get camp bread crumb.",
