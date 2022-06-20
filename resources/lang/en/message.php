@@ -202,7 +202,8 @@ return [
         'file_not_found' => "File you are trying to delete does not exists or already deleted.",
         'file_in_use' => "You can not delete this file, as this is used in one or more statements.",
         'file_deleted' => "This file has been deleted successfully.",
-        'folder_name_updated' => 'Folder name updated successfully.'
+        'folder_name_updated' => 'Folder name updated successfully.',
+        'image_name_unique' => 'File name already exists, please try different file name.'
 
     ],
     'validation_store_newsfeed' => [
