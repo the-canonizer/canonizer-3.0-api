@@ -318,7 +318,7 @@ class SupportController extends Controller
     }
 
     /**
-     * @OA\Get(path="/add-direct-support",
+     * @OA\Get(path="/support/check",
      * tags = "{support}",
      * description = "This will check if nick name id has support in this camp or not"
      * )
