@@ -271,7 +271,9 @@ return [
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
-        'delegate_invalid_request' => 'Invalid request, please try again later.'
+        'delegate_invalid_request' => 'Invalid request, please try again later.',
+        'support_exist' => 'This camp is already supported',
+        'support_not_exist' => "This camp doesn't have your support"
 
     ],
     'support_validation' => [
@@ -319,6 +321,9 @@ return [
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
+    ],
+    'support_warning' => [
+        'not_live' => "You can not submit your support to this camp as its not live yet.",
     ],
     'validation_get_topic_activity_log' => [
         'topic_num_required' => "Topic number is required.",
