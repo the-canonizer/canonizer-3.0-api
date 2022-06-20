@@ -129,7 +129,7 @@ class TopicController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => isset($request->note) ? $request->note : "",
-                "grace_period" => 1
+                "grace_period" => 0
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
@@ -172,7 +172,7 @@ class TopicController extends Controller
                         "type" => "topic",
                         "link" => $link,
                         "historylink" => $historylink,
-                        "object" => $topic->topic_name . " / " . $topic->camp_name,
+                        "object" => $topic->topic_name . " / Agreement",
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -183,7 +183,8 @@ class TopicController extends Controller
                         'topic_num' => $topic->topic_num,
                         'camp_num' =>  1,
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'description' => $request->topic_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
