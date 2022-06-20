@@ -33,7 +33,7 @@ class ActivityLoggerJob implements ShouldQueue
         $activityLog = activity($this->data['log_type'])
             ->performedOn($this->data['model'])
             ->causedBy($this->data['user'])
-            ->withProperties(['topic_num' => $this->data['topic_num'], 'camp_num' => $this->data['camp_num'], 'url' => $this->data['url']])
+            ->withProperties(['topic_num' => $this->data['topic_num'], 'camp_num' => $this->data['camp_num'], 'url' => $this->data['url'], 'description' => $this->data['description']])
             ->log($this->data['activity'] . ' by ' . $this->data['nick_name']);
 
         if (isset($activityLog) && $activityLog->id) {

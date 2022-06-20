@@ -318,6 +318,7 @@ class SupportController extends Controller
     }
 
     /**
+
      * @OA\Get(path="/add-direct-support",
      * tags = "{support}",
      * description = "This will check if nick name id has support in this camp or not"
@@ -329,6 +330,9 @@ class SupportController extends Controller
      {
          
         $data = $request->all();
+
+        $all = $request->all();
+        $topicNum = $all['topic_num'];
         $user = $request->user();
         $userId = $user->id;
 
@@ -353,7 +357,6 @@ class SupportController extends Controller
 
             }else{
                 $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
-
                 $message = trans('message.support.support_not_exist');
                 $data['support_flag'] = 0;
             }
@@ -364,8 +367,32 @@ class SupportController extends Controller
          } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }            
-
+        }  
      }
+
+
+     /* @OA\Post(path="topic-support-list",
+     *  tags = "{topicSupport}"
+     *  description = "This will return support added in topic."
+     * ) 
+     * 
+     */
+
+    public function getSupportInTopic(Request $request)
+    {         
+        $all = $request->all();
+        $topicNum = $all['topic_num'];
+        $user = $request->user();
+        $userId = $user->id;
+        try{
+            $data = Support::getSupportedCampsList($topicNum, $userId);              
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+            
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+
+    }
 
 }
