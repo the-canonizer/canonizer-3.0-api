@@ -624,7 +624,7 @@ class TopicSupport
         $returnData = [];
         $supportedCamps = [];
         $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames);                
-        if ($delegatedSupport->count() > 0) {
+        if ($delegatedSupport->count()) {
             $nickName = Nickname::getNickName($delegatedSupport[0]->delegate_nick_name_id);
 
             foreach($delegatedSupport as $support){
@@ -655,41 +655,25 @@ class TopicSupport
         $as_of_time = time();
         $parentSupport = Camp::validateParentsupport($topicNum, $campNum, $nickNames);
 
+        if(empty($parentSupport))
+          return $returnData;
+
         $filter = Camp::getLiveCampFilter($topicNum, $campNum);
-        $onecamp = self::getLiveCamp($filter);        
+        $onecamp = self::getLiveCamp($filter);  
+        $returnData['topic_num'] = $topicNum;
+        $returnData['camp_num'] = $campNum;
 
-        if(!empty($parentSupport)){
+        if ($parentSupport === "notlive") { 
+                            
+            $returnData['warning'] =  trans('message.support_warning.not_live');
 
-            if ($parentSupport === "notlive") { 
-                               
-                $returnData['warning'] =  "You can not submit your support to this camp as its not live yet.";
-
-            } else if ($parentSupport) {
-
-                if (count($parentSupport) == 1) {                   
-                    foreach ($parentSupport as $parent){                        
-                        $parentCampName = Camp::getCampNameByTopicIdCampId($onecamp->topic_num, $parent->camp_num, $as_of_time);
-                        
-                        if ($parent->camp_num == $campNum) {
-                            $returnData['is_confirm'] = 0; 
-
-                        }else{
-                            $returnData['is_confirm'] = 1;  
-                            $returnData['warning'] = $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
-                        }
-                    }
-                } else {
-
-                    $returnData['warning'] = 'The following  camps are parent camps to "' . $onecamp->camp_name . '" and will be removed if you commit this support.';
-                
-                }
-            }
-
-            $returnData['topic_num'] = $topicNum;
-            $returnData['camp_num'] = $campNum;
-                      
+        } else {           
+            $res = self::ValidateAndCheckWarning($parentSupport, $onecamp, $campNum, $as_of_time);
+            $returnData = array_merge($returnData,$res);
+             
+            
         }
-
+        
         return $returnData;
     }
 
@@ -729,6 +713,30 @@ class TopicSupport
             $returnData['camp_num'] = $campNum;
         }
 
+        return $returnData;
+    }
+
+    public static function ValidateAndCheckWarning($parentSupport, $onecamp, $campNum, $as_of_time)
+    {
+        $returnData['is_confirm'] = 0;
+
+        if (count($parentSupport) == 1) {
+
+            foreach ($parentSupport as $parent){                        
+                $parentCampName = Camp::getCampNameByTopicIdCampId($onecamp->topic_num, $parent->camp_num, $as_of_time);
+                
+                if ($parent->camp_num != $campNum) {
+
+                    $returnData['is_confirm'] = 1;  
+                    $returnData['warnng'] = $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
+                }
+            }
+        } else {
+
+            $returnData['is_confirm'] = 1; 
+            $returnData['warning'] = 'The following  camps are parent camps to "' . $onecamp->camp_name . '" and will be removed if you commit this support.';
+        
+        }
         return $returnData;
     }
 

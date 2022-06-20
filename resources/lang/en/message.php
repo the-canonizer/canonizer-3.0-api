@@ -321,5 +321,8 @@ return [
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
+    ],
+    'support_warning' => [
+        'not_live' => "You can not submit your support to this camp as its not live yet.",
     ]
 ];

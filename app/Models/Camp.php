@@ -440,10 +440,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $parentcamps = self::getAllParent($oneCamp);
         $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
         
-        if (count($mysupports))
-            return $mysupports;
-        else
-            return false;
+        return (count($mysupports)) ? $mysupports : false;
     }
 
     public static function validateChildsupport($topicNum, $campNum, $userNicknames) 
@@ -454,10 +451,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
         $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
 
-        if (count($mysupports))
-            return $mysupports;
-        else
-            return false;
+        return (count($mysupports)) ? $mysupports : false;
     }
 
     public static function getLiveCampFilter($topicNum, $campNum)
@@ -476,6 +470,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
             $parentCampName = $campDetails->camp_name;
         }
+        
         return $parentCampName;
     }
 }
