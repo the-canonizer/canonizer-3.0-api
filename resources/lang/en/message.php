@@ -202,7 +202,8 @@ return [
         'file_not_found' => "File you are trying to delete does not exists or already deleted.",
         'file_in_use' => "You can not delete this file, as this is used in one or more statements.",
         'file_deleted' => "This file has been deleted successfully.",
-        'folder_name_updated' => 'Folder name updated successfully.'
+        'folder_name_updated' => 'Folder name updated successfully.',
+        'image_name_unique' => 'File name already exists, please try different file name.'
 
     ],
     'validation_store_newsfeed' => [
@@ -271,7 +272,9 @@ return [
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
-        'delegate_invalid_request' => 'Invalid request, please try again later.'
+        'delegate_invalid_request' => 'Invalid request, please try again later.',
+        'support_exist' => 'This camp is already supported',
+        'support_not_exist' => "This camp doesn't have your support"
 
     ],
     'support_validation' => [
@@ -324,6 +327,9 @@ return [
         'ids_required' => "Statement Ids is required.",
         'topic_num_required' => "Topic Num is required.",
         'camp_num_required' => "Camp Num is required.",
+    ],
+    'support_warning' => [
+        'not_live' => "You can not submit your support to this camp as its not live yet."
     ],
     'validation_get_topic_activity_log' => [
         'topic_num_required' => "Topic number is required.",

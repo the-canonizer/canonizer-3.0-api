@@ -173,7 +173,7 @@ class Support extends Model
         return $delegators;
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames)
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $camps = array())
     {
         $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
@@ -302,6 +302,27 @@ class Support extends Model
     }
 
 
+    public static function checkIfSupportExists($topicNum, $nickNameId = [], $camps = [])
+    {
+
+        $support = self::where('topic_num', '=', $topicNum)
+        ->whereIn('nick_name_id', $nickNameId)
+        ->whereIn('camp_num', $camps)
+        ->where('end', '=', '0')->count();
+        
+        return $support;
+    }
+
+
+    public static function getDelgatedSupportInTopic($topicNum, $nickNames)
+    {
+        return Support::where('topic_num', $topicNum)
+            ->where('end', '=', 0)
+            ->where('delegate_nick_name_id','!=',0)
+            ->whereIn('nick_name_id', $nickNames)
+            ->get();
+    }
+
     public static function getSupportedCampsList($topicNum, $user_id)
     {
        $query =  "SELECT  t2.topic_num,t2.camp_num, t2.support_order,t1.title,t2.camp_name, t2.start,t2.end,t2.support_id,t3.namespace_id,t2.nick_name_id,t2.delegate_nick_name_id
@@ -352,6 +373,4 @@ class Support extends Model
         $result = DB::select($query);
         return $result;
     }
-
-
 }

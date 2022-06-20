@@ -91,6 +91,7 @@ class ActivityController extends Controller
         }
     }
 
+
     /**
      * @OA\Post(path="/get-camp-activity-log",
      *   tags={"Activity Log"},
