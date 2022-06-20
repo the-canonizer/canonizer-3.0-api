@@ -425,7 +425,8 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
+        $currentTime = time();
+        $currentLive = 0;
         $statement = [];
         try {
             $campStatement =  Statement::whereIn('id', $request->ids)->get();
@@ -454,18 +455,33 @@ class StatementController extends Controller
                 }
                 $filter['topicNum'] = $request->topic_num;
                 $filter['campNum'] = $request->camp_num;
-                $filter['asOf']="";
-                $filter['asOfDate']="";
-                $liveStatement=  Statement::getLiveStatement($filter);
+                $filter['asOf'] = "";
+                $filter['asOfDate'] = "";
+                $liveStatement =  Statement::getLiveStatement($filter);
+                $latestRevision = Statement::where('topic_num',$request->topic_num)->where('camp_num',$request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
-                if(isset($liveStatement)){
+                if (isset($liveStatement)) {
                     $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
                     $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
                     $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
+                    switch ($val) {
+                        case $liveStatement->objector_nick_id !== NULL:
+                            $statement['liveStatement']['status'] = "objected";
+                            break;
+                        case $currentTime < $liveStatement->go_live_time && $currentTime >= $liveStatement->submit_time:
+                            $statement['liveStatement']['status'] = "in_review";
+                            break;
+                        case $currentLive != 1 && $currentTime >= $liveStatement->go_live_time:
+                            $currentLive = 1;
+                            $statement['liveStatement']['status'] = "live";
+                            break;
+                        default:
+                            $statement['liveStatement']['status'] = "old";
+                    }
                 }
-
+                $statement['latestRevision'] = Util::convertUnixToDateFormat($latestRevision->submit_time);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
         } catch (Exception $e) {
