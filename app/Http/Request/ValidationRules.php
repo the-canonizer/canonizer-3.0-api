@@ -417,4 +417,12 @@ class ValidationRules
             'as_of_date' => 'required_if:as_of,bydate'
         ]);
     }
+
+    public function getCampActivityLogValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'camp_num' => 'required|integer'
+        ];
+    }
 }
