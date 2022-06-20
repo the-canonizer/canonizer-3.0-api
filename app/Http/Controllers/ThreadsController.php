@@ -178,7 +178,8 @@ class ThreadsController extends Controller
                     'topic_num' => $request->topic_num,
                     'camp_num' =>   $request->camp_num,
                     'user' => $request->user(),
-                    'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                    'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                    'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             } else {
@@ -586,7 +587,8 @@ class ThreadsController extends Controller
                     'topic_num' => $request->topic_num,
                     'camp_num' =>   $request->camp_num,
                     'user' => $request->user(),
-                    'nick_name' => Nickname::getNickName($threads->user_id)->nick_name
+                    'nick_name' => Nickname::getNickName($threads->user_id)->nick_name,
+                    'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 $status = 200;
