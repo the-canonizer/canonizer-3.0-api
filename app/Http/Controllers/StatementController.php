@@ -395,4 +395,129 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(path="/get-statement-comparison",
+     *   tags={"Statement"},
+     *   summary="get statement comparison",
+     *   description="This API is used for compare two statement.",
+     *   operationId="get-statement-comparison",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *     required=true,
+     *     description="Request Body Json Parameter",
+     *     @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *               @OA\Property(
+     *                  property="ids",
+     *                  type="object",
+     *                  @OA\Property(
+     *                          property="status_code",
+     *                          type="array"
+     *                   ),
+     *              )
+     *          )
+     *     ),
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
+    public function getStatementComparison(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getStatementComparisonValidationRules(), $this->validationMessages->getStatementComparisonValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $statement = [];
+        try {
+            $campStatement =  Statement::whereIn('id', $request->ids)->get();
+            if ($campStatement) {
+                $WikiParser = new wikiParser;
+                $currentTime = time();
+                $currentLive = 0;
+                foreach ($campStatement as $val) {
+
+                    switch ($val) {
+                        case $val->objector_nick_id !== NULL:
+                            $status = "objected";
+                            break;
+                        case $currentTime < $val->go_live_time && $currentTime >= $val->submit_time:
+                            $status = "in_review";
+                            break;
+                        case $currentLive != 1 && $currentTime >= $val->go_live_time:
+                            $currentLive = 1;
+                            $status = "live";
+                            break;
+                        default:
+                            $status  = "old";
+                    }
+                    $statement['comparison'][] = array(
+                        'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
+                        'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
+                        'object_time' => Util::convertUnixToDateFormat($val->object_time),
+                        'parsed_value' => $WikiParser->parse($val->value),
+                        'value' => $val->value,
+                        'topic_num' => $val->topic_num,
+                        'camp_num' => $val->camp_num,
+                        'id' => $val->id,
+                        'note' => $val->note,
+                        'submitter_nick_id' => $val->submitter_nick_id,
+                        'objector_nick_id' => $val->objector_nick_id,
+                        'object_reason' => $val->object_reason,
+                        'proposed' => $val->proposed,
+                        'replacement' => $val->replacement,
+                        'language' => $val->language,
+                        'grace_period' => $val->grace_period,
+                        'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
+                        'status' => $status,
+                    );
+                }
+                $filter['topicNum'] = $request->topic_num;
+                $filter['campNum'] = $request->camp_num;
+                $filter['asOf'] = "";
+                $filter['asOfDate'] = "";
+                $liveStatement =  Statement::getLiveStatement($filter);
+                $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
+                $statement['liveStatement'] = $liveStatement;
+                if (isset($liveStatement)) {
+                    $currentTime = time();
+                    $currentLive = 0;
+                    $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
+                    $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
+                    $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
+                    $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
+                    $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
+                    switch ($liveStatement) {
+                        case $liveStatement->objector_nick_id !== NULL:
+                            $statement['liveStatement']['status'] = "objected";
+                            break;
+                        case $currentTime < $liveStatement->go_live_time && $currentTime >= $liveStatement->submit_time:
+                            $statement['liveStatement']['status'] = "in_review";
+                            break;
+                        case $currentLive != 1 && $currentTime >= $liveStatement->go_live_time:
+                            $currentLive = 1;
+                            $statement['liveStatement']['status'] = "live";
+                            break;
+                        default:
+                            $statement['liveStatement']['status'] = "old";
+                    }
+                }
+                $statement['latestRevision'] = Util::convertUnixToDateFormat($latestRevision->submit_time);
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
+        }
+    }
 }
