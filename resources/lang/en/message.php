@@ -259,6 +259,8 @@ return [
         'type_in' => "Please enter a valid type value (objected, in_review, old, all) or leave it empty",
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
     ],
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",

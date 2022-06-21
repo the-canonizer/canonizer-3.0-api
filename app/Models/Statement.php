@@ -79,7 +79,7 @@ class Statement extends Model
         return $this->hasOne('App\Models\Nickname', 'id', 'submitter_nick_id');
     }
 
-    public static function getStatementHistory($statement_query, $response, $filter, $campLiveStatement, $request = null)
+    public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request = null)
     {
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);

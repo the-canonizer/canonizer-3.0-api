@@ -135,6 +135,18 @@ class StatementController extends Controller
      *                   description="As of filter date",
      *                   required=false,
      *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Records per page",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="page",
+     *                   description="Page number",
+     *                   required=true,
+     *                   type="string",
      *               )
      *         )
      *      )
@@ -171,9 +183,9 @@ class StatementController extends Controller
                 $submitTime = $campLiveStatement ? $campLiveStatement->submit_time : null;
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
-                $response = Statement::getStatementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
+                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
-                $response = Statement::getStatementHistory($statement_query, $response, $filter,  $campLiveStatement);
+                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {

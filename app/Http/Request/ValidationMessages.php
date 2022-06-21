@@ -349,6 +349,8 @@ class ValidationMessages
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
+            'per_page.required' => trans('message.validation_get_statementHistory.per_page_required'),
+            'page.required' => trans('message.validation_get_statementHistory.page_required'),
         ]);
     }
 
