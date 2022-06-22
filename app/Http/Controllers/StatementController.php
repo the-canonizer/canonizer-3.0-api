@@ -30,7 +30,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/get-camp-statement",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="get camp statement",
      *   description="Used to get statement.",
      *   operationId="getCampStatement",
@@ -102,7 +102,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/get-statement-history",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="get camp newsfeed",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
@@ -123,7 +123,7 @@ class StatementController extends Controller
      *                  description="Camp number is required",
      *                  required=true,
      *                  type="integer",
-     *              )
+     *              ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
@@ -195,7 +195,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Get(path="/edit-camp-statement/{id}",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="Get statement",
      *   description="Used to get statement details.",
      *   operationId="getStatement",
@@ -256,7 +256,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/store-camp-statement",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="Store/update/object camp statement",
      *   description="This API is used to store, update and object camp statement.",
      *   operationId="Store/update/object-CampStatementHistory",
