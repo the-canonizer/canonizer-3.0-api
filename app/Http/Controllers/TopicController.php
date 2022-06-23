@@ -184,7 +184,8 @@ class TopicController extends Controller
                         'topic_num' => $topic->topic_num,
                         'camp_num' =>  1,
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name
+                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'description' => $request->topic_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {

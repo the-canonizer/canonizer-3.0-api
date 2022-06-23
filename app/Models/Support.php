@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
+use DB;
 
 class Support extends Model
 {
@@ -172,7 +173,7 @@ class Support extends Model
         return $delegators;
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames)
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $camps = array())
     {
         $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
@@ -298,5 +299,78 @@ class Support extends Model
         }
 
         return  $supportFlag;
+    }
+
+
+    public static function checkIfSupportExists($topicNum, $nickNameId = [], $camps = [])
+    {
+
+        $support = self::where('topic_num', '=', $topicNum)
+        ->whereIn('nick_name_id', $nickNameId)
+        ->whereIn('camp_num', $camps)
+        ->where('end', '=', '0')->count();
+        
+        return $support;
+    }
+
+
+    public static function getDelgatedSupportInTopic($topicNum, $nickNames)
+    {
+        return Support::where('topic_num', $topicNum)
+            ->where('end', '=', 0)
+            ->where('delegate_nick_name_id','!=',0)
+            ->whereIn('nick_name_id', $nickNames)
+            ->get();
+    }
+
+    public static function getSupportedCampsList($topicNum, $user_id)
+    {
+       $query =  "SELECT  t2.topic_num,t2.camp_num, t2.support_order,t1.title,t2.camp_name, t2.start,t2.end,t2.support_id,t3.namespace_id,t2.nick_name_id,t2.delegate_nick_name_id
+                    FROM
+                        (SELECT a.topic_num,a.title 
+                            FROM
+                            camp a 
+                            INNER JOIN 
+                                (SELECT topic_num, MAX(go_live_time) AS live_time 
+                                    FROM
+                                    camp 
+                                    WHERE objector_nick_id IS NULL 
+                                    AND camp_num = 1 
+                                    AND go_live_time <= UNIX_TIMESTAMP(NOW()) 
+                                    GROUP BY topic_num) b 
+                                    ON a.topic_num = b.topic_num 
+                                    AND a.go_live_time = b.live_time 
+                                    GROUP BY  a.topic_num, a.title) t1,
+                            (SELECT b.topic_num,b.camp_num, c.support_order,b.title AS topic_name,b.camp_name,c.start,c.end, c.delegate_nick_name_id,c.support_id,c.nick_name_id
+                            FROM
+                                (SELECT a.* 
+                                FROM camp a INNER JOIN 
+                                    (SELECT  topic_num,camp_num,MAX(`go_live_time`) AS live_time 
+                                    FROM camp 
+                                        WHERE objector_nick_id IS NULL 
+                                        AND go_live_time <= UNIX_TIMESTAMP(NOW()) 
+                                        AND topic_num = $topicNum
+                                    GROUP BY topic_num, camp_num) b 
+                            ON a.topic_num = b.topic_num 
+                            AND a.camp_num = b.camp_num 
+                            AND a.go_live_time = b.live_time) b,
+                            support c 
+                            WHERE b.camp_num = c.camp_num 
+                            AND b.topic_num = c.topic_num 
+                            AND c.nick_name_id IN 
+                            (SELECT 
+                                id 
+                            FROM nick_name WHERE owner_code = 
+                                (SELECT 
+                                TO_BASE64 (CONCAT('Malia', $user_id, 'Malia')))) 
+                            AND c.end = 0) t2,
+                        (SELECT topic_num, namespace_id 
+                            FROM  topic 
+                             GROUP BY topic_num, namespace_id) t3 
+
+                    WHERE t1.topic_num = t2.topic_num AND t1.topic_num = t3.topic_num ORDER BY t2.support_order ASC,t2.start DESC, t2.topic_num";
+
+        $result = DB::select($query);
+        return $result;
     }
 }
