@@ -419,6 +419,14 @@ class ValidationRules
             'as_of_date' => 'required_if:as_of,bydate'
         ]);
     }
+
+    public function getCommitChangeValidationRules(): array
+    {
+        return ([
+            'id' => 'required',
+            'type' => 'in:statement,camp,topic',
+        ]);
+    }
     public function getStatementComparisonValidationRules(): array
     {
         return ([

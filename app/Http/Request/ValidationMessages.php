@@ -482,6 +482,14 @@ class ValidationMessages
         ];
     }
 
+    public function getCommitChangeValidationMessages(): array
+    {
+        return [
+            'type.in' => trans('message.validation_commit_change.type_in'),
+            'id.required' => trans('message.validation_commit_change.id_required'),
+        ];
+    }
+    
     public function getStatementComparisonValidationMessages(): array
     {
         return [

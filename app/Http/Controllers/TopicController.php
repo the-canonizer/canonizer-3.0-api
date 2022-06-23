@@ -22,6 +22,7 @@ use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\Nickname;
+use App\Models\Statement;
 
 class TopicController extends Controller
 {
@@ -278,6 +279,64 @@ class TopicController extends Controller
                 $topicRecord = $topicRecord[0];
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(path="/commit/change",
+     *   tags={"Topic"},
+     *   summary="Commit a change",
+     *   description="Used to commit a change for camp, topic and statement.",
+     *   operationId="commitChange",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Commit change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Record id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function commitAndNotifyChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getCommitChangeValidationRules(), $this->validationMessages->getCommitChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $all = $request->all();
+        $type = $all['type'];
+        $id = $all['id'];
+        $message = "";
+        $nickNames = Nickname::personNicknameArray();
+        try {
+            if ($type == 'statement') {
+                $statement = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+                if (!$statement) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+                $statement->grace_period = 0;
+                $statement->update();
+                $message = trans('message.success.statement_commit');
+            }
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
