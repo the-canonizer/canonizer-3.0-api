@@ -17,6 +17,7 @@ return [
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
+        'record_not_found' => 'No record found.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -38,6 +39,7 @@ return [
         'unsubscribed'  => 'Unsubscribed successfully.',
         'statement_create'  => 'Statement submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
+        'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -319,5 +321,9 @@ return [
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
+    ],
+    'validation_commit_change' => [
+        'type_in' => "Please enter a valid value (topic,camp,statement)",
+        'id_required' => "Id is required.",
     ]
 ];

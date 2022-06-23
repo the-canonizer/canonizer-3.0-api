@@ -106,6 +106,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/edit-camp-statement/{id}', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
         $router->post('support-order/update','SupportController@updateSupportOrder');
+        $router->post('commit/change','TopicController@commitAndNotifyChange');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');

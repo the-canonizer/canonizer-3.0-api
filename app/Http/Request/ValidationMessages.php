@@ -478,4 +478,12 @@ class ValidationMessages
             'camp_num.required' => trans('message.validation_get_camp_bread_crumb.camp_num_required')
         ];
     }
+
+    public function getCommitChangeValidationMessages(): array
+    {
+        return [
+            'type.in' => trans('message.validation_commit_change.type_in'),
+            'id.required' => trans('message.validation_commit_change.id_required'),
+        ];
+    }
 }
