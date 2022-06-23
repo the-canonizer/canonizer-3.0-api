@@ -329,7 +329,7 @@ class TopicController extends Controller
         try {
             if ($type == 'statement') {
                 $statement = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
-                if ($statement == null) {
+                if (!$statement) {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
                 $statement->grace_period = 0;
