@@ -122,7 +122,7 @@ class Support extends Model
      *  Fetch the delegator of given NickID in specified topic
      */
     public static function getDelegatorForNicknameId($topicNum, $nickNameId)
-    {
+    { 
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         $delegatorsSupport = self::getActiveDelegators($topicNum, $usersNickNames);
 
