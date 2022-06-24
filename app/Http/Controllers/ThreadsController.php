@@ -16,6 +16,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
 use App\Jobs\ActivityLoggerJob;
+use App\Models\Reply;
 
 class ThreadsController extends Controller
 {
@@ -415,6 +416,7 @@ class ThreadsController extends Controller
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             }
+           
             if ($request->type == config('global.thread_type.myThread')) {
                 if (count($userNicknames) > 0) {
                     $query->where('thread.user_id', $userNicknames[0]->id)->groupBy('thread.id');
@@ -441,6 +443,10 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
+            foreach($threads->items as $value){
+                $postCount =  Reply::where('thread_id',$value->id)->get();
+                  $value->post_count = $postCount->count();
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $threads, null);

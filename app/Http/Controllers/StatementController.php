@@ -16,7 +16,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use stdClass;
-use App\Helpers\Util;
+use App\Facades\Util;
 
 class StatementController extends Controller
 {
@@ -30,7 +30,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/get-camp-statement",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="get camp statement",
      *   description="Used to get statement.",
      *   operationId="getCampStatement",
@@ -89,8 +89,9 @@ class StatementController extends Controller
                 $campStatement->go_live_time = Util::convertUnixToDateFormat($campStatement->go_live_time);
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
+                $campStatement->submitter_nick_name=$campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
-                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time'];
+                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time','submit_time','submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
@@ -101,7 +102,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/get-statement-history",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="get camp newsfeed",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
@@ -122,7 +123,7 @@ class StatementController extends Controller
      *                  description="Camp number is required",
      *                  required=true,
      *                  type="integer",
-     *              )
+     *              ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
@@ -133,6 +134,18 @@ class StatementController extends Controller
      *                   property="as_of_date",
      *                   description="As of filter date",
      *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Records per page",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="page",
+     *                   description="Page number",
+     *                   required=true,
      *                   type="string",
      *               )
      *         )
@@ -153,27 +166,28 @@ class StatementController extends Controller
         $filter['type'] = isset($request->type) ? $request->type : 'all';
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
+        $filter['currentTime'] = time();
+        $filter['per_page'] = !empty($request->per_page) ? $request->per_page : config('global.per_page');
         $response = new stdClass();
         $response->statement = [];
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
-            $response->topic->go_live_time = Util::convertUnixToDateFormat($response->topic->go_live_time);
-            $response->topic->submit_time = Util::convertUnixToDateFormat($response->topic->submit_time);
             $response->liveCamp = Camp::getLiveCamp($filter);
-            $response->liveCamp->go_live_time = Util::convertUnixToDateFormat($response->liveCamp->go_live_time);
-            $response->liveCamp->submit_time = Util::convertUnixToDateFormat($response->liveCamp->submit_time);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
+            $statement_query = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])->latest('submit_time');
+            $campLiveStatement =  Statement::getLiveStatement($filter);
             if ($request->user()) {
-                $response = Statement::getHistoryAuthUsers($response, $filter, $request);
+                $nickNames = Nickname::personNicknameArray();
+                $submitTime = $campLiveStatement ? $campLiveStatement->submit_time : null;
+                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
+                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
+                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
-                $response = Statement::getHistoryUnAuthUsers($response, $filter);
+                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement);
             }
-            $indexes = ['statement', 'topic', 'liveCamp', 'parentCamp', 'ifSupportDelayed', 'ifIamSupporter'];
-            $data[0] = $response;
-            $data = $this->resourceProvider->jsonResponse($indexes, $data);
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -181,7 +195,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Get(path="/edit-camp-statement/{id}",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="Get statement",
      *   description="Used to get statement details.",
      *   operationId="getStatement",
@@ -242,7 +256,7 @@ class StatementController extends Controller
 
     /**
      * @OA\Post(path="/store-camp-statement",
-     *   tags={"Camp"},
+     *   tags={"Statement"},
      *   summary="Store/update/object camp statement",
      *   description="This API is used to store, update and object camp statement.",
      *   operationId="Store/update/object-CampStatementHistory",
