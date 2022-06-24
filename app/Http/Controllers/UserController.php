@@ -1147,6 +1147,7 @@ class UserController extends Controller
                     $data = [
                         "code" => $request->code,
                         "provider" => $request->provider,
+                        "email" => $providerEmail
                     ];
                     SocialEmailVerify::create([
                         'first_name'    => "",
