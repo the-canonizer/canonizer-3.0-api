@@ -11,6 +11,7 @@ use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Events\SupportRemovedMailEvent;
+use App\Events\SupportAddedMailEvent;
 use App\Jobs\ActivityLoggerJob;
 use DB;
 
@@ -146,7 +147,7 @@ class TopicSupport
              {     
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
-                 //self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
 
                  //log activity
                  $logType = "support";
@@ -167,19 +168,23 @@ class TopicSupport
          if(isset($addCamp) && !empty($addCamp)){
             $campNum = $addCamp['camp_num'];
             $supportOrder = $addCamp['support_order'];
-          //  self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+
+            self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
 
            //log activity
            $logType = "support";
-           $activity = "support removed";
-           $link = Util::getTopicCampUrl($topicNum, $camp, $topicModel, $campModel);
+           $activity = "support added";
+           $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
            $model = self::$model;
-           $description = "supoort removed";
+           $description = "supoort added";
            self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
             
              
-             $subjectStatement = "has added their support to"; 
-             //self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
+           $subjectStatement = "has added their support to"; 
+           self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
 
 
          }
@@ -875,7 +880,7 @@ class TopicSupport
             'log_type' =>  $logType,
             'activity' => $activity,
             'url' => $link,
-            'model' => $model,
+            'model' => new Support(),
             'topic_num' => $topicNum,
             'camp_num' =>  $campNum,
             'user' => $user,
