@@ -427,6 +427,7 @@ class ValidationRules
             'type' => 'in:statement,camp,topic',
         ]);
     }
+    
     public function getStatementComparisonValidationRules(): array
     {
         return ([
@@ -442,5 +443,16 @@ class ValidationRules
             'topic_num' => 'required|integer',
             'camp_num' => 'required|integer'
         ];
+    }
+
+    public function getAgreeToChangeValidationRules(): array
+    {
+        return ([
+            'record_id' => 'required',
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'change_for' => 'required|in:topic,camp,statement',
+            'nick_name_id' => 'required',
+        ]);
     }
 }

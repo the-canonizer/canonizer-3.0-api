@@ -40,6 +40,7 @@ return [
         'statement_create'  => 'Statement submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
+        'statement_agree'  => ' Your agreement to statement is submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -344,5 +345,13 @@ return [
         'topic_num_integer' => "Topic number can only be an integer.",
         'camp_num_required' => "Camp number is required",
         'camp_num_integer' => "Camp number can only be an integer."
+    ],
+    'validation_agree_to_change' => [
+        'record_id_required' => "Record id is required.",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required.",
+        'change_for_in' => "Please enter a valid value (topic,camp,statement)",
+        'nick_name_id_required' => "Nick name id is required",
+        'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
     ],
 ];
