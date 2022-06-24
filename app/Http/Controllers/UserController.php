@@ -1142,6 +1142,9 @@ class UserController extends Controller
                 $providerEmail = $userSocial->getEmail();
                 $providerUserName = $userSocial->getName();
                 $providerId = $userSocial->getId();
+            }
+            $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
+            if (empty($social_user)) {
                 if (empty($providerUserName)) {
                     $status = 423;
                     $message = trans('message.social.name_not_received');
@@ -1160,9 +1163,6 @@ class UserController extends Controller
                     ]);
                     return $this->resProvider->apiJsonResponse($status, $message, $data, null);
                 }
-            }
-            $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
-            if (empty($social_user)) {
                 $splitName = Util::split_name($providerUserName);
                 if (empty($providerEmail)) {
                     $status = 422;
