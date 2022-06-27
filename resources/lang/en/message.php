@@ -189,6 +189,7 @@ return [
         'already_linked' => 'Email is already linked with another account',
         'not_linked' => 'Your social account is not linked with any user',
         'email_not_received' => 'Your email address is not returned from social account. You have to enter the email address.',
+        'name_not_received' => 'Name is not returned from social account. You have to enter the First Name and Last Name.',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",

@@ -1145,6 +1145,24 @@ class UserController extends Controller
             }
             $social_user = SocialUser::where(['provider_id' => $providerId, 'provider' => $provider])->first();
             if (empty($social_user)) {
+                if (empty($providerUserName)) {
+                    $status = 423;
+                    $message = trans('message.social.name_not_received');
+                    $data = [
+                        "code" => $request->code,
+                        "provider" => $request->provider,
+                        "email" => $providerEmail
+                    ];
+                    SocialEmailVerify::create([
+                        'first_name'    => "",
+                        'last_name'     => "",
+                        'email'         => $providerEmail,
+                        'provider_id' => $providerId,
+                        'provider' => $request->provider,
+                        'code' => $request->code,
+                    ]);
+                    return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+                }
                 $splitName = Util::split_name($providerUserName);
                 if (empty($providerEmail)) {
                     $status = 422;
@@ -1912,6 +1930,10 @@ class UserController extends Controller
             $provider = $request->provider;
             $socialEmailVerify = SocialEmailVerify::where('code', '=', $request->code)->where('provider', '=', $provider)->first();
             $socialEmailVerify->email = $request->email;
+            if($request->type == 'nameVerify'){
+                $socialEmailVerify->first_name = $request->first_name;
+                $socialEmailVerify->last_name = $request->last_name;
+            }
             $authCode = mt_rand(100000, 999999);
             if ($socialEmailVerify) {
                 $socialEmailVerify->otp = $authCode;
