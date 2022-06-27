@@ -110,6 +110,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/get-statement-comparison','StatementController@getStatementComparison');
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
+        $router->post('agree-to-change','TopicController@agreeToChange');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
