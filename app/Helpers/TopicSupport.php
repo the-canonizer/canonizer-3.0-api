@@ -11,11 +11,15 @@ use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Events\SupportRemovedMailEvent;
+use App\Events\SupportAddedMailEvent;
+use App\Jobs\ActivityLoggerJob;
 use DB;
 
 
 class TopicSupport
 {
+
+    public static $model = 'App\Models\Support';
 
 
     public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
@@ -118,6 +122,75 @@ class TopicSupport
         return;
     }
 
+    /**
+     * [Add direct Support]
+     * @param array $camps list of associative camps with order to which support is to be added
+     * @param string $topicNum topic number of topic
+     * @param integer $nickNameId nick name id of user
+     * @param array $removedCamps  list of camps to be removed if any
+     * @param array $orderUpdate is associative array of camps with order numbr to be updated, if any
+     */
+    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array())
+    {
+        $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
+        // $campArray = explode(',', trim($campNum));
+ 
+         if(!empty($removeCamps)){
+ 
+             self::removeSupport($topicNum,$removeCamps,$allNickNames);
+ 
+             $nicknameModel = Nickname::getNickName($nickNameId);
+             $topicFilter = ['topicNum' => $topicNum];
+             $topicModel = Camp::getAgreementTopic($topicFilter);
+     
+             foreach($removeCamps as $camp)
+             {     
+                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
+                 $campModel  = self::getLiveCamp($campFilter);
+                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+
+                 //log activity
+                 $logType = "support";
+                 $activity = "support removed";
+                 $link = Util::getTopicCampUrl($topicNum, $camp, $topicModel, $campModel);
+                 $model = self::$model;
+                 $description = "supoort removed";
+                 self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
+             }
+
+
+         }
+ 
+         if(isset($orderUpdate) && !empty($orderUpdate)){
+             self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+         }
+
+         if(isset($addCamp) && !empty($addCamp)){
+            $campNum = $addCamp['camp_num'];
+            $supportOrder = $addCamp['support_order'];
+
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+
+            self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+
+           //log activity
+           $logType = "support";
+           $activity = "support added";
+           $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
+           $model = self::$model;
+           $description = "supoort added";
+           self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
+            
+             
+           $subjectStatement = "has added their support to"; 
+           self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
+
+
+         }
+ 
+    }
+
 
     /**
      * Send email to promoted delegates as a direct supporter of topic and camps 
@@ -128,7 +201,7 @@ class TopicSupport
      */
     public static function sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId='')
     {
-       $promotedDelegatesIds = [];
+        $promotedDelegatesIds = [];
         $to = [];
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
@@ -180,8 +253,10 @@ class TopicSupport
         {
             Event::dispatch(new PromotedDelegatesMailEvent($to, $promotedFrom, $data)); 
 
-            $data['subject'] = $promotedFrom->nick_name . " has removed their support from ".$object. ".";           
-            self::SendEmailToSubscribersAndSupporters($data);
+            //$data['subject'] = $promotedFrom->nick_name . " has removed their support from ".$object. ".";           
+            
+            $subjectStatement = "has removed their support from";
+            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'remove');
 
         } catch (Throwable $e) 
         {
@@ -491,10 +566,10 @@ class TopicSupport
         $mailData['url_portion'] =  $seoUrlPortion;
         $mailData['nick_name_id'] = $nickname->id;
         $mailData['nick_name'] = $nickname->nick_name;
-        $mailData['support_action'] = "deleted"; //default will be 'added'
+        $mailData['support_action'] = "remove"; //default will be 'added'
 
-
-        self::SendEmailToSubscribersAndSupporters($mailData);
+        $subjectStatement = "has removed their support from";
+        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove');
         return;
     }
 
@@ -504,20 +579,44 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($data)
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add")
     {
-        
+       
         $bcc_email = [];
         $subscriber_bcc_email = [];
         $bcc_user = [];
         $sub_bcc_user = [];
         $userExist = [];
-        $topicNum = $data['topic_num'];
-        $campNum = $data['camp_num'] ; 
-        $topic = $data['topic'];  
+
+        $topicFilter = ['topicNum' => $topicNum];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+
+        $topic = Camp::getAgreementTopic($topicFilter);
+        $camp  = self::getLiveCamp($campFilter);
+        $nickname =  Nickname::getNickName($nickNameId);
+
+        $object = $topic->topic_name ." / ".$camp->camp_name;
+        $topicLink =  self::getTopicLink($topic);
+        $campLink = self::getCampLink($topic,$camp);
+        $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
+
+        $data['object']     = $object;
+        $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $object. ".";
+        $data['topic']      = $topic;
+        $data['camp']       = $camp;
+        $data['camp_name']  = $camp->camp_name;
+        $data['topic_name'] = $topic->topic_name;
+        $data['topic_num']  = $topic->topic_num;
+        $data['camp_num']   = $camp->camp_num;
+        $data['topic_link'] = $topicLink;
+        $data['camp_link']  = $campLink;   
+        $data['url_portion'] =  $seoUrlPortion;
+        $data['nick_name_id'] = $nickname->id;
+        $data['nick_name'] = $nickname->nick_name;
+        $data['support_action'] = $action; //default will be 'added'
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $topic_name_space_id = $data['namespace_id'];
-         
+        
         
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($campNum, $campNum);
@@ -562,8 +661,11 @@ class TopicSupport
                 }
                 try {
                     
-                    Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
-                   
+                    if($action == 'add'){
+                        Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
+                    }else{
+                        Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
+                    }
                     
                 } catch (Throwable $e) {
                     $data = null;
@@ -578,7 +680,9 @@ class TopicSupport
             foreach ($filtered_sub_user as $userSub) {
                 $data['support_list'] = $subscribe_list[$userSub->id];
                 try {
-                    if($data['support_action'] == 'deleted'){
+                    if($action == 'add'){
+                        Event::dispatch(new SupportAddedMailEvent($userSub->email ?? null, $userSub, $data));
+                    }else{
                         Event::dispatch(new SupportRemovedMailEvent($userSub->email ?? null, $userSub, $data));
                     }
                 } catch (Throwable $e) {
@@ -740,5 +844,50 @@ class TopicSupport
         return $returnData;
     }
 
+    /**
+     *  [This will be add support ]
+     */
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId,  $delegatedNickNameId = 0)
+    {
+       
+        $data = [
+            'topic_num' => $topicNum,
+            'nick_name_id' => $nickNameId,
+            'delegate_nick_name_id' => $delegatedNickNameId,
+            'camp_num' => $campNum,
+            'support_order' => $supportOrder,
+            'start' => time()
+        ];
+        Support::insert($data);
+
+        //add support to all delegators as well
+        $delegatedSupport = Support::getDelegatorForNicknameId($topicNum, $nickNameId);               
+       
+        if($delegatedSupport->count()) {
+            foreach($delegatedSupport as $support){
+                
+                 return self::addSupport($topicNum, $campNum, $supportOrder, $support->nick_name_id, $nickNameId);
+            }
+        }
+
+        return;
+    }
     
+    public static function logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nickName, $description)
+    {
+        
+        $activitLogData = [
+            'log_type' =>  $logType,
+            'activity' => $activity,
+            'url' => $link,
+            'model' => new Support(),
+            'topic_num' => $topicNum,
+            'camp_num' =>  $campNum,
+            'user' => $user,
+            'nick_name' => $nickName,
+            'description' => $description
+        ];
+
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+    }
 }

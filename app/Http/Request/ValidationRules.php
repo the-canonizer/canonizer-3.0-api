@@ -339,9 +339,9 @@ class ValidationRules
         return [
             'topic_num' => 'required|integer',
             'nick_name_id' => 'required',
-            'camps' => 'required|array|min:1',
-            'camps.*.camp_num' => 'required|integer',
-            'camps.*.support_order' => 'required|integer'
+            //'camps' => 'required|array|min:1',
+            //'camps.*.camp_num' => 'required|integer',
+            //'camps.*.support_order' => 'required|integer'
         ];
     }
 

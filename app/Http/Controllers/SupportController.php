@@ -160,32 +160,26 @@ class SupportController extends Controller
 
 
     public function addDirectSupport(Request $request, Validate $validate)
-    {
+    {        
         
         $validationErrors = $validate->validate($request, $this->rules->getAddDirectSupportRule(), $this->validationMessages->getAddDirectSupportMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        try{
-            $all = $request->all();
-            $supports = [];
-            if(isset($all['camps'])){
-                foreach($all['camps'] as $camp){
-                    $data = [
-                    'topic_num' => $all['topic_num'],
-                    'nick_name_id' => $all['nick_name_id'],
-                    'camp_num' => $camp['camp_num'],
-                    'support_order' => $camp['support_order'],
-                    'start' => time()
-                    ];
-                    array_push($supports,$data);
-                }
-                Support::insert($supports);
-                
-                return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+        $all = $request->all();
+        $user = $request->user();
+        $topicNum = $all['topic_num'];
+        $nickNameId = $all['nick_name_id'];
+        $addCamp = $all['add_camp'];
+        $removedCamps = $all['remove_camps'];
+        $orderUpdate = $all['order_update'];        
 
-            }
+        try{
+            
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+    
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
