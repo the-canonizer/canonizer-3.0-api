@@ -378,7 +378,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function getCampSubscription($filter, $userid = null): array
     {
         $returnArr = array('flag' => 0, 'camp_subscription_data' => []);
-        $camp_subscription = \App\Models\CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
+        $camp_subscription = \App\Models\CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get();
         $flag = sizeof($camp_subscription) > 0  || 0;
         if (!$flag) {
             $onecamp = self::liveCampByDateFilter($filter);
