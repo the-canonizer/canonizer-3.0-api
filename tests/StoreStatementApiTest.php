@@ -27,7 +27,6 @@ class StoreStatementApiTest extends TestCase
             "camp_num" => "",
             "nick_name" => "",
             "note" => "",
-            "parent_camp_num" => "",
             "submitter" => "",
             "statement" => "",
         ];
@@ -48,7 +47,6 @@ class StoreStatementApiTest extends TestCase
             "camp_num" => "1",
             "nick_name" => "533",
             "note" => "note",
-            "parent_camp_num" => "0",
             "submitter" => "1",
             "objection" => "1",
         ];
@@ -70,7 +68,6 @@ class StoreStatementApiTest extends TestCase
             "camp_num" => "1",
             "nick_name" => "533",
             "note" => "note",
-            "parent_camp_num" => "0",
             "submitter" => "1",
             "statement" => "statement",
         ];

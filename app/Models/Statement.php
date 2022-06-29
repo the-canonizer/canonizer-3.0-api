@@ -121,6 +121,7 @@ class Statement extends Model
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->isAuthor = ($submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";

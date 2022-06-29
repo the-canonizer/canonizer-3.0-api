@@ -190,7 +190,6 @@ class ValidationMessages
             'camp_name.unique' => trans('message.validation_camp_store.camp_name_unique'),
             'camp_about_url.max' => trans('message.validation_camp_store.camp_about_url_max'),
             'camp_about_url.regex' => trans('message.validation_camp_store.camp_about_url_regex'),
-            'parent_camp_num.required' => trans('message.validation_camp_store.parent_camp_num_required'),
             'objection.required' => trans('message.validation_camp_store.objection_required'),
             'objection_reason.max' => trans('message.validation_camp_store.objection_reason_max'),
             'asof.in' => trans('message.validation_camp_store.asof_in')

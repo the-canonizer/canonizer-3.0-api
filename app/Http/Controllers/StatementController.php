@@ -290,12 +290,6 @@ class StatementController extends Controller
      *                   required=false,
      *                   type="string",
      *               ),
-     *               @OA\Property(
-     *                   property="parent_camp_num",
-     *                   description="Parent camp number of camp where adding statement",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
      *              @OA\Property(
      *                   property="submitter",
      *                   description="Nick name id of user who previously added statement",
@@ -373,6 +367,13 @@ class StatementController extends Controller
                 $statement->go_live_time = $go_live_time;
                 $statement->object_time = time();
                 $statement->grace_period = 0;
+            }
+            if (isset($all['statement_update']) && $all['statement_update'] == 1) {
+                $message = trans('message.success.statement_update');  
+                $statement = Statement::where('id', $all['statement_id'])->first();
+                $statement->value = isset($all['statement']) ? $all['statement'] : "";
+                $statement->note = isset($all['note']) ? $all['note'] : "";
+                $statement->submitter_nick_id = $all['nick_name'];
             }
             $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
             if ($all['camp_num'] > 1) {

@@ -381,7 +381,6 @@ class ValidationRules
             'statement' => 'required',
             'nick_name' => 'required',
             'submitter' => 'required', 
-            'parent_camp_num' => 'required', 
             'statement_id' => 'required_if:objection,1',
             'objection_reason' => 'required_if:objection,1'
         ];
