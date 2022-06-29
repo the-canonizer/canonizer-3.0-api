@@ -786,8 +786,8 @@ class CampController extends Controller
             $filter['subscriptionId'] = ($filter['subscriptionId'] && !$filter['checked']) ? "" : $campSubscription->id;
             $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
             $response->flag = $campSubscriptionData['flag'];
-            $response->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] :  $filter['subscriptionId'];
-            $response->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
+            $response->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? $filter['subscriptionId'];
+            $response->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ??  null;
             $response->msg = $msg;
             $indexes = ['msg', 'subscriptionId', 'flag', 'subscriptionId', 'subscriptionCampName'];
             $data[0] = $response;
