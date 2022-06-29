@@ -761,10 +761,9 @@ class CampController extends Controller
         $filter['campNum']= $request->camp_num;
         $filter['topicNum']= $request->topic_num;
         $filter['checked']= $request->checked;
-        $filter['subscriptionId']=$request->subscription_id;
+        $filter['subscriptionId']=$request->subscription_id ?? "";
         $response = new stdClass();
         try {
-            $subscription_id = isset($filter['subscriptionId']) ? $filter['subscriptionId'] : "";
             $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
             if ($filter['checked'] && empty($campSubscriptionData)) {
                 $campSubscription = new CampSubscription;
@@ -776,7 +775,7 @@ class CampController extends Controller
             } elseif ($filter['checked'] && $campSubscriptionData) {
                 return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_subscribed'), [], '');
             } else {
-                $campSubscription = CampSubscription::where('user_id', '=', $request->user()->id)->where('id', '=', $subscription_id)->where('subscription_end', '=', null)->first();
+                $campSubscription = CampSubscription::where('user_id', '=', $request->user()->id)->where('id', '=', $filter['subscriptionId'])->where('subscription_end', '=', null)->first();
                 if (empty($campSubscription)) {
                     return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_unsubscribed'), [], '');
                 }
@@ -784,11 +783,11 @@ class CampController extends Controller
                 $msg = trans('message.success.unsubscribed');
             }
             $campSubscription->save();
-            $subscriptionId = ($subscription_id && !$filter['checked']) ? "" : $campSubscription->id;
+            $filter['subscriptionId'] = ($filter['subscriptionId'] && !$filter['checked']) ? "" : $campSubscription->id;
             $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
             $response->flag = $campSubscriptionData['flag'];
-            $response->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] :  $subscriptionId;
-            $response->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
+            $response->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? $filter['subscriptionId'];
+            $response->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ??  null;
             $response->msg = $msg;
             $indexes = ['msg', 'subscriptionId', 'flag', 'subscriptionId', 'subscriptionCampName'];
             $data[0] = $response;
