@@ -342,10 +342,10 @@ class StatementController extends Controller
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
             $statement = new Statement();
-            $statement->value = isset($all['statement']) ? $all['statement'] : "";
+            $statement->value = $all['statement'] ?? "";
             $statement->topic_num = $all['topic_num'];
             $statement->camp_num = $all['camp_num'];
-            $statement->note = isset($all['note']) ? $all['note'] : "";
+            $statement->note = $all['note'] ?? "";
             $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
             $statement->submitter_nick_id = $all['nick_name'];
             $statement->go_live_time = $go_live_time;
@@ -354,11 +354,6 @@ class StatementController extends Controller
             $message =  trans('message.success.statement_create');
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
-            if (!$ifIamSingleSupporter) {
-                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $go_live_time = $statement->go_live_time;
-                $statement->grace_period = 1;
-            }
             if (isset($all['objection']) && $all['objection'] == 1) {
                 $message = trans('message.success.statement_object');
                 $statement = Statement::where('id', $all['statement_id'])->first();
@@ -371,8 +366,8 @@ class StatementController extends Controller
             if (isset($all['statement_update']) && $all['statement_update'] == 1) {
                 $message = trans('message.success.statement_update');  
                 $statement = Statement::where('id', $all['statement_id'])->first();
-                $statement->value = isset($all['statement']) ? $all['statement'] : "";
-                $statement->note = isset($all['note']) ? $all['note'] : "";
+                $statement->value = $all['statement'] ?? "";
+                $statement->note = $all['note'] ?? "";
                 $statement->submitter_nick_id = $all['nick_name'];
             }
             $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
@@ -389,6 +384,11 @@ class StatementController extends Controller
             }
             if ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
                 $statement->grace_period = 0;
+            }
+            if (!$ifIamSingleSupporter) {
+                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $go_live_time = $statement->go_live_time;
+                $statement->grace_period = 1;
             }
             $statement->save();
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
