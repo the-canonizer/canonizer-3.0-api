@@ -82,6 +82,8 @@ class TopicSupport
                 $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
             }
 
+            //log remove support activity
+            self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
             return;
             
         }
@@ -108,11 +110,13 @@ class TopicSupport
     
             foreach($removeCamps as $camp)
             {
-    
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                 $campModel  = self::getLiveCamp($campFilter);
-                //self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                //self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);                
             }
+
+             //log activity
+             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
         }
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
@@ -148,15 +152,10 @@ class TopicSupport
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-
-                 //log activity
-                 $logType = "support";
-                 $activity = "support removed";
-                 $link = Util::getTopicCampUrl($topicNum, $camp, $topicModel, $campModel);
-                 $model = self::$model;
-                 $description = "supoort removed";
-                 self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
              }
+
+             //log activity
+             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
 
 
          }
@@ -173,20 +172,12 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
-
-           //log activity
-           $logType = "support";
-           $activity = "support added";
-           $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
-           $model = self::$model;
-           $description = "supoort added";
-           self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
-            
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
 
-
+           //log activity
+           self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
          }
  
     }
@@ -873,6 +864,18 @@ class TopicSupport
         return;
     }
     
+    /**
+     *  [function to write log]
+     * @param string $logType is string specfying  type
+     * @param string $activity event performed 
+     * @param string $link is link on which event is performed
+     * @param object $model is model object on which event is performed
+     * @param integer $topicNum is topic number
+     * @param integer $campNum is camp number
+     * @param object $user is user object performing action
+     * @param string $nickName is nick name is nickname of user
+     * @param string $description is description
+     */
     public static function logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nickName, $description)
     {
         
@@ -880,7 +883,7 @@ class TopicSupport
             'log_type' =>  $logType,
             'activity' => $activity,
             'url' => $link,
-            'model' => new Support(),
+            'model' => $model,
             'topic_num' => $topicNum,
             'camp_num' =>  $campNum,
             'user' => $user,
@@ -889,5 +892,75 @@ class TopicSupport
         ];
 
         dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+    }
+
+    /**
+     * [activity logger on remove support]
+     * @param array $removeCamps are list of camps to be removed
+     * @param integer $topicNum is topic number
+     * @param integer $nickNameId is nick name id of user removing support
+     * 
+     * @return void
+     */
+    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId='')
+    {
+        if(!empty($removeCamps))
+        {         
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter); 
+            $user = Nickname::getUserByNickName($nickNameId);
+
+            $logType = "support";
+            $activity = "support removed";
+            $model = new Support();
+            $description = "supoort removed";
+
+            if($delegateNickNameId){
+                $delegatedTo = Nickname::getNickName($delegateNickNameId);
+                $activity = "Delegated support removed from " . $delegatedTo->nick_name; 
+            }
+
+            foreach($removeCamps as $camp)
+            {
+                $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
+                $campModel  = self::getLiveCamp($campFilter); 
+                $link = Util::getTopicCampUrl($topicNum, $camp, $topicModel, $campModel);
+
+                self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
+            }
+        }
+        return;
+    }
+
+    /**
+     * [activity logger on add support]
+     * @param integer $campNum is camp number to which support is added
+     * @param integer $topicNum is topic number
+     * @param integer $nickNameId is nick name id of user adding support
+     * 
+     * @return void
+     */
+    public static function logActivityForAddSupport($topicNum, $campNum, $nickNameId)
+    {
+        if($campNum){
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter);
+            $user = Nickname::getUserByNickName($nickNameId);
+
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+
+            $logType = "support";
+            $activity = "support added";
+            $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
+            $model = new Support();
+            $description = "supoort added";
+            
+            self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
+        }
+        
+        return;
     }
 }

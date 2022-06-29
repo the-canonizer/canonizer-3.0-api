@@ -202,10 +202,12 @@ class SupportController extends Controller
         try{
             $topicNum = $all['topic_num'];
             $nicknameId = $all['nick_name_id'];
+            $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegate_to_user_id'];
 
             // get all camps being supported by delegatedToUser
             $support = Support::getActiveSupporInTopic($topicNum,$delegatedNickId);
+            $campNum = ($campNum) ? $campNum : $support[0]->camp_num;
 
             // add delegation support
             $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
