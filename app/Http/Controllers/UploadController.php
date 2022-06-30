@@ -286,8 +286,8 @@ class UploadController extends Controller
     {
         $user = $request->user();
         try{
-            $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->get();
-            $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->get();
+            $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->orderBy('created_at', 'desc')->get();
+            $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->orderBy('created_at', 'desc')->get();
 
             $data = [
                 'files' => $files,
