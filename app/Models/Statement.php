@@ -102,17 +102,16 @@ class Statement extends Model
         });
 
         $response->statement = Util::getPaginatorResponse($statement_query->paginate($filter['per_page']));
-        $response = self::filterStatementHistory($response, $filter, $request);
+        $response = self::filterStatementHistory($response, $filter, $request, $campLiveStatement);
         return $response;
     }
 
-    public static function filterStatementHistory($response, $filter, $request)
+    public static function filterStatementHistory($response, $filter, $request, $campLiveStatement)
     {
         $data = $response->statement;
         unset($response->statement);
         $data->details = $response;
         $statementHistory = [];
-        $currentLive = 0;
         if (isset($data->items) && count($data->items) > 0) {
             foreach ($data->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
@@ -121,6 +120,7 @@ class Statement extends Model
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->isAuthor = ($submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -130,8 +130,7 @@ class Statement extends Model
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
                         $val->status = "in_review";
                         break;
-                    case $currentLive != 1 && $filter['currentTime'] >= $val->go_live_time && $filter['type'] != "old":
-                        $currentLive = 1;
+                    case $campLiveStatement->id == $val->id && $filter['type'] != "old":
                         $val->status = "live";
                         break;
                     default:
