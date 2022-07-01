@@ -20,7 +20,7 @@ class PushNotification
             "notification" => [
                 "title" => $request->title,
                 "body" => $request->message_body,
-                "link" => $request->link,
+                "url" => $request->link,
             ]
         ];
         $encodedData = json_encode($data);
