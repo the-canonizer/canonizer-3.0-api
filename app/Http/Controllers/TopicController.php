@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Nickname;
+use App\Models\Statement;
 use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\ChangeAgreeLog;
+use App\Jobs\ActivityLoggerJob;
+use App\Models\CampSubscription;
+use App\Facades\PushNotification;
+use App\Helpers\ResourceInterface;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Events\ThankToSubmitterMailEvent;
-use App\Facades\Util;
-use App\Helpers\ResponseInterface;
-use App\Helpers\ResourceInterface;
-use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
-use App\Models\CampSubscription;
-use App\Jobs\ActivityLoggerJob;
-use App\Models\Nickname;
-use App\Models\Statement;
-use App\Models\ChangeAgreeLog;
+use App\Events\ThankToSubmitterMailEvent;
 
 class TopicController extends Controller
 {
@@ -189,6 +191,16 @@ class TopicController extends Controller
                         'description' => $request->topic_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    $PushNotificationData =  new stdClass();
+                    $PushNotificationData->user_id = $request->user()->id;
+                    $PushNotificationData->topic_num = $topic->topic_num;
+                    $PushNotificationData->camp_num = 1;
+                    $PushNotificationData->notification_type = config('global.notification_type.createTopic');
+                    $PushNotificationData->title = config('global.notification_type.createTopic');
+                    $PushNotificationData->message_body = trans('message.success.topic_created');
+                    $PushNotificationData->fcm_token = $request->fcm_token;
+                    $PushNotificationData->link = Topic::topicLink($topic->topic_num, 1, $topic->topic_name ?? '');
+                    $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;

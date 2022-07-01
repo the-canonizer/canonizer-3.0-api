@@ -10,4 +10,8 @@ return [
         "top10" => "most_replies",
     ],
     'APP_URL_FRONT_END'=>env('APP_URL_FRONT_END'),
+    'notification_type' => [
+        "createTopic" => "Topic Create",
+        "createCamp" => "Camp Create",
+    ],
 ];
