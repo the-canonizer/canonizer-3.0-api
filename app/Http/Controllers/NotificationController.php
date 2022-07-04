@@ -180,7 +180,7 @@ class NotificationController extends Controller
             $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($per_page);
            
             $notificationList = Util::getPaginatorResponse($notificationList);
-
+            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read',0)->count();
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $notificationList, null);
