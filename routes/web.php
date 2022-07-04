@@ -111,6 +111,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
         $router->post('agree-to-change','TopicController@agreeToChange');
+        $router->get('notification-list','NotificationController@notificationList');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
