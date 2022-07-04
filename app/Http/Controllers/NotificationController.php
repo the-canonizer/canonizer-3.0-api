@@ -103,11 +103,11 @@ class NotificationController extends Controller
      *                                                      type="integer"
      *                                                 ),
      *                                                 @OA\Property(
-     *                                                      property="title",
+     *                                                      property="message_title",
      *                                                      type="string"
      *                                                 ),
      *                                                 @OA\Property(
-     *                                                      property="body",
+     *                                                      property="message_body",
      *                                                      type="string"
      *                                                 ),
      *                                                 @OA\Property(
@@ -119,15 +119,15 @@ class NotificationController extends Controller
      *                                                      type="string"
      *                                                 ),
      *                                                 @OA\Property(
-     *                                                      property="nick_name",
+     *                                                      property="notification_type",
      *                                                      type="string"
      *                                                 ),
      *                                                 @OA\Property(
-     *                                                      property="post_updated_at",
+     *                                                      property="fcm_token",
      *                                                      type="string"
      *                                                 ),
      *                                                 @OA\Property(
-     *                                                      property="post_count",
+     *                                                      property="is_read",
      *                                                      type="integer"
      *                                                 )
      *                                          ),
