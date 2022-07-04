@@ -103,15 +103,17 @@ class GetCampRecordApiTest extends TestCase
             'message',
             'error',
             'data' => [
-                [
                     'topic_num',
                     'camp_num',
                     'key_words',
                     'camp_about_url',
                     'nick_name',
+                    'subscriptionCampName',
+                    'subscriptionId',
+                    'flag',
+                    'parent_camp_name',
                     'parentCamps',
                     'camp_name'
-                ]
             ]
         ]);
     }

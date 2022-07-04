@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ActivityLoggerJob;
+use App\Helpers\CampForum;
 
 class CampController extends Controller
 {
@@ -288,6 +289,7 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
+        $parentCampName= null;
         $camp = [];
         try {
             $livecamp = Camp::getLiveCamp($filter);
@@ -300,8 +302,12 @@ class CampController extends Controller
                     $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] : null;
                     $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
                 }
+                if($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0){
+                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
+                }
+                $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
