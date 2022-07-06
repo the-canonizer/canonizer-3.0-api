@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use Throwable;
+use App\Models\Camp;
 use App\Facades\Util;
+use App\Models\Reply;
+use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
-use App\Models\PushNotification;
-use App\Models\Reply;
 
 class NotificationController extends Controller
 {
@@ -178,9 +180,15 @@ class NotificationController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
             $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($per_page);
-           
             $notificationList = Util::getPaginatorResponse($notificationList);
-            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read',0)->count();
+            foreach ($notificationList->items as $value) {
+                $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
+                $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
+                $value->topic_link = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
+                $value->camp_link = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+            }
+            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read', 0)->count();
+
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $notificationList, null);
