@@ -456,19 +456,25 @@ class TopicController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['per_page'] = $request->per_page;
+        $filter['page'] = $request->page;
+        $filter['currentTime'] = time();
+        $filter['type'] = $request->type;
+        
         $response = new stdClass();
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         try {
-            $response->topics = Topic::getHistory($request->topic_num);
-            dd($response->topics);
-            $response->parentTopic = (sizeof($response->topics) > 1) ? $response->topics[0]->topic_name : null;
-            $submit_time = (count($response->topics)) ? $response->topics[0]->submit_time : null;
+            $topics = Topic::getHistory($filter, $request);
+            $response->parentTopic = (sizeof( $topics->items) > 1) ?  $topics->items[0]->topic_name : null;
+            $submit_time = (count( $topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
-                $response->ifIamSupporter = Support::ifIamSupporter($request->topic_num, 1, $nickNames, $submit_time);
-                $response->ifSupportDelayed = Support::ifIamSupporter($request->topic_num, 1, $nickNames, $submit_time, $delayed = true);
+                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
+                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
             }
+            $response->topics = $topics;
             $indexs = ['ifIamSupporter', 'ifSupportDelayed', 'topics', 'parentTopic'];
             $data[0]=$response;
             $data = $this->resourceProvider->jsonResponse($indexs, $data);

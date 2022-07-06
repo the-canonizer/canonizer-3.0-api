@@ -12,11 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use App\Library\wiki_parser\wikiParser as wikiParser;
 
 class Topic extends Model implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, HasApiTokens  , Authorizable, HasFactory;
-    
+    use Authenticatable, HasApiTokens, Authorizable, HasFactory;
+
     protected $table = 'topic';
     public $timestamps = false;
 
@@ -65,6 +66,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         parent::boot();
     }
 
+    public function objectorNickName()
+    {
+        return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
+    }
+
     public static function getLiveTopic($topicNum, $filter = array())
     {
         switch ($filter) {
@@ -100,34 +106,84 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = config('global.APP_URL_FRONT_END').('/topic/' . $topicId . '/' . $campId);
+        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
-    public static function getHistory($topicnum) {
-        $topicHistory = self::where('topic_num',$topicnum)->latest('submit_time');
-        $topicHistory->when($filter['type'] == "objected", function ($q) {
+    public static function getHistory($filter, $request)
+    {
+        $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
+
+        $topicHistoryQuery = self::where('topic_num', $filter['topicNum'])->latest('submit_time');
+
+        $topicHistoryQuery->when($filter['type'] == "old", function ($q) use ($filter, $liveTopic) {
+                $q->where('go_live_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('id', '!=', $liveTopic->id)
+                ->where('submit_time', '<', $filter['currentTime']);
+        });
+
+        $topicHistoryQuery->when($filter['type'] == "live", function ($q) use ($liveTopic) {
+                $q->where('id', $liveTopic->id);
+        });
+
+         $topicHistoryQuery->when($filter['type'] == "in_review", function ($q) use ($filter) {
+                $q->where('go_live_time', '>', $filter['currentTime'])
+                ->where('objector_nick_id' , NULL)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+
+        $topicHistoryQuery->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
         });
 
-        $topicHistory->when($filter['type'] == "in_review" && $request, function ($q) use ($filter) {
-            $q->where('go_live_time', '>', $filter['currentTime'])
-                ->where('submit_time', '<=', $filter['currentTime']);
-        });
-        
-        $topicHistory->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
-            $q->where('go_live_time', '<=', $filter['currentTime'])
-                ->where('objector_nick_id', NULL)
-                ->where('id', '!=', $campLiveStatement->id)
-                ->where('submit_time', '<=', $filter['currentTime']);
+        $topicHistoryQuery->when($filter['type'] == "all", function ($q) use ($filter) {
+            $q->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $topicHistory->when($filter['type'] == "all" && !$request, function ($q) use ($filter) {
-            $q->where('go_live_time', '<=', $filter['currentTime']);
-        });
+        $response = Util::getPaginatorResponse($topicHistoryQuery->paginate($filter['per_page']));
+        $response = self::filterTopicHistory($response, $filter, $liveTopic, $request);
+        return $response;
+    }
 
-        $response->statement = Util::getPaginatorResponse($topicHistory->paginate($filter['per_page']));
 
-
-	
-	}
+    public static function filterTopicHistory($response, $filter, $liveTopic, $request)
+    {
+        $topicHistory = [];
+        if (isset($response->items) && count($response->items) > 0) {
+            foreach ($response->items as $val) {
+                $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
+                $submittime = $val->submit_time;
+                $starttime = time();
+                $endtime = $submittime + 60 * 60;
+                $interval = $endtime - $starttime;
+                $val->objector_nick_name = null;
+                $val->submitterNickName=NickName::getNickName($val->submitter_nick_id)->nick_name;
+                $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
+                switch ($val) {
+                    case $val->objector_nick_id !== NULL:
+                        $val->status = "objected";
+                        $val->objector_nick_name = $val->objectorNickName->nick_name;
+                        $val->unsetRelation('objectorNickName');
+                        break;
+                    case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->status = "in_review";
+                        break;
+                    case $liveTopic->id == $val->id && $filter['type'] != "old":
+                        $val->status = "live";
+                        break;
+                    default:
+                        $val->status = "old";
+                }
+                if ($interval > 0 && $val->grace_period > 0  && isset($request) && $request->user()->id != $submitterUserID) {
+                    continue;
+                } else {
+                    $WikiParser = new wikiParser;
+                    $val->parsed_value = $WikiParser->parse($val->value);
+                    array_push($topicHistory, $val);
+                }
+            }
+            $response->items = $topicHistory;
+            return  $response;
+        }
+    }
 }
