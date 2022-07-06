@@ -174,7 +174,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && isset($request) && $request->user()->id != $submitterUserID) {
+                if ($interval > 0 && $val->grace_period > 0  && (( isset($request->user()->id) && $request->user()->id != $submitterUserID ) || !isset($request->user()->id)) ) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
