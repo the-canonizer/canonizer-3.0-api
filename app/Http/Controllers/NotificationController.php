@@ -184,8 +184,11 @@ class NotificationController extends Controller
             foreach ($notificationList->items as $value) {
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
                 $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
-                $value->url = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
-                // $value->camp_link = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+                if (config('global.notification_type.Topic') == $value->notification_type) {
+                    $value->url = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
+                } else {
+                    $value->camp_link = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+                }
             }
             $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read', 0)->count();
 

@@ -196,8 +196,8 @@ class TopicController extends Controller
                     $PushNotificationData->topic_num = $topic->topic_num;
                     $PushNotificationData->camp_num = 1;
                     $PushNotificationData->notification_type = config('global.notification_type.createTopic');
-                    $PushNotificationData->title = config('global.notification_type.createTopic');
-                    $PushNotificationData->message_body = trans('message.success.topic_created');
+                    $PushNotificationData->title = trans('message.notification_title.createTopic');
+                    $PushNotificationData->message_body = trans('message.notification_message.createTopic');
                     $PushNotificationData->fcm_token = $request->fcm_token;
                     $PushNotificationData->link = Topic::topicLink($topic->topic_num, 1, $topic->topic_name ?? '');
                     $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
