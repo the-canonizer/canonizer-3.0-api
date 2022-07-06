@@ -185,13 +185,29 @@ class NotificationController extends Controller
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
                 $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
                 $value->url = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
-               // $value->camp_link = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+                // $value->camp_link = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
             }
             $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read', 0)->count();
 
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $notificationList, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function updateIsRead(Request $request, $id)
+    {
+        try {
+            $PushNotification = PushNotification::find($id);
+            $PushNotification->is_read = 1;
+            $PushNotification->save();
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');

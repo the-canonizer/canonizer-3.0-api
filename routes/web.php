@@ -112,6 +112,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('topic-support-list','SupportController@getSupportInTopic');
         $router->post('agree-to-change','TopicController@agreeToChange');
         $router->get('notification-list','NotificationController@notificationList');
+        $router->put('notification-is-Read/update/{id}','NotificationController@updateIsRead');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
