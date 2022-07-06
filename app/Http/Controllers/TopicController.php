@@ -24,6 +24,7 @@ use App\Jobs\ActivityLoggerJob;
 use App\Models\Nickname;
 use App\Models\Statement;
 use App\Models\ChangeAgreeLog;
+use stdClass;
 
 class TopicController extends Controller
 {
@@ -439,11 +440,40 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
-                }else{
+                } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getTopicHistory(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $response = new stdClass();
+        $response->ifIamSupporter = null;
+        $response->ifSupportDelayed = null;
+        try {
+            $response->topics = Topic::getHistory($request->topic_num);
+            dd($response->topics);
+            $response->parentTopic = (sizeof($response->topics) > 1) ? $response->topics[0]->topic_name : null;
+            $submit_time = (count($response->topics)) ? $response->topics[0]->submit_time : null;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $response->ifIamSupporter = Support::ifIamSupporter($request->topic_num, 1, $nickNames, $submit_time);
+                $response->ifSupportDelayed = Support::ifIamSupporter($request->topic_num, 1, $nickNames, $submit_time, $delayed = true);
+            }
+            $indexs = ['ifIamSupporter', 'ifSupportDelayed', 'topics', 'parentTopic'];
+            $data[0]=$response;
+            $data = $this->resourceProvider->jsonResponse($indexs, $data);
+            $data = $data[0];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

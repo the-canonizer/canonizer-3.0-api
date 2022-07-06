@@ -519,4 +519,11 @@ class ValidationMessages
             'nick_name_id.required' => trans('message.validation_agree_to_change.nick_name_id_required'),
         ];
     }
+
+    public function getTopicHistoryValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_get_topic_history.topic_num_required'),
+        ];
+    }
 }

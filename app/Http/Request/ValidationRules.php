@@ -454,4 +454,11 @@ class ValidationRules
             'nick_name_id' => 'required',
         ]);
     }
+
+    public function getTopicHistoryValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required'
+        ]);
+    }
 }

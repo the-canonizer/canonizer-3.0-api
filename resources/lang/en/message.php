@@ -355,4 +355,7 @@ return [
         'nick_name_id_required' => "Nick name id is required",
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
     ],
+    'validation_get_topic_history' => [
+        'topic_num_required' => "Topic Num is required.",
+    ],
 ];

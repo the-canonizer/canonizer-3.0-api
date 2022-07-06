@@ -93,7 +93,6 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         }
     }
 
-
     public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement')
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
@@ -103,4 +102,32 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
         return $link = config('global.APP_URL_FRONT_END').('/topic/' . $topicId . '/' . $campId);
     }
+
+    public static function getHistory($topicnum) {
+        $topicHistory = self::where('topic_num',$topicnum)->latest('submit_time');
+        $topicHistory->when($filter['type'] == "objected", function ($q) {
+            $q->where('objector_nick_id', '!=', NULL);
+        });
+
+        $topicHistory->when($filter['type'] == "in_review" && $request, function ($q) use ($filter) {
+            $q->where('go_live_time', '>', $filter['currentTime'])
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+        
+        $topicHistory->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
+            $q->where('go_live_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('id', '!=', $campLiveStatement->id)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+
+        $topicHistory->when($filter['type'] == "all" && !$request, function ($q) use ($filter) {
+            $q->where('go_live_time', '<=', $filter['currentTime']);
+        });
+
+        $response->statement = Util::getPaginatorResponse($topicHistory->paginate($filter['per_page']));
+
+
+	
+	}
 }
