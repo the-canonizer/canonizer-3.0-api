@@ -17,6 +17,7 @@ return [
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
+        'record_not_found' => 'No record found.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -38,6 +39,9 @@ return [
         'unsubscribed'  => 'Unsubscribed successfully.',
         'statement_create'  => 'Statement submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
+        'statement_update'  => 'Statement updated successfully.',
+        'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
+        'statement_agree'  => ' Your agreement to statement is submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -139,7 +143,7 @@ return [
         'link_required' => 'Link is required.',
         'available_for_child_boolean' => "Please enter boolean value for children's availability",
         'available_for_child_required' => 'Availability for child is required',
-        'submitter_nick_id_required' => 'Submitter nick name id is required',  
+        'submitter_nick_id_required' => 'Submitter nick name id is required',
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
     ],
@@ -187,6 +191,7 @@ return [
         'already_linked' => 'Email is already linked with another account',
         'not_linked' => 'Your social account is not linked with any user',
         'email_not_received' => 'Your email address is not returned from social account. You have to enter the email address.',
+        'name_not_received' => 'Name is not returned from social account. You have to enter the First Name and Last Name.',
     ],
     'uploads' => [
         'folder_created' => "Folder created successfully.",
@@ -214,7 +219,7 @@ return [
         'link_required' => 'Link is required.',
         'display_text_required' => 'Display text is required.',
         'display_text_max' => 'Display text may not be greater than 256 characters.',
-        'submitter_nick_id_required'=> 'Submitter nickname id is required.',
+        'submitter_nick_id_required' => 'Submitter nickname id is required.',
     ],
     'login' => [
         'username_required' => 'Email is required.',
@@ -257,9 +262,11 @@ return [
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required",
-        'type_in' => "Please enter a valid type value (objected, in_review, live, old, all) or leave it empty",
+        'type_in' => "Please enter a valid type value (objected, in_review, old, all) or leave it empty",
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
     ],
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",
@@ -313,7 +320,6 @@ return [
         'statement_required' => "Statement is required.",
         'nick_name_required' => "Nick name is required.",
         'submitter_required' => "submitter id is required.",
-        'parent_camp_num_required' => "Parent camp number is required.",
         'statement_id_required_if' => "Statement id is required.",
         'objection_reason_required_if' => "Objection reason is required.",
     ],
@@ -322,5 +328,31 @@ return [
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required"
-    ]
+    ],
+    'validation_commit_change' => [
+        'type_in' => "Please enter a valid value (topic,camp,statement)",
+        'id_required' => "Id is required.",
+    ],
+    'statement_comparison' => [
+        'ids_required' => "Statement Ids is required.",
+        'topic_num_required' => "Topic Num is required.",
+        'camp_num_required' => "Camp Num is required.",
+    ],
+    'support_warning' => [
+        'not_live' => "You can not submit your support to this camp as its not live yet."
+    ],
+    'validation_get_topic_activity_log' => [
+        'topic_num_required' => "Topic number is required.",
+        'topic_num_integer' => "Topic number can only be an integer.",
+        'camp_num_required' => "Camp number is required",
+        'camp_num_integer' => "Camp number can only be an integer."
+    ],
+    'validation_agree_to_change' => [
+        'record_id_required' => "Record id is required.",
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required.",
+        'change_for_in' => "Please enter a valid value (topic,camp,statement)",
+        'nick_name_id_required' => "Nick name id is required",
+        'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
+    ],
 ];

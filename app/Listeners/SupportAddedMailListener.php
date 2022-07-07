@@ -9,7 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SupportRemovedMailListener implements ShouldQueue
+class SupportAddedMailListener implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -29,6 +29,6 @@ class SupportRemovedMailListener implements ShouldQueue
         $user = $event->user;
         $to = $event->to;
         $data = $event->data;
-        Mail::to($to)->send(new SupportRemovedMail($user,$data));
+        Mail::to($to)->send(new SupportAddedMail($user,$data));
     }
 }

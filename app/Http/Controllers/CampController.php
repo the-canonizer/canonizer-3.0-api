@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ActivityLoggerJob;
+use App\Helpers\CampForum;
 
 class CampController extends Controller
 {
@@ -288,6 +289,7 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
+        $parentCampName= null;
         $camp = [];
         try {
             $livecamp = Camp::getLiveCamp($filter);
@@ -297,11 +299,15 @@ class CampController extends Controller
                 if ($request->user()) {
                     $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                     $livecamp->flag = $campSubscriptionData['flag'];
-                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] : null;
-                    $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
+                    $livecamp->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? null;
+                    $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
+                if($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0){
+                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
+                }
+                $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -758,21 +764,24 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        $filter['campNum']= $request->camp_num;
+        $filter['topicNum']= $request->topic_num;
+        $filter['checked']= $request->checked;
+        $filter['subscriptionId']=$request->subscription_id ?? "";
+        $response = new stdClass();
         try {
-            $all = $request->all();
-            $subscription_id = isset($all['subscription_id']) ? $all['subscription_id'] : "";
-            $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $all['camp_num'])->where('topic_num', '=', $all['topic_num'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-            if ($all['checked'] && empty($campSubscriptionData)) {
+            $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
+            if ($filter['checked'] && empty($campSubscriptionData)) {
                 $campSubscription = new CampSubscription;
                 $campSubscription->user_id = $request->user()->id;
-                $campSubscription->topic_num = $all['topic_num'];
-                $campSubscription->camp_num = $all['camp_num'];
+                $campSubscription->topic_num = $filter['topicNum'];
+                $campSubscription->camp_num = $filter['campNum'];
                 $campSubscription->subscription_start = strtotime(date('Y-m-d H:i:s'));
                 $msg = trans('message.success.subscribed');
-            } elseif ($all['checked'] && $campSubscriptionData) {
+            } elseif ($filter['checked'] && $campSubscriptionData) {
                 return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_subscribed'), [], '');
             } else {
-                $campSubscription = CampSubscription::where('user_id', '=', $request->user()->id)->where('id', '=', $subscription_id)->where('subscription_end', '=', null)->first();
+                $campSubscription = CampSubscription::where('user_id', '=', $request->user()->id)->where('id', '=', $filter['subscriptionId'])->where('subscription_end', '=', null)->first();
                 if (empty($campSubscription)) {
                     return $this->resProvider->apiJsonResponse(200, trans('message.validation_subscription_camp.already_unsubscribed'), [], '');
                 }
@@ -780,11 +789,13 @@ class CampController extends Controller
                 $msg = trans('message.success.unsubscribed');
             }
             $campSubscription->save();
-            $subscriptionId = ($subscription_id && !$all['checked']) ? "" : $campSubscription->id;
-            $response = new stdClass();
+            $filter['subscriptionId'] = ($filter['subscriptionId'] && !$filter['checked']) ? "" : $campSubscription->id;
+            $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+            $response->flag = $campSubscriptionData['flag'];
+            $response->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? $filter['subscriptionId'];
+            $response->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ??  null;
             $response->msg = $msg;
-            $response->subscriptionId = $subscriptionId;
-            $indexes = ['msg', 'subscriptionId'];
+            $indexes = ['msg', 'subscriptionId', 'flag', 'subscriptionId', 'subscriptionCampName'];
             $data[0] = $response;
             $data = $this->resourceProvider->jsonResponse($indexes, $data);
             $data = $data[0];
@@ -964,7 +975,7 @@ class CampController extends Controller
     }
 
      /**
-     * @OA\Post(path="/api/v3/get-camp-breadcrumb",
+     * @OA\Post(path="/get-camp-breadcrumb",
      *   tags={"Camp"},
      *   summary="get camp bread crumb",
      *   description="Used to get camp bread crumb.",
@@ -1016,11 +1027,20 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
+        $data = new stdClass();
+        $data->flag=0;
+        $data->subscription_id=null;
+        $data->subscribed_camp_name=null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
-            $data = new stdClass();
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $indexs = ['bread_crumb'];
+            if ($request->user()) {
+                $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                $data->flag = $campSubscriptionData['flag'];
+                $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
+                $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
+            }
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response=$response[0];

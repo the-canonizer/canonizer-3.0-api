@@ -22,6 +22,8 @@ use App\Http\Request\ValidationMessages;
 use App\Models\CampSubscription;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\Nickname;
+use App\Models\Statement;
+use App\Models\ChangeAgreeLog;
 
 class TopicController extends Controller
 {
@@ -273,11 +275,175 @@ class TopicController extends Controller
             }
             if ($topic) {
                 $topicRecord[] = $topic;
-                $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId'];
+                $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
                 $topicRecord = $topicRecord[0];
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(path="/commit/change",
+     *   tags={"Topic"},
+     *   summary="Commit a change",
+     *   description="Used to commit a change for camp, topic and statement.",
+     *   operationId="commitChange",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Commit change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Record id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function commitAndNotifyChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getCommitChangeValidationRules(), $this->validationMessages->getCommitChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $all = $request->all();
+        $type = $all['type'];
+        $id = $all['id'];
+        $message = "";
+        $nickNames = Nickname::personNicknameArray();
+        try {
+            if ($type == 'statement') {
+                $statement = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+                if (!$statement) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+                $statement->grace_period = 0;
+                $statement->update();
+                $message = trans('message.success.statement_commit');
+            }
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(path="/agree-to-change",
+     *   tags={"Topic"},
+     *   summary="Agree to change",
+     *   description="Used to agree on a change for camp, topic and statement.",
+     *   operationId="agreeToChange",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *    @OA\RequestBody(
+     *       required=true,
+     *       description="Agree to change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="record_id",
+     *                   description="Record id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="change_for",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="nick_name_id",
+     *                   description="Nick name id",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function agreeToChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAgreeToChangeValidationRules(), $this->validationMessages->getAgreeToChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $data = $request->all();
+        $message = "";
+        $changeId = $data['record_id'];
+        try {
+            $log = new ChangeAgreeLog();
+            $log->change_id = $changeId;
+            $log->camp_num = $data['camp_num'];
+            $log->topic_num = $data['topic_num'];
+            $log->nick_name_id = $data['nick_name_id'];
+            $log->change_for = $data['change_for'];
+            if ($data['change_for'] == 'statement') {
+                $statement = Statement::where('id', $changeId)->first();
+                if ($statement) {
+                    $log->save();
+                    $submitterNickId = $statement->submitter_nick_id;
+                    $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', 'statement')->count();
+                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    if ($agreeCount == $supporters) {
+                        $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                        $statement->update();
+                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                    }
+                    $message = trans('message.success.statement_agree');
+                }else{
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+            }
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

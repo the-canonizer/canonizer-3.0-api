@@ -331,5 +331,10 @@ class Nickname extends Model {
         return [];
     }
 
+    public static function getUserByNickId($nick_id) {
+        $nickname = self::find($nick_id);
+        return $nickname->nick_name;
+    }
+
     
 }

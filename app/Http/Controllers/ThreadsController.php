@@ -16,6 +16,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
 use App\Jobs\ActivityLoggerJob;
+use App\Models\Reply;
 
 class ThreadsController extends Controller
 {
@@ -387,7 +388,7 @@ class ThreadsController extends Controller
                     })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -410,11 +411,12 @@ class ThreadsController extends Controller
                 })
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
+                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
                 ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             }
+           
             if ($request->type == config('global.thread_type.myThread')) {
                 if (count($userNicknames) > 0) {
                     $query->where('thread.user_id', $userNicknames[0]->id)->groupBy('thread.id');
@@ -433,7 +435,7 @@ class ThreadsController extends Controller
                     })
                     ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'), 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -441,6 +443,10 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
+            foreach($threads->items as $value){
+                $postCount =  Reply::where('thread_id',$value->id)->get();
+                  $value->post_count = $postCount->count();
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $threads, null);

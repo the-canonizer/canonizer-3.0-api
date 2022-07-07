@@ -76,7 +76,7 @@ class ValidationMessages
             'confirm_password.same' => trans('message.validation_change_password.confirm_password_match'),
             'confirm_password.required' => trans('message.validation_change_password.confirm_password_required'),
             'new_password.different' => trans('message.validation_change_password.new_password_different'),
-            
+
         ]);
     }
 
@@ -134,7 +134,7 @@ class ValidationMessages
     public function getStatementValidationMessages(): array
     {
         return [
-            
+
             'as_of.in' => trans('message.validation_get_statement.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statement.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_statement.topic_num_required'),
@@ -190,7 +190,6 @@ class ValidationMessages
             'camp_name.unique' => trans('message.validation_camp_store.camp_name_unique'),
             'camp_about_url.max' => trans('message.validation_camp_store.camp_about_url_max'),
             'camp_about_url.regex' => trans('message.validation_camp_store.camp_about_url_regex'),
-            'parent_camp_num.required' => trans('message.validation_camp_store.parent_camp_num_required'),
             'objection.required' => trans('message.validation_camp_store.objection_required'),
             'objection_reason.max' => trans('message.validation_camp_store.objection_reason_max'),
             'asof.in' => trans('message.validation_camp_store.asof_in')
@@ -229,7 +228,7 @@ class ValidationMessages
             'newsfeed_id.exists' => trans('message.validation_edit_newsfeed.not_found')
         ];
     }
-    
+
     public function getAllParentCampValidationMessages(): array
     {
         return ([
@@ -242,7 +241,7 @@ class ValidationMessages
         return ([
             'phone_number.required' => trans('message.phone_number.required'),
             'phone_number.digits' => trans('message.phone_number.valid_digits'),
-            'mobile_carrier.required' => trans('message.phone_number.mobile_carrier_required') 
+            'mobile_carrier.required' => trans('message.phone_number.mobile_carrier_required')
 
         ]);
     }
@@ -294,7 +293,7 @@ class ValidationMessages
 
         ]);
     }
-    
+
     public function getNewsFeedStoreValidationMessages(): array
     {
         return [
@@ -341,7 +340,7 @@ class ValidationMessages
             'topic_num.required' => trans('message.thread.topic_num_required'),
         ];
     }
-    
+
     public function getStatementHistoryValidationMessages(): array
     {
         return ([
@@ -350,6 +349,8 @@ class ValidationMessages
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
+            'per_page.required' => trans('message.validation_get_statementHistory.per_page_required'),
+            'page.required' => trans('message.validation_get_statementHistory.page_required'),
         ]);
     }
 
@@ -375,8 +376,8 @@ class ValidationMessages
             'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
             'delegate_to_user_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
             'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
-            
-         ]);
+
+        ]);
     }
 
     public function getPostStoreValidationMessages(): array
@@ -440,7 +441,7 @@ class ValidationMessages
             'objection_reason.required_if' => trans('message.validation_store_statement.objection_reason_required_if'),
         ];
     }
-    
+
     public function getPostVerifyEmailValidationMessages(): array
     {
         return ([
@@ -477,6 +478,45 @@ class ValidationMessages
             'as_of_date.required_if' => trans('message.validation_get_camp_bread_crumb.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_camp_bread_crumb.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_camp_bread_crumb.camp_num_required')
+        ];
+    }
+
+    public function getCommitChangeValidationMessages(): array
+    {
+        return [
+            'type.in' => trans('message.validation_commit_change.type_in'),
+            'id.required' => trans('message.validation_commit_change.id_required'),
+        ];
+    }
+    
+    public function getStatementComparisonValidationMessages(): array
+    {
+        return [
+            'ids.required' => trans('message.statement_comparison.ids_required'),
+            'topic_num.required' => trans('message.statement_comparison.topic_num_required'),
+            'camp_num.required' => trans('message.statement_comparison.camp_num_required'),
+        ];
+    }
+
+    public function getCampActivityLogValidationMessages(): array
+    {
+        return [
+            'camp_num.required' => trans('message.validation_get_topic_activity_log.camp_num_required'),
+            'camp_num.integer' => trans('message.validation_get_topic_activity_log.camp_num_integer'),
+            'topic_num.required' => trans('message.validation_get_topic_activity_log.topic_num_required'),
+            'topic_num.integer' => trans('message.validation_get_topic_activity_log.topic_num_integer'),
+        ];
+    }
+
+    public function getAgreeToChangeValidationMessages(): array
+    {
+        return [
+            'record_id.required' => trans('message.validation_agree_to_change.record_id_required'),
+            'topic_num.required' => trans('message.validation_agree_to_change.topic_num_required'),
+            'camp_num.required' => trans('message.validation_agree_to_change.camp_num_required'),
+            'change_for.in' => trans('message.validation_agree_to_change.change_for_in'),
+            'change_for.required' => trans('message.validation_agree_to_change.change_for_required'),
+            'nick_name_id.required' => trans('message.validation_agree_to_change.nick_name_id_required'),
         ];
     }
 }

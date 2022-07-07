@@ -160,32 +160,26 @@ class SupportController extends Controller
 
 
     public function addDirectSupport(Request $request, Validate $validate)
-    {
+    {        
         
         $validationErrors = $validate->validate($request, $this->rules->getAddDirectSupportRule(), $this->validationMessages->getAddDirectSupportMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        try{
-            $all = $request->all();
-            $supports = [];
-            if(isset($all['camps'])){
-                foreach($all['camps'] as $camp){
-                    $data = [
-                    'topic_num' => $all['topic_num'],
-                    'nick_name_id' => $all['nick_name_id'],
-                    'camp_num' => $camp['camp_num'],
-                    'support_order' => $camp['support_order'],
-                    'start' => time()
-                    ];
-                    array_push($supports,$data);
-                }
-                Support::insert($supports);
-                
-                return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+        $all = $request->all();
+        $user = $request->user();
+        $topicNum = $all['topic_num'];
+        $nickNameId = $all['nick_name_id'];
+        $addCamp = $all['add_camp'];
+        $removedCamps = $all['remove_camps'];
+        $orderUpdate = $all['order_update'];        
 
-            }
+        try{
+            
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+    
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -208,10 +202,12 @@ class SupportController extends Controller
         try{
             $topicNum = $all['topic_num'];
             $nicknameId = $all['nick_name_id'];
+            $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegate_to_user_id'];
 
             // get all camps being supported by delegatedToUser
             $support = Support::getActiveSupporInTopic($topicNum,$delegatedNickId);
+            $campNum = ($campNum) ? $campNum : $support[0]->camp_num;
 
             // add delegation support
             $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
@@ -318,10 +314,9 @@ class SupportController extends Controller
     }
 
     /**
-
-     * @OA\Get(path="/add-direct-support",
+     * @OA\Get(path="/support/check",
      * tags = "{support}",
-     * description = "This will check if nick name id has support in this camp or not"
+     * description = "This will check if user has support in this camp or not and send warning messages accordingly."
      * )
      * 
      */
@@ -330,9 +325,6 @@ class SupportController extends Controller
      {
          
         $data = $request->all();
-
-        $all = $request->all();
-        $topicNum = $all['topic_num'];
         $user = $request->user();
         $userId = $user->id;
 
@@ -379,12 +371,13 @@ class SupportController extends Controller
      */
 
     public function getSupportInTopic(Request $request)
-    {         
+    {
         $all = $request->all();
         $topicNum = $all['topic_num'];
         $user = $request->user();
         $userId = $user->id;
         try{
+            
             $data = Support::getSupportedCampsList($topicNum, $userId);              
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
             

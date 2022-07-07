@@ -79,10 +79,10 @@ class ValidationRules
             'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'city' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'state' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'country' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'postal_code' => 'nullable|regex:/^[a-zA-Z0-9 ]*$/|string|max:100',
+            'city' => 'nullable',
+            'state' => 'nullable',
+            'country' => 'nullable',
+            'postal_code' => 'nullable',
             'phone_number' => 'nullable|digits:10',
         ]);
     }
@@ -326,9 +326,11 @@ class ValidationRules
         return [
             'topic_num' => 'required',
             'camp_num' => 'required',
-            'type' => 'in:objected,in_review,live,old,all',
+            'type' => 'in:objected,in_review,old,all',
             'as_of' => 'in:default,review,bydate',
-            'as_of_date' => 'required_if:as_of,bydate'
+            'as_of_date' => 'required_if:as_of,bydate',
+            'per_page' => 'required',
+            'page' => 'required',
         ];
     }
 
@@ -337,9 +339,9 @@ class ValidationRules
         return [
             'topic_num' => 'required|integer',
             'nick_name_id' => 'required',
-            'camps' => 'required|array|min:1',
-            'camps.*.camp_num' => 'required|integer',
-            'camps.*.support_order' => 'required|integer'
+            //'camps' => 'required|array|min:1',
+            //'camps.*.camp_num' => 'required|integer',
+            //'camps.*.support_order' => 'required|integer'
         ];
     }
 
@@ -379,7 +381,6 @@ class ValidationRules
             'statement' => 'required',
             'nick_name' => 'required',
             'submitter' => 'required', 
-            'parent_camp_num' => 'required', 
             'statement_id' => 'required_if:objection,1',
             'objection_reason' => 'required_if:objection,1'
         ];
@@ -415,6 +416,42 @@ class ValidationRules
             'camp_num' => 'required',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
+        ]);
+    }
+
+    public function getCommitChangeValidationRules(): array
+    {
+        return ([
+            'id' => 'required',
+            'type' => 'in:statement,camp,topic',
+        ]);
+    }
+    
+    public function getStatementComparisonValidationRules(): array
+    {
+        return ([
+            'ids' => 'required',
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+        ]);
+    }
+
+    public function getCampActivityLogValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'camp_num' => 'required|integer'
+        ];
+    }
+
+    public function getAgreeToChangeValidationRules(): array
+    {
+        return ([
+            'record_id' => 'required',
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'change_for' => 'required|in:topic,camp,statement',
+            'nick_name_id' => 'required',
         ]);
     }
 }

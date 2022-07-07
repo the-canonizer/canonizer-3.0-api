@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-
+use App\Models\CampSubscription;
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -248,7 +248,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function getCampSubscribers($topic_num, $camp_num = 1)
     {
         $users_data = [];
-        $users = \App\Models\CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
+        $users = CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
             ->whereIn('camp_num', [0, $camp_num])
             ->whereNull('subscription_end')
             ->get();
@@ -286,7 +286,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         if (count($child_camps) > 0 || count($parent_camps) > 0) {
             $camps = array_unique(array_merge($child_camps, $parent_camps));
-            $usersData = \App\Models\CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
+            $usersData = CampSubscription::select('user_id')->where('topic_num', '=', $topic_num)
                 ->whereIn('camp_num', $camps)
                 ->where('subscription_end', '=', null)
                 ->get();
@@ -378,7 +378,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function getCampSubscription($filter, $userid = null): array
     {
         $returnArr = array('flag' => 0, 'camp_subscription_data' => []);
-        $camp_subscription = \App\Models\CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
+        $camp_subscription = CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get();
         $flag = sizeof($camp_subscription) > 0  || 0;
         if (!$flag) {
             $onecamp = self::liveCampByDateFilter($filter);
@@ -393,16 +393,16 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 }
             }
             if (count($child_camps) > 0) {
-                $camp_subs_child = \App\Models\CampSubscription::where('user_id', '=', $userid)->whereIn('camp_num', $child_camps)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
+                $camp_subs_child = CampSubscription::where('user_id', '=', $userid)->whereIn('camp_num', $child_camps)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get();
                 $flag = ($camp_subs_child && sizeof($camp_subs_child) > 0);
                 if ($flag) {
                     $flag = 2;
                 }
                 foreach ($child_camps as $camp) {
-                    $camp_subscription = \App\Models\CampSubscription::select('camp_subscription.id as subscription_id', 'camp.camp_name as camp_name')->join("camp", function ($join) {
+                    $camp_subscription = CampSubscription::select('camp_subscription.id as subscription_id', 'camp.camp_name as camp_name')->join("camp", function ($join) {
                         $join->on("camp.topic_num", "=", "camp_subscription.topic_num")
                             ->on("camp.camp_num", "=", "camp_subscription.camp_num");
-                    })->where('user_id', '=', $userid)->where('camp_subscription.camp_num', '=', $camp)->where('camp_subscription.topic_num', '=', $filter['topicNum'])->where('camp_subscription.subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('camp_subscription.subscription_end', '=', null)->orWhere('camp_subscription.subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->orderBy('camp.go_live_time', 'DESC')->limit(1)->get();
+                    })->where('user_id', '=', $userid)->where('camp_subscription.camp_num', '=', $camp)->where('camp_subscription.topic_num', '=', $filter['topicNum'])->where('camp_subscription.subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('camp_subscription.subscription_end', '=', null)->orWhere('camp_subscription.subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->orderBy('camp.go_live_time', 'DESC')->limit(1)->get();
                     if (sizeof($camp_subscription) > 0) {
                         $returnArr = array('flag' => $flag, 'camp_subscription_data' => $camp_subscription);
                         break;
@@ -440,10 +440,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $parentcamps = self::getAllParent($oneCamp);
         $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
         
-        if (count($mysupports))
-            return $mysupports;
-        else
-            return false;
+        return (count($mysupports)) ? $mysupports : false;
     }
 
     public static function validateChildsupport($topicNum, $campNum, $userNicknames) 
@@ -454,10 +451,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
         $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
 
-        if (count($mysupports))
-            return $mysupports;
-        else
-            return false;
+        return (count($mysupports)) ? $mysupports : false;
     }
 
     public static function getLiveCampFilter($topicNum, $campNum)
@@ -476,6 +470,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
             $parentCampName = $campDetails->camp_name;
         }
+        
         return $parentCampName;
     }
 }

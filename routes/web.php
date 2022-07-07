@@ -39,7 +39,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
     $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
     $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
-
+    $router->post('get-camp-activity-log','ActivityController@getCampActivityLog');
     $router->post('/client-token','UserController@clientToken');
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
@@ -106,8 +106,11 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/edit-camp-statement/{id}', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
         $router->post('support-order/update','SupportController@updateSupportOrder');
+        $router->post('commit/change','TopicController@commitAndNotifyChange');
+        $router->post('/get-statement-comparison','StatementController@getStatementComparison');
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
+        $router->post('agree-to-change','TopicController@agreeToChange');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
