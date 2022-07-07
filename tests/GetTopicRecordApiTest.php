@@ -102,12 +102,11 @@ class GetTopicRecordApiTest extends TestCase
             'message',
             'error',
             'data' => [
-                [
                     'topic_num',
                     'camp_num',
                     'topic_name',
-                    'namespace_name'
-                ]
+                    'namespace_name',
+                    'namespace_id'
             ]
         ]);
     }

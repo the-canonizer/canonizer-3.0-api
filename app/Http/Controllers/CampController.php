@@ -299,8 +299,8 @@ class CampController extends Controller
                 if ($request->user()) {
                     $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                     $livecamp->flag = $campSubscriptionData['flag'];
-                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] : null;
-                    $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
+                    $livecamp->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? null;
+                    $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
                 if($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0){
                     $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
@@ -1027,11 +1027,20 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
+        $data = new stdClass();
+        $data->flag=0;
+        $data->subscription_id=null;
+        $data->subscribed_camp_name=null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
-            $data = new stdClass();
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $indexs = ['bread_crumb'];
+            if ($request->user()) {
+                $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                $data->flag = $campSubscriptionData['flag'];
+                $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
+                $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
+            }
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response=$response[0];

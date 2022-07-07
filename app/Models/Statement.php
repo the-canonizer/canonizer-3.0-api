@@ -121,7 +121,7 @@ class Statement extends Model
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitterNickName=NickName::getNickName($val->submitter_nick_id)->nick_name;
-                $val->isAuthor = ($submitterUserID == $request->user()->id) ?  true : false ;
+                $val->isAuthor = (isset($request->user) && $submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -137,7 +137,7 @@ class Statement extends Model
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && isset($request) && $request->user()->id != $submitterUserID) {
+                if ($interval > 0 && $val->grace_period > 0  && (( isset($request->user) && $request->user()->id != $submitterUserID ) || !isset($request->user)) ) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;

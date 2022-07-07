@@ -275,7 +275,7 @@ class TopicController extends Controller
             }
             if ($topic) {
                 $topicRecord[] = $topic;
-                $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId'];
+                $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
                 $topicRecord = $topicRecord[0];
             }
