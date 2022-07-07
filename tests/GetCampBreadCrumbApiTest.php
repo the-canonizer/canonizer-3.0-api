@@ -32,7 +32,7 @@ class GetCampBreadCrumbApiTest extends TestCase
 
     /**
      * Check Api response code with correct data
-     */
+     */                                                                
     public function testGetCampBreadCrumbStatus()
     {
         $data = [
@@ -102,6 +102,9 @@ class GetCampBreadCrumbApiTest extends TestCase
             'error',
             'data' => [
                     'bread_crumb',
+                    'flag',
+                    'subscription_id',
+                    'subscribed_camp_name'
             ]
         ]);
     }
