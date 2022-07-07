@@ -360,7 +360,7 @@ return [
         "createCamp" => "Camp Create",
     ],
     'notification_message' => [
-        "createTopic" => "Hello {{first_name}} {{last_name}}, You proposed a change for {{notification_type}} : {{topic_name}}",
+        "createTopic" => "Hello :first_name :last_name, You proposed a change for :notification_type : :topic_name",
         "createCamp" => "Camp",
     ],
 ];

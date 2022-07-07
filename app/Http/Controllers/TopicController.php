@@ -195,9 +195,9 @@ class TopicController extends Controller
                     $PushNotificationData->user_id = $request->user()->id;
                     $PushNotificationData->topic_num = $topic->topic_num;
                     $PushNotificationData->camp_num = 1;
-                    $PushNotificationData->notification_type = config('global.notification_type.createTopic');
+                    $PushNotificationData->notification_type = config('global.notification_type.Topic');
                     $PushNotificationData->title = trans('message.notification_title.createTopic');
-                    $PushNotificationData->message_body = trans('message.notification_message.createTopic');
+                    $PushNotificationData->message_body = trans('message.notification_message.createTopic', ['first_name' => 'Saurabh', 'last_name' => 'Singh', 'notification_type' => 'Topic', 'topic_name' => $request->topic_name]);
                     $PushNotificationData->fcm_token = $request->fcm_token;
                     $PushNotificationData->link = Topic::topicLink($topic->topic_num, 1, $topic->topic_name ?? '');
                     $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
@@ -451,7 +451,7 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
-                }else{
+                } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             }
