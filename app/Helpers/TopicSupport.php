@@ -799,7 +799,7 @@ class TopicSupport
                     }
                 }
             } else {
-                    
+                $returnData['is_confirm'] = 1;    
                 $returnData['warning'] = '"'.$onecamp->camp_name .'" is a parent camp to this list of child camps. If you commit support to "'.$onecamp->camp_name .'", the support of the camps in this list will be removed.';
                 
             }
