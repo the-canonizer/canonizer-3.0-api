@@ -397,6 +397,14 @@ class ThreadsController extends Controller
                 }
                 $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
+                foreach($threads->items as $value){
+                    $postCount =  Reply::where('thread_id',$value->id)->get();
+                    $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
+                    foreach($namspaceId as $nId){
+                        $value->namespace_id = $nId->namespace_id;
+                    }
+                    $value->post_count = $postCount->count();
+                }
                 $status = 200;
                 $message = trans('message.success.success');
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
