@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use Throwable;
 use App\Facades\Util;
+use App\Models\Reply;
+use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Jobs\ActivityLoggerJob;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
-use App\Jobs\ActivityLoggerJob;
-use App\Models\Reply;
+use stdClass;
 
 class ThreadsController extends Controller
 {
@@ -445,7 +447,11 @@ class ThreadsController extends Controller
             $threads = Util::getPaginatorResponse($threads);
             foreach($threads->items as $value){
                 $postCount =  Reply::where('thread_id',$value->id)->get();
-                  $value->post_count = $postCount->count();
+                $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
+                foreach($namspaceId as $nId){
+                    $value->namespace_id = $nId->namespace_id;
+                }
+                $value->post_count = $postCount->count();
             }
             $status = 200;
             $message = trans('message.success.success');
