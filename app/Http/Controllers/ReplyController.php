@@ -6,6 +6,7 @@ use Exception;
 use Throwable;
 use App\Facades\Util;
 use App\Models\Reply;
+use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
@@ -329,12 +330,12 @@ class ReplyController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
             $result = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-            ->select('post.*','nick_name.nick_name')
+            ->Join('thread as t', 't.id', '=', 'post.thread_id')
+            ->select('post.*','nick_name.nick_name','t.topic_id')
             ->where('thread_id', $id)->where('is_delete','0')->latest()->paginate($per_page);
 
 
             $response = Util::getPaginatorResponse($result);
-
             if (empty($response)) {
                 $status = 400;
                 $message = trans('message.error.exception');
@@ -348,6 +349,10 @@ class ReplyController extends Controller
                     $isMyPost = true;
                 }
                 $value->is_my_post = $isMyPost;
+                $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
+                foreach($namspaceId as $nId){
+                    $value->namespace_id = $nId->namespace_id;
+                }
             }
             $status = 200;
             $message = trans('message.success.success');
