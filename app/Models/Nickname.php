@@ -286,6 +286,7 @@ class Nickname extends Model {
         $as_of_clause = '';
 
         $topic_num_cond = '';
+        /** ticket can-833 supported camp should appear regardless of topic num */
         //if(!empty($topic_num)){
            // $topic_num_cond = 'and u.topic_num = '.$topic_num;
        // }
