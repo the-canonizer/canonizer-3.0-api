@@ -10,9 +10,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Mingalevme\Illuminate\UQueue\Jobs\Uniqueable;
 
-
-class CanonizerService implements ShouldQueue, ShouldBeUnique
+class CanonizerService implements ShouldQueue, ShouldBeUnique, Uniqueable
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -33,6 +33,11 @@ class CanonizerService implements ShouldQueue, ShouldBeUnique
      * @return string
      */
     public function uniqueId()
+    {
+        return $this->canonizerData['topic_num'];
+    }
+
+    public function uniqueable()
     {
         return $this->canonizerData['topic_num'];
     }
