@@ -286,9 +286,9 @@ class Nickname extends Model {
         $as_of_clause = '';
 
         $topic_num_cond = '';
-        if(!empty($topic_num)){
-            $topic_num_cond = 'and u.topic_num = '.$topic_num;
-        }
+        //if(!empty($topic_num)){
+           // $topic_num_cond = 'and u.topic_num = '.$topic_num;
+       // }
 
         $namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : $namespace;
 
