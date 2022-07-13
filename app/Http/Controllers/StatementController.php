@@ -87,7 +87,6 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time = Util::convertUnixToDateFormat($campStatement->go_live_time);
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $campStatement->submitter_nick_name=$campStatement->submitterNickName->nick_name;
@@ -235,7 +234,6 @@ class StatementController extends Controller
                 $parentCampNum = isset($camp->parent_camp_num) ? $camp->parent_camp_num : 0;
                 $parentCamp = Camp::campNameWithAncestors($camp, $filter);
                 $nickName = Nickname::topicNicknameUsed($statement->topic_num);
-                $statement->go_live_time = Util::convertUnixToDateFormat($statement->go_live_time);
                 $WikiParser = new wikiParser;
                 $statement->parsed_value = $WikiParser->parse($statement->value);
                 $data = new stdClass();
