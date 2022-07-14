@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Namespaces;
 class Util
 {
 
@@ -301,5 +302,26 @@ class Util
 
     public static function convertDateFormatToUnix($dateTime) {
         return strtotime($dateTime);
+    }
+    public function getEmailSubjectForSandbox($namespace_id)
+    {
+        try {
+            $subject = 'canon';
+            $namespace = Namespaces::find($namespace_id);
+            if(preg_match('/sandbox/i',$namespace->name)){
+                $subject = 'canon/sandbox/';
+            }
+            if(preg_match('/sandbox testing/i',$namespace->name)){
+                $subject = 'canon/sandbox testing/';
+            }
+            if(env('APP_ENV') == 'staging' || env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
+               return '[local.' . $subject . ']';
+            }else{
+              return  '[' . $subject . ']';
+            }
+          
+        } catch (Exception $ex) {
+            Log::error("Util :: GetEmailSubjectForSandbox :: message: " . $ex->getMessage());
+        }
     }
 }
