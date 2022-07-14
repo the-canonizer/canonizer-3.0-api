@@ -18,7 +18,12 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use App\Mail\PurposedToSupportersMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use App\Library\General;
+use App\Mail\ObjectionToSubmitterMail;
+
 
 class StatementController extends Controller
 {
@@ -328,7 +333,7 @@ class StatementController extends Controller
      * )
      */
     public function storeStatement(Request $request, Validate $validate)
-    {
+    { 
         $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -395,9 +400,10 @@ class StatementController extends Controller
             }
             $statement->save();
             $livecamp = Camp::getLiveCamp( $filters);
-            $link = 'statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            
             if ($eventType == "CREATE" && $statement->grace_period == 0) {
-                 $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
+                 $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
                  $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
                  $dataObject['topic_num'] = $statement->topic_num;
                  $dataObject['camp_num'] = $statement->camp_num;
@@ -418,7 +424,8 @@ class StatementController extends Controller
               } else if ($eventType == "OBJECTION") {
                  $user = Nickname::getUserByNickName($all['submitter']);
                  $nickName = Nickname::getNickName($all['nick_name']);
-                 $data['topic_link'] =Camp::getTopicCampUrl($statement->topic_num,$statement->camp_num);
+                 $topicLive = Topic::getLiveTopic($statement->topic_num,['nofilter'=>true]);
+                 $data['topic_link'] =Util::getTopicCampUrl($statement->topic_num,$statement->camp_num, $topicLive, $livecamp, time());
                  $data['type'] = "Camp";
                  $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
                  $data['object_type'] = "statement";   
@@ -428,13 +435,12 @@ class StatementController extends Controller
                  $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
                  $data['nick_name_id'] = $nickName->id;
                  $data['help_link'] = General::getDealingWithDisagreementUrl();
-                 $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : config('app.admin_email');
+                 $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : env('ADMIN_EMAIL');
                  try{
                      Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new ObjectionToSubmitterMail($user, $link, $data));
                  }catch(\Swift_TransportException $e){
                      throw new \Swift_TransportException($e);
                  } 
-                 return redirect('statement/history/' . $statement->topic_num . '/' . $statement->camp_num)->with(['success' => $message, 'go_live_time' => $go_live_time]);
              } 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
@@ -573,9 +579,8 @@ class StatementController extends Controller
 
     private function mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject){
         $alreadyMailed = [];
-        $i=0;
         if(!empty($directSupporter)) {
-            foreach ($directSupporter as $supporter) {            
+            foreach ($directSupporter as $supporter) {           
                 $supportData = $dataObject;
                 $user = Nickname::getUserByNickName($supporter->nick_name_id);
                 $alreadyMailed[] = $user->id;
@@ -591,10 +596,9 @@ class StatementController extends Controller
                     $supportData['also_subscriber'] = 1;
                     $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id,$supportData['topic_num'],$supportData['camp_num']);      
                 }
-                 
-                $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : config('app.admin_email');
+                $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
                    try{
-                    Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new PurposedToSupportersMail($user, $link, $supportData));
+                    Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($user, $link, $supportData));
                     }catch(\Swift_TransportException $e){
                         throw new \Swift_TransportException($e);
                     } 
@@ -603,17 +607,17 @@ class StatementController extends Controller
         if(!empty($subscribers)){
             foreach ($subscribers as $usr) {            
                 $subscriberData = $dataObject;
-                $userSub = \App\User::find($usr);
+                $userSub = User::find($usr);
                 if(!in_array($userSub->id, $alreadyMailed,TRUE)) {
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id,$subscriberData['topic_num'],$subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list; 
-                    $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $userSub->email : config('app.admin_email');
+                    $receiver = env('APP_ENV') == "production" ? $userSub->email : config('app.admin_email');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
                     try{
-                        Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new PurposedToSupportersMail($userSub, $link, $subscriberData));
+                        Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($userSub, $link, $subscriberData));
                     }catch(\Swift_TransportException $e){
                         throw new \Swift_TransportException($e);
                     } 
