@@ -180,7 +180,9 @@ class SupportController extends Controller
         try{
             
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
+            
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -963,4 +963,22 @@ class TopicSupport
         
         return;
     }
+
+    /**
+     * Return Add support API message
+     */
+    public static function getMessageBasedOnAction($add, $remove, $reOrder)
+    {
+        $message = trans('message.support.update_support');
+
+        if(!empty($add) && empty($remove))
+        {
+            $message = trans('message.support.add_direct_support');
+        }else if(empty($add) && !empty($remove))
+        {
+            $message = trans('message.support.remove_direct_support');
+        }
+
+        return $message;
+    }
 }
