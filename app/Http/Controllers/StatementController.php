@@ -17,10 +17,9 @@ use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
-use Illuminate\Support\Facades\Mail;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Library\General;
-use App\Mail\ObjectionToSubmitterMail;
+use App\Jobs\ObjectionToSubmitterMailJob;
 
 
 class StatementController extends Controller
@@ -430,9 +429,8 @@ class StatementController extends Controller
                  $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
                  $data['nick_name_id'] = $nickName->id;
                  $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
-                 $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : env('ADMIN_EMAIL');
                  try{
-                     Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new ObjectionToSubmitterMail($user, $link, $data));
+                    dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
                     } catch (Exception $e) {
                         return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
                  } 

@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Models\Nickname;
 use App\Facades\Util;
-use App\Mail\PurposedToSupportersMail;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
+use App\Jobs\PurposedToSupportersMailJob;
+
 
 class Statement extends Model
 {
@@ -176,7 +176,7 @@ class Statement extends Model
                 }
                 $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
                 try {
-                    Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($user, $link, $supportData));
+                    dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
                     echo  $e->getMessage();
                 }
@@ -190,12 +190,12 @@ class Statement extends Model
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list;
-                    $receiver = env('APP_ENV') == "production" ? $userSub->email : config('app.admin_email');
+                    $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
                     try {
-                        Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($userSub, $link, $subscriberData));
+                        dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
                     } catch (Throwable $e) {
                         echo  $e->getMessage();
                     }
