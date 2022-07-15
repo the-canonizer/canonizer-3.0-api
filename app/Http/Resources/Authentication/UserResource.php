@@ -19,6 +19,7 @@ class UserResource extends JsonResource
             "default_algo"    => $this->default_algo ?? null,
             "private_flags"   => $this->private_flags ?? null,
             "join_time"       => $this->join_time ?? time(),
+            "is_admin"       => $this->is_admin ?? null,
         ];
     }
 }

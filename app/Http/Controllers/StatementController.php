@@ -88,7 +88,6 @@ class StatementController extends Controller
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
-                $campStatement->go_live_time = Util::convertUnixToDateFormat($campStatement->go_live_time);
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $campStatement->submitter_nick_name=$campStatement->submitterNickName->nick_name;
@@ -236,7 +235,6 @@ class StatementController extends Controller
                 $parentCampNum = isset($camp->parent_camp_num) ? $camp->parent_camp_num : 0;
                 $parentCamp = Camp::campNameWithAncestors($camp, $filter);
                 $nickName = Nickname::topicNicknameUsed($statement->topic_num);
-                $statement->go_live_time = Util::convertUnixToDateFormat($statement->go_live_time);
                 $WikiParser = new wikiParser;
                 $statement->parsed_value = $WikiParser->parse($statement->value);
                 $data = new stdClass();
@@ -480,6 +478,7 @@ class StatementController extends Controller
                         default:
                             $status  = "old";
                     }
+                    $namspaceId =  Topic::select('namespace_id')->where('topic_num',$val->topic_num)->first();
                     $statement['comparison'][] = array(
                         'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
                         'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
@@ -499,6 +498,7 @@ class StatementController extends Controller
                         'grace_period' => $val->grace_period,
                         'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
                         'status' => $status,
+                        'namespace_id' => $namspaceId->namespace_id,
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -509,6 +509,7 @@ class StatementController extends Controller
                 $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
+                    $namspaceId =  Topic::select('namespace_id')->where('topic_num',$liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
                     $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
@@ -516,6 +517,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
+                    $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";

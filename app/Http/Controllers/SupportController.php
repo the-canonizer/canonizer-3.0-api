@@ -56,6 +56,7 @@ class SupportController extends Controller
 
                 if(isset($directSupports[$support->topic_num])){
                     $tempCamp = [
+                        'id' => $support->camp_num,
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
@@ -71,6 +72,7 @@ class SupportController extends Controller
                         'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
                         'camps' => array(
                                 [
+                                    'id' => $support->camp_num,
                                     'camp_num' => $support->camp_num,
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,

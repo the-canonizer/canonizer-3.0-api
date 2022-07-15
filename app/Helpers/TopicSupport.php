@@ -799,7 +799,7 @@ class TopicSupport
                     }
                 }
             } else {
-                    
+                $returnData['is_confirm'] = 1;    
                 $returnData['warning'] = '"'.$onecamp->camp_name .'" is a parent camp to this list of child camps. If you commit support to "'.$onecamp->camp_name .'", the support of the camps in this list will be removed.';
                 
             }
@@ -823,7 +823,7 @@ class TopicSupport
                 if ($parent->camp_num != $campNum) {
 
                     $returnData['is_confirm'] = 1;  
-                    $returnData['warnng'] = $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
+                    $returnData['warning'] = $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
                 }
             }
         } else {
