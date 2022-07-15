@@ -79,7 +79,7 @@ class Statement extends Model
         return $this->hasOne('App\Models\Nickname', 'id', 'submitter_nick_id');
     }
 
-    public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request = null)
+    public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request)
     {
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
@@ -121,7 +121,7 @@ class Statement extends Model
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitterNickName=NickName::getNickName($val->submitter_nick_id)->nick_name;
-                $val->isAuthor = (isset($request->user) && $submitterUserID == $request->user()->id) ?  true : false ;
+                $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -137,7 +137,7 @@ class Statement extends Model
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && (( isset($request->user) && $request->user()->id != $submitterUserID ) || !isset($request->user)) ) {
+                if (($interval > 0 && $val->grace_period > 0)  && (( isset($request->user()->id) && $request->user()->id != $submitterUserID ) || !isset($request->user()->id)) ) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
