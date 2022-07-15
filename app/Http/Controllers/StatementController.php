@@ -17,9 +17,8 @@ use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
-use App\Mail\PurposedToSupportersMail;
 use Illuminate\Support\Facades\Mail;
-use App\Models\User;
+
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Library\General;
 use App\Mail\ObjectionToSubmitterMail;
@@ -343,7 +342,7 @@ class StatementController extends Controller
         $filters['campNum'] = $all['camp_num'];
         $filters['asOf'] = 'default';
         $go_live_time = time();
-        $eventType = "CREATE";
+        $eventType = $all['event_type'];
         try {
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
@@ -360,8 +359,7 @@ class StatementController extends Controller
             $message =  trans('message.success.statement_create');
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
-            if (isset($all['objection']) && $all['objection'] == 1) {
-                $eventType = "OBJECTION";
+            if ($eventType == "objection") {
                 $message = trans('message.success.statement_object');
                 $statement = Statement::where('id', $all['statement_id'])->first();
                 $statement->objector_nick_id = $all['nick_name'];
@@ -370,8 +368,7 @@ class StatementController extends Controller
                 $statement->object_time = time();
                 $statement->grace_period = 0;
             }
-            if (isset($all['statement_update']) && $all['statement_update'] == 1) {
-                $eventType = "UPDATE";
+            if ($eventType == "edit") {
                 $message = trans('message.success.statement_update');  
                 $statement = Statement::where('id', $all['statement_id'])->first();
                 $statement->value = $all['statement'] ?? "";
@@ -401,8 +398,7 @@ class StatementController extends Controller
             $statement->save();
             $livecamp = Camp::getLiveCamp( $filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
-            
-            if ($eventType == "CREATE" && $statement->grace_period == 0) {
+            if ($eventType == "create" && $statement->grace_period == 0) {
                  $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
                  $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
                  $dataObject['topic_num'] = $statement->topic_num;
@@ -420,8 +416,8 @@ class StatementController extends Controller
                  $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
                  $dataObject['nick_name_id'] = $nickName->id;
                  $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-                $this->mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject);
-              } else if ($eventType == "OBJECTION") {
+                 Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject);
+              } else if ($eventType == "objection") {
                  $user = Nickname::getUserByNickName($all['submitter']);
                  $nickName = Nickname::getNickName($all['nick_name']);
                  $topicLive = Topic::getLiveTopic($statement->topic_num,['nofilter'=>true]);
@@ -434,7 +430,7 @@ class StatementController extends Controller
                  $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
                  $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
                  $data['nick_name_id'] = $nickName->id;
-                 $data['help_link'] = General::getDealingWithDisagreementUrl();
+                 $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
                  $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : env('ADMIN_EMAIL');
                  try{
                      Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new ObjectionToSubmitterMail($user, $link, $data));
@@ -575,55 +571,5 @@ class StatementController extends Controller
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
         }
-    }
-
-    private function mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject){
-        $alreadyMailed = [];
-        if(!empty($directSupporter)) {
-            foreach ($directSupporter as $supporter) {           
-                $supportData = $dataObject;
-                $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                $alreadyMailed[] = $user->id;
-                $topic = Topic::where('topic_num','=',$supportData['topic_num'])->latest('submit_time')->get();
-                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id:1;
-                $nickName = Nickname::find($supporter->nick_name_id);
-                $supported_camp = $nickName->getSupportCampList($topic_name_space_id,['nofilter'=>true]);
-                $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp,$supportData['topic_num'],$supportData['camp_num']);
-                $supportData['support_list'] = $supported_camp_list; 
-                $ifalsoSubscriber = Camp::checkifSubscriber($subscribers,$user);
-                $data['namespace_id'] =  $topic_name_space_id ;
-                if($ifalsoSubscriber) {
-                    $supportData['also_subscriber'] = 1;
-                    $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id,$supportData['topic_num'],$supportData['camp_num']);      
-                }
-                $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
-                   try{
-                    Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($user, $link, $supportData));
-                    }catch(\Swift_TransportException $e){
-                        throw new \Swift_TransportException($e);
-                    } 
-            }
-        }
-        if(!empty($subscribers)){
-            foreach ($subscribers as $usr) {            
-                $subscriberData = $dataObject;
-                $userSub = User::find($usr);
-                if(!in_array($userSub->id, $alreadyMailed,TRUE)) {
-                    $alreadyMailed[] = $userSub->id;
-                    $subscriptions_list = Camp::getSubscriptionList($userSub->id,$subscriberData['topic_num'],$subscriberData['camp_num']);
-                    $subscriberData['support_list'] = $subscriptions_list; 
-                    $receiver = env('APP_ENV') == "production" ? $userSub->email : config('app.admin_email');
-                    $subscriberData['subscriber'] = 1;
-                    $topic = Topic::getLiveTopic($subscriberData['topic_num']);
-                    $data['namespace_id'] = $topic->namespace_id;
-                    try{
-                        Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($userSub, $link, $subscriberData));
-                    }catch(\Swift_TransportException $e){
-                        throw new \Swift_TransportException($e);
-                    } 
-                }
-            }
-        }
-        return;
     }
 }

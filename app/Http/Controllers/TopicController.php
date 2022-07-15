@@ -344,13 +344,9 @@ class TopicController extends Controller
                 }
                 $statement->grace_period = 0;
                 $statement->update();
-
-
                 $filter['topicNum'] = $statement->topic_num;
                 $filter['campNum'] = $statement->camp_num;
-                $filter['asOf'] = 'dafault';
-
-                $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
+                $directSupporter =  Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
                 $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
                 $link = 'statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
                 $livecamp = Camp::getLiveCamp($filter);
@@ -366,16 +362,9 @@ class TopicController extends Controller
                 $data['nick_name'] = $nickName->nick_name;
                 $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
-                //1081 issue
                 $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
                 $data['nick_name_id'] = $nickName->id;
-    
-                $this->mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $data);
-
-
-
-
-
+                Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $data);
                 $message = trans('message.success.statement_commit');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
