@@ -2,6 +2,13 @@
 
 namespace App\Helpers;
 
+use stdClass;
+use Throwable;
+use App\Models\Camp;
+use App\Models\User;
+use App\Models\Topic;
+use App\Models\Support;
+use App\Models\Nickname;
 use App\Models\PushNotification as ModelPushNotification;
 
 class PushNotification
@@ -70,5 +77,87 @@ class PushNotification
         ]);
 
         return $pushNotification;
+    }
+
+    public static function pushNotificationToSupporter($topicNum, $campNum, $fcm_token, $action = 'add')
+    {
+
+        $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
+        $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
+        $directSupporterUser = [];
+        $directSupporterUserId = [];
+        $subscribers_user = [];
+        $subscribers_user_id = [];
+        foreach ($directSupporter as $supporter) {
+            $user = Nickname::getUserByNickName($supporter->nick_name_id);
+            $user_id = $user->id ?? null;
+            $directSupporterUser[] = $user;
+            $directSupporterUserId[] = $user_id;
+        }
+        if ($subscribers && count($subscribers) > 0) {
+            foreach ($subscribers as $sub) {
+                if (!in_array($sub, $directSupporterUserId, true)) {
+                    $userSub = User::find($sub);
+                    $subscribers_user[] = $userSub;
+                    $subscribers_user_id[] = $userSub->id;
+                }
+            }
+        }
+        $filtered_direct_supporter_user = array_unique($directSupporterUser);
+        $filtered_subscribers_user = array_unique(array_filter($subscribers_user, function ($e) use ($directSupporterUser) {
+            return !in_array($e->id, $directSupporterUser);
+        }));
+        $topic = Topic::getLiveTopic($topicNum, "");
+        $filter['topicNum'] = $topicNum;
+        $filter['asOf'] = "";
+        $filter['campNum'] = $campNum;
+        $camp = Camp::getLiveCamp($filter);
+        $PushNotificationData =  new stdClass();
+        $PushNotificationData->topic_num = $topic->topic_num;
+        $PushNotificationData->camp_num = $camp->camp_num;
+        if (isset($filtered_direct_supporter_user) && count($filtered_direct_supporter_user) > 0) {
+
+            foreach ($filtered_direct_supporter_user as $user) {
+                try {
+                    $PushNotificationData->user_id = $user->id;
+                    if ($action == 'add') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Support');
+                        $PushNotificationData->title = trans('message.notification_title.addSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                    } else {
+                        $PushNotificationData->notification_type = config('global.notification_type.Support');
+                        $PushNotificationData->title = trans('message.notification_title.removeSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                    }
+                    $PushNotificationData->fcm_token = $fcm_token;
+                    $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+                    self::sendPushNotification($PushNotificationData);
+                } catch (Throwable $e) {
+                    echo  $message = $e->getMessage();
+                }
+            }
+        }
+
+        if (isset($filtered_subscribers_user) && count($filtered_subscribers_user) > 0) {
+            foreach ($filtered_subscribers_user as $userSub) {
+                try {
+                    $PushNotificationData->user_id = $userSub->id;
+                    if ($action == 'add') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Support');
+                        $PushNotificationData->title = trans('message.notification_title.addSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name' => $camp->camp_name]);
+                    } else {
+                        $PushNotificationData->notification_type = config('global.notification_type.Support');
+                        $PushNotificationData->title = trans('message.notification_title.removeSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name' => $camp->camp_name]);
+                    }
+                    $PushNotificationData->fcm_token = $fcm_token;
+                    $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+                    self::sendPushNotification($PushNotificationData);
+                } catch (Throwable $e) {
+                    echo $message = $e->getMessage();
+                }
+            }
+        }
     }
 }

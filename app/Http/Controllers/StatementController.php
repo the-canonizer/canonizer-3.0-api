@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
-use App\Models\Statement;
 use App\Models\Camp;
-use App\Models\Nickname;
+use App\Facades\Util;
+use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Nickname;
+use App\Models\Statement;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
-use App\Http\Resources\ErrorResource;
-use App\Helpers\ResponseInterface;
+use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
+use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
+use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use App\Library\wiki_parser\wikiParser as wikiParser;
-use stdClass;
-use App\Facades\Util;
 
 class StatementController extends Controller
 {
@@ -391,6 +393,21 @@ class StatementController extends Controller
                 $statement->grace_period = 1;
             }
             $statement->save();
+            $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
+            $filter['topicNum'] = $request->topic_num;
+            $filter['asOf'] = $request->asof;
+            $filter['campNum'] = $request->camp_num;
+            $camp = Camp::getLiveCamp($filter);
+            $PushNotificationData =  new stdClass();
+            $PushNotificationData->user_id = $request->user()->id;
+            $PushNotificationData->topic_num = $topic->topic_num;
+            $PushNotificationData->camp_num = $camp->camp_num;
+            $PushNotificationData->notification_type = config('global.notification_type.Statement');
+            $PushNotificationData->title = trans('message.notification_title.manageStatement',['camp_name'=> $camp->camp_name]);
+            $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
+            $PushNotificationData->fcm_token = $request->fcm_token;
+            $PushNotificationData->link = Camp::campLink($topic->topic_num,$topic->camp_num,$topic->title,$topic->camp_name);
+            $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

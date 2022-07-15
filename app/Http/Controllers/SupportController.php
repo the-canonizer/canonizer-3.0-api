@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 
-use App\Models\Nickname;
-use Illuminate\Http\Request;
-use App\Models\Support;
+use DB;
 use App\Models\Camp;
 use App\Models\Topic;
-use DB;
-use App\Http\Request\ValidationRules;
-use App\Http\Request\ValidationMessages;
-use App\Helpers\ResponseInterface;
+use App\Models\Support;
+use App\Models\Nickname;
+use Illuminate\Http\Request;
+use App\Helpers\TopicSupport;
 use App\Http\Request\Validate;
+use App\Facades\PushNotification;
+use App\Helpers\ResponseInterface;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
-use App\Helpers\TopicSupport;
+use App\Http\Request\ValidationMessages;
 
 
 class SupportController extends Controller
@@ -174,10 +175,12 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update'];        
+        $fcm_token = $all['fcm_token'];        
 
         try{
             
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            PushNotification::pushNotificationToSupporter($topicNum, $addCamp['camp_num'], $fcm_token, 'add');
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
     
         } catch (\Throwable $e) {
@@ -233,19 +236,19 @@ class SupportController extends Controller
         $user = $request->user();
         $userId = $user->id;
         $topicNum =$all['topic_num'];
-        //$campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
+        $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
         $removeCamps = isset($all['remove_camps']) && $all['remove_camps'] ? $all['remove_camps'] : [];
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'];
+        $fcm_token = $all['fcm_token'];
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
             //case 1 removing direct support
             if($type == 'direct'){  
-
                 TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
-                
+                PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
             }
 
             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');

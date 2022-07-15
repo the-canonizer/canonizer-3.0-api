@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
+use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Reply;
+use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
@@ -143,7 +147,7 @@ class ReplyController extends Controller
         }
 
         $body_text = strip_tags(trim(html_entity_decode($request->body)));
-        if ( ! preg_replace('/\s+/u', '', $body_text) ) {
+        if (!preg_replace('/\s+/u', '', $body_text)) {
             $status = 400;
             $message = trans('message.post.body_regex');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -158,10 +162,25 @@ class ReplyController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
-
+                $liveThread = Thread::find($request->thread_id);
+                $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
+                $filter['topicNum'] = $request->topic_num;
+                $filter['asOf'] = $request->asof;
+                $filter['campNum'] = $request->camp_num;
+                $camp = Camp::getLiveCamp($filter);
+                $PushNotificationData =  new stdClass();
+                $PushNotificationData->user_id = $request->user()->id;
+                $PushNotificationData->topic_num = $topic->topic_num;
+                $PushNotificationData->camp_num = $camp->camp_num;
+                $PushNotificationData->notification_type = config('global.notification_type.Post');
+                $PushNotificationData->title = trans('message.notification_title.createPost');
+                $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name' => $liveThread->title]);
+                $PushNotificationData->fcm_token = $request->fcm_token;
+                $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+                PushNotification::sendPushNotification($PushNotificationData);
                 // Return Url after creating post Successfully
                 $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
-                CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url,$request->body, $request->thread_id, $request->nick_name, $request->topic_name,"");
+                CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
             } else {
                 $data = null;
                 $status = 400;
@@ -175,7 +194,7 @@ class ReplyController extends Controller
         }
     }
 
-      /**
+    /**
      * @OA\GET(path="/post/list/{id}",
      *   tags={"Post"},
      *   summary="list post",
@@ -324,13 +343,13 @@ class ReplyController extends Controller
 
     public function postList(Request $request, $id)
     {
-        
+
         try {
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
             $result = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-            ->select('post.*','nick_name.nick_name')
-            ->where('thread_id', $id)->where('is_delete','0')->latest()->paginate($per_page);
+                ->select('post.*', 'nick_name.nick_name')
+                ->where('thread_id', $id)->where('is_delete', '0')->latest()->paginate($per_page);
 
 
             $response = Util::getPaginatorResponse($result);
@@ -341,10 +360,10 @@ class ReplyController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
-            foreach($response->items as $value){
+            foreach ($response->items as $value) {
                 $isMyPost = false;
                 $allNicname = Nickname::personNicknameArray();
-                if(in_array($value->user_id,$allNicname)){
+                if (in_array($value->user_id, $allNicname)) {
                     $isMyPost = true;
                 }
                 $value->is_my_post = $isMyPost;
@@ -359,7 +378,7 @@ class ReplyController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\put(path="/post/update/{id}",
      *   tags={"Post"},
      *   summary="update thread",
@@ -475,16 +494,16 @@ class ReplyController extends Controller
         }
 
         $body_text = strip_tags(trim(html_entity_decode($request->body)));
-        if ( ! preg_replace('/\s+/u', '', $body_text) ) {
+        if (!preg_replace('/\s+/u', '', $body_text)) {
             $status = 400;
             $message = trans('message.post.body_regex');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
-    
+
         try {
             $update = ["body" => $request->body];
             $post = Reply::find($id);
-            if(!$post){
+            if (!$post) {
                 $status = 400;
                 $message = trans('message.post.post_not_exist');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -493,8 +512,26 @@ class ReplyController extends Controller
             $status = 200;
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
+
+            $liveThread = Thread::find($request->thread_id);
+            $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
+            $filter['topicNum'] = $request->topic_num;
+            $filter['asOf'] = $request->asof;
+            $filter['campNum'] = $request->camp_num;
+            $camp = Camp::getLiveCamp($filter);
+            $PushNotificationData =  new stdClass();
+            $PushNotificationData->user_id = $request->user()->id;
+            $PushNotificationData->topic_num = $topic->topic_num;
+            $PushNotificationData->camp_num = $camp->camp_num;
+            $PushNotificationData->notification_type = config('global.notification_type.Post');
+            $PushNotificationData->title = trans('message.notification_title.updatePost');
+            $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name' => $liveThread->title]);
+            $PushNotificationData->fcm_token = $request->fcm_token;
+            $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+            PushNotification::sendPushNotification($PushNotificationData);
+
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
-            CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url,$request->body, $request->thread_id, $request->nick_name, $request->topic_name,$id);
+            CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {
             $status = 400;
@@ -503,7 +540,7 @@ class ReplyController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Delete(path="/post/delete/{id}",
      *   tags={"Post"},
      *   summary="delete post",
@@ -575,7 +612,7 @@ class ReplyController extends Controller
         try {
             $update = ["is_delete" => '1'];
             $post = Reply::find($id);
-            if(!$post){
+            if (!$post) {
                 $status = 400;
                 $message = trans('message.post.post_not_exist');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);

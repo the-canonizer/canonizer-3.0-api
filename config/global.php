@@ -13,5 +13,9 @@ return [
     'notification_type' => [
         "Topic" => "Topic",
         "Camp" => "Camp",
+        "Thread" => "Thread",
+        "Post" => "Post",
+        "Statement" => "Statement",
+        "Support" => "Support",
     ],
 ];
