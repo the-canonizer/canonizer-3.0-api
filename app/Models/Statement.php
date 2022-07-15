@@ -9,6 +9,8 @@ use App\Facades\Util;
 use App\Mail\PurposedToSupportersMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
+
 class Statement extends Model
 {
     protected $table = 'statement';
@@ -91,7 +93,7 @@ class Statement extends Model
             $q->where('go_live_time', '>', $filter['currentTime'])
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
-        
+
         $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
             $q->where('go_live_time', '<=', $filter['currentTime'])
                 ->where('objector_nick_id', NULL)
@@ -122,8 +124,8 @@ class Statement extends Model
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
-                $val->submitterNickName=NickName::getNickName($val->submitter_nick_id)->nick_name;
-                $val->isAuthor = (isset($request->user) && $submitterUserID == $request->user()->id) ?  true : false ;
+                $val->submitterNickName = NickName::getNickName($val->submitter_nick_id)->nick_name;
+                $val->isAuthor = (isset($request->user) && $submitterUserID == $request->user()->id) ?  true : false;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -139,7 +141,7 @@ class Statement extends Model
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && (( isset($request->user) && $request->user()->id != $submitterUserID ) || !isset($request->user)) ) {
+                if ($interval > 0 && $val->grace_period > 0  && ((isset($request->user) && $request->user()->id != $submitterUserID) || !isset($request->user))) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
@@ -152,50 +154,51 @@ class Statement extends Model
         }
     }
 
-    public static function mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject){
+    public static function mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject)
+    {
         $alreadyMailed = [];
-        if(!empty($directSupporter)) {
-            foreach ($directSupporter as $supporter) {           
+        if (!empty($directSupporter)) {
+            foreach ($directSupporter as $supporter) {
                 $supportData = $dataObject;
                 $user = Nickname::getUserByNickName($supporter->nick_name_id);
                 $alreadyMailed[] = $user->id;
-                $topic = Topic::where('topic_num','=',$supportData['topic_num'])->latest('submit_time')->get();
-                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id:1;
+                $topic = Topic::where('topic_num', '=', $supportData['topic_num'])->latest('submit_time')->get();
+                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
-                $supported_camp = $nickName->getSupportCampList($topic_name_space_id,['nofilter'=>true]);
-                $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp,$supportData['topic_num'],$supportData['camp_num']);
-                $supportData['support_list'] = $supported_camp_list; 
-                $ifalsoSubscriber = Camp::checkifSubscriber($subscribers,$user);
-                $data['namespace_id'] =  $topic_name_space_id ;
-                if($ifalsoSubscriber) {
+                $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
+                $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $supportData['topic_num'], $supportData['camp_num']);
+                $supportData['support_list'] = $supported_camp_list;
+                $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
+                $data['namespace_id'] =  $topic_name_space_id;
+                if ($ifalsoSubscriber) {
                     $supportData['also_subscriber'] = 1;
-                    $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id,$supportData['topic_num'],$supportData['camp_num']);      
+                    $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id, $supportData['topic_num'], $supportData['camp_num']);
                 }
                 $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
-                   try{
+                try {
                     Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($user, $link, $supportData));
-                    }catch(\Swift_TransportException $e){
-                        throw new \Swift_TransportException($e);
-                    } 
+                } catch (Throwable $e) {
+                    echo  $e->getMessage();
+                }
             }
         }
-        if(!empty($subscribers)){
-            foreach ($subscribers as $usr) {            
+        if (!empty($subscribers)) {
+            foreach ($subscribers as $usr) {
                 $subscriberData = $dataObject;
                 $userSub = User::find($usr);
-                if(!in_array($userSub->id, $alreadyMailed,TRUE)) {
+                if (!in_array($userSub->id, $alreadyMailed, TRUE)) {
                     $alreadyMailed[] = $userSub->id;
-                    $subscriptions_list = Camp::getSubscriptionList($userSub->id,$subscriberData['topic_num'],$subscriberData['camp_num']);
-                    $subscriberData['support_list'] = $subscriptions_list; 
+                    $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
+                    $subscriberData['support_list'] = $subscriptions_list;
                     $receiver = env('APP_ENV') == "production" ? $userSub->email : config('app.admin_email');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
-                    try{
+                    try {
                         Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new PurposedToSupportersMail($userSub, $link, $subscriberData));
-                    }catch(\Swift_TransportException $e){
-                        throw new \Swift_TransportException($e);
-                    } 
+                    } catch (Throwable $e) {
+                        echo  $e->getMessage();
+                    }
                 }
             }
         }

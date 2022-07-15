@@ -19,7 +19,6 @@
                         Hello {{ $user->first_name }} {{ $user->last_name }},
                     </td>
                 </tr>
-
                 <tr>
                     <td style="padding-top: 60px;  font-weight:400;">
                         <p><a target="_blank"

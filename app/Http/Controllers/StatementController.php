@@ -18,7 +18,6 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use Illuminate\Support\Facades\Mail;
-
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Library\General;
 use App\Mail\ObjectionToSubmitterMail;
@@ -341,7 +340,7 @@ class StatementController extends Controller
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
         $filters['asOf'] = 'default';
-        $go_live_time = time();
+        $goLiveTime = time();
         $eventType = $all['event_type'];
         try {
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
@@ -353,7 +352,7 @@ class StatementController extends Controller
             $statement->note = $all['note'] ?? "";
             $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
             $statement->submitter_nick_id = $all['nick_name'];
-            $statement->go_live_time = $go_live_time;
+            $statement->go_live_time = $goLiveTime;
             $statement->language = 'English';
             $statement->grace_period = 1;
             $message =  trans('message.success.statement_create');
@@ -364,7 +363,7 @@ class StatementController extends Controller
                 $statement = Statement::where('id', $all['statement_id'])->first();
                 $statement->objector_nick_id = $all['nick_name'];
                 $statement->object_reason = $all['objection_reason'];
-                $statement->go_live_time = $go_live_time;
+                $statement->go_live_time = $goLiveTime;
                 $statement->object_time = time();
                 $statement->grace_period = 0;
             }
@@ -392,7 +391,7 @@ class StatementController extends Controller
             }
             if (!$ifIamSingleSupporter) {
                 $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $go_live_time = $statement->go_live_time;
+                $goLiveTime = $statement->go_live_time;
                 $statement->grace_period = 1;
             }
             $statement->save();
@@ -434,8 +433,8 @@ class StatementController extends Controller
                  $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : env('ADMIN_EMAIL');
                  try{
                      Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new ObjectionToSubmitterMail($user, $link, $data));
-                 }catch(\Swift_TransportException $e){
-                     throw new \Swift_TransportException($e);
+                    } catch (Exception $e) {
+                        return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
                  } 
              } 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');

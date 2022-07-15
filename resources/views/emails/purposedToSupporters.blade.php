@@ -20,6 +20,23 @@
                 <tr>
                     <td style="padding:10px 0px 10px;">
                         <p>
+                            <a target="_blank"
+                                href="<?= route('user_supports', $data['nick_name_id']) . '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
+                            has proposed a change to this {{ $data['type'] }} <a
+                                href="{{ url('/') . '/' . $link }}">{{ $data['object'] }} </a>
+                            @if (empty($data['is_live']) || $data['is_live'] != 1)
+                                which you currently
+                                {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
+                                If no supporters of this {{ $data['type'] }}
+                                <a href="{{ url('/') . '/' . $link }}">{{ $data['object'] }} </a> object to this change,
+                                it will go live in one day / 24 hours
+                            @endif.
+                            @if (!empty($data['note']))
+                                <p>Edit summary : {{ $data['note'] }}</p>
+                            @endif
+                        </p>
+
+                        <p>
                             @if (isset($data['subscriber']) && $data['subscriber'] == 1)
                                 <h4 style="margin-bottom: 15px;">You are receiving this e-mail because:</h4>
                                 <ul style="margin-left: 45px;">
@@ -41,11 +58,15 @@
                                             <li>You are directly supporting {!! $support !!}</li>
                                         @endforeach
                                     @else
-                                        <li>You are directly supporting <a href="{{ url('/') . '/' . $data['camp_url'] }}">
+                                        <li>You are directly supporting <a
+                                                href="{{ url('/') . '/' . $data['camp_url'] }}">
                                                 {{ $data['camp_name'] }} </a></li>
                                     @endif
 
-                                    @if (isset($data['also_subscriber']) && $data['also_subscriber'] == 1 && isset($data['sub_support_list']) && count($data['sub_support_list']) > 0)
+                                    @if (isset($data['also_subscriber']) &&
+                                        $data['also_subscriber'] == 1 &&
+                                        isset($data['sub_support_list']) &&
+                                        count($data['sub_support_list']) > 0)
                                         @foreach ($data['sub_support_list'] as $support)
                                             <li>You are subscribed to {!! $support !!}</li>
                                         @endforeach
@@ -78,9 +99,3 @@
         </td>
     </tr>
 @stop
-
-
-
-
-
-
