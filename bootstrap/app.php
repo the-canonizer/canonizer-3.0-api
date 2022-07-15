@@ -127,6 +127,9 @@ $app->register(\Anik\Form\FormRequestServiceProvider::class);
 
 /* Activity Logger */
 $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
+
+/* Uniqueable queue jobs */
+$app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
