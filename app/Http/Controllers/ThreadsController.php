@@ -201,7 +201,7 @@ class ThreadsController extends Controller
                     $PushNotificationData->title = trans('message.notification_title.createThread');
                     $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name'=> $request->title, 'camp_name' => $camp->camp_name]);
                     $PushNotificationData->fcm_token = $request->fcm_token;
-                    $PushNotificationData->link = Camp::campLink($topic->topic_num,$topic->camp_num,$topic->title,$camp->camp_name);
+                    $PushNotificationData->link = $return_url;
                     PushNotification::sendPushNotification($PushNotificationData);
             } else {
                 $data = null;

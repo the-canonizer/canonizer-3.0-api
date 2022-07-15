@@ -162,6 +162,7 @@ class ReplyController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
+                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
                 $liveThread = Thread::find($request->thread_id);
                 $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
                 $filter['topicNum'] = $request->topic_num;
@@ -176,10 +177,9 @@ class ReplyController extends Controller
                 $PushNotificationData->title = trans('message.notification_title.createPost');
                 $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name' => $liveThread->title]);
                 $PushNotificationData->fcm_token = $request->fcm_token;
-                $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+                $PushNotificationData->link = $return_url;
                 PushNotification::sendPushNotification($PushNotificationData);
                 // Return Url after creating post Successfully
-                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
             } else {
                 $data = null;
