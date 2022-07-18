@@ -131,7 +131,7 @@ class PushNotification
                         $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
                     }
                     $PushNotificationData->fcm_token = $fcm_token;
-                    $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
+                    $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     self::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {
                     echo  $message = $e->getMessage();
