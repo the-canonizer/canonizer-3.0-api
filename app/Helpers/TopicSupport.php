@@ -971,10 +971,10 @@ class TopicSupport
     {
         $message = trans('message.support.update_support');
 
-        if(!empty($add) && empty($remove))
+        if($add && !$remove)
         {
             $message = trans('message.support.add_direct_support');
-        }else if(empty($add) && !empty($remove))
+        }else if(!$add && $remove)
         {
             $message = trans('message.support.remove_direct_support');
         }
