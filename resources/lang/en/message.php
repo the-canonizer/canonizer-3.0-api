@@ -320,6 +320,8 @@ return [
         'statement_required' => "Statement is required.",
         'nick_name_required' => "Nick name is required.",
         'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are create, update, edit, objection.",
         'statement_id_required_if' => "Statement id is required.",
         'objection_reason_required_if' => "Objection reason is required.",
     ],

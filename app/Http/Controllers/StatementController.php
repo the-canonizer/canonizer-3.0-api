@@ -305,10 +305,10 @@ class StatementController extends Controller
      *                   type="string",
      *               ),
      *               @OA\Property(
-     *                   property="objection",
-     *                   description="True if user want to object a statement",
+     *                   property="event_type",
+     *                   description="Possible values objection, edit, create, update",
      *                   required=false,
-     *                   type="boolean",
+     *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="objection_reason",
