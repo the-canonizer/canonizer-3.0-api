@@ -188,7 +188,7 @@ class StatementController extends Controller
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
-                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement);
+                $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
