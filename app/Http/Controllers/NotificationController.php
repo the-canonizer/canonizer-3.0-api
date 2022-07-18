@@ -184,10 +184,28 @@ class NotificationController extends Controller
             foreach ($notificationList->items as $value) {
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
                 $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
-                if (config('global.notification_type.Topic') == $value->notification_type) {
-                    $value->url = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
-                } else {
-                    $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+
+                switch ($value->notification_type) {
+                    case config('global.notification_type.Topic'):
+                        $value->url = Topic::topicLink($topic->topic_num ?? '', 1, $topic->topic_name ?? '');
+                        break;
+                    case config('global.notification_type.Camp'):
+                        $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
+                        break;
+                    case config('global.notification_type.Thread'):
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads';
+                        break;
+                    case config('global.notification_type.Post'):
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads/' . $request->thread_id;
+                        break;
+                    case config('global.notification_type.Statement'):
+                        $value->url = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                        break;
+                    case config('global.notification_type.Support'):
+                        $value->url = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                        break;
+                    default:
+                        $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
                 }
             }
             $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read', 0)->count();

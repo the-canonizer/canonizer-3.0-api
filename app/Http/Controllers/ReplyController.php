@@ -162,7 +162,7 @@ class ReplyController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
-                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
                 $liveThread = Thread::find($request->thread_id);
                 $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
                 $filter['topicNum'] = $request->topic_num;
