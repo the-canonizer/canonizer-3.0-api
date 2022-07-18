@@ -172,6 +172,7 @@ class ReplyController extends Controller
                 $PushNotificationData =  new stdClass();
                 $PushNotificationData->user_id = $request->user()->id;
                 $PushNotificationData->topic_num = $topic->topic_num;
+                $PushNotificationData->thread_id = $request->thread_id;
                 $PushNotificationData->camp_num = $camp->camp_num;
                 $PushNotificationData->notification_type = config('global.notification_type.Post');
                 $PushNotificationData->title = trans('message.notification_title.createPost');

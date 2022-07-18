@@ -195,6 +195,7 @@ class ThreadsController extends Controller
                     $camp = Camp::getLiveCamp($filter);
                     $PushNotificationData =  new stdClass();
                     $PushNotificationData->user_id = $request->user()->id;
+                    $PushNotificationData->thread_id = $thread->id;
                     $PushNotificationData->topic_num = $topic->topic_num;
                     $PushNotificationData->camp_num = $camp->camp_num;
                     $PushNotificationData->notification_type = config('global.notification_type.Thread');

@@ -15,7 +15,7 @@ class  PushNotification extends Model
      *
      * @var array
      */
-    protected $fillable = ['user_id', 'topic_num', 'camp_num', 'notification_type', 'message_body', 'fcm_token','is_read','created_at', 'updated_at','message_title','message_response'];
+    protected $fillable = ['user_id', 'topic_num', 'camp_num', 'notification_type', 'message_body', 'fcm_token','is_read','created_at', 'updated_at','message_title','message_response','thread_id'];
 
     public static function boot()
     {

@@ -193,10 +193,10 @@ class NotificationController extends Controller
                         $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
                         break;
                     case config('global.notification_type.Thread'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads';
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name . '/threads';
                         break;
                     case config('global.notification_type.Post'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads/' . $request->thread_id;
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name . '/threads/' . $value->thread_id;
                         break;
                     case config('global.notification_type.Statement'):
                         $value->url = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;

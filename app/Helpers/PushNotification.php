@@ -74,6 +74,7 @@ class PushNotification
             "message_title" => $request->title,
             "message_body" => $request->message_body,
             "fcm_token" => $request->fcm_token,
+            "thread_id" => $request->thread_id,
         ]);
 
         return $pushNotification;
