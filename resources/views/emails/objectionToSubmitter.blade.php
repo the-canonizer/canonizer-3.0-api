@@ -20,16 +20,16 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding-top: 60px;  font-weight:400;">
+                    <td style="padding-top: 10px;  font-weight:400;">
                         <p><a target="_blank"
-                                href="<?= route('user_supports', $data['nick_name_id']) . '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
-                            has objected to your <a href="{{ url('/') . '/' . $link }}" target='_balnk'>proposed
+                                href="<?=  config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
+                            has objected to your <a href="{{  config('global.APP_URL_FRONT_END') . '/' . $link }}" target='_balnk'>proposed
                                 change</a> submitted for {{ $data['type'] }} (<a
                                 href="{{ $data['topic_link'] }}">{{ $data['object'] }}</a>) {{ $data['object_type'] }} </p>
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding-top:10px; padding-bottom: 60px; font-weight:400; font-size:20px; color:#497BDF;">
+                    <td style="padding-top:10px; padding-bottom: 10px; font-weight:300; font-size:17px; color:#497BDF;">
                         @component('mail::button', ['url' => $data['help_link'] ])
                             See this link for options you can take when there are objections
                         @endcomponent

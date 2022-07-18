@@ -307,7 +307,7 @@ class StatementController extends Controller
      *               @OA\Property(
      *                   property="event_type",
      *                   description="Possible values objection, edit, create, update",
-     *                   required=false,
+     *                   required=true,
      *                   type="string",
      *               ),
      *               @OA\Property(
@@ -339,39 +339,29 @@ class StatementController extends Controller
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
         $filters['asOf'] = 'default';
-        $goLiveTime = time();
         $eventType = $all['event_type'];
         try {
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
-            $statement = new Statement();
-            $statement->value = $all['statement'] ?? "";
-            $statement->topic_num = $all['topic_num'];
-            $statement->camp_num = $all['camp_num'];
-            $statement->note = $all['note'] ?? "";
-            $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
-            $statement->submitter_nick_id = $all['nick_name'];
-            $statement->go_live_time = $goLiveTime;
-            $statement->language = 'English';
-            $statement->grace_period = 1;
-            $message =  trans('message.success.statement_create');
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
-            if ($eventType == "objection") {
-                $message = trans('message.success.statement_object');
-                $statement = Statement::where('id', $all['statement_id'])->first();
-                $statement->objector_nick_id = $all['nick_name'];
-                $statement->object_reason = $all['objection_reason'];
-                $statement->go_live_time = $goLiveTime;
-                $statement->object_time = time();
-                $statement->grace_period = 0;
-            }
-            if ($eventType == "edit") {
-                $message = trans('message.success.statement_update');  
-                $statement = Statement::where('id', $all['statement_id'])->first();
-                $statement->value = $all['statement'] ?? "";
-                $statement->note = $all['note'] ?? "";
-                $statement->submitter_nick_id = $all['nick_name'];
+            switch ($eventType) {
+                case "create":
+                    $statement = self::CreateOrUpdateStatement($all);
+                    $message = trans('message.success.statement_create');
+                    break;
+                case "update":
+                    $statement = self::CreateOrUpdateStatement($all);
+                    $message = trans('message.success.statement_create');
+                    break;
+                case "edit":
+                    $statement = self::editUpdatedStatement($all);
+                    $message = trans('message.success.statement_update');
+                    break;
+                case "objection":
+                    $statement = self::objectStatement($all);
+                    $message = trans('message.success.statement_object');
+                    break;
             }
             $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
             if ($all['camp_num'] > 1) {
@@ -385,60 +375,102 @@ class StatementController extends Controller
                     $statement->grace_period = 1;
                 }
             }
+            
             if ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
                 $statement->grace_period = 0;
             }
             if (!$ifIamSingleSupporter) {
                 $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $goLiveTime = $statement->go_live_time;
                 $statement->grace_period = 1;
             }
             $statement->save();
             $livecamp = Camp::getLiveCamp( $filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             if ($eventType == "create" && $statement->grace_period == 0) {
-                 $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
-                 $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
-                 $dataObject['topic_num'] = $statement->topic_num;
-                 $dataObject['camp_num'] = $statement->camp_num;
-                 $dataObject['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
-                 $dataObject['support_camp'] = $livecamp->camp_name;
-                 $dataObject['go_live_time'] = $statement->go_live_time;
-                 $dataObject['type'] = 'statement : for camp ';
-                 $dataObject['typeobject'] = 'statement';
-                 $dataObject['note'] = $statement->note;
-                 $nickName = Nickname::getNickName($statement->submitter_nick_id);
-                 $dataObject['nick_name'] = $nickName->nick_name;
-                 $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-                 $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
-                 $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
-                 $dataObject['nick_name_id'] = $nickName->id;
-                 $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-                 Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject);
+                $this->cretedStatementNotification($livecamp , $link , $statement);
               } else if ($eventType == "objection") {
-                 $user = Nickname::getUserByNickName($all['submitter']);
-                 $nickName = Nickname::getNickName($all['nick_name']);
-                 $topicLive = Topic::getLiveTopic($statement->topic_num,['nofilter'=>true]);
-                 $data['topic_link'] =Util::getTopicCampUrl($statement->topic_num,$statement->camp_num, $topicLive, $livecamp, time());
-                 $data['type'] = "Camp";
-                 $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
-                 $data['object_type'] = "statement";   
-                 $data['nick_name'] = $nickName->nick_name;
-                 $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-                 $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
-                 $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
-                 $data['nick_name_id'] = $nickName->id;
-                 $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
-                 try{
-                    dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    } catch (Exception $e) {
-                        return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-                 } 
+                $this->ObjectedStatementNotification($all, $livecamp , $link, $statement);
              } 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
+
+    private function CreateOrUpdateStatement($all){
+        $goLiveTime = time();
+        $statement = new Statement();
+        $statement->value = $all['statement'] ?? "";
+        $statement->topic_num = $all['topic_num'];
+        $statement->camp_num = $all['camp_num'];
+        $statement->note = $all['note'] ?? "";
+        $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
+        $statement->submitter_nick_id = $all['nick_name'];
+        $statement->go_live_time = $goLiveTime;
+        $statement->language = 'English';
+        $statement->grace_period = 1;
+        return $statement;
+    }
+
+    private function objectStatement($all){
+        $goLiveTime = time();
+        $statement = Statement::where('id', $all['statement_id'])->first();
+        $statement->objector_nick_id = $all['nick_name'];
+        $statement->object_reason = $all['objection_reason'];
+        $statement->go_live_time = $goLiveTime;
+        $statement->object_time = time();
+        $statement->grace_period = 0;
+        return $statement;
+    }
+
+    private function editUpdatedStatement($all){
+        $statement = Statement::where('id', $all['statement_id'])->first();
+        $statement->value = $all['statement'] ?? "";
+        $statement->note = $all['note'] ?? "";
+        $statement->submitter_nick_id = $all['nick_name'];
+        return $statement;
+    }
+
+    private function cretedStatementNotification( $livecamp , $link, $statement){
+        $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
+        $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
+        $dataObject['topic_num'] = $statement->topic_num;
+        $dataObject['camp_num'] = $statement->camp_num;
+        $dataObject['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+        $dataObject['support_camp'] = $livecamp->camp_name;
+        $dataObject['go_live_time'] = $statement->go_live_time;
+        $dataObject['type'] = 'statement : for camp ';
+        $dataObject['typeobject'] = 'statement';
+        $dataObject['note'] = $statement->note;
+        $nickName = Nickname::getNickName($statement->submitter_nick_id);
+        $dataObject['nick_name'] = $nickName->nick_name;
+        $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
+        $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+        $dataObject['nick_name_id'] = $nickName->id;
+        $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
+        Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject); 
+    }
+
+    private function ObjectedStatementNotification($all, $livecamp , $link, $statement){
+        $user = Nickname::getUserByNickName($all['submitter']);
+        $nickName = Nickname::getNickName($all['nick_name']);
+        $topicLive = Topic::getLiveTopic($statement->topic_num,['nofilter'=>true]);
+        $data['topic_link'] =Util::getTopicCampUrl($statement->topic_num,$statement->camp_num, $topicLive, $livecamp, time());
+        $data['type'] = "Camp";
+        $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+        $data['object_type'] = "statement";   
+        $data['nick_name'] = $nickName->nick_name;
+        $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+        $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
+        $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+        $data['nick_name_id'] = $nickName->id;
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
+        try{
+           dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+           } catch (Exception $e) {
+               return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        } 
     }
 
     /**
