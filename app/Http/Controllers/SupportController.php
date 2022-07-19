@@ -183,7 +183,8 @@ class SupportController extends Controller
             
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             PushNotification::pushNotificationToSupporter($topicNum, $addCamp['camp_num'], $fcm_token, 'add');
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_direct_support'), '', '');
+            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
