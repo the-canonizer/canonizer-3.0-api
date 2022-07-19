@@ -373,4 +373,16 @@ class Support extends Model
         $result = DB::select($query);
         return $result;
     }
+
+    public static function ifIamImplicitSupporter($filter,$nickNames,$submit_time = null){
+        $liveCamp = Camp::getLiveCamp($filter);
+        $allChildCamps = Camp::getAllChildCamps($liveCamp);
+        if($submit_time){
+            $support = self::where('topic_num','=',$filter['topicNum'])->whereIn('camp_num',$allChildCamps)->whereIn('nick_name_id',$nickNames)->where('delegate_nick_name_id',0)->where('end','=',0)->where('start','<=',$submit_time)->first();
+        }else{
+            $support = self::where('topic_num','=',$filter['topicNum'])->whereIn('camp_num',$allChildCamps)->whereIn('nick_name_id',$nickNames)->where('delegate_nick_name_id',0)->where('end','=',0)->first();
+        }
+
+        return isset($support) ? $support->nick_name_id : 0 ;
+    }
 }
