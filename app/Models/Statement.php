@@ -89,7 +89,7 @@ class Statement extends Model
             $q->where('objector_nick_id', '!=', NULL);
         });
 
-        $statement_query->when($filter['type'] == "in_review" && $request, function ($q) use ($filter) {
+        $statement_query->when($filter['type'] == "in_review", function ($q) use ($filter) {
             $q->where('go_live_time', '>', $filter['currentTime'])
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
@@ -101,7 +101,7 @@ class Statement extends Model
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $statement_query->when($filter['type'] == "all" && !$request, function ($q) use ($filter) {
+        $statement_query->when($filter['type'] == "all", function ($q) use ($filter) {
             $q->where('go_live_time', '<=', $filter['currentTime']);
         });
 
