@@ -1049,5 +1049,30 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function getCampHistory(Request $request, Validate $validate)
+    {
+
+       $filter['topicNum'] = $request->topic_num;
+       $filter['campNum'] = $request->camp_num;
+
+        $topic = Camp::getAgreementTopic($filter['topicNum']);
+        $onecamp = Camp::getLiveCamp($filter['topicNum'], $filter['campNum']);
+        $parentcamp = (count($onecamp)) ? Camp::campNameWithAncestors($onecamp, '',$topic->topic_name) : "n/a";
+        $campHistoryQuery = Camp::getCampHistory($filter['topicNum'], $filter['campNum']);
+        $submit_time = (count($camps)) ? $camps[0]->submit_time: null;
+        $parentcampnum = (isset($onecamp->parent_camp_num)) ? $onecamp->parent_camp_num : 0;
+        $nickNames = null;
+        $ifIamSupporter = null;
+        $ifSupportDelayed = NULL;
+        Camp::campHistory($campHistoryQuery);
+        if ($request->user()) {
+            $nickNames = Nickname::personNicknameArray();
+            $ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames,$submit_time);
+            $ifIamImplicitSupporter = Support::ifIamImplicitSupporter($filter['topicNum'], $filter['campNum'], $nickNames,$submit_time);
+            $ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames,$submit_time,$delayed=true); //if support provided after Camp submitted for IN-Review
+        }
+
+    }
     
 }

@@ -473,4 +473,39 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         
         return $parentCampName;
     }
+
+    public static function campHistory($statement_query, $filter, $campLiveStatement, $request)
+    {
+        $statement_query->when($filter['type'] == "objected", function ($q) {
+            $q->where('objector_nick_id', '!=', NULL);
+        });
+
+        $statement_query->when($filter['type'] == "in_review" && $request, function ($q) use ($filter) {
+            $q->where('go_live_time', '>', $filter['currentTime'])
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+        
+        $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
+            $q->where('go_live_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('id', '!=', $campLiveStatement->id)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+
+        $statement_query->when($filter['type'] == "all" && !$request, function ($q) use ($filter) {
+            $q->where('go_live_time', '<=', $filter['currentTime']);
+        });
+
+        $response->statement = Util::getPaginatorResponse($statement_query->paginate($filter['per_page']));
+        $response = self::filterStatementHistory($response, $filter, $request, $campLiveStatement);
+        return $response;
+    }
+
+
+
+
+
+
+
+
 }
