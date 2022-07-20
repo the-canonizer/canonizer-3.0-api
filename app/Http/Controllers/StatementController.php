@@ -346,7 +346,7 @@ class StatementController extends Controller
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType )) {
-                $statement = self::CreateOrUpdateStatement($all);
+                $statement = self::createOrUpdateStatement($all);
                 $message = trans('message.success.statement_create');
             } else {
                   ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update') ) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
@@ -372,9 +372,9 @@ class StatementController extends Controller
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 
             if ($eventType == "create" && $statement->grace_period == 0) {
-                $this->cretedStatementNotification($livecamp, $link, $statement);
+                $this->createdStatementNotification($livecamp, $link, $statement);
             } else if ($eventType == "objection") {
-                $this->ObjectedStatementNotification($all, $livecamp, $link, $statement);
+                $this->objectedStatementNotification($all, $livecamp, $link, $statement);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -383,7 +383,7 @@ class StatementController extends Controller
         }
     }
 
-    private function CreateOrUpdateStatement($all)
+    private function createOrUpdateStatement($all)
     {
         $goLiveTime = time();
         $statement = new Statement();
@@ -420,7 +420,7 @@ class StatementController extends Controller
         return $statement;
     }
 
-    private function cretedStatementNotification($livecamp, $link, $statement)
+    private function createdStatementNotification($livecamp, $link, $statement)
     {
         $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num);
         $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
@@ -442,7 +442,7 @@ class StatementController extends Controller
         Statement::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
 
-    private function ObjectedStatementNotification($all, $livecamp, $link, $statement)
+    private function objectedStatementNotification($all, $livecamp, $link, $statement)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
         $nickName = Nickname::getNickName($all['nick_name']);
