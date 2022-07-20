@@ -107,6 +107,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
         $router->post('agree-to-change','TopicController@agreeToChange');
+        $router->post('/manage-camp', 'CampController@manageCamp');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
