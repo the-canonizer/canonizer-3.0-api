@@ -1062,6 +1062,7 @@ class CampController extends Controller
         $response = new stdClass();
         $response->statement = [];
         $response->if_i_am_supporter = null;
+        $response->if_i_am_implicit_supporter = null;
         $response->if_support_delayed = NULL;
         try {
             $liveCamp = Camp::getLiveCamp($filter);
