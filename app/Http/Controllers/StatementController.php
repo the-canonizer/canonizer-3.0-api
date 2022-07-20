@@ -92,9 +92,9 @@ class StatementController extends Controller
             if ($campStatement) {
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
-                $campStatement->submitter_nick_name=$campStatement->submitterNickName->nick_name;
+                $campStatement->submitter_nick_name = $campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
-                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time','submit_time','submitter_nick_name'];
+                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
@@ -330,11 +330,11 @@ class StatementController extends Controller
      * )
      */
     public function storeStatement(Request $request, Validate $validate)
-    { 
-        $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
+    {
+        // $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
+        // if ($validationErrors) {
+        //     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        // }
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
@@ -345,59 +345,46 @@ class StatementController extends Controller
             $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
-            switch ($eventType) {
-                case "create":
-                    $statement = self::CreateOrUpdateStatement($all);
-                    $message = trans('message.success.statement_create');
-                    break;
-                case "update":
-                    $statement = self::CreateOrUpdateStatement($all);
-                    $message = trans('message.success.statement_create');
-                    break;
-                case "edit":
-                    $statement = self::editUpdatedStatement($all);
-                    $message = trans('message.success.statement_update');
-                    break;
-                case "objection":
-                    $statement = self::objectStatement($all);
-                    $message = trans('message.success.statement_object');
-                    break;
+            if (preg_match('/\bcreate\b|\bupdate\b/', $eventType )) {
+                $statement = self::CreateOrUpdateStatement($all);
+                $message = trans('message.success.statement_create');
+            } else {
+                  ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update') ) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
             $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
             if ($all['camp_num'] > 1) {
-                if ($totalSupport <= 0) {
-                    $statement->grace_period = 0;
-                } else if ($totalSupport > 0 && in_array($all['submitter'], $loginUserNicknames)) {
-                    $statement->grace_period = 0;
-                } else if ($ifIamSingleSupporter) {
+                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
                     $statement->grace_period = 0;
                 } else {
                     $statement->grace_period = 1;
                 }
-            }
-            
-            if ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
+            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
                 $statement->grace_period = 0;
             }
+
             if (!$ifIamSingleSupporter) {
                 $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
                 $statement->grace_period = 1;
             }
+
             $statement->save();
-            $livecamp = Camp::getLiveCamp( $filters);
+            $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+
             if ($eventType == "create" && $statement->grace_period == 0) {
-                $this->cretedStatementNotification($livecamp , $link , $statement);
-              } else if ($eventType == "objection") {
-                $this->ObjectedStatementNotification($all, $livecamp , $link, $statement);
-             } 
+                $this->cretedStatementNotification($livecamp, $link, $statement);
+            } else if ($eventType == "objection") {
+                $this->ObjectedStatementNotification($all, $livecamp, $link, $statement);
+            }
+
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
-    private function CreateOrUpdateStatement($all){
+    private function CreateOrUpdateStatement($all)
+    {
         $goLiveTime = time();
         $statement = new Statement();
         $statement->value = $all['statement'] ?? "";
@@ -412,7 +399,8 @@ class StatementController extends Controller
         return $statement;
     }
 
-    private function objectStatement($all){
+    private function objectStatement($all)
+    {
         $goLiveTime = time();
         $statement = Statement::where('id', $all['statement_id'])->first();
         $statement->objector_nick_id = $all['nick_name'];
@@ -423,7 +411,8 @@ class StatementController extends Controller
         return $statement;
     }
 
-    private function editUpdatedStatement($all){
+    private function editUpdatedStatement($all)
+    {
         $statement = Statement::where('id', $all['statement_id'])->first();
         $statement->value = $all['statement'] ?? "";
         $statement->note = $all['note'] ?? "";
@@ -431,8 +420,9 @@ class StatementController extends Controller
         return $statement;
     }
 
-    private function cretedStatementNotification( $livecamp , $link, $statement){
-        $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
+    private function cretedStatementNotification($livecamp, $link, $statement)
+    {
+        $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num);
         $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
         $dataObject['topic_num'] = $statement->topic_num;
         $dataObject['camp_num'] = $statement->camp_num;
@@ -445,32 +435,33 @@ class StatementController extends Controller
         $nickName = Nickname::getNickName($statement->submitter_nick_id);
         $dataObject['nick_name'] = $nickName->nick_name;
         $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
+        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name . " submitted";
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-        Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $dataObject); 
+        Statement::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
 
-    private function ObjectedStatementNotification($all, $livecamp , $link, $statement){
+    private function ObjectedStatementNotification($all, $livecamp, $link, $statement)
+    {
         $user = Nickname::getUserByNickName($all['submitter']);
         $nickName = Nickname::getNickName($all['nick_name']);
-        $topicLive = Topic::getLiveTopic($statement->topic_num,['nofilter'=>true]);
-        $data['topic_link'] =Util::getTopicCampUrl($statement->topic_num,$statement->camp_num, $topicLive, $livecamp, time());
+        $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
+        $data['topic_link'] = Util::getTopicCampUrl($statement->topic_num, $statement->camp_num, $topicLive, $livecamp, time());
         $data['type'] = "Camp";
         $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
-        $data['object_type'] = "statement";   
+        $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
-        try{
-           dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
-           } catch (Exception $e) {
-               return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        } 
+        try {
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 
     /**
@@ -539,7 +530,7 @@ class StatementController extends Controller
                         default:
                             $status  = "old";
                     }
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num',$val->topic_num)->first();
+                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $val->topic_num)->first();
                     $statement['comparison'][] = array(
                         'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
                         'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
@@ -570,7 +561,7 @@ class StatementController extends Controller
                 $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num',$liveStatement->topic_num)->first();
+                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
                     $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);

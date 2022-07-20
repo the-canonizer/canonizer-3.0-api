@@ -101,9 +101,6 @@ class Statement extends Model
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $statement_query->when($filter['type'] == "all", function ($q) use ($filter) {
-            $q->where('go_live_time', '<=', $filter['currentTime']);
-        });
 
         $response->statement = Util::getPaginatorResponse($statement_query->paginate($filter['per_page']));
         $response = self::filterStatementHistory($response, $filter, $request, $campLiveStatement);
