@@ -331,10 +331,10 @@ class StatementController extends Controller
      */
     public function storeStatement(Request $request, Validate $validate)
     {
-        // $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
-        // if ($validationErrors) {
-        //     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        // }
+        $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
