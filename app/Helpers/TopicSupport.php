@@ -182,7 +182,6 @@ class TopicSupport
  
     }
 
-
     /**
      * Send email to promoted delegates as a direct supporter of topic and camps 
      * @param integer $topicNum
