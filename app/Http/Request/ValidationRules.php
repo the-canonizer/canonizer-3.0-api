@@ -380,9 +380,10 @@ class ValidationRules
             'camp_num' => 'required',
             'statement' => 'required',
             'nick_name' => 'required',
-            'submitter' => 'required', 
-            'statement_id' => 'required_if:objection,1',
-            'objection_reason' => 'required_if:objection,1'
+            'submitter' => 'required',
+            'event_type' => 'required|in:create,update,edit,objection', 
+            'statement_id' => 'required_if:event_type,objection|required_if:event_type,edit',
+            'objection_reason' => 'required_if:event_type,objection'
         ];
     }
     
