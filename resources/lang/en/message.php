@@ -357,4 +357,19 @@ return [
         'nick_name_id_required' => "Nick name id is required",
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
     ],
+    'validation_manage_camp' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number number is required.",
+        'camp_id_required' => "Camp id is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are update, edit, objection.",
+        'keywords' => "keyword is required.",
+        'note' => "Note is required.",
+        'camp_about_url' => "Camp about url is required.",
+        'camp_about_nick_id' => "Camp about nick id is required.",
+        'objection_reason_required_if' => "Objection reason is required.",
+        
+    ],
 ];

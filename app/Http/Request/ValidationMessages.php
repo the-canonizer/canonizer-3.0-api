@@ -519,4 +519,25 @@ class ValidationMessages
             'nick_name_id.required' => trans('message.validation_agree_to_change.nick_name_id_required'),
         ];
     }
+
+    public function getManageCampValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_manage_camp.topic_num_required'),
+            'camp_num.required' => trans('message.validation_manage_camp.camp_num_required'),
+            'parent_camp_num.required' => trans('message.validation_manage_camp.topic_num_required'),
+            'old_parent_camp_num.required' => trans('message.validation_manage_camp.camp_num_required'),
+            'camp_id.required' => trans('message.validation_manage_camp.statement_required'),
+            'nick_name.required' => trans('message.validation_manage_camp.nick_name_required'),
+            'submitter.required' => trans('message.validation_manage_camp.submitter_required'),
+            'event_type.required' => trans('message.validation_manage_camp.event_type_required'),
+            'event_type.in' => trans('message.validation_manage_camp.event_type_in'),
+            'camp_name.required' => trans('message.validation_manage_camp.parent_camp_num_required'),
+            'keywords.required' => trans('message.validation_manage_camp.statement_id_required_if'),
+            'note.required' => trans('message.validation_manage_camp.parent_camp_num_required'),
+            'camp_about_url.required' => trans('message.validation_manage_camp.parent_camp_num_required'),
+            'camp_about_nick_id.required' => trans('message.validation_manage_camp.parent_camp_num_required'),
+            'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
+        ];
+    }
 }
