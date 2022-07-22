@@ -338,35 +338,51 @@ class TopicController extends Controller
         $nickNames = Nickname::personNicknameArray();
         try {
             if ($type == 'statement') {
-                $statement = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
-                if (!$statement) {
-                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
-                }
-                $statement->grace_period = 0;
-                $statement->update();
-                $filter['topicNum'] = $statement->topic_num;
-                $filter['campNum'] = $statement->camp_num;
-                $directSupporter =  Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
-                $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
-                $link = 'statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
-                $livecamp = Camp::getLiveCamp($filter);
-                $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
-                $data['support_camp'] = $livecamp->camp_name;
-                $data['go_live_time'] = $statement->go_live_time;
+                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+            }else if ($type == 'camp') {
+                $model = Camp::where('id', '=', $id)->first();
+            }
+            if (!$model) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+            $model->grace_period = 0;
+            $model->update();
+            $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
+            $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
+            $filter['topicNum'] = $model->topic_num;
+            $filter['campNum'] = $model->camp_num;
+            $liveCamp = Camp::getLiveCamp($filter);
+            $nickName = Nickname::getNickName($model->submitter_nick_id);
+            $data['object'] = $model->topic->topic_name . ' / ' . $model->camp_name;
+            $data['go_live_time'] = $model->go_live_time;
+            $data['note'] = $model->note;
+            $data['camp_num'] = $model->camp_num;
+            $data['topic_num'] = $model->topic_num;
+            $data['nick_name'] = $model->nick_name;
+            $data['nick_name_id'] = $nickName->id;
+            $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
+            if ($type == 'statement') {
+                $link = 'statement/history/' . $model->topic_num . '/' . $model->camp_num;
+                $data['support_camp'] = $liveCamp->camp_name;
                 $data['type'] = 'statement : for camp ';
                 $data['typeobject'] = 'statement';
-                $data['note'] = $statement->note;
-                $data['camp_num'] = $statement->camp_num;
-                $nickName = Nickname::getNickName($statement->submitter_nick_id);
-                $data['topic_num'] = $statement->topic_num;
-                $data['nick_name'] = $nickName->nick_name;
-                $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-                $data['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
-                $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
-                $data['nick_name_id'] = $nickName->id;
-                Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $data);
+                $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
+                $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
+            } else if ($type == 'camp') {
+                $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
+                $data['support_camp'] = $model->camp_name;
+                $data['type'] = 'camp : ';
+                $data['typeobject'] = 'camp';
+                $data['forum_link'] = 'forum/' . $liveCamp->topic_num . '-' . $liveCamp->camp_name . '/' . $liveCamp->camp_num . '/threads';
+                $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
+                $topic = $model->topic;
+                if(isset($topic)) {
+                    Util::dispatchJob($topic, $model->camp_num, 1);
+                }
+                $message = trans('message.success.camp_commit');
             }
+            Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -447,12 +463,12 @@ class TopicController extends Controller
             $log->topic_num = $data['topic_num'];
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
+            $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->count();
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
                     $log->save();
                     $submitterNickId = $statement->submitter_nick_id;
-                    $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', 'statement')->count();
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
@@ -460,7 +476,29 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
-                }else{
+                } else {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+            } else if ($data['change_for'] == 'camp') {
+                $camp = Camp::where('id', $changeId)->first();
+                if ($camp) {
+                    $filter['topicNum'] = $data['topic_num'];
+                    $filter['campNum'] = $data['camp_num'];
+                    $liveCamp = Camp::getLiveCamp($filter);
+                    Util::checkParentCampChanged($data, false, $liveCamp);
+                    $submitterNickId = $camp->submitter_nick_id;
+                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    if ($agreeCount == $supporters) {
+                        $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                        $camp->update();
+                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                        $topic = $camp->topic;
+                        if (isset($topic)) {
+                            Util::dispatchJob($topic, $camp->camp_num, 1);
+                        }
+                        $message = trans('message.success.camp_agree');
+                    }
+                } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             }

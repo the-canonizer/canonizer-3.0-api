@@ -473,4 +473,26 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         
         return $parentCampName;
     }
+
+    public static function getAllLiveCampsInTopic($topicnum){ 
+        return self::where('topic_num', '=', $topicnum)
+                        ->where('camp_name', '!=', 'Agreement')
+                        ->where('objector_nick_id', '=', NULL)
+                        ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicnum . ' and objector_nick_id is null and go_live_time < "' . time() . '" group by camp_num)')
+                        ->where('go_live_time', '<=', time())
+                        ->groupBy('camp_num')
+                        ->orderBy('submit_time', 'desc')
+                        ->get();
+    }
+
+    public static function getAllNonLiveCampsInTopic($topicnum){ 
+        return self::where('topic_num', '=', $topicnum)
+                        ->where('camp_name', '!=', 'Agreement')
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time',">",time())
+                        ->groupBy('camp_num')
+                        ->orderBy('submit_time', 'desc')
+                        ->get();
+    }
+
 }

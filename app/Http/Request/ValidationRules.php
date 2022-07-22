@@ -470,7 +470,6 @@ class ValidationRules
             'old_parent_camp_num' => 'required',
             'parent_camp_num' => 'required',
             'camp_about_url' => 'required',
-            'camp_about_nick_id' => 'required',
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'
         ];
