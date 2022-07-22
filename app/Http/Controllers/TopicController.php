@@ -346,6 +346,27 @@ class TopicController extends Controller
                 }
                 $statement->grace_period = 0;
                 $statement->update();
+                $filter['topicNum'] = $statement->topic_num;
+                $filter['campNum'] = $statement->camp_num;
+                $directSupporter =  Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
+                $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
+                $link = 'statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+                $data['support_camp'] = $livecamp->camp_name;
+                $data['go_live_time'] = $statement->go_live_time;
+                $data['type'] = 'statement : for camp ';
+                $data['typeobject'] = 'statement';
+                $data['note'] = $statement->note;
+                $data['camp_num'] = $statement->camp_num;
+                $nickName = Nickname::getNickName($statement->submitter_nick_id);
+                $data['topic_num'] = $statement->topic_num;
+                $data['nick_name'] = $nickName->nick_name;
+                $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+                $data['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
+                $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+                $data['nick_name_id'] = $nickName->id;
+                Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $data);
                 $message = trans('message.success.statement_commit');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');

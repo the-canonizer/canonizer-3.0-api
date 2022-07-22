@@ -1,7 +1,5 @@
 @extends('layouts.default')
 @section('content')
-
-
     <tr>
         <td>
             <table width="100%">
@@ -19,17 +17,14 @@
                     <td style="padding:30px 0px 20px; font-weight:600;">Hello {{ $user->first_name }}
                         {{ $user->last_name }}, </td>
                 </tr>
-
                 <tr>
                     <td style="padding-top: 0px;  font-weight:400;">
                         <p> <a target="_blank"
                                 href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
                             has removed their support from this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
-                            
                         </p>
                     </td>
                 </tr>
-                
                 <tr>
                     <td style="padding-top: 0px;  font-weight:400;">
                         @if (isset($data['subscriber']) && $data['subscriber'] == 1)
