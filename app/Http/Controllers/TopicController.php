@@ -274,6 +274,7 @@ class TopicController extends Controller
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             if ($topic) {
+                $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
                 $topicRecord[] = $topic;
                 $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
