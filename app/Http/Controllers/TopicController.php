@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Nickname;
+use App\Models\Statement;
 use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\ChangeAgreeLog;
+use App\Jobs\ActivityLoggerJob;
+use App\Models\CampSubscription;
+use App\Facades\PushNotification;
+use App\Helpers\ResourceInterface;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Events\ThankToSubmitterMailEvent;
-use App\Facades\Util;
-use App\Helpers\ResponseInterface;
-use App\Helpers\ResourceInterface;
-use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
-use App\Models\CampSubscription;
-use App\Jobs\ActivityLoggerJob;
-use App\Models\Nickname;
-use App\Models\Statement;
-use App\Models\ChangeAgreeLog;
+use App\Events\ThankToSubmitterMailEvent;
 
 class TopicController extends Controller
 {
@@ -274,6 +276,7 @@ class TopicController extends Controller
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             if ($topic) {
+                $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
                 $topicRecord[] = $topic;
                 $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);

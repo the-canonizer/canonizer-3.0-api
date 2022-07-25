@@ -9,9 +9,12 @@ use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Nickname;
+use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
+use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +23,9 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Jobs\ActivityLoggerJob;
-use App\Helpers\CampForum;
 use App\Models\Support;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Library\General;
-
 class CampController extends Controller
 {
 
@@ -216,6 +216,17 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    
+                    $PushNotificationData =  new stdClass();
+                    $PushNotificationData->user_id = $request->user()->id;
+                    $PushNotificationData->topic_num = $topic->topic_num;
+                    $PushNotificationData->camp_num = $camp->camp_num;
+                    $PushNotificationData->notification_type = config('global.notification_type.Camp');
+                    $PushNotificationData->title = trans('message.notification_title.createCamp');
+                    $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
+                    $PushNotificationData->fcm_token = $request->fcm_token;
+                    $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
+                    $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
