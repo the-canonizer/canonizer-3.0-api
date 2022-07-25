@@ -1134,7 +1134,7 @@ class CampController extends Controller
             }
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
-                $this->objectCampNotification($camp, $all, $link);
+                $this->objectCampNotification($camp, $all, $link, $liveCamp);
             } else if ($all['event_type'] == "update") {
                 $this->updateCampNotification($camp, $liveCamp, $link);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
@@ -1188,10 +1188,9 @@ class CampController extends Controller
         Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
-    private function objectCampNotification($camp, $all, $link)
+    private function objectCampNotification($camp, $all, $link, $liveCamp)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
-        $liveCamp = Camp::getLiveCamp($camp->topic_num, $camp->camp_num);
         $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['nick_name'] = $nickName->nick_name;

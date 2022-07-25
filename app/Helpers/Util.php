@@ -389,8 +389,7 @@ class Util
             if (sizeof($allChildSupporters) > 0) {
                 Support::removeSupport($all['topic_num'], $all['parent_camp_num'], $allChildSupporters);
             }
-        } else {
-            if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+        } else if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
                 $allParentCamps = Camp::getAllParent($liveCamp);
                 $allChildSupporters = Support::where('topic_num', $all['topic_num'])
                     ->where('end', 0)
@@ -401,7 +400,6 @@ class Util
                         Support::removeSupport($all['topic_num'], $parentCamp, $allChildSupporters, $all['camp_num']);
                     }
                 }
-            }
         }
     }
 }

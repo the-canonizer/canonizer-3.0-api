@@ -360,6 +360,8 @@ return [
         'change_for_in' => "Please enter a valid value (topic,camp,statement)",
         'nick_name_id_required' => "Nick name id is required",
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
+        'parent_camp_num_required_if' => "Parent camp number is required.",
+        'old_parent_camp_num_required_if' => "Old parent camp number is required.",
     ],
     'validation_manage_camp' => [
         'topic_num_required' => "Topic number is required.",

@@ -353,7 +353,7 @@ class TopicController extends Controller
             $filter['campNum'] = $model->camp_num;
             $liveCamp = Camp::getLiveCamp($filter);
             $nickName = Nickname::getNickName($model->submitter_nick_id);
-            $data['object'] = $model->topic->topic_name . ' / ' . $model->camp_name;
+            $data['object'] = $liveCamp->topic->topic_name . ' / ' . $model->camp_name;
             $data['go_live_time'] = $model->go_live_time;
             $data['note'] = $model->note;
             $data['camp_num'] = $model->camp_num;
@@ -482,10 +482,11 @@ class TopicController extends Controller
             } else if ($data['change_for'] == 'camp') {
                 $camp = Camp::where('id', $changeId)->first();
                 if ($camp) {
+                    $log->save();
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $liveCamp = Camp::getLiveCamp($filter);
-                    Util::checkParentCampChanged($data, false, $liveCamp);
+                    Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
@@ -496,8 +497,8 @@ class TopicController extends Controller
                         if (isset($topic)) {
                             Util::dispatchJob($topic, $camp->camp_num, 1);
                         }
-                        $message = trans('message.success.camp_agree');
                     }
+                    $message = trans('message.success.camp_agree');
                 } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }

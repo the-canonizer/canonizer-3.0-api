@@ -519,6 +519,8 @@ class ValidationMessages
             'change_for.in' => trans('message.validation_agree_to_change.change_for_in'),
             'change_for.required' => trans('message.validation_agree_to_change.change_for_required'),
             'nick_name_id.required' => trans('message.validation_agree_to_change.nick_name_id_required'),
+            'parent_camp_num.required_if' => trans('message.validation_agree_to_change.parent_camp_num_required_if'),
+            'old_parent_camp_num.required_if' => trans('message.validation_agree_to_change.old_parent_camp_num_required_if'),
         ];
     }
 
