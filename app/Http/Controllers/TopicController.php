@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Nickname;
+use App\Models\Statement;
 use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\ChangeAgreeLog;
+use App\Jobs\ActivityLoggerJob;
+use App\Models\CampSubscription;
+use App\Facades\PushNotification;
+use App\Helpers\ResourceInterface;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Events\ThankToSubmitterMailEvent;
-use App\Facades\Util;
-use App\Helpers\ResponseInterface;
-use App\Helpers\ResourceInterface;
-use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
-use App\Models\CampSubscription;
-use App\Jobs\ActivityLoggerJob;
-use App\Models\Nickname;
-use App\Models\Statement;
-use App\Models\ChangeAgreeLog;
+use App\Events\ThankToSubmitterMailEvent;
 
 class TopicController extends Controller
 {
@@ -460,7 +462,7 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
-                }else{
+                } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             }
