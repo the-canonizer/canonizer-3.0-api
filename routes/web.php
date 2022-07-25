@@ -109,6 +109,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('agree-to-change','TopicController@agreeToChange');
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
+        $router->get('edit-camp/{id}','CampController@editCamp');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

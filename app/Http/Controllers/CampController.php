@@ -1062,4 +1062,22 @@ class CampController extends Controller
         }
     }
     
+    public function editCamp($id)
+    {
+        try {
+            $camp = Camp::where('id', $id)->first();
+            if ($camp) {
+                $data = new stdClass();
+                $data->nickNames = Nickname::topicNicknameUsed($camp->topic_num);
+                $data->camp = $camp;
+                $response[0] = $data;
+                $indexes = ['camp', 'nickNames'];
+                $camp = $this->resourceProvider->jsonResponse($indexes, $response);
+                $camp = $camp[0];
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }
