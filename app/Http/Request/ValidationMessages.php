@@ -374,7 +374,7 @@ class ValidationMessages
     {
         return ([
             'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
-            'delegate_to_user_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
+            'delegated_nick_name_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
             'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
 
         ]);
@@ -436,6 +436,8 @@ class ValidationMessages
             'statement.required' => trans('message.validation_store_statement.statement_required'),
             'nick_name.required' => trans('message.validation_store_statement.nick_name_required'),
             'submitter.required' => trans('message.validation_store_statement.submitter_required'),
+            'event_type.required' => trans('message.validation_store_statement.event_type_required'),
+            'event_type.in' => trans('message.validation_store_statement.event_type_in'),
             'parent_camp_num.required' => trans('message.validation_store_statement.parent_camp_num_required'),
             'statement_id.required_if' => trans('message.validation_store_statement.statement_id_required_if'),
             'objection_reason.required_if' => trans('message.validation_store_statement.objection_reason_required_if'),

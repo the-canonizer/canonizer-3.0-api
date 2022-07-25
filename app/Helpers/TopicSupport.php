@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Event;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Events\SupportRemovedMailEvent;
 use App\Events\SupportAddedMailEvent;
+use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Jobs\ActivityLoggerJob;
 use DB;
 
 
 class TopicSupport
 {
+
+   
 
     public static $model = 'App\Models\Support';
 
@@ -184,6 +187,80 @@ class TopicSupport
 
 
     /**
+     * [Add deleagte support]
+     * 
+     */
+    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId)
+    { 
+        $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
+        $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
+        $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $delegatToNickNames);
+        $delegatorPrevSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
+        $campNum = $supportToAdd[0]->camp_num;   // first choice
+        $notifyDelegatedUser = false;        
+
+        if(count($delegatorPrevSupport)){
+            $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
+            self::removeSupport($topicNum, [], $allNickNames);  
+        }
+
+        $delegateSupporters = array(
+                ['nick_name_id' => $nickNameId, 'delegate_nick_name_id' => $delegateNickNameId]
+            );
+        if(isset($allDelegates) && $allDelegates){
+            $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
+        } 
+        
+        
+        self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
+
+        $subjectStatement = "has just delegated their support to";
+        self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
+
+        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
+        {
+            $notifyDelegatedUser = true;
+        }
+
+        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
+
+        // log activity
+        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
+        
+    }
+
+
+    /** 
+     * 
+     * @return void
+     */
+    public static function insertDelegateSupport($delegates = [], $supportToAdd)
+    {
+        $insert = [];
+
+        foreach($delegates as $supporter)
+        {
+            $temp = [];
+            foreach($supportToAdd as $sp)
+            {
+                $temp = [
+                    'topic_num' => $sp->topic_num,
+                    'camp_num' => $sp->camp_num,
+                    'support_order' => $sp->support_order,
+                    'nick_name_id' => $supporter['nick_name_id'],
+                    'delegate_nick_name_id' => $supporter['delegate_nick_name_id'],
+                    'start' => time()
+                ];
+
+                array_push($insert, $temp);
+            }
+        }
+        Support::insert($insert);
+        return true;
+    }
+
+
+    /** 
      * Send email to promoted delegates as a direct supporter of topic and camps 
      * @param integer $topicNum
      * @param integer $camNum
@@ -270,18 +347,18 @@ class TopicSupport
         return Nickname::getAllNicknamesByNickId($nickId);
     }
 
-    /**
+    /** 
      * [get topic link]
      * @param object $topic is live  topic - agreement camp 
      * @return string $link is link of topic
      */
     public static function getTopicLink($topic)
-    {
+    {   
         return  Topic::topicLink($topic->topic_num, 1, $topic->title);
     }
 
 
-    /** 
+    /**
     * [get camp link]
     * @param object $camp is live camp object
     * @return string $link is link of live camp
@@ -301,7 +378,7 @@ class TopicSupport
         return Camp::getLiveCamp($filter);
     }
 
-    /**
+    /*
      * [getAllSupportedCampsByUser] 
      *  This function will return all supported camps group by nickname ID
      * @param $id is user id
@@ -479,9 +556,12 @@ class TopicSupport
     {
         $delegators = Support::getActiveDelegators($topicNum, $allNickNames);
         Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
+        
+
+       
 
         if(isset($delegators) && count($delegators) > 0)
-        {
+        { 
             foreach($delegators as $delegator)
             {
                 $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
@@ -492,7 +572,7 @@ class TopicSupport
         return;
     }
 
-    /**
+    /** 
      * [Re-order support]
      */
     public static function reorderSupport($orders, $topicNum, $allNickNames)
@@ -570,7 +650,7 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add")
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='')
     {
        
         $bcc_email = [];
@@ -608,6 +688,14 @@ class TopicSupport
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $topic_name_space_id = $data['namespace_id'];
         
+        /** If delegate support */
+        if(isset($delegatedNickNameId) && $delegatedNickNameId){
+            $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
+            $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
+            $data['delegated_nick_name_id'] = $delegatedToNickname->id;
+
+            $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
+        }        
         
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($campNum, $campNum);
@@ -650,7 +738,7 @@ class TopicSupport
                     $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
                     $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
-                try {
+                try { 
                     
                     if($action == 'add'){
                         Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
@@ -666,7 +754,7 @@ class TopicSupport
             }
         }
 
-        if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {
+        if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {          
             $data['subscriber'] = 1;
             foreach ($filtered_sub_user as $userSub) {
                 $data['support_list'] = $subscribe_list[$userSub->id];
@@ -686,7 +774,7 @@ class TopicSupport
         return;
     }
 
-    /**
+    /** 
      * 
      */
     public static function checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames)
@@ -712,7 +800,8 @@ class TopicSupport
     }
 
     /**
-     * 
+     *  check is supported is a deleagtor supporter
+     *  @return $returnData with warning messages
      */
     public static function checkIfDelegatorSupporter($topicNum, $campNum, $nickNames)
     {
@@ -742,7 +831,7 @@ class TopicSupport
     }
 
     /**
-     * 
+     *  [This will check & return warning if support switched from child to parent]
      */
     public static function checkIfSupportswitchToChild($topicNum, $campNum, $nickNames)
     {
@@ -773,7 +862,7 @@ class TopicSupport
     }
 
     /**
-     * 
+     * [This will check & return warning if support switched from parent to child]
      */
     public static function checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames)
     {
@@ -836,7 +925,7 @@ class TopicSupport
     }
 
     /**
-     *  [This will be add support ]
+     *  [This will add support ]
      */
     public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId,  $delegatedNickNameId = 0)
     {
@@ -852,7 +941,7 @@ class TopicSupport
         Support::insert($data);
 
         //add support to all delegators as well
-        $delegatedSupport = Support::getDelegatorForNicknameId($topicNum, $nickNameId);               
+        $delegatedSupport = Support::getDelegatorForNicknameId($topicNum, $nickNameId);  
        
         if($delegatedSupport->count()) {
             foreach($delegatedSupport as $support){
@@ -941,9 +1030,9 @@ class TopicSupport
      * 
      * @return void
      */
-    public static function logActivityForAddSupport($topicNum, $campNum, $nickNameId)
+    public static function logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId = '')
     {
-        if($campNum){
+        if($campNum){ 
             $nicknameModel = Nickname::getNickName($nickNameId);
             $topicFilter = ['topicNum' => $topicNum];
             $topicModel = Camp::getAgreementTopic($topicFilter);
@@ -957,28 +1046,128 @@ class TopicSupport
             $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
             $model = new Support();
             $description = "supoort added";
+
+            if($delegateNickNameId){
+                $delegatedTo = Nickname::getNickName($delegateNickNameId);
+                $activity = $nicknameModel->name  . " delegated their support to " . $delegatedTo->nick_name; 
+                $description = "Support delegated.";
+            }
             
-            self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
+            return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
         }
         
         return;
     }
 
-    /**
+    /** 
      * Return Add support API message
      */
     public static function getMessageBasedOnAction($add, $remove, $reOrder)
     {
         $message = trans('message.support.update_support');
 
-        if(!empty($add) && empty($remove))
+        if($add && !$remove)
         {
             $message = trans('message.support.add_direct_support');
-        }else if(empty($add) && !empty($remove))
+        }else if(!$add && $remove)
         {
             $message = trans('message.support.remove_direct_support');
         }
 
         return $message;
+    }
+
+    /**
+     *  [Get All Delegates of a supporter in the topic]
+     *  @param integer $nickNameId is nick name id user for which all deleagtes needs to be fetched
+     * 
+     */
+    public static function getAllDelegates($topicNum, $nickNameId, $delegates = [])
+    {
+        $delegateSupporters =  Support::getActiveDelegators($topicNum, [$nickNameId]);
+
+        if(!empty($delegateSupporters))
+        {
+            foreach($delegateSupporters as $ds){
+                $temp = [
+                    'nick_name_id' => $ds->nick_name_id,
+                    'delegate_nick_name_id' => $ds->delegate_nick_name_id
+                ];
+                array_push($delegates, $temp);
+    
+                return self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+            }
+        }
+        
+
+        return $delegates;
+    }
+
+    /** 
+     *  [notify delegator and  delegated user]
+     */
+    public static function notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, $action = 'add', $delegatedNickNameId, $notifyDelegatedUser = false)
+    {
+        $bcc_email = [];
+        $subscriber_bcc_email = [];
+        $bcc_user = [];
+        $sub_bcc_user = [];
+        $userExist = [];
+
+        $topicFilter = ['topicNum' => $topicNum];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+
+        $topic = Camp::getAgreementTopic($topicFilter);
+        $camp  = self::getLiveCamp($campFilter);
+        $nickname =  Nickname::getNickName($nickNameId);
+        $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
+
+        $object = $topic->topic_name ." / ".$camp->camp_name;
+        $topicLink =  self::getTopicLink($topic);
+        $campLink = self::getCampLink($topic,$camp);
+        $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
+
+        $data['object']     = $object;
+        $data['subject']    = "You has just delegated your support to  " . $delegatedToNickname->nick_nam. ".";
+        $data['topic']      = $topic;
+        $data['camp']       = $camp;
+        $data['camp_name']  = $camp->camp_name;
+        $data['topic_name'] = $topic->topic_name;
+        $data['topic_num']  = $topic->topic_num;
+        $data['camp_num']   = $camp->camp_num;
+        $data['topic_link'] = $topicLink;
+        $data['camp_link']  = $campLink;   
+        $data['url_portion'] =  $seoUrlPortion;
+        $data['nick_name_id'] = $nickname->id;
+        $data['nick_name'] = $nickname->nick_name;
+        $data['support_action'] = $action; //default will be 'added'
+        $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
+        $data['delegated_nick_name_id'] = $delegatedToNickname->id;
+        $data['action'] = $action;
+        $topic_name_space_id = $data['namespace_id'];
+
+        try {
+                    
+            if($action == 'add'){
+                $user = Nickname::getUserByNickName($nickNameId);
+                Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($user->email ?? null, $user, $data));
+
+                if(isset($notifyDelegatedUser) && $notifyDelegatedUser){
+                    $data['notify_delegated_user'] = $notifyDelegatedUser;
+                    $data['subject']    = $nickname->nick_name . " has just delegated their support to you.";                    
+                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);
+                    
+                    Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($delegatedUser->email ?? null, $delegatedUser, $data));
+                }
+            }
+            
+        } catch (Throwable $e) {
+            $data = null;
+            $status = 403;
+            echo  $message = $e->getMessage();
+        }
+
+        return;
     }
 }
