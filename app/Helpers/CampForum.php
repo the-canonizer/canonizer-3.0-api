@@ -24,6 +24,7 @@ class CampForum
      */
     public static function sendEmailToSupportersForumThread($topicid, $campnum, $link, $thread_title, $nick_id, $topic_name_encoded)
     {
+        $user='';
         $bcc_email = [];
         $subscriber_bcc_email = [];
         $bcc_user = [];
@@ -234,7 +235,7 @@ class CampForum
     public static function sendEmailToSupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id)
     {
 
-        // dd("+++");
+        $user='';
         $bcc_email = [];
         $subscriber_bcc_email = [];
         $userExist = [];
