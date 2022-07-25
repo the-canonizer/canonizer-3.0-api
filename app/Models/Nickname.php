@@ -286,9 +286,10 @@ class Nickname extends Model {
         $as_of_clause = '';
 
         $topic_num_cond = '';
-        if(!empty($topic_num)){
-            $topic_num_cond = 'and u.topic_num = '.$topic_num;
-        }
+        /** ticket can-833 supported camp should appear regardless of topic num */
+        //if(!empty($topic_num)){
+           // $topic_num_cond = 'and u.topic_num = '.$topic_num;
+       // }
 
         $namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : $namespace;
 
@@ -333,9 +334,7 @@ class Nickname extends Model {
 
     public static function getUserByNickId($nick_id) {
         $nickname = self::find($nick_id);
-        $userId = Util::canon_decode($nickname->owner_code);
-        $user = User::find($userId);
-        return $user->first_name.' '.$user->last_name;
+        return $nickname->nick_name;
     }
 
     

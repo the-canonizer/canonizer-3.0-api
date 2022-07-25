@@ -25,7 +25,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num'];
+    protected $fillable = ['topic_num', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -393,7 +393,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 }
             }
             if (count($child_camps) > 0) {
-                $camp_subs_child = CampSubscription::where('user_id', '=', $userid)->whereIn('camp_num', $child_camps)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
+                $camp_subs_child = CampSubscription::where('user_id', '=', $userid)->whereIn('camp_num', $child_camps)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get();
                 $flag = ($camp_subs_child && sizeof($camp_subs_child) > 0);
                 if ($flag) {
                     $flag = 2;
@@ -402,7 +402,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                     $camp_subscription = CampSubscription::select('camp_subscription.id as subscription_id', 'camp.camp_name as camp_name')->join("camp", function ($join) {
                         $join->on("camp.topic_num", "=", "camp_subscription.topic_num")
                             ->on("camp.camp_num", "=", "camp_subscription.camp_num");
-                    })->where('user_id', '=', $userid)->where('camp_subscription.camp_num', '=', $camp)->where('camp_subscription.topic_num', '=', $filter['topicNum'])->where('camp_subscription.subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('camp_subscription.subscription_end', '=', null)->orWhere('camp_subscription.subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->orderBy('camp.go_live_time', 'DESC')->limit(1)->get();
+                    })->where('user_id', '=', $userid)->where('camp_subscription.camp_num', '=', $camp)->where('camp_subscription.topic_num', '=', $filter['topicNum'])->where('camp_subscription.subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('camp_subscription.subscription_end', '=', null)->orWhere('camp_subscription.subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->orderBy('camp.go_live_time', 'DESC')->limit(1)->get();
                     if (sizeof($camp_subscription) > 0) {
                         $returnArr = array('flag' => $flag, 'camp_subscription_data' => $camp_subscription);
                         break;

@@ -134,7 +134,8 @@ class UploadController extends Controller
                 $result = Aws::UploadFile($filename,$file);
                 $response = $result->toArray();       
 
-                $fileShortCode = Util::generateShortCode();
+                $submittedFileName = trim($all['name'][$k]);
+                $fileShortCode = Util::generateShortCode($file, $submittedFileName);
                 $data = [
                     'file_name' => trim($all['name'][$k]),
                     'user_id' => $user->id,

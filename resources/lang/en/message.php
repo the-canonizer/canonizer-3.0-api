@@ -281,7 +281,9 @@ return [
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
         'delegate_invalid_request' => 'Invalid request, please try again later.',
         'support_exist' => 'This camp is already supported',
-        'support_not_exist' => "This camp doesn't have your support"
+        'support_not_exist' => "This camp doesn't have your support",
+        'update_support' => 'Support updated successfully.',
+        'remove_direct_support' => 'Support removed successfully.'
 
     ],
     'support_validation' => [
@@ -320,6 +322,8 @@ return [
         'statement_required' => "Statement is required.",
         'nick_name_required' => "Nick name is required.",
         'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are create, update, edit, objection.",
         'statement_id_required_if' => "Statement id is required.",
         'objection_reason_required_if' => "Objection reason is required.",
     ],
@@ -357,5 +361,25 @@ return [
     ],
     'validation_get_topic_history' => [
         'topic_num_required' => "Topic Num is required.",
+    ],
+    'notification_title' => [
+        "createTopic" => "Topic Create",
+        "createCamp" => "New Camp Created!",
+        "createThread" => "New Thread Created!",
+        "createPost" => "New Post Created!",
+        "updatePost" => "Post Updated!",
+        "manageStatement" => "Change proposed on Camp - :camp_name",
+        "addSupport" => "Support Added to Camp - :camp_name",
+        "removeSupport" => "Support Removed from Camp - :camp_name",
+    ],
+    'notification_message' => [
+        "createTopic" => "Hello :first_name :last_name, You proposed a change for :notification_type : :topic_name",
+        "createCamp" => ":first_name :last_name has created a new Camp - :camp_name",
+        "createThread" => ":first_name :last_name has created a new Thread :thread_name under Camp - :camp_name",
+        "createPost" => ":first_name :last_name has made the new Post under Thread - :thread_name",
+        "updatePost" => ":first_name :last_name has updated the Post under Thread - :thread_name",
+        "manageStatement" => ":first_name :last_name has proposed a change to the statement for Camp - :camp_name",
+        "addSupport" => ":first_name :last_name has just added support to the Camp - :camp_name",
+        "removeSupport" => ":first_name :last_name  has just removed support to the Camp - :camp_name",
     ],
 ];

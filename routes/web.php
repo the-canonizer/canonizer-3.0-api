@@ -86,10 +86,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
         $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
-        $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
-        $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
-        $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
-        $router->post('/delete-camp-newsfeed','NewsFeedController@deleteNewsFeed');
         $router->post('thread/save','ThreadsController@store');
         $router->put('thread/update/{id}','ThreadsController@update');
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
@@ -112,6 +108,14 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
         $router->post('agree-to-change','TopicController@agreeToChange');
+        $router->get('notification-list','NotificationController@notificationList');
+        $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
+    });
+    $router->group(['middleware' => 'admin'], function() use ($router) {
+        $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
+        $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
+        $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
+        $router->post('/delete-camp-newsfeed','NewsFeedController@deleteNewsFeed');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');

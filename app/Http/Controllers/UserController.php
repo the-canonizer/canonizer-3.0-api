@@ -435,7 +435,6 @@ class UserController extends Controller
             $username = $request->username;
             $password = $request->password;
             $user = User::where('email', '=', $username)->first();
-
             if (empty($user)) {
                 $status = 400;
                 $message = trans('message.error.email_not_registered');
@@ -454,6 +453,7 @@ class UserController extends Controller
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
+            $user->is_admin = ($user->type == 'admin') ? true : false;
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,

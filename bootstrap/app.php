@@ -93,6 +93,7 @@ $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
     'Xss' => \App\Http\Middleware\Xss::class,
+    'admin' => \App\Http\Middleware\IsAdmin::class,
 ]);
 
 /*
@@ -126,6 +127,9 @@ $app->register(\Anik\Form\FormRequestServiceProvider::class);
 
 /* Activity Logger */
 $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
+
+/* Uniqueable queue jobs */
+$app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

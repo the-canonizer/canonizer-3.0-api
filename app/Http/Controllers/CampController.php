@@ -9,9 +9,12 @@ use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Nickname;
+use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
+use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +23,6 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Jobs\ActivityLoggerJob;
-use App\Helpers\CampForum;
 
 class CampController extends Controller
 {
@@ -213,6 +214,17 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    
+                    $PushNotificationData =  new stdClass();
+                    $PushNotificationData->user_id = $request->user()->id;
+                    $PushNotificationData->topic_num = $topic->topic_num;
+                    $PushNotificationData->camp_num = $camp->camp_num;
+                    $PushNotificationData->notification_type = config('global.notification_type.Camp');
+                    $PushNotificationData->title = trans('message.notification_title.createCamp');
+                    $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
+                    $PushNotificationData->fcm_token = $request->fcm_token;
+                    $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
+                    $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
@@ -299,8 +311,8 @@ class CampController extends Controller
                 if ($request->user()) {
                     $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                     $livecamp->flag = $campSubscriptionData['flag'];
-                    $livecamp->subscriptionId = isset($campSubscriptionData['camp_subscription_data'][0]['subscription_id']) ? $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] : null;
-                    $livecamp->subscriptionCampName = isset($campSubscriptionData['camp_subscription_data'][0]['camp_name']) ? $campSubscriptionData['camp_subscription_data'][0]['camp_name'] : null;
+                    $livecamp->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? null;
+                    $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
                 if($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0){
                     $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
@@ -1027,11 +1039,20 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
+        $data = new stdClass();
+        $data->flag=0;
+        $data->subscription_id=null;
+        $data->subscribed_camp_name=null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
-            $data = new stdClass();
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $indexs = ['bread_crumb'];
+            if ($request->user()) {
+                $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
+                $data->flag = $campSubscriptionData['flag'];
+                $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
+                $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
+            }
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response=$response[0];
