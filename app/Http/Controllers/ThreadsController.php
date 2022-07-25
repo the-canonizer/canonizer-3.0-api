@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Throwable;
+use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Reply;
 use App\Models\Topic;
@@ -12,13 +14,13 @@ use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
+use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
-use stdClass;
 
 class ThreadsController extends Controller
 {
@@ -171,7 +173,7 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_success');
 
                 // Return Url after creating thread Successfully
-                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
@@ -185,6 +187,23 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+
+                    $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
+                    $filter['topicNum'] = $request->topic_num;
+                    $filter['asOf'] = $request->asof;
+                    $filter['campNum'] = $request->camp_num;
+                    $camp = Camp::getLiveCamp($filter);
+                    $PushNotificationData =  new stdClass();
+                    $PushNotificationData->user_id = $request->user()->id;
+                    $PushNotificationData->thread_id = $thread->id;
+                    $PushNotificationData->topic_num = $topic->topic_num;
+                    $PushNotificationData->camp_num = $camp->camp_num;
+                    $PushNotificationData->notification_type = config('global.notification_type.Thread');
+                    $PushNotificationData->title = trans('message.notification_title.createThread');
+                    $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name'=> $request->title, 'camp_name' => $camp->camp_name]);
+                    $PushNotificationData->fcm_token = $request->fcm_token;
+                    $PushNotificationData->link = $return_url;
+                    PushNotification::sendPushNotification($PushNotificationData);
             } else {
                 $data = null;
                 $status = 400;
