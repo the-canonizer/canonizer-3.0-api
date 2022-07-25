@@ -524,8 +524,11 @@ class ValidationMessages
 
     public function getTopicHistoryValidationMessages(): array
     {
-        return [
+        return ([
             'topic_num.required' => trans('message.validation_get_topic_history.topic_num_required'),
-        ];
+            'type.in' => trans('message.validation_get_topic_history.type_in'),
+            'per_page.required' => trans('message.validation_get_topic_history.per_page_required'),
+            'page.required' => trans('message.validation_get_topic_history.page_required'),
+        ]);
     }
 }

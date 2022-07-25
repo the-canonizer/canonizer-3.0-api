@@ -109,7 +109,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
-    public static function getHistory($filter, $request)
+    public static function getTopicHistory($filter, $request)
     {
         $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
 
@@ -174,7 +174,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                     default:
                         $val->status = "old";
                 }
-                if ($interval > 0 && $val->grace_period > 0  && (( isset($request->user()->id) && $request->user()->id != $submitterUserID ) || !isset($request->user()->id)) ) {
+                if (($interval > 0 && $val->grace_period > 0)  && (( isset($request->user()->id) && $request->user()->id != $submitterUserID ) || !isset($request->user()->id)) ) {
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
@@ -183,7 +183,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 }
             }
             $response->items = $topicHistory;
-            return  $response;
         }
+        return  $response;
     }
 }

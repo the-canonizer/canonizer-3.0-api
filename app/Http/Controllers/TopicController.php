@@ -484,12 +484,11 @@ class TopicController extends Controller
         $filter['page'] = $request->page;
         $filter['currentTime'] = time();
         $filter['type'] = $request->type;
-        
         $response = new stdClass();
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         try {
-            $topics = Topic::getHistory($filter, $request);
+            $topics = Topic::getTopicHistory($filter, $request);
             $response->parentTopic = (sizeof( $topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count( $topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {

@@ -360,8 +360,11 @@ return [
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
     ],
     'validation_get_topic_history' => [
-        'topic_num_required' => "Topic Num is required.",
-    ],
+            'topic_num_required' => "Topic number is required.",
+            'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
+            'per_page_required' => "Records per page is required.",
+            'page_required' => "Page number is required.",
+        ],
     'notification_title' => [
         "createTopic" => "Topic Create",
         "createCamp" => "New Camp Created!",
