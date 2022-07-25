@@ -159,8 +159,6 @@ class SupportController extends Controller
      * )
      * 
      */
-
-
     public function addDirectSupport(Request $request, Validate $validate)
     {        
         
@@ -190,10 +188,11 @@ class SupportController extends Controller
     }
 
 
-    /**
+    /** @OA\Get(path="support/add-delegate",
+     *   tags={"addSupport"},
+     * )
      * 
      */
-
     public function addDelegateSupport(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAddDelegateSupportRule(), $this->validationMessages->getAddDelegateSupportMessages());
@@ -205,16 +204,12 @@ class SupportController extends Controller
 
         try{
             $topicNum = $all['topic_num'];
-            $nicknameId = $all['nick_name_id'];
+            $nickNameId = $all['nick_name_id'];
             $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
-            $delegatedNickId = $all['delegate_to_user_id'];
-
-            // get all camps being supported by delegatedToUser
-            $support = Support::getActiveSupporInTopic($topicNum,$delegatedNickId);
-            $campNum = ($campNum) ? $campNum : $support[0]->camp_num;
+            $delegatedNickId = $all['delegated_nick_name_id'];
 
             // add delegation support
-            $result = Support::addDelegationSupport($support,$topicNum,$nicknameId,$delegatedNickId);
+            $result = TopicSupport::addDelegateSupport($topicNum, $campNum, $nickNameId, $delegatedNickId);
            
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
