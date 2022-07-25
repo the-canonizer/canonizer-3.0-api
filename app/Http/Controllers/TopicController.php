@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Exception;
 use Throwable;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Nickname;
+use App\Models\Statement;
 use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Models\ChangeAgreeLog;
+use App\Jobs\ActivityLoggerJob;
+use App\Models\CampSubscription;
+use App\Facades\PushNotification;
+use App\Helpers\ResourceInterface;
+use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
-use App\Events\ThankToSubmitterMailEvent;
-use App\Facades\Util;
-use App\Helpers\ResponseInterface;
-use App\Helpers\ResourceInterface;
-use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;
-use App\Models\CampSubscription;
-use App\Jobs\ActivityLoggerJob;
-use App\Models\Nickname;
-use App\Models\Statement;
-use App\Models\ChangeAgreeLog;
+use App\Events\ThankToSubmitterMailEvent;
 
 class TopicController extends Controller
 {
@@ -274,6 +276,7 @@ class TopicController extends Controller
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             if ($topic) {
+                $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
                 $topicRecord[] = $topic;
                 $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
                 $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
@@ -344,6 +347,27 @@ class TopicController extends Controller
                 }
                 $statement->grace_period = 0;
                 $statement->update();
+                $filter['topicNum'] = $statement->topic_num;
+                $filter['campNum'] = $statement->camp_num;
+                $directSupporter =  Support::getDirectSupporter($statement->topic_num, $statement->camp_num); 
+                $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
+                $link = 'statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+                $data['support_camp'] = $livecamp->camp_name;
+                $data['go_live_time'] = $statement->go_live_time;
+                $data['type'] = 'statement : for camp ';
+                $data['typeobject'] = 'statement';
+                $data['note'] = $statement->note;
+                $data['camp_num'] = $statement->camp_num;
+                $nickName = Nickname::getNickName($statement->submitter_nick_id);
+                $data['topic_num'] = $statement->topic_num;
+                $data['nick_name'] = $nickName->nick_name;
+                $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+                $data['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name. " submitted";
+                $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+                $data['nick_name_id'] = $nickName->id;
+                Statement::mailSubscribersAndSupporters($directSupporter,$subscribers,$link, $data);
                 $message = trans('message.success.statement_commit');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -439,7 +463,7 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
-                }else{
+                } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             }

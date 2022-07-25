@@ -76,9 +76,9 @@ class ValidationRules
     public function getUpdateProfileValidatonRules(): array
     {
         return ([
-            'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
-            'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
             'city' => 'nullable',
             'state' => 'nullable',
             'country' => 'nullable',
@@ -380,9 +380,10 @@ class ValidationRules
             'camp_num' => 'required',
             'statement' => 'required',
             'nick_name' => 'required',
-            'submitter' => 'required', 
-            'statement_id' => 'required_if:objection,1',
-            'objection_reason' => 'required_if:objection,1'
+            'submitter' => 'required',
+            'event_type' => 'required|in:create,update,edit,objection', 
+            'statement_id' => 'required_if:event_type,objection|required_if:event_type,edit',
+            'objection_reason' => 'required_if:event_type,objection'
         ];
     }
     
