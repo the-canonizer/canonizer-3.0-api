@@ -1067,11 +1067,17 @@ class CampController extends Controller
         try {
             $camp = Camp::where('id', $id)->first();
             if ($camp) {
+                $filter['topicNum'] = $camp->topic_num;
+                $filter['campNum'] = $camp->camp_num;
+                $filter['asOf'] = 'default';
+                $topic = Camp::getAgreementTopic($filter);
                 $data = new stdClass();
-                $data->nickNames = Nickname::topicNicknameUsed($camp->topic_num);
+                $data->topic = $topic;
+                $data->nick_name = Nickname::topicNicknameUsed($camp->topic_num);
                 $data->camp = $camp;
+                $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
                 $response[0] = $data;
-                $indexes = ['camp', 'nickNames'];
+                $indexes = ['camp', 'nick_name','parent_camp','topic'];
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
             }
