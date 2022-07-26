@@ -245,7 +245,8 @@ class Util
                 'algorithm' => $selectedAlgo,
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
-                'updateAll' => $updateAll
+                'updateAll' => $updateAll,
+                'camp_num'  => $campNum
             ];
             // Dispatch job when create a camp/topic
             dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));

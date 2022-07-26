@@ -350,7 +350,7 @@ class ValidationRules
         return [
             'topic_num' => 'required|integer',
             'nick_name_id' => 'required|integer',
-            'delegate_to_user_id' => 'required|integer'
+            'delegated_nick_name_id' => 'required|integer'
         ];
     }
 

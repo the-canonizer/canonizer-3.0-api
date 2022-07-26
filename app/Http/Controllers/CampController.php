@@ -23,6 +23,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
+use App\Models\Support;
 
 class CampController extends Controller
 {
@@ -214,7 +215,6 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    
                     $PushNotificationData =  new stdClass();
                     $PushNotificationData->user_id = $request->user()->id;
                     $PushNotificationData->topic_num = $topic->topic_num;
@@ -301,7 +301,7 @@ class CampController extends Controller
         $filter['asOf'] = $request->as_of;
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
-        $parentCampName= null;
+        $parentCampName = null;
         $camp = [];
         try {
             $livecamp = Camp::getLiveCamp($filter);
@@ -314,7 +314,7 @@ class CampController extends Controller
                     $livecamp->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? null;
                     $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
-                if($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0){
+                if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
                     $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
                 }
                 $livecamp->parent_camp_name = $parentCampName;
@@ -776,10 +776,10 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $filter['campNum']= $request->camp_num;
-        $filter['topicNum']= $request->topic_num;
-        $filter['checked']= $request->checked;
-        $filter['subscriptionId']=$request->subscription_id ?? "";
+        $filter['campNum'] = $request->camp_num;
+        $filter['topicNum'] = $request->topic_num;
+        $filter['checked'] = $request->checked;
+        $filter['subscriptionId'] = $request->subscription_id ?? "";
         $response = new stdClass();
         try {
             $campSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -986,7 +986,7 @@ class CampController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(path="/get-camp-breadcrumb",
      *   tags={"Camp"},
      *   summary="get camp bread crumb",
@@ -1040,9 +1040,9 @@ class CampController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         $data = new stdClass();
-        $data->flag=0;
-        $data->subscription_id=null;
-        $data->subscribed_camp_name=null;
+        $data->flag = 0;
+        $data->subscription_id = null;
+        $data->subscribed_camp_name = null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
@@ -1055,7 +1055,39 @@ class CampController extends Controller
             $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
-            $response=$response[0];
+            $response = $response[0];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getCampHistory(Request $request, Validate $validate)
+    {
+        $filter['topicNum'] = $request->topic_num;
+        $filter['campNum'] = $request->camp_num;
+        $filter['type'] = $request->type;
+        $filter['per_page'] = $request->per_page;
+        $filter['userId'] = $request->user()->id ?? null;
+        $filter['currentTime'] = time();
+        $response = new stdClass();
+        $response->statement = [];
+        $response->if_i_am_supporter = null;
+        $response->if_i_am_implicit_supporter = null;
+        $response->if_support_delayed = NULL;
+        try {
+            $liveCamp = Camp::getLiveCamp($filter);
+            $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
+            $submitTime = $liveCamp->submit_time;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $response->if_i_am_supporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
+                $response->if_i_am_implicit_supporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
+                $response->if_support_delayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
+            }else{
+                $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
