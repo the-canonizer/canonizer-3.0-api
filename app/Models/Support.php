@@ -58,14 +58,13 @@ class Support extends Model
     }
 
 
-    /** Delegation support 
+    /*Delegation support 
      *   1.  check if user has any support
      *   2.  if yes, then find any sub-deleagted which will go recursively
      *   3. remove support for existing.
      *   4. add new support 
      *  5. All these above will work in recursive ways
-     */
-
+     * 
     public static function addDelegationSupport($support = array(), $topicNum, $nickNameId, $deleagtedNicknameId)
     {
         $existingSupport =  self::getActiveSupporInTopic($topicNum, $nickNameId);
@@ -82,7 +81,7 @@ class Support extends Model
                 return self::addDelegationSupport($support, $topicNum, $delegator->nick_name_id, $delegator->delegate_nick_name_id);
             }
         }
-    }
+    }*/
 
     /**
      *  Add Support
