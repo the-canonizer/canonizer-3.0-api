@@ -472,4 +472,38 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function getTopicHistory(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['per_page'] = $request->per_page;
+        $filter['page'] = $request->page;
+        $filter['currentTime'] = time();
+        $filter['type'] = $request->type;
+        $response = new stdClass();
+        $response->ifIamSupporter = null;
+        $response->ifSupportDelayed = null;
+        try {
+            $topics = Topic::getTopicHistory($filter, $request);
+            $response->parentTopic = (sizeof( $topics->items) > 1) ?  $topics->items[0]->topic_name : null;
+            $submit_time = (count( $topics->items)) ?  $topics->items[0]->submit_time : null;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
+                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+            }
+            $response->topics = $topics;
+            $indexs = ['ifIamSupporter', 'ifSupportDelayed', 'topics', 'parentTopic'];
+            $data[0]=$response;
+            $data = $this->resourceProvider->jsonResponse($indexs, $data);
+            $data = $data[0];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }
