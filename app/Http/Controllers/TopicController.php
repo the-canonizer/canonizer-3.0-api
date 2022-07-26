@@ -472,4 +472,25 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function editTopicRecord($id)
+    {
+        try {
+            $topic = Topic::where('id', $id)->first();
+            if ($topic) {
+                $nickName = Nickname::topicNicknameUsed($topic->topic_num);
+                $data = new stdClass();
+                $data->topic = $topic;
+                $data->nick_name = $nickName;
+                $response[0] = $data;
+                $indexes = ['topic', 'nick_name'];
+                $response = $this->resourceProvider->jsonResponse($indexes, $response);
+                $response = $response[0];
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
 }
