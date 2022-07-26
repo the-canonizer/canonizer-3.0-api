@@ -1093,4 +1093,29 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+    
+    public function editCampRecord($id)
+    {
+        try {
+            $camp = Camp::where('id', $id)->first();
+            if ($camp) {
+                $filter['topicNum'] = $camp->topic_num;
+                $filter['campNum'] = $camp->camp_num;
+                $filter['asOf'] = 'default';
+                $topic = Camp::getAgreementTopic($filter);
+                $data = new stdClass();
+                $data->topic = $topic;
+                $data->nick_name = Nickname::topicNicknameUsed($camp->topic_num);
+                $data->camp = $camp;
+                $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
+                $response[0] = $data;
+                $indexes = ['camp', 'nick_name','parent_camp','topic'];
+                $camp = $this->resourceProvider->jsonResponse($indexes, $response);
+                $camp = $camp[0];
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }
