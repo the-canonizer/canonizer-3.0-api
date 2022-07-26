@@ -175,11 +175,11 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update'];        
-        $fcm_token = $all['fcm_token'];        
+        $fcmToken = $all['fcm_token'];        
 
         try{
             
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate, $fcmToken);
             //PushNotification::pushNotificationToSupporter($topicNum, $addCamp['camp_num'], $fcm_token, 'add');
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');

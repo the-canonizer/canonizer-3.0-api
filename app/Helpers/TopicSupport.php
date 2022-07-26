@@ -137,7 +137,7 @@ class TopicSupport
      * @param array $removedCamps  list of camps to be removed if any
      * @param array $orderUpdate is associative array of camps with order numbr to be updated, if any
      */
-    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array())
+    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array(), $fcmToken)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
@@ -155,6 +155,9 @@ class TopicSupport
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+
+                 //push notifocation
+                 PushNotification::pushNotificationToSupporter($topicNum, $camp, $fcmToken, 'remove');
              }
 
              //log activity
@@ -178,6 +181,7 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
+           PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add');
 
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
