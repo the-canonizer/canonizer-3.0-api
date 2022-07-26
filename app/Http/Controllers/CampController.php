@@ -1062,7 +1062,7 @@ class CampController extends Controller
         }
     }
     
-    public function editCamp($id)
+    public function editCampRecord($id)
     {
         try {
             $camp = Camp::where('id', $id)->first();
