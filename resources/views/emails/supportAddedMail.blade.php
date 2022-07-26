@@ -21,13 +21,24 @@
                 </tr>
 
                 <tr>
-                    <td style="padding-top: 0px;  font-weight:400;">
-                        <p> <a target="_blank"
-                                href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
-                            has added their support to this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
-                            
-                        </p>
-                    </td>
+                    <?php if(isset($data['delegated_nick_name_id']) && $data['delegated_nick_name_id'] ){ ?>
+                        <td style="padding-top: 0px;  font-weight:400;">
+                            <p> <a target="_blank"
+                                    href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
+                                has delegated their support to <a target="_blank"
+                                href="/user/supports/{{ $data['delegated_nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['object']}}</b></a></b>
+                                
+                            </p>
+                        </td>
+                    <?php }else{  ?>
+                        <td style="padding-top: 0px;  font-weight:400;">
+                            <p> <a target="_blank"
+                                    href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
+                                has added their support to this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
+                                
+                            </p>
+                        </td>
+                    <?php } ?>
                 </tr>
                 
                 <tr>
