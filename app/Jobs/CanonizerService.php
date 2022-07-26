@@ -34,12 +34,12 @@ class CanonizerService implements ShouldQueue, ShouldBeUnique, Uniqueable
      */
     public function uniqueId()
     {
-        return $this->canonizerData['topic_num'];
+        return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
     }
 
     public function uniqueable()
     {
-        return $this->canonizerData['topic_num'];
+        return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
     }
 
     /**

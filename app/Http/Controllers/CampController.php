@@ -26,6 +26,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Models\Support;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Library\General;
+
 class CampController extends Controller
 {
 
@@ -216,7 +217,6 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    
                     $PushNotificationData =  new stdClass();
                     $PushNotificationData->user_id = $request->user()->id;
                     $PushNotificationData->topic_num = $topic->topic_num;
@@ -1058,6 +1058,38 @@ class CampController extends Controller
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response = $response[0];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getCampHistory(Request $request, Validate $validate)
+    {
+        $filter['topicNum'] = $request->topic_num;
+        $filter['campNum'] = $request->camp_num;
+        $filter['type'] = $request->type;
+        $filter['per_page'] = $request->per_page;
+        $filter['userId'] = $request->user()->id ?? null;
+        $filter['currentTime'] = time();
+        $response = new stdClass();
+        $response->statement = [];
+        $response->if_i_am_supporter = null;
+        $response->if_i_am_implicit_supporter = null;
+        $response->if_support_delayed = NULL;
+        try {
+            $liveCamp = Camp::getLiveCamp($filter);
+            $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
+            $submitTime = $liveCamp->submit_time;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $response->if_i_am_supporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
+                $response->if_i_am_implicit_supporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
+                $response->if_support_delayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
+            }else{
+                $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

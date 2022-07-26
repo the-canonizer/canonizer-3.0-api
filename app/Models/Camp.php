@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Models\CampSubscription;
+use App\Library\wiki_parser\wikiParser as wikiParser;
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -25,7 +26,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url'];
+    protected $fillable = ['topic_num', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -34,6 +35,11 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $hidden = [];
 
+    public function objectorNickName()
+    {
+        return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
+    }
+    
     public function topic()
     {
         return $this->hasOne('App\Models\Topic', 'topic_num', 'topic_num')
@@ -493,6 +499,74 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->groupBy('camp_num')
                         ->orderBy('submit_time', 'desc')
                         ->get();
+    }
+
+    public static function campHistory($statement_query, $filter, $response,  $liveCamp)
+    {
+        $statement_query->when($filter['type'] == "objected", function ($q) {
+            $q->where('objector_nick_id', '!=', NULL);
+        });
+
+        $statement_query->when($filter['type'] == "in_review", function ($q) use ($filter) {
+            $q->where('go_live_time', '>', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+        
+        $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $liveCamp) {
+            $q->where('go_live_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL)
+                ->where('id', '!=', $liveCamp->id)
+                ->where('submit_time', '<=', $filter['currentTime']);
+        });
+
+        $response->statement = Util::getPaginatorResponse($statement_query->paginate($filter['per_page']));
+        $response = self::filterCampHistory($response, $filter, $liveCamp);
+        return $response;
+    }
+
+    public static function filterCampHistory($response, $filter, $liveCamp)
+    {
+        $data = $response->statement;
+        unset($response->statement);
+        $data->details = $response;
+        $statementHistory = [];
+        if (isset($data->items) && count($data->items) > 0) {
+            foreach ($data->items as $val) {
+                $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
+                $submittime = $val->submit_time;
+                $starttime = time();
+                $endtime = $submittime + 60 * 60;
+                $interval = $endtime - $starttime;
+                $val->objector_nick_name = null;
+                $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
+                $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
+                switch ($val) {
+                    case $val->objector_nick_id !== NULL:
+                        $val->status = "objected";
+                        $val->objector_nick_name =  $val->objectorNickName->nick_name;
+                        $val->unsetRelation('objectorNickName');
+                        break;
+                    case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->status = "in_review";
+                        break;
+                    case $liveCamp->id == $val->id && $filter['type'] != "old":
+                        $val->status = "live";
+                        break;
+                    default:
+                        $val->status = "old";
+                }
+                if (($interval > 0 && $val->grace_period > 0)  && (( $filter['userId']  != $submitterUserID ) || !isset($filter['userId'] )) ) {
+                    continue;
+                } else {
+                    $WikiParser = new wikiParser;
+                    $val->parsed_value = $WikiParser->parse($val->value);
+                    array_push($statementHistory, $val);
+                }
+            }
+            $data->items = $statementHistory;
+        }
+        return  $data;
     }
 
 }
