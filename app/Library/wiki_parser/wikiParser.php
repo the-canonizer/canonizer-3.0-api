@@ -104,7 +104,8 @@ class wikiParser
                 $link = "https://youtube.com/embed/" . $videoId;
             }
             if (strpos($link, 'vimeo.com')) {
-                $videoId = end(explode('/', $link));
+               // $videoId = end(explode('/', $link));
+                $videoId = substr( strrchr($link, '/'), 1);
                 $link = "https://player.vimeo.com/video/" . $videoId;
             }
             // $link = str_replace('vimeo.com/', 'player.vimeo.com/video/', $link);
