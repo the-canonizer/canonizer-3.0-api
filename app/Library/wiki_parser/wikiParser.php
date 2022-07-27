@@ -204,7 +204,7 @@ class wikiParser
             }            
         }
 
-        $m = preg_match_all( "/(https)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
+        $m = preg_match_all( "/(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
 
 		if ($m) {
 			$links = $match[0];
