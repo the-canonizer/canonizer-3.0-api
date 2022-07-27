@@ -16,6 +16,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
     ],

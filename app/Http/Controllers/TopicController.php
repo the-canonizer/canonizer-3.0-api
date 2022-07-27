@@ -476,6 +476,8 @@ class TopicController extends Controller
     public function manageTopic(Request $request, Validate $validate)
     {
         $all=$request->all();
+        $current_time = time();
+        dd($all);
         $liveTopicData = Topic::select('topic.*')
             ->join('camp', 'camp.topic_num', '=', 'topic.topic_num')
             ->where('camp.camp_name', '=', 'Agreement')
@@ -494,7 +496,9 @@ class TopicController extends Controller
             ->where('topic.go_live_time', ">", time())
             ->first();
 
-        $current_time = time();
+        if(($liveTopicData->topic_num != $all['topic_num']) || ($nonLiveTopicData->topic_num != $all['topic_num'])){
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', '');
+        }  
 
         if ($all['event_type'] == "objection") {
             $topic = Topic::where('id', $all['objection_id'])->first();
@@ -506,7 +510,7 @@ class TopicController extends Controller
         if ($all['event_type'] == "update") {
             $topic = Topic::where('id', $all['topic_id'])->first();
             $topic->topic_name = isset($all['topic_name']) ? $all['topic_name'] : "";
-            $topic->namespace_id = isset($all['namespace']) ? $all['namespace'] : "";
+            $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
             $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
             $topic->note = isset($all['note']) ? $all['note'] : "";
         }
@@ -521,19 +525,17 @@ class TopicController extends Controller
         }
 
         $topic->save();
-        if (isset($all['namespace']) && $all['namespace'] == 'other') { /* Create new namespace request */
-            $othernamespace = trim($all['create_namespace'], '/');
-            $namespace = new Namespaces();
-            $namespace->parent_id = 0;
-            $namespace->name = '/' . $othernamespace . '/';
-            $namespace->save();
+        // if (isset($all['namespace']) && $all['namespace'] == 'other') {
+        //     $othernamespace = trim($all['create_namespace'], '/');
+        //     $namespace = new Namespaces();
+        //     $namespace->parent_id = 0;
+        //     $namespace->name = '/' . $othernamespace . '/';
+        //     $namespace->save();
 
-            //update namespace id
-            $topic->namespace_id = $namespace->id;
-            $topic->update();
-        }
-        if ($eventtype == "OBJECTION") {
-            // Dispatch Job
+        //     $topic->namespace_id = $namespace->id;
+        //     $topic->update();
+        // }
+        if ($all['event_type'] == "objection") {
             if (isset($topic)) {
                 Util::dispatchJob($topic, 1, 1);
             }
