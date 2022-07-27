@@ -469,8 +469,6 @@ class ValidationRules
             'camp_name' => 'required',
             'keywords' => 'required',
             'note' => 'required',
-            'old_parent_camp_num' => 'required',
-            'parent_camp_num' => 'required',
             'camp_about_url' => 'required',
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'

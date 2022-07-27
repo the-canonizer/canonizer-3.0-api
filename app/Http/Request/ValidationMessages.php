@@ -529,8 +529,6 @@ class ValidationMessages
         return [
             'topic_num.required' => trans('message.validation_manage_camp.topic_num_required'),
             'camp_num.required' => trans('message.validation_manage_camp.camp_num_required'),
-            'parent_camp_num.required' => trans('message.validation_manage_camp.parent_camp_num_required'),
-            'old_parent_camp_num.required' => trans('message.validation_manage_camp.old_parent_camp_num_required'),
             'camp_id.required' => trans('message.validation_manage_camp.camp_id_required'),
             'nick_name.required' => trans('message.validation_manage_camp.nick_name_required'),
             'submitter.required' => trans('message.validation_manage_camp.submitter_required'),

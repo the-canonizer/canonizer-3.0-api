@@ -366,8 +366,6 @@ return [
     'validation_manage_camp' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number number is required.",
-        'parent_camp_num_required' => 'The parent camp name is required.',
-        'old_parent_camp_num_required' => 'Old parent camp name is required.',
         'camp_id_required' => "Camp id is required.",
         'nick_name_required' => "Nick name is required.",
         'submitter_required' => "submitter id is required.",
