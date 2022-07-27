@@ -497,7 +497,7 @@ class TopicController extends Controller
                 ->where('topic.go_live_time', ">", time())
                 ->first();
 
-            if ((isset($liveTopicData) && $liveTopicData->topic_num != $all['topic_num']) || (isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $all['topic_num'])) {
+            if ((isset($liveTopicData) && ( $liveTopicData->topic_num != $all['topic_num'])) || (isset($nonLiveTopicData) && ($nonLiveTopicData->topic_num != $all['topic_num']))) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', '');
             }
             DB::beginTransaction();
@@ -538,7 +538,7 @@ class TopicController extends Controller
             }
             //dd( $topic);
             $topic->save();
-
+            DB::commit();
             if ($all['event_type'] == "objection") {
                 if (isset($topic)) {
                     Util::dispatchJob($topic, 1, 1);
@@ -574,7 +574,6 @@ class TopicController extends Controller
             }
         } catch (Exception $e) {
             DB::rollback();
-            Session::flash('error', "Fail to create topic, please try later.");
         }
     }
 }
