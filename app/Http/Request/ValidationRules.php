@@ -468,7 +468,6 @@ class ValidationRules
             'submitter' => 'required',
             'camp_name' => 'required',
             'keywords' => 'required',
-            'note' => 'required',
             'camp_about_url' => 'required',
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'

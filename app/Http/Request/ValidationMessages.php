@@ -536,7 +536,6 @@ class ValidationMessages
             'event_type.in' => trans('message.validation_manage_camp.event_type_in'),
             'camp_name.required' => trans('message.validation_manage_camp.camp_name_required'),
             'keywords.required' => trans('message.validation_manage_camp.keywords_require'),
-            'note.required' => trans('message.validation_manage_camp.note_required'),
             'camp_about_url.required' => trans('message.validation_manage_camp.camp_about_url_required'),
             'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
         ];

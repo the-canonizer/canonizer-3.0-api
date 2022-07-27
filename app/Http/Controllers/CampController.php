@@ -1147,7 +1147,7 @@ class CampController extends Controller
             $camp->submit_time = strtotime(date('Y-m-d H:i:s'));
             $camp->go_live_time = $currentTime;
             $camp->language = 'English';
-            $camp->note = $all['note'];
+            $camp->note = $all['note'] ?? null;
             $camp->key_words = $all['keywords'];
             $camp->submitter_nick_id = $all['nick_name'];
             $camp->camp_about_url = $all['camp_about_url'];
@@ -1197,7 +1197,7 @@ class CampController extends Controller
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
         $camp->camp_name = $all['camp_name'];
-        $camp->note = $all['note'];
+        $camp->note = $all['note'] ?? null;
         $camp->key_words = $all['keywords'];
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'];
