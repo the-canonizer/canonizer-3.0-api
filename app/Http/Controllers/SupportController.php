@@ -297,17 +297,18 @@ class SupportController extends Controller
         $all = $request->all();
         $topicNum =$all['topic_num'];
         $nickNameId = $all['nick_name_id'];
-        $delegateNickNameId = $all['delegate_nick_name_id'];
+        $delegatedNickNameId = $all['delegated_nick_name_id'];
+        $fcmToken = $all['fcm_token'];
 
-        if(!$delegateNickNameId || !$topicNum || !$nickNameId){
+        if(!$delegatedNickNameId || !$topicNum || !$nickNameId){
             return $this->resProvider->apiJsonResponse(400, trans('message.support.delegate_invalid_request'), '', $e->getMessage());
         }
 
         try{
             
-            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId);                
-            
+            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId, $fcmToken);               
             return $this->resProvider->apiJsonResponse(200, trans('message.support.delegate_support_removed'), '','');
+        
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -44,10 +44,10 @@ class TopicSupport
      * @param integer $delegateNickId is nick_name_id of user from whome delegation is removed
      * 
      */
-    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId)
+    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId, $fcmToken)
     {
         
-        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $delegateNickNameId); 
+        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $delegateNickNameId, $fcmToken); 
         return;
     }
 
@@ -61,7 +61,7 @@ class TopicSupport
      * @param string $action defines remove status [all|partial]
      * @param string $type defines support type [direct|delegate]
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '')
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '', $fcmToken)
     { 
         
         if((isset($action) && $action == 'all') || empty($removeCamps))  //abandon entire topic and promote deleagte
@@ -83,6 +83,10 @@ class TopicSupport
             
                 Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
                 $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+
+                //push notification to promoted delegates
+                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId, $fcmToken);
+
             }
 
             //log remove support activity
@@ -1169,5 +1173,36 @@ class TopicSupport
         }
 
         return;
+    }
+
+    /**
+     * [send push notfication]
+     * 
+     */
+    public static function sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId, $fcmToken)
+    {
+        
+        $promotedTo = [];
+        $promoteLevel = "direct"; 
+        $topicFilter = ['topicNum' => $topicNum];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+
+        $topic = Camp::getAgreementTopic($topicFilter);
+        $camp  = self::getLiveCamp($campFilter);
+        $promotedFrom = Nickname::getNickName($nickNameId);       
+        $topicLink =  self::getTopicLink($topic);
+        $campLink = self::getCampLink($topic,$camp);
+
+        if(isset($delegateNickNameId) && $delegateNickNameId != ''){            
+            $promotedTo = Nickname::getNickName($delegateNickNameId);  
+            $promoteLevel = "delegate";  
+        }
+        foreach($allDirectDelegates as $supporter)
+        {
+            $user = Nickname::getUserByNickName($supporter->nick_name_id);
+            PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
+        }
+
+        
     }
 }
