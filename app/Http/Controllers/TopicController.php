@@ -472,4 +472,107 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function manageTopic(Request $request, Validate $validate)
+    {
+        $all=$request->all();
+        $liveTopicData = Topic::select('topic.*')
+            ->join('camp', 'camp.topic_num', '=', 'topic.topic_num')
+            ->where('camp.camp_name', '=', 'Agreement')
+            ->where('topic_name', $all['topic_name'])
+            ->where('topic.objector_nick_id', "=", null)
+            ->whereRaw('topic.go_live_time in (select max(go_live_time) from topic where objector_nick_id is null and go_live_time < "' . time() . '" group by topic_num)')
+            ->where('topic.go_live_time', '<=', time())
+            ->latest('submit_time')
+            ->first();
+
+        $nonLiveTopicData = Topic::select('topic.*')
+            ->join('camp', 'camp.topic_num', '=', 'topic.topic_num')
+            ->where('camp.camp_name', '=', 'Agreement')
+            ->where('topic_name', $all['topic_name'])
+            ->where('topic.objector_nick_id', "=", null)
+            ->where('topic.go_live_time', ">", time())
+            ->first();
+
+        $current_time = time();
+
+        if ($all['event_type'] == "objection") {
+            $topic = Topic::where('id', $all['objection_id'])->first();
+            $topic->objector_nick_id = $all['nick_name'];
+            $topic->object_reason = $all['objection_reason'];
+            $topic->object_time = $current_time;
+        }
+
+        if ($all['event_type'] == "update") {
+            $topic = Topic::where('id', $all['topic_id'])->first();
+            $topic->topic_name = isset($all['topic_name']) ? $all['topic_name'] : "";
+            $topic->namespace_id = isset($all['namespace']) ? $all['namespace'] : "";
+            $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
+            $topic->note = isset($all['note']) ? $all['note'] : "";
+        }
+        $nickNames = Nickname::personNicknameArray();
+
+        $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], 0, $nickNames);
+
+        if (!$ifIamSingleSupporter) {
+            $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            $topic->go_live_time;
+            $topic->grace_period = 1;
+        }
+
+        $topic->save();
+        if (isset($all['namespace']) && $all['namespace'] == 'other') { /* Create new namespace request */
+            $othernamespace = trim($all['create_namespace'], '/');
+            $namespace = new Namespaces();
+            $namespace->parent_id = 0;
+            $namespace->name = '/' . $othernamespace . '/';
+            $namespace->save();
+
+            //update namespace id
+            $topic->namespace_id = $namespace->id;
+            $topic->update();
+        }
+        if ($eventtype == "OBJECTION") {
+            // Dispatch Job
+            if (isset($topic)) {
+                Util::dispatchJob($topic, 1, 1);
+            }
+
+            $user = Nickname::getUserByNickName($all['submitter']);
+            $liveTopic = Topic::select('topic.*')
+                ->where('topic.topic_num', $topic->topic_num)
+                ->where('topic.objector_nick_id', "=", null)
+                ->latest('topic.submit_time')
+                ->first();
+            $link = 'topic-history/' . $topic->topic_num;
+            $data['object'] = $liveTopic->topic_name;
+            $nickName = Nickname::getNickName($all['nick_name']);
+            $data['topic_link'] = \App\Model\Camp::getTopicCampUrl($topic->topic_num, 1);
+            $data['type'] = "Topic";
+            $data['namespace_id'] = $topic->namespace_id;
+            $data['object'] = $liveTopic->topic_name;
+            $data['object_type'] = "";
+            $data['nick_name'] = $nickName->nick_name;
+            $data['forum_link'] = 'forum/' . $topic->topic_num . '-' . $liveTopic->topic_name . '/1/threads';
+            $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
+            //1081 issue
+            $data['namespace_id'] = (isset($topic->namespace_id) && $topic->namespace_id)  ?  $topic->namespace_id : 1;
+            $data['nick_name_id'] = $nickName->id;
+
+            $data['help_link'] = General::getDealingWithDisagreementUrl();
+
+            $receiver = (config('app.env') == "production" || config('app.env') == "staging") ? $user->email : config('app.admin_email');
+            try {
+                Mail::to($receiver)->bcc(config('app.admin_bcc'))->send(new ObjectionToSubmitterMail($user, $link, $data));
+            } catch (\Swift_TransportException $e) {
+                throw new \Swift_TransportException($e);
+            }
+        } // #951 removed the update email event from here as we will send email after commit or after one hour refer notify_change or console->command->notifyUser classs 
+        else if ($eventtype == "UPDATE") {
+            // Dispatch Job
+            if (isset($topic)) {
+                Util::dispatchJob($topic, 1, 1);
+            }
+        }
+    }
 }
