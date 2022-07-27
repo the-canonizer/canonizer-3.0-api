@@ -372,8 +372,6 @@ return [
         'event_type_required' => "Event type is required.",
         'event_type_in' => "Possible values are update, edit, objection.",
         'camp_name_required' => 'Camp name is required.',
-        'keywords_require' => "keyword is required.",
-        'camp_about_url' => "Camp about url is required.",
         'objection_reason_required_if' => "Objection reason is required.",
         
     ],

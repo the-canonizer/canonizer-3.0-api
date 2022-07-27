@@ -467,8 +467,6 @@ class ValidationRules
             'nick_name' => 'required',
             'submitter' => 'required',
             'camp_name' => 'required',
-            'keywords' => 'required',
-            'camp_about_url' => 'required',
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'
         ];

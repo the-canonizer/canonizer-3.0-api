@@ -1148,9 +1148,9 @@ class CampController extends Controller
             $camp->go_live_time = $currentTime;
             $camp->language = 'English';
             $camp->note = $all['note'] ?? null;
-            $camp->key_words = $all['keywords'];
+            $camp->key_words = $all['keywords'] ?? null;
             $camp->submitter_nick_id = $all['nick_name'];
-            $camp->camp_about_url = $all['camp_about_url'];
+            $camp->camp_about_url = $all['camp_about_url'] ?? null;
             $camp->camp_about_nick_id = $all['camp_about_nick_id'] ? $all['camp_about_nick_id'] : "";
             $camp->camp_num = $all['camp_num'];
             if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
