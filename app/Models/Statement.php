@@ -54,7 +54,7 @@ class Statement extends Model
             ->first();
     }
 
-    private function liveStatementAsOfFilter($filter)
+    private static function liveStatementAsOfFilter($filter)
     {
         $asOfFilter = [
             'default' => self::defaultAsOfFilter($filter),
