@@ -1074,18 +1074,19 @@ class CampController extends Controller
         $filter['currentTime'] = time();
         $response = new stdClass();
         $response->statement = [];
-        $response->if_i_am_supporter = null;
-        $response->if_i_am_implicit_supporter = null;
-        $response->if_support_delayed = NULL;
+
+        $response->ifIAmImplicitSupporter = null;
+        $response->ifIamSupporter = null;
+        $response->ifSupportDelayed = null;
         try {
             $liveCamp = Camp::getLiveCamp($filter);
             $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
             $submitTime = $liveCamp->submit_time;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
-                $response->if_i_am_supporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
-                $response->if_i_am_implicit_supporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
-                $response->if_support_delayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
+                $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
+                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             }else{
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
