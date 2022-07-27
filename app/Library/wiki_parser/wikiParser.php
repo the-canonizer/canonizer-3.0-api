@@ -95,6 +95,22 @@ class wikiParser
         return wikiParser::$config_ini;
     }    
     
+    public function modifyYouTubeVimeoLink($link)
+    {
+        $wiki_text = $link;
+        if (strpos($link, 'youtube.com') || strpos($link, 'vimeo.com')) {
+            $link = str_replace('youtube.com/watch?v=', 'youtube.com/embed/', $link);
+            if (strpos($link, 'vimeo.com')) {
+                $videoId = end(explode('/', $link));
+                $link = "https://player.vimeo.com/video/" . $videoId;
+
+            }
+            // $link = str_replace('vimeo.com/', 'player.vimeo.com/video/', $link);
+            $wiki_text = '<br/><iframe src="' . $link . '" frameborder="0" width="560" height="315" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br/>';
+        }
+        return $wiki_text;
+    }
+
     public function parse($wiki_text)
     {
         //Parse Section
@@ -150,7 +166,22 @@ class wikiParser
                 $wiki_text = $this->parseSection($parsing_section_name, $wiki_text);
             }            
         }
+
+        $m = preg_match_all( "/(https)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
+
+		if ($m) {
+			$links = $match[0];
+			foreach($links as $link) {
+				$link = trim(strip_tags($link));
+				$modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
+                $wiki_text = str_replace($link, $modifyYouTubeOrVimeo, $wiki_text);
+			}
+		}
+        
         $wiki_text = preg_replace("((?:https?:\/\/)(?:www.)?canonizer\.com\?)", url(), $wiki_text);
+
+       
+
         return $wiki_text;
     }
 
