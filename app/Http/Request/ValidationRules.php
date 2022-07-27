@@ -453,8 +453,6 @@ class ValidationRules
             'camp_num' => 'required',
             'change_for' => 'required|in:topic,camp,statement',
             'nick_name_id' => 'required',
-            'parent_camp_num' => 'required_if:change_for,camp',
-            'old_parent_camp_num' => 'required_if:change_for,camp'
         ]);
     }
 

@@ -488,6 +488,8 @@ class TopicController extends Controller
                     $log->save();
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
+                    $data['parent_camp_num'] = $camp->parent_camp_num;
+                    $data['old_parent_camp_num'] = "";
                     $liveCamp = Camp::getLiveCamp($filter);
                     Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
