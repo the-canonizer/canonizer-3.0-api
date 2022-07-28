@@ -223,7 +223,7 @@ class SupportController extends Controller
     /**
      * @OA\Post(path="/support/update",
      *  tags = "{updateSupport}"
-     *  description = "This action handle remove / re-order  the support for both direct and delegate supporter"
+     *  description = "This action handle remove / re-order  the support for both direct supporter"
      * ) 
      * 
      */
@@ -243,12 +243,10 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-            //case 1 removing direct support
-            if($type == 'direct'){  
-                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
-                //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
-            }
-
+            
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
+            //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
