@@ -265,7 +265,8 @@ class Util
                             'algorithm' => $selectedAlgo,
                             'asOfDate'  => $asOfDefaultDate,
                             'asOf'      => $asOf,
-                            'updateAll' => 1
+                            'updateAll' => 1,
+                            'camp_num'  => $campNum
                         ];
                         // Dispact job when create a camp
                         dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
