@@ -175,7 +175,7 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update'];        
-        $fcmToken = $all['fcm_token'];        
+        $fcm_token = $all['fcm_token'];        
 
         try{
             
