@@ -466,11 +466,11 @@ class TopicController extends Controller
             $log->topic_num = $data['topic_num'];
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
+            $log->save();
             $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->count();
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
-                    $log->save();
                     $submitterNickId = $statement->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
@@ -485,7 +485,6 @@ class TopicController extends Controller
             } else if ($data['change_for'] == 'camp') {
                 $camp = Camp::where('id', $changeId)->first();
                 if ($camp) {
-                    $log->save();
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $data['parent_camp_num'] = $camp->parent_camp_num;

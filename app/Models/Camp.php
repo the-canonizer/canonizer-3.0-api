@@ -39,7 +39,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
     }
-    
+
+    public function parentCamp()
+    {
+        return $this->hasOne('App\Models\Camp', 'id', 'parent_camp_num');
+    }
+
     public function topic()
     {
         return $this->hasOne('App\Models\Topic', 'topic_num', 'topic_num')
@@ -540,6 +545,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
+                $val->parent_camp_name = isset($val->parent_camp_num) ? $val->parentCamp->camp_name : null;
+                $val->unsetRelation('parentCamp');
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
