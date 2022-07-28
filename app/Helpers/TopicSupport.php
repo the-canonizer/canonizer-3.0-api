@@ -15,6 +15,7 @@ use App\Events\SupportAddedMailEvent;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Jobs\ActivityLoggerJob;
 use DB;
+use App\Facades\PushNotification;
 
 
 class TopicSupport
@@ -160,7 +161,6 @@ class TopicSupport
                  $campModel  = self::getLiveCamp($campFilter);
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
 
-                 //push notifocation
                  PushNotification::pushNotificationToSupporter($topicNum, $camp, $fcmToken, 'remove');
              }
 
@@ -186,7 +186,6 @@ class TopicSupport
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
            PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add');
-
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
          }
