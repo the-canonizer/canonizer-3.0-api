@@ -23,6 +23,10 @@ use App\Events\SupportRemovedMailEvent;
 use App\Listeners\SupportRemovedMailListener;
 use App\Events\LogActivityEvent;
 use App\Listeners\LogActivityListener;
+use App\Events\SupportAddedMailEvent;
+use App\Listeners\SupportAddedMailListener;
+use App\Events\NotifyDelegatedAndDelegatorMailEvent;
+use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -62,6 +66,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         LogActivityEvent::class => [
             LogActivityListener::class,
+        ],
+        SupportAddedMailEvent::class => [
+            SupportAddedMailListener::class,
+        ],
+        NotifyDelegatedAndDelegatorMailEvent::class => [
+            NotifyDelegatedAndDelegatorMailListener::class,
         ],
     ];
 }
