@@ -455,7 +455,7 @@ class StatementController extends Controller
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-        Statement::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
+        Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
 
     private function objectedStatementNotification($all, $livecamp, $link, $statement)

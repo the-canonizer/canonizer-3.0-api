@@ -42,6 +42,8 @@ return [
         'statement_update'  => 'Statement updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
+        'camp_agree'  => ' Your agreement to camp is submitted successfully.',
+        'camp_commit'  => 'Your change to statement has been submitted to your supporters.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -358,6 +360,18 @@ return [
         'change_for_in' => "Please enter a valid value (topic,camp,statement)",
         'nick_name_id_required' => "Nick name id is required",
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
+    ],
+    'validation_manage_camp' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number number is required.",
+        'camp_id_required' => "Camp id is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are update, edit, objection.",
+        'camp_name_required' => 'Camp name is required.',
+        'objection_reason_required_if' => "Objection reason is required.",
+        
     ],
     'notification_title' => [
         "createTopic" => "Topic Create",
