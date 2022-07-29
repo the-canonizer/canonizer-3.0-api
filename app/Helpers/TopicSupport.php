@@ -25,11 +25,11 @@ class TopicSupport
     public static $model = 'App\Models\Support';
 
 
-    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
+    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $fcmToken)
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type, $fcmToken);
         
         }else if(isset($action) && $action == 'partial')
         {
@@ -47,7 +47,7 @@ class TopicSupport
     public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId, $fcmToken)
     {
         
-        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $delegateNickNameId, $fcmToken); 
+        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $fcmToken, $delegateNickNameId,); 
         return;
     }
 

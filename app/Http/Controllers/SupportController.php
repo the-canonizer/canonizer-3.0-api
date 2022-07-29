@@ -245,7 +245,7 @@ class SupportController extends Controller
         try{
             //case 1 removing direct support
             if($type == 'direct'){  
-                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
                 PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
             }
 
