@@ -455,4 +455,31 @@ class ValidationRules
             'nick_name_id' => 'required',
         ]);
     }
+
+    public function getManageCampValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'camp_id' => 'required',
+            'nick_name' => 'required',
+            'submitter' => 'required',
+            'camp_name' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
+
+    public function getManageTopicValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'topic_id' => 'required',
+            'submitter' => 'required',
+            'topic_name' => 'required',
+            'namespace_id' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
 }

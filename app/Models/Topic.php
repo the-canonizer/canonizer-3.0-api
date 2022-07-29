@@ -39,6 +39,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         static::created(function ($model) {
             ## while creating topic for very first time ##
             ## this will not run when updating ##
+           // dd($model);
             if ($model->topic_num == '' || $model->topic_num == null) {
                 $nextTopicNum = DB::table('topic')->max('topic_num');
                 $nextTopicNum++;
@@ -103,4 +104,29 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
         return $link = config('global.APP_URL_FRONT_END').('/topic/' . $topicId . '/' . $campId);
     }
+
+    public static function ifTopicNameAlreadyTaken($data)
+    {
+        $liveTopicData = self::select('topic.*')
+        ->join('camp','camp.topic_num','=','topic.topic_num')
+        ->where('camp.camp_name','=','Agreement')
+        ->where('topic.topic_name', $data['topic_name'])
+        ->where('topic.objector_nick_id',"=",null)
+        ->whereRaw('topic.go_live_time in (select max(go_live_time) from topic where objector_nick_id is null and go_live_time < "' . time() . '" group by topic_num)')
+        ->where('topic.go_live_time', '<=', time())                            
+        ->latest('submit_time')
+        ->first();
+
+        $nonLiveTopicData = self::select('topic.*')
+        ->join('camp','camp.topic_num','=','topic.topic_num')
+        ->where('camp.camp_name','=','Agreement')
+        ->where('topic_name', $data['topic_name'])
+        ->where('topic.objector_nick_id',"=",null)
+        ->where('topic.go_live_time',">",time())
+        ->first();
+
+        return (isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num']) || (isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num']);
+    }
+
+
 }
