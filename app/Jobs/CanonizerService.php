@@ -74,15 +74,24 @@ class CanonizerService implements ShouldQueue, ShouldBeUnique, Uniqueable
             return;
         }
         $endpoint = $appURL."/".$endpointCSStoreTree;
-       
-        $headers = array('Content-Type:multipart/form-data');
 
+        $headers = array(
+            "X-Api-Token: VCSXJ2fJ4dRcMuH0ZfD2YzLVZgB+EeQBRmIWnz9ilJc=",
+            "Content-Type: application/json"
+        );
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
-       
-        if(isset($response)) {
-            $responseData = json_decode($response, true)['data'];
-            $responseStatus = (bool) json_decode($response, true)['success'] === true ? 'Success' : 'Failed';
-            $responseCode = json_decode($response, true)['code'] ? json_decode($response, true)['code'] : 404;
+        
+        if($response == 'Unauthorized.') {
+            Log::info("Unauthorized");
+        }
+        
+        $data = json_decode($response, true);
+        
+        if(isset($data) && count($data['data'])){
+
+            $responseData   = $data['data'];
+            $responseStatus = $data['success'] === true ? 'Success' : 'Failed';
+            $responseCode   = $data['code'] ? $data['code'] : 404;
 
             if(isset($responseData)) {
                 $responseData = json_encode($responseData[0]);
