@@ -368,6 +368,7 @@ return [
         "manageStatement" => "Change proposed on Camp - :camp_name",
         "addSupport" => "Support Added to Camp - :camp_name",
         "removeSupport" => "Support Removed from Camp - :camp_name",
+        "addDelegateSupport" => "Delegate Support Added to Camp - :camp_name"
     ],
     'notification_message' => [
         "createTopic" => "Hello :first_name :last_name, You proposed a change for :notification_type : :topic_name",
@@ -378,5 +379,6 @@ return [
         "manageStatement" => ":first_name :last_name has proposed a change to the statement for Camp - :camp_name",
         "addSupport" => ":first_name :last_name has just added support to the Camp - :camp_name",
         "removeSupport" => ":first_name :last_name  has just removed support to the Camp - :camp_name",
+        "addDelegateSupport" => ":first_name :last_name has just added delegate support to the Camp - :camp_name",
     ],
 ];
