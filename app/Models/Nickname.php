@@ -74,7 +74,7 @@ class Nickname extends Model {
     }
 
     public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum=''){
-        return url('user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
+        return config('global.APP_URL_FRONT_END') . ('user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
     }
 
     public function camps() {
