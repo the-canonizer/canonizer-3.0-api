@@ -244,11 +244,11 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-            
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
+
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
             //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
             
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
+             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
