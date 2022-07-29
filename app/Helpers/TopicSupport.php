@@ -48,7 +48,7 @@ class TopicSupport
     public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId, $fcmToken)
     {
         
-        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $fcmToken, $delegateNickNameId,); 
+        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $fcmToken, $delegateNickNameId); 
         return;
     }
 
@@ -62,7 +62,7 @@ class TopicSupport
      * @param string $action defines remove status [all|partial]
      * @param string $type defines support type [direct|delegate]
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '', $fcmToken)
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $fcmToken, $delegateNickNameId = '')
     { 
         
         if((isset($action) && $action == 'all') || empty($removeCamps))  //abandon entire topic and promote deleagte
