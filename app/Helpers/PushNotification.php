@@ -161,4 +161,33 @@ class PushNotification
             }
         }
     }
+
+    public static function pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo = [])
+    {
+
+        try {
+
+            $PushNotificationData =  new stdClass();
+            $PushNotificationData->topic_num = $topic->topic_num;
+            $PushNotificationData->camp_num = $camp->camp_num;
+            $PushNotificationData->user_id = $user->id;
+            $PushNotificationData->notification_type = config('global.notification_type.Support');
+
+            if(isset($promotedTo) && !empty($promotedTo)){
+                $PushNotificationData->title = trans('message.notification_title.promotedDelegate',['camp_name'=> $camp->camp_name, 'topic_name' =>  $topic->title]);
+                $PushNotificationData->message_body = trans('message.notification_message.promotedDelegate', ['nick_name' => $promotedFrom->nick_name, 'delegated_nick_name' => $promotedTo->nick_name, 'camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
+           
+            }else{
+                $PushNotificationData->title = trans('message.notification_title.promotedDirect',['camp_name'=> $camp->camp_name, 'topic_name' => $topic->title]);
+                $PushNotificationData->message_body = trans('message.notification_message.promotedDirect', ['nick_name' => $promotedFrom->nick_name, 'camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
+            }
+
+            $PushNotificationData->fcm_token = $fcmToken;
+            $PushNotificationData->link = $campLink;
+            self::sendPushNotification($PushNotificationData);
+
+        }catch (Throwable $e) {
+            echo $message = $e->getMessage();
+        }
+    }
 }
