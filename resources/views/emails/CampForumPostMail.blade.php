@@ -24,12 +24,12 @@
                         <p style="margin-bottom: 15px;">
                             <a target="_blank" href="#">{{ $data['nick_name']->nick_name }}</a> {{ $data['post_type'] }}
                             the following post to the Camp
-                            <a href="{{ url('/') . '/' . $data['camp_url'] }}"> {{ $data['camp_name'] }} </a> forum:
+                            <a href="{{  config('global.APP_URL_FRONT_END'). '/' . $data['camp_url'] }}"> {{ $data['camp_name'] }} </a> forum:
 
                         </p>
 
                         <h4 style="margin-bottom: 15px;">Thread Title: </h4>
-                        <p style="margin-bottom: 15px;"> <a href="{{ url('/') . '/' . $link }}">{{ $data['thread'][0]->title }}</a> </p>
+                        <p style="margin-bottom: 15px;"> <a href="{{ $link }}">{{ $data['thread'][0]->title }}</a> </p>
 
                         <h4 style="margin-bottom: 15px;">Post: </h4>
 
