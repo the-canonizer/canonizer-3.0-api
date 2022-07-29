@@ -95,6 +95,59 @@ class wikiParser
         return wikiParser::$config_ini;
     }    
     
+    public function modifyYouTubeVimeoLink($link)
+    {
+        $wiki_text = $link;
+        if (strpos($link, 'youtube.com') || strpos($link, 'vimeo.com')) {
+            if (strpos($link, 'youtube.com')) {
+                $videoId = $this->parseYouTubeTokenByUri($link);
+                $link = "https://youtube.com/embed/" . $videoId;
+            }
+            if (strpos($link, 'vimeo.com')) {
+               // $videoId = end(explode('/', $link));
+                $videoId = substr( strrchr($link, '/'), 1);
+                $link = "https://player.vimeo.com/video/" . $videoId;
+            }
+            // $link = str_replace('vimeo.com/', 'player.vimeo.com/video/', $link);
+            $wiki_text = '<br/><iframe src="' . $link . '" frameborder="0" width="560" height="315" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br/>';
+        }
+        return $wiki_text;
+    }
+
+    function parseYouTubeTokenByUri(string $url): ?string
+    {
+        if (strncmp($url, 'user/', 5) === 0) { // 1.
+            return null;
+        }
+
+        if (preg_match('/^[a-zA-Z0-9\-\_]{11}$/', $url)) { // 2.
+            return $url;
+        }
+
+        if (preg_match('/(?:watch\?v=|v\/|embed\/|ytscreeningroom\?v=|\?v=|\?vi=|e\/|watch\?.*vi?=|\?feature=[a-z_]*&v=|vi\/)([a-zA-Z0-9\-\_]{11})/', $url, $regularMatch)) { // 3.
+            return $regularMatch[1];
+        }
+
+        if (preg_match('/([a-zA-Z0-9\-\_]{11})(?:\?[a-z]|\&[a-z])/', $url, $organicParametersMatch)) { // 4.
+            return $organicParametersMatch[1];
+        }
+
+        if (preg_match('/u\/1\/([a-zA-Z0-9\-\_]{11})(?:\?rel=0)?$/', $url)) { // 5.
+            return null; // 5. User channel without token.
+        }
+
+        if (preg_match('/(?:watch%3Fv%3D|watch\?v%3D)([a-zA-Z0-9\-\_]{11})[%&]/', $url, $urlEncoded)) { // 6.
+            return $urlEncoded[1];
+        }
+
+        // 7. Rules for special cases
+        if (preg_match('/watchv=([a-zA-Z0-9\-\_]{11})&list=/', $url, $special1)) {
+            return $special1[1];
+        }
+
+        return null;
+    }
+
     public function parse($wiki_text)
     {
         //Parse Section
@@ -150,7 +203,19 @@ class wikiParser
                 $wiki_text = $this->parseSection($parsing_section_name, $wiki_text);
             }            
         }
-        $wiki_text = preg_replace("((?:https?:\/\/)(?:www.)?canonizer\.com\?)", url(), $wiki_text);
+
+        $m = preg_match_all( "/(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
+
+		if ($m) {
+			$links = $match[0];
+			foreach($links as $link) {
+				$link = trim(strip_tags($link));
+				$modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
+                $wiki_text = str_replace($link, $modifyYouTubeOrVimeo, $wiki_text);
+			}
+		}
+
+       // $wiki_text = preg_replace("((?:https?:\/\/)(?:www.)?canonizer\.com\?)", url(), $wiki_text);
         return $wiki_text;
     }
 

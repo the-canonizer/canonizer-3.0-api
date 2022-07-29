@@ -1,10 +1,11 @@
 <?php
 namespace App\Mail;
  
+use App\Facades\Util;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\SerializesModels;
 
 class CampForumPostMail extends Mailable {
  
@@ -22,6 +23,7 @@ class CampForumPostMail extends Mailable {
     }
     //build the message.
     public function build() {
-        return $this->markdown('emails.CampForumPostMail')->subject('Thank you for contributing to Canonizer.com');  
+        $subject = Util::getEmailSubjectForSandbox($this->data['namespace_id']);
+        return $this->markdown('emails.CampForumPostMail')->subject($subject.' '.$this->data['subject']);
     }
 }
