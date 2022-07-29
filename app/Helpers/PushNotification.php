@@ -125,6 +125,10 @@ class PushNotification
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
                         $PushNotificationData->title = trans('message.notification_title.addSupport',['camp_name'=> $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                    } else if($action == 'add-delegate'){
+                        $PushNotificationData->notification_type = config('global.notification_type.Support');
+                        $PushNotificationData->title = trans('message.notification_title.addDelegateSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
                     } else {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
                         $PushNotificationData->title = trans('message.notification_title.removeSupport',['camp_name'=> $camp->camp_name]);

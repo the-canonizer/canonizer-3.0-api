@@ -192,7 +192,7 @@ class TopicSupport
      * [Add deleagte support]
      * 
      */
-    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId)
+    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId, $fcmToken)
     { 
         $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
@@ -213,17 +213,19 @@ class TopicSupport
             $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
         } 
         
-        
+       
         self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
-
+       
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-
+        
+        PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add-delegate');
+        die('fd');
         if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
             $notifyDelegatedUser = true;
         }
-
+        
         self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
 
         // log activity

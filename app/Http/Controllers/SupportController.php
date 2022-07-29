@@ -209,9 +209,10 @@ class SupportController extends Controller
             $nickNameId = $all['nick_name_id'];
             $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegated_nick_name_id'];
+            $fcmToken = $all['fcm_token'];
 
             // add delegation support
-            $result = TopicSupport::addDelegateSupport($topicNum, $campNum, $nickNameId, $delegatedNickId);
+            $result = TopicSupport::addDelegateSupport($topicNum, $campNum, $nickNameId, $delegatedNickId, $fcmToken);
            
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
