@@ -469,4 +469,17 @@ class ValidationRules
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
+
+    public function getManageTopicValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'topic_id' => 'required',
+            'submitter' => 'required',
+            'topic_name' => 'required',
+            'namespace_id' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
 }

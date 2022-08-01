@@ -1074,7 +1074,6 @@ class CampController extends Controller
         $filter['currentTime'] = time();
         $response = new stdClass();
         $response->statement = [];
-
         $response->ifIAmImplicitSupporter = null;
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;

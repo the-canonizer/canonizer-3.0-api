@@ -112,6 +112,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
         $router->get('edit-camp/{id}','CampController@editCampRecord');
+        $router->post('/manage-topic','TopicController@manageTopic');
         $router->get('/edit-topic/{id}', 'TopicController@editTopicRecord');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
