@@ -15,6 +15,11 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Namespaces;
+use App\Models\User;
+use Throwable;
+use App\Jobs\PurposedToSupportersMailJob;
+use App\Models\Nickname;
+
 class Util
 {
 
@@ -320,6 +325,82 @@ class Util
           
         } catch (Exception $ex) {
             Log::error("Util :: GetEmailSubjectForSandbox :: message: " . $ex->getMessage());
+        }
+    }
+
+    public static function mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject)
+    {
+        $alreadyMailed = [];
+        if (!empty($directSupporter)) {
+            foreach ($directSupporter as $supporter) {
+                $supportData = $dataObject;
+                $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                $alreadyMailed[] = $user->id;
+                $topic = Topic::where('topic_num', '=', $supportData['topic_num'])->latest('submit_time')->get();
+                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
+                $nickName = Nickname::find($supporter->nick_name_id);
+                $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
+                $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $supportData['topic_num'], $supportData['camp_num']);
+                $supportData['support_list'] = $supported_camp_list;
+                $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
+                $data['namespace_id'] =  $topic_name_space_id;
+                if ($ifalsoSubscriber) {
+                    $supportData['also_subscriber'] = 1;
+                    $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id, $supportData['topic_num'], $supportData['camp_num']);
+                }
+                $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                try {
+                    dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                } catch (Throwable $e) {
+                    echo  $e->getMessage();
+                }
+            }
+        }
+        if (!empty($subscribers)) {
+            foreach ($subscribers as $usr) {
+                $subscriberData = $dataObject;
+                $userSub = User::find($usr);
+                if (!in_array($userSub->id, $alreadyMailed, TRUE)) {
+                    $alreadyMailed[] = $userSub->id;
+                    $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
+                    $subscriberData['support_list'] = $subscriptions_list;
+                    $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                    $subscriberData['subscriber'] = 1;
+                    $topic = Topic::getLiveTopic($subscriberData['topic_num']);
+                    $data['namespace_id'] = $topic->namespace_id;
+                    try {
+                        dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    } catch (Throwable $e) {
+                        echo  $e->getMessage();
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    public function checkParentCampChanged($all, $in_review_status, $liveCamp)
+    {
+        if ($in_review_status) {
+            $allChildCamps = Camp::getAllChildCamps($liveCamp);
+            $allChildSupporters = Support::where('topic_num', $all['topic_num'])
+                ->where('end', 0)
+                ->whereIn('camp_num', $allChildCamps)
+                ->pluck('nick_name_id');
+            if (sizeof($allChildSupporters) > 0) {
+                Support::removeSupport($all['topic_num'], $all['parent_camp_num'], $allChildSupporters);
+            }
+        } else if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+                $allParentCamps = Camp::getAllParent($liveCamp);
+                $allChildSupporters = Support::where('topic_num', $all['topic_num'])
+                    ->where('end', 0)
+                    ->whereIn('camp_num', $allParentCamps)
+                    ->pluck('nick_name_id');
+                if (sizeof($allChildSupporters) > 0) {
+                    foreach ($allParentCamps as $parentCamp) {
+                        Support::removeSupport($all['topic_num'], $parentCamp, $allChildSupporters, $all['camp_num']);
+                    }
+                }
         }
     }
 }

@@ -39,7 +39,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
     }
-    
+
+    public function parentCamp()
+    {
+        return $this->hasOne('App\Models\Camp', 'id', 'parent_camp_num');
+    }
+
     public function topic()
     {
         return $this->hasOne('App\Models\Topic', 'topic_num', 'topic_num')
@@ -480,6 +485,27 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $parentCampName;
     }
 
+    public static function getAllLiveCampsInTopic($topicnum){ 
+        return self::where('topic_num', '=', $topicnum)
+                        ->where('camp_name', '!=', 'Agreement')
+                        ->where('objector_nick_id', '=', NULL)
+                        ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicnum . ' and objector_nick_id is null and go_live_time < "' . time() . '" group by camp_num)')
+                        ->where('go_live_time', '<=', time())
+                        ->groupBy('camp_num')
+                        ->orderBy('submit_time', 'desc')
+                        ->get();
+    }
+
+    public static function getAllNonLiveCampsInTopic($topicnum){ 
+        return self::where('topic_num', '=', $topicnum)
+                        ->where('camp_name', '!=', 'Agreement')
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time',">",time())
+                        ->groupBy('camp_num')
+                        ->orderBy('submit_time', 'desc')
+                        ->get();
+    }
+
     public static function campHistory($statement_query, $filter, $response,  $liveCamp)
     {
         $statement_query->when($filter['type'] == "objected", function ($q) {
@@ -519,6 +545,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
+                $val->parent_camp_name = isset($val->parent_camp_num) ? $val->parentCamp->camp_name : null;
+                $val->unsetRelation('parentCamp');
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
@@ -544,8 +572,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 }
             }
             $data->items = $statementHistory;
-            return  $data;
         }
+        return  $data;
     }
 
 }
