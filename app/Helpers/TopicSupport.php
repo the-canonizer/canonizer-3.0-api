@@ -15,6 +15,7 @@ use App\Events\SupportAddedMailEvent;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Jobs\ActivityLoggerJob;
 use DB;
+use App\Facades\PushNotification;
 
 
 class TopicSupport
@@ -141,7 +142,7 @@ class TopicSupport
      * @param array $removedCamps  list of camps to be removed if any
      * @param array $orderUpdate is associative array of camps with order numbr to be updated, if any
      */
-    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array())
+    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array(), $fcmToken)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
@@ -159,6 +160,7 @@ class TopicSupport
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                 PushNotification::pushNotificationToSupporter($topicNum, $camp, $fcmToken, 'remove');
              }
 
              //log activity
@@ -182,7 +184,7 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-
+           PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add');
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
          }
@@ -194,7 +196,7 @@ class TopicSupport
      * [Add deleagte support]
      * 
      */
-    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId)
+    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId, $fcmToken)
     { 
         $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
@@ -215,17 +217,19 @@ class TopicSupport
             $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
         } 
         
-        
+       
         self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
-
+       
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-
+        
+        PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add-delegate');
+        die('fd');
         if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
             $notifyDelegatedUser = true;
         }
-
+        
         self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
 
         // log activity
