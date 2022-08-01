@@ -53,7 +53,7 @@ class PushNotification
         $result = curl_exec($ch);
 
         if ($result === FALSE) {
-            die('Curl failed: ' . curl_error($ch));
+            return null;
         }
 
         // Close connection
