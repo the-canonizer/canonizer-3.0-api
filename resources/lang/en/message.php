@@ -16,6 +16,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
     ],
@@ -42,8 +43,12 @@ return [
         'statement_update'  => 'Statement updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
+        'topic_agree'  => ' Your agreement to topic is submitted successfully.',
         'camp_agree'  => ' Your agreement to camp is submitted successfully.',
         'camp_commit'  => 'Your change to statement has been submitted to your supporters.',
+        'topic_commit'  => 'Your change to topic has been submitted to your supporters.',
+        'topic_object'  => 'Objection submitted successfully.',
+        'topic_update'  => 'Topic updated successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -396,5 +401,16 @@ return [
         "removeSupport" => ":first_name :last_name  has just removed support to the Camp - :camp_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
+    ],
+    'validation_manage_topic' => [
+        'topic_num_required' => "Topic number is required.",
+        'topic_id_required' => "Camp number number is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are update, edit, objection.",
+        'topic_name_required' => 'Camp name is required.',
+        'objection_reason_required_if' => "Objection reason is required.",
+        
     ],
 ];

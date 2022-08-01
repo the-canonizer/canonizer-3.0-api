@@ -536,4 +536,17 @@ class ValidationMessages
             'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
         ];
     }
+
+    public function getManageTopicValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_manage_topic.topic_num_required'),
+            'topic_id.required' => trans('message.validation_manage_topic.topic_id_required'),
+            'nick_name.required' => trans('message.validation_manage_topic.nick_name_required'),
+            'submitter.required' => trans('message.validation_manage_topic.submitter_required'),
+            'event_type.required' => trans('message.validation_manage_topic.event_type_required'),
+            'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
+            'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+        ];
+    }
 }
