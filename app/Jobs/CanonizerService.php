@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Mingalevme\Illuminate\UQueue\Jobs\Uniqueable;
 
-class CanonizerService implements ShouldQueue, ShouldBeUnique, Uniqueable
+class CanonizerService implements ShouldQueue, Uniqueable
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -25,16 +24,6 @@ class CanonizerService implements ShouldQueue, ShouldBeUnique, Uniqueable
     public function __construct($data)
     {
         $this->canonizerData = $data;
-    }
-
-    /**
-     * The unique ID of the job.
-     *
-     * @return string
-     */
-    public function uniqueId()
-    {
-        return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
     }
 
     public function uniqueable()

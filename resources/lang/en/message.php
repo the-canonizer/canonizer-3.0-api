@@ -42,6 +42,8 @@ return [
         'statement_update'  => 'Statement updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
+        'camp_agree'  => ' Your agreement to camp is submitted successfully.',
+        'camp_commit'  => 'Your change to statement has been submitted to your supporters.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -360,11 +362,22 @@ return [
         'change_for_required' => "Change for is required. Allowed values are (topic,camp,statement)",
     ],
     'validation_get_topic_history' => [
-            'topic_num_required' => "Topic number is required.",
-            'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
-            'per_page_required' => "Records per page is required.",
-            'page_required' => "Page number is required.",
-        ],
+        'topic_num_required' => "Topic number is required.",
+        'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+    ],
+    'validation_manage_camp' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number number is required.",
+        'camp_id_required' => "Camp id is required.",
+        'nick_name_required' => "Nick name is required.",
+        'submitter_required' => "submitter id is required.",
+        'event_type_required' => "Event type is required.",
+        'event_type_in' => "Possible values are update, edit, objection.",
+        'camp_name_required' => 'Camp name is required.',
+        'objection_reason_required_if' => "Objection reason is required.",
+    ],
     'notification_title' => [
         "createTopic" => "Topic Create",
         "createCamp" => "New Camp Created!",
@@ -374,6 +387,8 @@ return [
         "manageStatement" => "Change proposed on Camp - :camp_name",
         "addSupport" => "Support Added to Camp - :camp_name",
         "removeSupport" => "Support Removed from Camp - :camp_name",
+        "promotedDelegate" => "You have been Promoted to Your delegate's place. in camp - :camp_name under topic - :topic_name",
+        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name."
     ],
     'notification_message' => [
         "createTopic" => "Hello :first_name :last_name, You proposed a change for :notification_type : :topic_name",
@@ -384,5 +399,7 @@ return [
         "manageStatement" => ":first_name :last_name has proposed a change to the statement for Camp - :camp_name",
         "addSupport" => ":first_name :last_name has just added support to the Camp - :camp_name",
         "removeSupport" => ":first_name :last_name  has just removed support to the Camp - :camp_name",
+        "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
+        "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
     ],
 ];
