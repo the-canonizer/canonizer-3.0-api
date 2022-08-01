@@ -292,7 +292,7 @@ class ValidationRules
     public function getThreadUpdateValidationRules(): array
     {
         return ([
-            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'title'    => 'required|max:100',
             'camp_num' => 'required',
             'topic_num' => 'required',
         ]);
@@ -454,5 +454,19 @@ class ValidationRules
             'change_for' => 'required|in:topic,camp,statement',
             'nick_name_id' => 'required',
         ]);
+    }
+
+    public function getManageCampValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'camp_id' => 'required',
+            'nick_name' => 'required',
+            'submitter' => 'required',
+            'camp_name' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
     }
 }
