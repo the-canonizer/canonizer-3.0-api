@@ -128,10 +128,11 @@ class SupportController extends Controller
                         'title' => $support->title,
                         'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
                         'nick_name_id' => $support->nick_name_id,
+                        'delegated_nick_name_id' => $support->delegate_nick_name_id,
                         'my_nick_name' => $support->my_nick_name,
-                        'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
+                        'my_nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num),
                         'delegated_to_nick_name' => $support->delegated_to_nick_name,
-                        'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_user_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
+                        'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_nick_name_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,
@@ -244,10 +245,15 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-            
+           
             TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
             //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
             
+            //case 1 removing direct support
+            if($type == 'direct'){  
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
+                PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
@@ -296,17 +302,18 @@ class SupportController extends Controller
         $all = $request->all();
         $topicNum =$all['topic_num'];
         $nickNameId = $all['nick_name_id'];
-        $delegateNickNameId = $all['delegate_nick_name_id'];
+        $delegatedNickNameId = $all['delegated_nick_name_id'];
+        $fcmToken = $all['fcm_token'];
 
-        if(!$delegateNickNameId || !$topicNum || !$nickNameId){
+        if(!$delegatedNickNameId || !$topicNum || !$nickNameId){
             return $this->resProvider->apiJsonResponse(400, trans('message.support.delegate_invalid_request'), '', $e->getMessage());
         }
 
         try{
             
-            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId);                
-            
+            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId, $fcmToken);               
             return $this->resProvider->apiJsonResponse(200, trans('message.support.delegate_support_removed'), '','');
+        
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
