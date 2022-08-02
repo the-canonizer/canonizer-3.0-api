@@ -525,23 +525,21 @@ class TopicController extends Controller
         $filter['currentTime'] = time();
         $filter['type'] = $request->type;
         $response = new stdClass();
-        $response->ifIamSupporter = null;
-        $response->ifSupportDelayed = null;
+        $details = new stdClass();
         try {
             $topics = Topic::getTopicHistory($filter, $request);
-            $response->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
+            $response = $topics;
+            $details->ifIamSupporter = null;
+            $details->ifSupportDelayed = null;
+            $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
-                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
-                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+                $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
+                $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
             }
-            $response->topics = $topics;
-            $indexs = ['ifIamSupporter', 'ifSupportDelayed', 'topics', 'parentTopic'];
-            $data[0] = $response;
-            $data = $this->resourceProvider->jsonResponse($indexs, $data);
-            $data = $data[0];
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
+            $response->details = $details;
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
