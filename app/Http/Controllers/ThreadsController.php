@@ -187,7 +187,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                PushNotification::pushNotificationToSupporter($request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Thread'), $thread->id) ;
+                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Thread'), $thread->id) ;
             } else {
                 $data = null;
                 $status = 400;

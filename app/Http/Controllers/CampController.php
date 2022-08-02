@@ -217,7 +217,7 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    PushNotification::pushNotificationToSupporter($request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Camp')) ;
+                    PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Camp')) ;
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;

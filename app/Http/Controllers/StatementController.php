@@ -369,7 +369,7 @@ class StatementController extends Controller
             }
 
             $statement->save();
-            PushNotification::pushNotificationToSupporter($request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Statement')) ;
+            PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Statement')) ;
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 

@@ -213,7 +213,7 @@ class SupportController extends Controller
             $fcmToken = $all['fcm_token'];
 
             // add delegation support
-            $result = TopicSupport::addDelegateSupport($topicNum, $campNum, $nickNameId, $delegatedNickId, $fcmToken);
+            $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId, $fcmToken);
            
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
@@ -252,7 +252,7 @@ class SupportController extends Controller
             //case 1 removing direct support
             if($type == 'direct'){  
                 TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
-                PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
+                PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, $fcm_token, 'remove');
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {

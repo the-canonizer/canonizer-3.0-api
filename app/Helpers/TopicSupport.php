@@ -160,7 +160,7 @@ class TopicSupport
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                 PushNotification::pushNotificationToSupporter($topicNum, $camp, $fcmToken, 'remove');
+                 PushNotification::pushNotificationToSupporter($user,$topicNum, $camp, $fcmToken, 'remove');
              }
 
              //log activity
@@ -184,7 +184,7 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add');
+           PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, $fcmToken, 'add');
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
          }
@@ -196,7 +196,7 @@ class TopicSupport
      * [Add deleagte support]
      * 
      */
-    public static function addDelegateSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId, $fcmToken)
+    public static function addDelegateSupport($user,$topicNum, $campNum, $nickNameId, $delegateNickNameId, $fcmToken)
     { 
         $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
@@ -223,7 +223,7 @@ class TopicSupport
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
         
-        PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcmToken, 'add-delegate');
+        PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, $fcmToken, 'add-delegate');
         die('fd');
         if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
