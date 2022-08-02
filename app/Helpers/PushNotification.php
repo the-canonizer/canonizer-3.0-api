@@ -7,6 +7,7 @@ use Throwable;
 use App\Models\Camp;
 use App\Models\User;
 use App\Models\Topic;
+use App\Models\Thread;
 use App\Models\Support;
 use App\Models\Nickname;
 use App\Models\PushNotification as ModelPushNotification;
@@ -80,7 +81,7 @@ class PushNotification
         return $pushNotification;
     }
 
-    public static function pushNotificationToSupporter($topicNum, $campNum, $fcm_token, $action = 'add')
+    public static function pushNotificationToSupporter($topicNum, $campNum, $fcm_token, $action = 'add', $threadId = null)
     {
 
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
@@ -113,6 +114,7 @@ class PushNotification
         $filter['asOf'] = "";
         $filter['campNum'] = $campNum;
         $camp = Camp::getLiveCamp($filter);
+        $liveThread = Thread::find($threadId);
         $PushNotificationData =  new stdClass();
         $PushNotificationData->topic_num = $topic->topic_num;
         $PushNotificationData->camp_num = $camp->camp_num;
@@ -123,19 +125,40 @@ class PushNotification
                     $PushNotificationData->user_id = $user->id;
                     if ($action == 'add') {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
-                        $PushNotificationData->title = trans('message.notification_title.addSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->title = trans('message.notification_title.addSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
-                    } else if($action == 'add-delegate'){
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    } else if ($action == config('global.notification_type.Thread')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Thread');
+                        $PushNotificationData->title = trans('message.notification_title.createThread');
+                        $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
+                    } else if ($action == config('global.notification_type.Post')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Post');
+                        $PushNotificationData->title = trans('message.notification_title.createPost');
+                        $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'thread_name' => $liveThread->title]);
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads/' . $threadId;
+                    } else if ($action == 'updatePost') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Post');
+                        $PushNotificationData->title = trans('message.notification_title.updatePost');
+                        $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'thread_name' => $liveThread->title]);
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads/' . $threadId;
+                    } else if ($action == config('global.notification_type.Statement')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Statement');
+                        $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    } else if ($action == 'add-delegate') {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
-                        $PushNotificationData->title = trans('message.notification_title.addDelegateSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     } else {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
-                        $PushNotificationData->title = trans('message.notification_title.removeSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     }
                     $PushNotificationData->fcm_token = $fcm_token;
-                    $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     self::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {
                     echo  $message = $e->getMessage();
@@ -149,11 +172,15 @@ class PushNotification
                     $PushNotificationData->user_id = $userSub->id;
                     if ($action == 'add') {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
-                        $PushNotificationData->title = trans('message.notification_title.addSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->title = trans('message.notification_title.addSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name' => $camp->camp_name]);
+                    } else if ($action == config('global.notification_type.Thread')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Thread');
+                        $PushNotificationData->title = trans('message.notification_title.createThread');
+                        $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
                     } else {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
-                        $PushNotificationData->title = trans('message.notification_title.removeSupport',['camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name' => $camp->camp_name]);
                     }
                     $PushNotificationData->fcm_token = $fcm_token;
@@ -177,20 +204,18 @@ class PushNotification
             $PushNotificationData->user_id = $user->id;
             $PushNotificationData->notification_type = config('global.notification_type.Support');
 
-            if(isset($promotedTo) && !empty($promotedTo)){
-                $PushNotificationData->title = trans('message.notification_title.promotedDelegate',['camp_name'=> $camp->camp_name, 'topic_name' =>  $topic->title]);
+            if (isset($promotedTo) && !empty($promotedTo)) {
+                $PushNotificationData->title = trans('message.notification_title.promotedDelegate', ['camp_name' => $camp->camp_name, 'topic_name' =>  $topic->title]);
                 $PushNotificationData->message_body = trans('message.notification_message.promotedDelegate', ['nick_name' => $promotedFrom->nick_name, 'delegated_nick_name' => $promotedTo->nick_name, 'camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
-           
-            }else{
-                $PushNotificationData->title = trans('message.notification_title.promotedDirect',['camp_name'=> $camp->camp_name, 'topic_name' => $topic->title]);
+            } else {
+                $PushNotificationData->title = trans('message.notification_title.promotedDirect', ['camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
                 $PushNotificationData->message_body = trans('message.notification_message.promotedDirect', ['nick_name' => $promotedFrom->nick_name, 'camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
             }
 
             $PushNotificationData->fcm_token = $fcmToken;
             $PushNotificationData->link = $campLink;
             self::sendPushNotification($PushNotificationData);
-
-        }catch (Throwable $e) {
+        } catch (Throwable $e) {
             echo $message = $e->getMessage();
         }
     }

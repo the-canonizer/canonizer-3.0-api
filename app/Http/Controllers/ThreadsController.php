@@ -187,23 +187,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-
-                    $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-                    $filter['topicNum'] = $request->topic_num;
-                    $filter['asOf'] = $request->asof;
-                    $filter['campNum'] = $request->camp_num;
-                    $camp = Camp::getLiveCamp($filter);
-                    $PushNotificationData =  new stdClass();
-                    $PushNotificationData->user_id = $request->user()->id;
-                    $PushNotificationData->thread_id = $thread->id;
-                    $PushNotificationData->topic_num = $topic->topic_num;
-                    $PushNotificationData->camp_num = $camp->camp_num;
-                    $PushNotificationData->notification_type = config('global.notification_type.Thread');
-                    $PushNotificationData->title = trans('message.notification_title.createThread');
-                    $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name'=> $request->title, 'camp_name' => $camp->camp_name]);
-                    $PushNotificationData->fcm_token = $request->fcm_token;
-                    $PushNotificationData->link = $return_url;
-                    PushNotification::sendPushNotification($PushNotificationData);
+                PushNotification::pushNotificationToSupporter($request->topic_num, $request->camp_num, $request->fcm_token, config('global.notification_type.Thread'), $thread->id) ;
             } else {
                 $data = null;
                 $status = 400;
