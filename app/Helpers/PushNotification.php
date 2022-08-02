@@ -147,6 +147,11 @@ class PushNotification
                         $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name' => $camp->camp_name]);
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    } else if ($action == config('global.notification_type.Camp')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Camp');
+                        $PushNotificationData->title = trans('message.notification_title.createCamp');
+                        $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $user->first_name, 'last_name' => $user->last_name, 'camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
                     } else if ($action == 'add-delegate') {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
                         $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
@@ -195,6 +200,11 @@ class PushNotification
                         $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name' => $camp->camp_name]);
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    } else if ($action == config('global.notification_type.Camp')) {
+                        $PushNotificationData->notification_type = config('global.notification_type.Camp');
+                        $PushNotificationData->title = trans('message.notification_title.createCamp');
+                        $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $userSub->first_name, 'last_name' => $userSub->last_name, 'camp_name'=> $camp->camp_name]);
+                        $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
                     } else if ($action == 'add-delegate') {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
                         $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
