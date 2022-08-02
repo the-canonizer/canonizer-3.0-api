@@ -1096,6 +1096,103 @@ class CampController extends Controller
         }
     }
 
+     /**
+     * @OA\Post(path="/manage-camp",
+     *   tags={"Camp"},
+     *   summary="Edit/update/object camp",
+     *   description="This API is used to edit, update and object a camp.",
+     *   operationId="edit/update/object-CampHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Manage camp",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="nick_name",
+     *                   description="Nick name of the user",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent camp num",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="old_parent_camp_num",
+     *                   description="Old parent camp num",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_name",
+     *                   description="Camp name",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="keywords",
+     *                   description="Keywords",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_about_url",
+     *                   description="Camp about url",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="note",
+     *                   description="Note for camp",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *              @OA\Property(
+     *                   property="submitter",
+     *                   description="Nick name id of user who previously added camp",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objection, edit, update",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection_reason",
+     *                   description="Objection reason in case user is objecting to a camp change",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_id",
+     *                   description="Id of camp",
+     *                   required=false,
+     *                   type="integer",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function manageCamp(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageCampValidationRules(), $this->validationMessages->getManageCampValidationMessages());
