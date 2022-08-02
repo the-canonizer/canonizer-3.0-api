@@ -40,11 +40,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
     }
 
-    public function parentCamp()
-    {
-        return $this->hasOne('App\Models\Camp', 'id', 'parent_camp_num');
-    }
-
     public function topic()
     {
         return $this->hasOne('App\Models\Topic', 'topic_num', 'topic_num')
@@ -214,6 +209,22 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('go_live_time', '<=', $asOfDate)
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' group by camp_num)')
             ->orderBy('submit_time', 'desc')->orderBy('camp_name', 'desc')->groupBy('camp_num')->get();
+    }
+
+    public static function getParentCamp($topicNum, $campNum, $filter, $asOfDate = null)
+    {
+        if ($filter == 'bydate') {
+            $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asOfDate)));
+        } else {
+            $asOfDate = time();
+        }
+
+        return self::where('topic_num', $topicNum)
+            ->where('objector_nick_id', '=', NULL)
+            ->where('camp_num', '=', $campNum)
+            ->where('go_live_time', '<=', $asOfDate)
+            ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' and camp_num='. $campNum .' group by camp_num)')
+            ->orderBy('submit_time', 'desc')->orderBy('camp_name', 'desc')->groupBy('camp_num')->first();
     }
 
     public static function getAllChildCamps($camp): array
@@ -544,9 +555,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
-                $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
-                $val->parent_camp_name = isset($val->parent_camp_num) ? $val->parentCamp->camp_name : null;
-                $val->unsetRelation('parentCamp');
+                $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name ?? null;
+                $val->parent_camp_name = isset($val->parent_camp_num) ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
@@ -576,4 +586,34 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return  $data;
     }
 
+    public static function IfTopicCampNameAlreadyExists($all)
+    {
+        $liveCamps = self::getAllLiveCampsInTopic($all['topic_num']);
+        $nonLiveCamps = self::getAllNonLiveCampsInTopic($all['topic_num']);
+        $camp_existsLive = 0;
+        $camp_existsNL = 0;
+        if (!empty($liveCamps)) {
+            foreach ($liveCamps as $value) {
+                if (strtolower(trim($value->camp_name)) == strtolower(trim($all['camp_name']))) {
+                    if (isset($all['camp_num']) && array_key_exists('camp_num', $all) && $all['camp_num'] == $value->camp_num) {
+                        $camp_existsLive = 0;
+                    } else {
+                        $camp_existsLive = 1;
+                    }
+                }
+            }
+        }
+        if (!empty($nonLiveCamps)) {
+            foreach ($nonLiveCamps as $value) {
+                if (strtolower(trim($value->camp_name)) == strtolower(trim($all['camp_name']))) {
+                    if (isset($all['camp_num']) && array_key_exists('camp_num', $all) && $all['camp_num'] == $value->camp_num) {
+                        $camp_existsNL = 0;
+                    } else {
+                        $camp_existsNL = 1;
+                    }
+                }
+            }
+        }
+        return ($camp_existsLive || $camp_existsNL);
+    }
 }
