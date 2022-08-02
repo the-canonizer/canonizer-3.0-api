@@ -217,16 +217,7 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    $PushNotificationData =  new stdClass();
-                    $PushNotificationData->user_id = $request->user()->id;
-                    $PushNotificationData->topic_num = $topic->topic_num;
-                    $PushNotificationData->camp_num = $camp->camp_num;
-                    $PushNotificationData->notification_type = config('global.notification_type.Camp');
-                    $PushNotificationData->title = trans('message.notification_title.createCamp');
-                    $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
-                    $PushNotificationData->fcm_token = $request->fcm_token;
-                    $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
-                    $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
+                    PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $camp->camp_num, config('global.notification_type.Camp')) ;
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;

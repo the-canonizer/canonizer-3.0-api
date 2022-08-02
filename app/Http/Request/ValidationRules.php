@@ -492,4 +492,11 @@ class ValidationRules
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
+
+    public function getUpdateFcmTokenValidationRules(): array
+    {
+        return ([
+            'fcm_token' => 'required',
+        ]);
+    }
 }

@@ -397,6 +397,7 @@ return [
         "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name."
     ],
     'notification_message' => [
+        "fcm_token_required" => "Fcm Token is required.",
         "createTopic" => "Hello :first_name :last_name, You proposed a change for :notification_type : :topic_name",
         "createCamp" => ":first_name :last_name has created a new Camp - :camp_name",
         "createThread" => ":first_name :last_name has created a new Thread :thread_name under Camp - :camp_name",

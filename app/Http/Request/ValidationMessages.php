@@ -559,4 +559,11 @@ class ValidationMessages
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
         ];
     }
+
+    public function getFcmTokenValidationMessages(): array
+    {
+        return ([
+            'fcm_token.required' => trans('message.notification_message.fcm_token_required'),
+        ]);
+    }
 }

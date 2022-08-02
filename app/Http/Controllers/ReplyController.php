@@ -163,24 +163,8 @@ class ReplyController extends Controller
                 $status = 200;
                 $message = trans('message.post.create_success');
                 $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
-                $liveThread = Thread::find($request->thread_id);
-                $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-                $filter['topicNum'] = $request->topic_num;
-                $filter['asOf'] = $request->asof;
-                $filter['campNum'] = $request->camp_num;
-                $camp = Camp::getLiveCamp($filter);
-                $PushNotificationData =  new stdClass();
-                $PushNotificationData->user_id = $request->user()->id;
-                $PushNotificationData->topic_num = $topic->topic_num;
-                $PushNotificationData->thread_id = $request->thread_id;
-                $PushNotificationData->camp_num = $camp->camp_num;
-                $PushNotificationData->notification_type = config('global.notification_type.Post');
-                $PushNotificationData->title = trans('message.notification_title.createPost');
-                $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name' => $liveThread->title]);
-                $PushNotificationData->fcm_token = $request->fcm_token;
-                $PushNotificationData->link = $return_url;
-                PushNotification::sendPushNotification($PushNotificationData);
                 // Return Url after creating post Successfully
+                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id) ;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
             } else {
                 $data = null;
@@ -517,25 +501,8 @@ class ReplyController extends Controller
             $status = 200;
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
-
-            $liveThread = Thread::find($request->thread_id);
-            $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-            $filter['topicNum'] = $request->topic_num;
-            $filter['asOf'] = $request->asof;
-            $filter['campNum'] = $request->camp_num;
-            $camp = Camp::getLiveCamp($filter);
-            $PushNotificationData =  new stdClass();
-            $PushNotificationData->user_id = $request->user()->id;
-            $PushNotificationData->topic_num = $topic->topic_num;
-            $PushNotificationData->camp_num = $camp->camp_num;
-            $PushNotificationData->notification_type = config('global.notification_type.Post');
-            $PushNotificationData->title = trans('message.notification_title.updatePost');
-            $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name' => $liveThread->title]);
-            $PushNotificationData->fcm_token = $request->fcm_token;
-            $PushNotificationData->link = Camp::campLink($topic->topic_num, $topic->camp_num, $topic->title, $topic->camp_name);
-            PushNotification::sendPushNotification($PushNotificationData);
-
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
+            PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id) ;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {

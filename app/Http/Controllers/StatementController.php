@@ -369,21 +369,7 @@ class StatementController extends Controller
             }
 
             $statement->save();
-            $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-            $filter['topicNum'] = $request->topic_num;
-            $filter['asOf'] = $request->asof;
-            $filter['campNum'] = $request->camp_num;
-            $camp = Camp::getLiveCamp($filter);
-            $PushNotificationData =  new stdClass();
-            $PushNotificationData->user_id = $request->user()->id;
-            $PushNotificationData->topic_num = $topic->topic_num;
-            $PushNotificationData->camp_num = $camp->camp_num;
-            $PushNotificationData->notification_type = config('global.notification_type.Statement');
-            $PushNotificationData->title = trans('message.notification_title.manageStatement',['camp_name'=> $camp->camp_name]);
-            $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
-            $PushNotificationData->fcm_token = $request->fcm_token;
-            $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
-            $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
+            PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Statement')) ;
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 
