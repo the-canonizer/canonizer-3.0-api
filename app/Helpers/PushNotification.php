@@ -81,7 +81,7 @@ class PushNotification
         return $pushNotification;
     }
 
-    public static function pushNotificationToSupporter($request,$topicNum, $campNum, $fcm_token, $action = 'add', $threadId = null)
+    public static function pushNotificationToSupporter($request ,$topicNum, $campNum, $fcm_token, $action = 'add', $threadId = null)
     {
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
@@ -131,6 +131,7 @@ class PushNotification
                         $PushNotificationData->notification_type = config('global.notification_type.Thread');
                         $PushNotificationData->title = trans('message.notification_title.createThread');
                         $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                     } else if ($action == config('global.notification_type.Post')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.createPost');
@@ -183,7 +184,7 @@ class PushNotification
                         $PushNotificationData->notification_type = config('global.notification_type.Thread');
                         $PushNotificationData->title = trans('message.notification_title.createThread');
                         $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
-                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '/threads/' . $threadId;
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
                     }else if ($action == config('global.notification_type.Post')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.createPost');
