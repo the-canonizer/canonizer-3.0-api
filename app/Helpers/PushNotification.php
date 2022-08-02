@@ -105,9 +105,7 @@ class PushNotification
             }
         }
         $filtered_direct_supporter_user = array_unique($directSupporterUser);
-        $filtered_subscribers_user = array_unique(array_filter($subscribers_user, function ($e) use ($directSupporterUser) {
-            return !in_array($e->id, $directSupporterUser);
-        }));
+        $filtered_subscribers_user = array_unique($subscribers_user);
         $topic = Topic::getLiveTopic($topicNum, "");
         $filter['topicNum'] = $topicNum;
         $filter['asOf'] = "";

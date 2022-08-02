@@ -576,4 +576,11 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return  $data;
     }
 
+    public static function campChildFromTopic($topicnum)
+    {
+        return self::where('topic_num', '=', $topicnum)
+                        ->get()->unique('camp_num');
+       
+    }
+
 }
