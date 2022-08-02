@@ -162,7 +162,7 @@ class PushNotification
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     }
                     $PushNotificationData->fcm_token = $user->fcm_token;
-                    if($user->id != $request->id){
+                    if($user->id != $request->id && !empty($user->fcm_token)){
                         self::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
@@ -217,7 +217,7 @@ class PushNotification
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     }
                     $PushNotificationData->fcm_token = $userSub->fcm_token;
-                    if($userSub->id != $request->id){
+                    if($userSub->id != $request->id && !empty($userSub->fcm_token)){
                         self::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
