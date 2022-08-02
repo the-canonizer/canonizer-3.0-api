@@ -245,7 +245,11 @@ class NotificationController extends Controller
         }
         try {
             $user = User::find($request->user()->id);
-            $user->fcm_token = $request->fcm_token;
+            if($request->fcm_token == 'disabled'){
+                $user->fcm_token = null;
+            }else{
+                $user->fcm_token = $request->fcm_token;
+            }
             $user->save();
             $status = 200;
             $message = trans('message.success.success');
