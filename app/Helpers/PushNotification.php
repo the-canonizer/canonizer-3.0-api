@@ -81,7 +81,7 @@ class PushNotification
         return $pushNotification;
     }
 
-    public static function pushNotificationToSupporter($request ,$topicNum, $campNum, $fcm_token, $action = 'add', $threadId = null)
+    public static function pushNotificationToSupporter($request ,$topicNum, $campNum, $action = 'add', $threadId = null)
     {
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
@@ -161,7 +161,7 @@ class PushNotification
                         $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     }
-                    $PushNotificationData->fcm_token = $fcm_token;
+                    $PushNotificationData->fcm_token = $request->fcm_token;
                     self::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {
                     echo  $message = $e->getMessage();
@@ -214,7 +214,7 @@ class PushNotification
                         $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                     }
-                    $PushNotificationData->fcm_token = $fcm_token;
+                    $PushNotificationData->fcm_token = $request->fcm_token;
                     self::sendPushNotification($PushNotificationData);
                 } catch (Throwable $e) {
                     echo $message = $e->getMessage();
