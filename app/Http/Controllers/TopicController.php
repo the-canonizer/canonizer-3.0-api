@@ -344,7 +344,7 @@ class TopicController extends Controller
         try {
             if ($type == 'statement') {
                 $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
-            }else if ($type == 'camp') {
+            } else if ($type == 'camp') {
                 $model = Camp::where('id', '=', $id)->first();
             }
             else if ($type == 'topic') {
@@ -393,7 +393,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $liveCamp->topic_num . '-' . $liveCamp->camp_name . '/' . $liveCamp->camp_num . '/threads';
                 $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
                 $topic = $model->topic;
-                if(isset($topic)) {
+                if (isset($topic)) {
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
@@ -658,6 +658,38 @@ class TopicController extends Controller
         }
     }
 
+    public function getTopicHistory(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['per_page'] = $request->per_page;
+        $filter['page'] = $request->page;
+        $filter['currentTime'] = time();
+        $filter['type'] = $request->type;
+        $response = new stdClass();
+        $details = new stdClass();
+        try {
+            $topics = Topic::getTopicHistory($filter, $request);
+            $response = $topics;
+            $details->ifIamSupporter = null;
+            $details->ifSupportDelayed = null;
+            $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
+            $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
+                $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+            }
+            $response->details = $details;
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
     public function editTopicRecord($id)
     {
         try {
@@ -677,5 +709,4 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
 }
