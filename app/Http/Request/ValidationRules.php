@@ -456,6 +456,16 @@ class ValidationRules
         ]);
     }
 
+    public function getTopicHistoryValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'per_page' => 'required',
+            'page' => 'required',
+            'type' => 'in:objected,live,in_review,old,all',
+        ]);
+    }
+    
     public function getManageCampValidationRules(): array
     {
         return [
