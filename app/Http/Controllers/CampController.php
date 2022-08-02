@@ -1278,10 +1278,10 @@ class CampController extends Controller
         $camp->parent_camp_num = $all['parent_camp_num'];
         $camp->camp_name = $all['camp_name'];
         $camp->note = $all['note'] ?? null;
-        $camp->key_words = $all['keywords'];
+        $camp->key_words = $all['keywords'] ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = $all['camp_about_url'];
-        $camp->camp_about_nick_id = isset($all['camp_about_nick_id']) ? $all['camp_about_nick_id'] : "";
+        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         return $camp;
     }
 
@@ -1298,7 +1298,7 @@ class CampController extends Controller
         $camp->key_words = $all['keywords'] ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'] ?? "";
-        $camp->camp_about_nick_id = $all['camp_about_nick_id'] ? $all['camp_about_nick_id'] : "";
+        $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->camp_num = $all['camp_num'];
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];
