@@ -72,6 +72,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
     }
 
+    public function nameSpace()
+    {
+        return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
+    }
+
     public static function getLiveTopic($topicNum, $filter = array())
     {
         switch ($filter) {
@@ -158,6 +163,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->namespace = $val->nameSpace->name;
+                $val->unsetRelation('nameSpace');
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
