@@ -658,6 +658,50 @@ class TopicController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/get-topic-history",
+     *   tags={"Topic"},
+     *   summary="get topic history",
+     *   description="This API is used to get topic history.",
+     *   operationId="getTopicHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topic history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Records per page",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values are objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="page",
+     *                   description="Page number",
+     *                   required=true,
+     *                   type="string",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
     public function getTopicHistory(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
