@@ -24,7 +24,7 @@
                         <p style="margin-bottom: 15px;">
                             <a target="_blank" href="#">{{ $data['nick_name']->nick_name }}</a> {{ $data['post_type'] }}
                             the following post to the Camp
-                            <a href="{{  config('global.APP_URL_FRONT_END'). '/' . $data['camp_url'] }}"> {{ $data['camp_name'] }} </a> forum:
+                            <a href="{{ $data['camp_url'] }}"> {{ $data['camp_name'] }} </a> forum:
 
                         </p>
 

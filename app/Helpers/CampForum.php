@@ -47,7 +47,7 @@ class CampForum
         $data['namespace_id'] = CampForum::getNamespaceId($topicid);
         $data['nick_name_id'] = $nick_id;
 
-        $data['camp_url'] = "topic/" . $topicid . "-" . $topic_name_encoded . "/" . $campnum . "?";
+        $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $data['camp_name']);
 
         $data['thread_title'] = $thread_title;
 
@@ -267,7 +267,7 @@ class CampForum
         $data['namespace_id'] = CampForum::getNamespaceId($topicid);
         $data['nick_name_id'] = $nick_id;
 
-        $data['camp_url'] = "topic/" . $topicid . "-" . $topic_name_encoded . "/" . $campnum . "?";
+        $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $camp_name);
         $data['nick_name'] = CampForum::getForumNickName($nick_id);
         foreach ($subCampIds as $camp_id) {
             $directSupporter = CampForum::getDirectCampSupporter($topicid, $camp_id);

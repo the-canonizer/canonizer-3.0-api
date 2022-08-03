@@ -31,7 +31,7 @@
                 </tr>
                 <tr>
                     <td style="padding-top:10px; padding-bottom: 30px; font-weight:400; font-size:20px;">
-                        <p>Camp Name: <a style="color:#497BDF;" href="{{ config('global.APP_URL_FRONT_END') . '/' . $data['camp_url'] }}"> {{ $data['camp_name'] }} </a>
+                        <p>Camp Name: <a style="color:#497BDF;" href="{{ $data['camp_url'] }}"> {{ $data['camp_name'] }} </a>
                         </p>
                     </td>
                 </tr>
