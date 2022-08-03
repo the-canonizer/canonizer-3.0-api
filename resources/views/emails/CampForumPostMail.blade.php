@@ -44,7 +44,7 @@
                                             <li>You are subscribed to {!! $support !!}</li>
                                         @endforeach
                                     @else
-                                        <li>You are subscribed to <a href="{{ config('global.APP_URL_FRONT_END'). '/' . $data['camp_url'] }}">
+                                        <li>You are subscribed to <a href="{{ $data['camp_url'] }}">
                                                 {{ $data['camp_name'] }} </a></li>
                                     @endif
 
@@ -57,7 +57,7 @@
                                             <li>You are directly supporting {!! $support !!}</li>
                                         @endforeach
                                     @else
-                                        <li>You are directly supporting <a href="{{ config('global.APP_URL_FRONT_END'). '/' . $data['camp_url'] }}">
+                                        <li>You are directly supporting <a href="{{ $data['camp_url'] }}">
                                                 {{ $data['camp_name'] }} </a></li>
                                     @endif
 
