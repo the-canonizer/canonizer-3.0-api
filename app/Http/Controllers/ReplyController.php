@@ -162,7 +162,7 @@ class ReplyController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
-                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
+                $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
                 // Return Url after creating post Successfully
                 PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id) ;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
@@ -501,7 +501,7 @@ class ReplyController extends Controller
             $status = 200;
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
-            $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads/' . $request->thread_id;
+            $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
             PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id) ;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
