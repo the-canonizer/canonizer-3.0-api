@@ -1087,6 +1087,34 @@ class CampController extends Controller
         }
     }
     
+     /**
+     * @OA\Get(path="/edit-camp",
+     *   tags={"Camp"},
+     *   summary="Get camp record",
+     *   description="Get camp details for editing",
+     *   operationId="editCampRecord",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get camp details for editing",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */ 
     public function editCampRecord($id)
     {
         try {
@@ -1106,6 +1134,8 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            }else {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
