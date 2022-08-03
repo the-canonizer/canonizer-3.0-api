@@ -690,6 +690,34 @@ class TopicController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/edit-topic",
+     *   tags={"Topic"},
+     *   summary="Get topic record",
+     *   description="Get topic details for editing",
+     *   operationId="editTopicRecord",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get topic details for editing",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */ 
     public function editTopicRecord($id)
     {
         try {
