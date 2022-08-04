@@ -107,7 +107,7 @@ class StatementController extends Controller
     /**
      * @OA\Post(path="/get-statement-history",
      *   tags={"Statement"},
-     *   summary="get camp newsfeed",
+     *   summary="get camp statement",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
      *   @OA\RequestBody(
@@ -128,6 +128,12 @@ class StatementController extends Controller
      *                  required=true,
      *                  type="integer",
      *              ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
