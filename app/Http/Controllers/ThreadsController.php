@@ -173,7 +173,7 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_success');
 
                 // Return Url after creating thread Successfully
-                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
@@ -401,7 +401,7 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 foreach($threads->items as $value){
-                    $postCount =  Reply::where('thread_id',$value->id)->get();
+                    $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                     foreach($namspaceId as $nId){
                         $value->namespace_id = $nId->namespace_id;
@@ -457,7 +457,7 @@ class ThreadsController extends Controller
             }
             $threads = Util::getPaginatorResponse($threads);
             foreach($threads->items as $value){
-                $postCount =  Reply::where('thread_id',$value->id)->get();
+                $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
                 $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                 foreach($namspaceId as $nId){
                     $value->namespace_id = $nId->namespace_id;

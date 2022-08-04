@@ -795,9 +795,9 @@ class UserController extends Controller
             $generateToken = Util::httpPost($postUrl, $payload);
             if ($generateToken->status_code == 200) {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
-
-                Event::dispatch(new WelcomeMailEvent($user));
-
+                if($request->is_login == 0){
+                    Event::dispatch(new WelcomeMailEvent($user));
+                }
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),

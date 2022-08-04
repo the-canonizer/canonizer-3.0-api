@@ -142,7 +142,7 @@ class TopicSupport
      * @param array $removedCamps  list of camps to be removed if any
      * @param array $orderUpdate is associative array of camps with order numbr to be updated, if any
      */
-    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array(), $fcmToken)
+    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array())
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
