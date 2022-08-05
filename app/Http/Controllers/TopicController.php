@@ -555,6 +555,73 @@ class TopicController extends Controller
         }
     }
 
+     /**
+     * @OA\Post(path="/manage-topic",
+     *   tags={"Topic"},
+     *   summary="edit, update and object topic record",
+     *   description="This API is used to edit, update and object topic record.",
+     *   operationId="edit, update, object-TopicHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topic record history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="topic_id",
+     *                  description="Topic id is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="nick_name",
+     *                   description="Nick name of the user",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="note",
+     *                   description="Note for topic",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *              @OA\Property(
+     *                   property="submitter",                                      
+     *                   description="Nick name id of user who previously added statement",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="namespace_id",
+     *                   description="TOpic namespace id",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objection, edit, update",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection_reason",
+     *                   description="Objection reason in case user is objecting to a statement",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function manageTopic(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageTopicValidationRules(), $this->validationMessages->getManageTopicValidationMessages());
