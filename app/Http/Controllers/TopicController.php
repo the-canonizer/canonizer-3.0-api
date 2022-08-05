@@ -407,6 +407,7 @@ class TopicController extends Controller
                 }
                 $message = trans('message.success.camp_commit');
             }else if($type == 'topic'){
+                $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
                 $data['support_camp'] = $model->topic_name;
                 $data['type'] = 'topic : ';
@@ -419,6 +420,18 @@ class TopicController extends Controller
                 }
                 $message = trans('message.success.topic_commit');
             }
+            $activityLogData = [
+                'log_type' =>  "topic/camps",
+                'activity' => 'Commited change',
+                'url' => $link,
+                'model' => $model,
+                'topic_num' => $model->topic_num,
+                'camp_num' =>  $model->camp_num,
+                'user' => $request->user(),
+                'nick_name' => $nickName,
+                'description' => $model->value
+            ];
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
@@ -564,6 +577,73 @@ class TopicController extends Controller
         }
     }
 
+     /**
+     * @OA\Post(path="/manage-topic",
+     *   tags={"Topic"},
+     *   summary="edit, update and object topic record",
+     *   description="This API is used to edit, update and object topic record.",
+     *   operationId="edit, update, object-TopicHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topic record history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="topic_id",
+     *                  description="Topic id is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="nick_name",
+     *                   description="Nick name of the user",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="note",
+     *                   description="Note for topic",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *              @OA\Property(
+     *                   property="submitter",                                      
+     *                   description="Nick name id of user who previously added statement",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="namespace_id",
+     *                   description="TOpic namespace id",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objection, edit, update",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection_reason",
+     *                   description="Objection reason in case user is objecting to a statement",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function manageTopic(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageTopicValidationRules(), $this->validationMessages->getManageTopicValidationMessages());
@@ -623,7 +703,7 @@ class TopicController extends Controller
             DB::commit();
 
             if ($all['event_type'] == "objection") {
-                $this->objectedTopicNotification($all, $topic);
+                $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
                 Util::dispatchJob($topic, 1, 1);
             }
@@ -635,7 +715,7 @@ class TopicController extends Controller
         }
     }
 
-    private function objectedTopicNotification($all, $topic)
+    private function objectedTopicNotification($all, $topic, $request)
     {
         if (isset($topic)) {
             Util::dispatchJob($topic, 1, 1);
@@ -660,7 +740,19 @@ class TopicController extends Controller
         $data['namespace_id'] = (isset($topic->namespace_id) && $topic->namespace_id)  ?  $topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
         $data['help_link'] = General::getDealingWithDisagreementUrl();
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Change to topic objected',
+            'url' => $link,
+            'model' => $topic,
+            'topic_num' => $topic->topic_num,
+            'camp_num' =>  1,
+            'user' => $request->user(),
+            'nick_name' => $nickName,
+            'description' => $liveTopic->topic_name
+        ];
         try {
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -743,6 +835,34 @@ class TopicController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(path="/edit-topic",
+     *   tags={"Topic"},
+     *   summary="Get topic record",
+     *   description="Get topic details for editing",
+     *   operationId="editTopicRecord",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get topic details for editing",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */ 
     public function editTopicRecord($id)
     {
         try {

@@ -1090,6 +1090,34 @@ class CampController extends Controller
         }
     }
     
+     /**
+     * @OA\Get(path="/edit-camp",
+     *   tags={"Camp"},
+     *   summary="Get camp record",
+     *   description="Get camp details for editing",
+     *   operationId="editCampRecord",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get camp details for editing",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */ 
     public function editCampRecord($id)
     {
         try {
@@ -1109,6 +1137,8 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            }else {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -1254,9 +1284,9 @@ class CampController extends Controller
             }
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
-                $this->objectCampNotification($camp, $all, $link, $liveCamp);
+                $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
-                $this->updateCampNotification($camp, $liveCamp, $link);
+                $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
@@ -1310,7 +1340,7 @@ class CampController extends Controller
         return $camp;
     }
 
-    private function updateCampNotification($camp, $liveCamp, $link)
+    private function updateCampNotification($camp, $liveCamp, $link, $request)
     {
         $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['type'] = "camp";
@@ -1327,10 +1357,22 @@ class CampController extends Controller
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
         $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Camp updated',
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $camp->topic_num,
+            'camp_num' =>  $camp->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName,
+            'description' => $camp->camp_name
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
         Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
-    private function objectCampNotification($camp, $all, $link, $liveCamp)
+    private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
         $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
@@ -1345,7 +1387,19 @@ class CampController extends Controller
         $data['object_type'] = "";
         $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Change to camp objected',
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $camp->topic_num,
+            'camp_num' =>  $camp->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName,
+            'description' => $camp->camp_name
+        ];
         try {
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
         } catch (\Swift_TransportException $e) {
             throw new \Swift_TransportException($e);
