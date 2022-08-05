@@ -419,7 +419,7 @@ class TopicController extends Controller
                 'topic_num' => $model->topic_num,
                 'camp_num' =>  $model->camp_num,
                 'user' => $request->user(),
-                'nick_name' => $nickName,
+                'nick_name' => $nickName->nick_name,
                 'description' => $model->value
             ];
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -739,7 +739,7 @@ class TopicController extends Controller
             'topic_num' => $topic->topic_num,
             'camp_num' =>  1,
             'user' => $request->user(),
-            'nick_name' => $nickName,
+            'nick_name' => $nickName->nick_name,
             'description' => $liveTopic->topic_name
         ];
         try {

@@ -1362,7 +1362,7 @@ class CampController extends Controller
             'topic_num' => $camp->topic_num,
             'camp_num' =>  $camp->camp_num,
             'user' => $request->user(),
-            'nick_name' => $nickName,
+            'nick_name' => $nickName->nick_name,
             'description' => $camp->camp_name
         ];
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -1392,7 +1392,7 @@ class CampController extends Controller
             'topic_num' => $camp->topic_num,
             'camp_num' =>  $camp->camp_num,
             'user' => $request->user(),
-            'nick_name' => $nickName,
+            'nick_name' => $nickName->nick_name,
             'description' => $camp->camp_name
         ];
         try {
