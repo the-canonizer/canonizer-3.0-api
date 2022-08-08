@@ -456,7 +456,7 @@ class StatementController extends Controller
             'topic_num' => $statement->topic_num,
             'camp_num' =>  $statement->camp_num,
             'user' => $request->user(),
-            'nick_name' => $nickName,
+            'nick_name' => $nickName->nick_name,
             'description' => $statement->value
         ];
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -486,7 +486,7 @@ class StatementController extends Controller
             'topic_num' => $statement->topic_num,
             'camp_num' =>  $statement->camp_num,
             'user' => $request->user(),
-            'nick_name' => $nickName,
+            'nick_name' =>  $nickName->nick_name,
             'description' => $statement->value
         ];
         try {
