@@ -292,7 +292,7 @@ class ValidationRules
     public function getThreadUpdateValidationRules(): array
     {
         return ([
-            'title'    => 'required|max:100|regex:/^[a-zA-Z0-9\s]+$/',
+            'title'    => 'required|max:100',
             'camp_num' => 'required',
             'topic_num' => 'required',
         ]);
@@ -453,6 +453,50 @@ class ValidationRules
             'camp_num' => 'required',
             'change_for' => 'required|in:topic,camp,statement',
             'nick_name_id' => 'required',
+        ]);
+    }
+
+    public function getTopicHistoryValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'per_page' => 'required',
+            'page' => 'required',
+            'type' => 'in:objected,live,in_review,old,all',
+        ]);
+    }
+    
+    public function getManageCampValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'camp_id' => 'required',
+            'nick_name' => 'required',
+            'submitter' => 'required',
+            'camp_name' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
+
+    public function getManageTopicValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required',
+            'topic_id' => 'required',
+            'submitter' => 'required',
+            'topic_name' => 'required',
+            'namespace_id' => 'required',
+            'event_type' => 'required|in:update,edit,objection', 
+            'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
+
+    public function getUpdateFcmTokenValidationRules(): array
+    {
+        return ([
+            'fcm_token' => 'required',
         ]);
     }
 }

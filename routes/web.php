@@ -41,6 +41,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
     $router->post('get-camp-activity-log','ActivityController@getCampActivityLog');
     $router->post('/client-token','UserController@clientToken');
+    $router->post('/get-topic-history','TopicController@getTopicHistory');
     $router->post('/get-camp-history','CampController@getCampHistory');
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
@@ -108,8 +109,13 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');
         $router->post('agree-to-change','TopicController@agreeToChange');
+        $router->post('/manage-camp', 'CampController@manageCamp');
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
+        $router->get('edit-camp/{id}','CampController@editCampRecord');
+        $router->post('/manage-topic','TopicController@manageTopic');
+        $router->get('/edit-topic/{id}', 'TopicController@editTopicRecord');
+        $router->post('/update-fcm-token','NotificationController@updateFcmToken');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

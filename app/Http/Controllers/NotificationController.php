@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Throwable;
 use App\Models\Camp;
+use App\Models\User;
 use App\Facades\Util;
 use App\Models\Reply;
 use App\Models\Topic;
@@ -226,6 +227,30 @@ class NotificationController extends Controller
             $PushNotification = PushNotification::find($id);
             $PushNotification->is_read = 1;
             $PushNotification->save();
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function updateFcmToken(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateFcmTokenValidationRules(), $this->validationMessages->getFcmTokenValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $user = User::find($request->user()->id);
+            if($request->fcm_token == 'disabled'){
+                $user->fcm_token = null;
+            }else{
+                $user->fcm_token = $request->fcm_token;
+            }
+            $user->save();
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);

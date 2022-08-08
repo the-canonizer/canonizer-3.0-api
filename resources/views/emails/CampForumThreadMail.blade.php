@@ -25,13 +25,13 @@
                         <p> <a target="_blank"
                                 href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']->nick_name }}</a>
                             has created the new thread
-                            <a href="{{ url('/') . '/' . $link }}">{{ $data['thread_title'] }}</a></b>
+                            <a href="{{ $link }}">{{ $data['thread_title'] }}</a></b>
                         </p>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding-top:10px; padding-bottom: 30px; font-weight:400; font-size:20px;">
-                        <p>Camp Name: <a style="color:#497BDF;" href="{{ url('/') . '/' . $data['camp_url'] }}"> {{ $data['camp_name'] }} </a>
+                        <p>Camp Name: <a style="color:#497BDF;" href="{{ $data['camp_url'] }}"> {{ $data['camp_name'] }} </a>
                         </p>
                     </td>
                 </tr>
@@ -46,7 +46,7 @@
                                         <li>You are subscribed to {!! $support !!}</li>
                                     @endforeach
                                 @else
-                                    <li>You are subscribed to <a href="{{ url('/') . '/' . $data['camp_url'] }}">
+                                    <li>You are subscribed to <a href="{{ $data['camp_url'] }}">
                                             {{ $data['camp_name'] }} </a></li>
                                 @endif
                             </ul>
@@ -59,7 +59,7 @@
                                         <li>You are directly supporting {!! $support !!}</li>
                                     @endforeach
                                 @else
-                                    <li>You are directly supporting <a href="{{ url('/') . '/' . $data['camp_url'] }}">
+                                    <li>You are directly supporting <a href="{{ $data['camp_url'] }}">
                                             {{ $data['camp_name'] }} </a></li>
                                 @endif
 

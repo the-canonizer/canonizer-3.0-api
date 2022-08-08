@@ -176,12 +176,10 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update'];        
-        $fcm_token = $all['fcm_token'];        
 
         try{
             
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate, $fcm_token);
-            //PushNotification::pushNotificationToSupporter($topicNum, $addCamp['camp_num'], $fcm_token, 'add');
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
@@ -210,9 +208,10 @@ class SupportController extends Controller
             $nickNameId = $all['nick_name_id'];
             $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegated_nick_name_id'];
+            $fcmToken = $all['fcm_token'];
 
             // add delegation support
-            $result = TopicSupport::addDelegateSupport($topicNum, $campNum, $nickNameId, $delegatedNickId);
+            $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId, $fcmToken);
            
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
@@ -244,11 +243,16 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
+           
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
             //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
             
-             return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
+            //case 1 removing direct support
+            if($type == 'direct'){  
+                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
+                PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, 'remove');
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

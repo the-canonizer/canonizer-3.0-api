@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Models\Support;
+use App\Jobs\ObjectionToSubmitterMailJob;
+use App\Library\General;
 
 class CampController extends Controller
 {
@@ -215,16 +217,7 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    $PushNotificationData =  new stdClass();
-                    $PushNotificationData->user_id = $request->user()->id;
-                    $PushNotificationData->topic_num = $topic->topic_num;
-                    $PushNotificationData->camp_num = $camp->camp_num;
-                    $PushNotificationData->notification_type = config('global.notification_type.Camp');
-                    $PushNotificationData->title = trans('message.notification_title.createCamp');
-                    $PushNotificationData->message_body = trans('message.notification_message.createCamp',['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
-                    $PushNotificationData->fcm_token = $request->fcm_token;
-                    $PushNotificationData->link = Camp::campLink($topic->topic_num,$camp->camp_num,$topic->topic_name,$camp->camp_name);
-                    $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
+                    PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $camp->camp_num, config('global.notification_type.Camp')) ;
                 } catch (Throwable $e) {  
                     $data = null;
                     $status = 403;
@@ -1072,18 +1065,18 @@ class CampController extends Controller
         $filter['currentTime'] = time();
         $response = new stdClass();
         $response->statement = [];
-        $response->if_i_am_supporter = null;
-        $response->if_i_am_implicit_supporter = null;
-        $response->if_support_delayed = NULL;
+        $response->ifIAmImplicitSupporter = null;
+        $response->ifIamSupporter = null;
+        $response->ifSupportDelayed = null;
         try {
             $liveCamp = Camp::getLiveCamp($filter);
             $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
             $submitTime = $liveCamp->submit_time;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
-                $response->if_i_am_supporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
-                $response->if_i_am_implicit_supporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
-                $response->if_support_delayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
+                $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
+                $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             }else{
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
@@ -1091,6 +1084,322 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+    
+     /**
+     * @OA\Get(path="/edit-camp",
+     *   tags={"Camp"},
+     *   summary="Get camp record",
+     *   description="Get camp details for editing",
+     *   operationId="editCampRecord",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get camp details for editing",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */ 
+    public function editCampRecord($id)
+    {
+        try {
+            $camp = Camp::where('id', $id)->first();
+            if ($camp) {
+                $filter['topicNum'] = $camp->topic_num;
+                $filter['campNum'] = $camp->camp_num;
+                $filter['asOf'] = 'default';
+                $topic = Camp::getAgreementTopic($filter);
+                $data = new stdClass();
+                $data->topic = $topic;
+                $data->nick_name = Nickname::topicNicknameUsed($camp->topic_num);
+                $data->camp = $camp;
+                $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
+                $response[0] = $data;
+                $indexes = ['camp', 'nick_name','parent_camp','topic'];
+                $camp = $this->resourceProvider->jsonResponse($indexes, $response);
+                $camp = $camp[0];
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            }else {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+     /**
+     * @OA\Post(path="/manage-camp",
+     *   tags={"Camp"},
+     *   summary="Edit/update/object camp",
+     *   description="This API is used to edit, update and object a camp.",
+     *   operationId="edit/update/object-CampHistory",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Manage camp",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  description="Topic number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  description="Camp number is required",
+     *                  required=true,
+     *                  type="integer",
+     *              ),
+     *               @OA\Property(
+     *                   property="nick_name",
+     *                   description="Nick name of the user",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent camp num",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="old_parent_camp_num",
+     *                   description="Old parent camp num",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_name",
+     *                   description="Camp name",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="keywords",
+     *                   description="Keywords",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_about_url",
+     *                   description="Camp about url",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="note",
+     *                   description="Note for camp",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *              @OA\Property(
+     *                   property="submitter",
+     *                   description="Nick name id of user who previously added camp",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objection, edit, update",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="objection_reason",
+     *                   description="Objection reason in case user is objecting to a camp change",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_id",
+     *                   description="Id of camp",
+     *                   required=false,
+     *                   type="integer",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function manageCamp(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getManageCampValidationRules(), $this->validationMessages->getManageCampValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $all = $request->all();
+        $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
+        $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
+        if (strtolower(trim($all['camp_name'])) == 'agreement') {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
+        }
+        try {
+            if(Camp::IfTopicCampNameAlreadyExists($all)){
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
+            }
+            $nickNames = Nickname::personNicknameArray();
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            if ($all['event_type'] == "update") {
+                $camp = $this->updateCamp($all);
+                if (!$ifIamSingleSupporter) {
+                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                } else {
+                    $camp->grace_period = 0;
+                }
+            }
+            if ($all['event_type'] == "objection") {
+                $camp = $this->objectCamp($all);
+            } elseif ($all['event_type'] == "edit") {
+                $camp = $this->editCamp($all);
+            }
+            $camp->save();
+            $topic = $camp->topic;
+            $filter['topicNum'] = $all['topic_num'];
+            $filter['campNum'] = $all['camp_num'];
+            $liveCamp = Camp::getLiveCamp($filter);
+            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp, time());
+            if ($all['event_type'] == "update") {
+                Util::checkParentCampChanged($all, false, $liveCamp);
+            }
+            if ($all['event_type'] == "objection") {
+                Util::dispatchJob($topic, $camp->camp_num, 1);
+                $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
+            } else if ($all['event_type'] == "update") {
+                $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    private function editCamp($all)
+    {
+        $camp = Camp::where('id', $all['camp_id'])->first();
+        $camp->topic_num = $all['topic_num'];
+        $camp->parent_camp_num = $all['parent_camp_num'];
+        $camp->camp_name = $all['camp_name'];
+        $camp->note = $all['note'] ?? null;
+        $camp->key_words = $all['keywords'] ?? "";
+        $camp->submitter_nick_id = $all['nick_name'];
+        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        return $camp;
+    }
+
+    private function updateCamp($all)
+    {
+        $camp = new Camp();
+        $camp->topic_num = $all['topic_num'];
+        $camp->parent_camp_num = $all['parent_camp_num'];
+        $camp->camp_name = isset($all['camp_name']) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $all['camp_name'])))  : "";
+        $camp->submit_time = strtotime(date('Y-m-d H:i:s'));
+        $camp->go_live_time =  time();
+        $camp->language = 'English';
+        $camp->note = $all['note'] ?? "";
+        $camp->key_words = $all['keywords'] ?? "";
+        $camp->submitter_nick_id = $all['nick_name'];
+        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        $camp->camp_num = $all['camp_num'];
+        if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
+            $camp->camp_about_nick_id = $all['nick_name'];
+        }
+        $camp->grace_period = 1;
+        return $camp;
+    }
+
+    private function objectCamp($all)
+    {
+        $camp = Camp::where('id', $all['camp_id'])->first();
+        $camp->objector_nick_id = $all['nick_name'];
+        $camp->object_reason = $all['objection_reason'];
+        $camp->object_time = time();
+        return $camp;
+    }
+
+    private function updateCampNotification($camp, $liveCamp, $link, $request)
+    {
+        $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $data['type'] = "camp";
+        $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
+        $data['link'] = $link;
+        $data['support_camp'] = $liveCamp->camp_name;
+        $data['is_live'] = ($camp->go_live_time <= time()) ? 1 : 0;
+        $data['note'] = $camp->note;
+        $data['camp_num'] = $camp->camp_num;
+        $nickName = Nickname::getNickName($camp->submitter_nick_id);
+        $data['topic_num'] = $camp->topic_num;
+        $data['nick_name'] = $nickName->nick_name;
+        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
+        $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
+        $data['nick_name_id'] = $nickName->id;
+        $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Camp updated',
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $camp->topic_num,
+            'camp_num' =>  $camp->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $camp->camp_name
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
+    }
+
+    private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
+    {
+        $user = Nickname::getUserByNickName($all['submitter']);
+        $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $nickName = Nickname::getNickName($all['nick_name']);
+        $data['nick_name'] = $nickName->nick_name;
+        $data['forum_link'] = 'forum/' . $camp->topic_num . '-' . $camp->camp_name . '/' . $camp->camp_num . '/threads';
+        $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
+        $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
+        $data['nick_name_id'] = $nickName->id;
+        $data['topic_link'] = $link;
+        $data['type'] = "Camp";
+        $data['object_type'] = "";
+        $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Change to camp objected',
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $camp->topic_num,
+            'camp_num' =>  $camp->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $camp->camp_name
+        ];
+        try {
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+        } catch (\Swift_TransportException $e) {
+            throw new \Swift_TransportException($e);
         }
     }
 }

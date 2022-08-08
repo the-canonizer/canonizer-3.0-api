@@ -21,6 +21,7 @@ use App\Http\Request\ValidationMessages;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use App\Jobs\ActivityLoggerJob;
 
 
 class StatementController extends Controller
@@ -107,7 +108,7 @@ class StatementController extends Controller
     /**
      * @OA\Post(path="/get-statement-history",
      *   tags={"Statement"},
-     *   summary="get camp newsfeed",
+     *   summary="get camp statement",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
      *   @OA\RequestBody(
@@ -128,6 +129,12 @@ class StatementController extends Controller
      *                  required=true,
      *                  type="integer",
      *              ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
@@ -369,28 +376,14 @@ class StatementController extends Controller
             }
 
             $statement->save();
-            $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-            $filter['topicNum'] = $request->topic_num;
-            $filter['asOf'] = $request->asof;
-            $filter['campNum'] = $request->camp_num;
-            $camp = Camp::getLiveCamp($filter);
-            $PushNotificationData =  new stdClass();
-            $PushNotificationData->user_id = $request->user()->id;
-            $PushNotificationData->topic_num = $topic->topic_num;
-            $PushNotificationData->camp_num = $camp->camp_num;
-            $PushNotificationData->notification_type = config('global.notification_type.Statement');
-            $PushNotificationData->title = trans('message.notification_title.manageStatement',['camp_name'=> $camp->camp_name]);
-            $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'camp_name'=> $camp->camp_name]);
-            $PushNotificationData->fcm_token = $request->fcm_token;
-            $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
-            $resPushNotification = PushNotification::sendPushNotification($PushNotificationData);
+            PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Statement')) ;
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 
             if ($eventType == "create" && $statement->grace_period == 0) {
-                $this->createdStatementNotification($livecamp, $link, $statement);
+                $this->createdStatementNotification($livecamp, $link, $statement, $request);
             } else if ($eventType == "objection") {
-                $this->objectedStatementNotification($all, $livecamp, $link, $statement);
+                $this->objectedStatementNotification($all, $livecamp, $link, $statement, $request);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -436,7 +429,7 @@ class StatementController extends Controller
         return $statement;
     }
 
-    private function createdStatementNotification($livecamp, $link, $statement)
+    private function createdStatementNotification($livecamp, $link, $statement, $request)
     {
         $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num);
         $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
@@ -455,10 +448,22 @@ class StatementController extends Controller
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-        Statement::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Statement created',
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $statement->value
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
 
-    private function objectedStatementNotification($all, $livecamp, $link, $statement)
+    private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
         $nickName = Nickname::getNickName($all['nick_name']);
@@ -473,7 +478,19 @@ class StatementController extends Controller
         $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => 'Statement ojected',
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' =>  $nickName->nick_name,
+            'description' => $statement->value
+        ];
         try {
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

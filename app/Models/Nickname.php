@@ -74,7 +74,7 @@ class Nickname extends Model {
     }
 
     public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum=''){
-        return config('global.APP_URL_FRONT_END') . ('user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
+        return config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&namespace='.$namespaceId);
     }
 
     public function camps() {
@@ -123,6 +123,12 @@ class Nickname extends Model {
                             $mythread = Thread::select('user_id')->where('topic_id', $topic_num)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
                             if (!empty($mythread)) {
                                 $usedNickid = $mythread->user_id;
+                            }else{
+                                $currentTopicThreadsIds =Thread::select('id')->where('topic_id', $topic_num)->get();
+                                $latestReply =  Reply::select('user_id')->whereIn('thread_id', $currentTopicThreadsIds)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                                if(!empty($latestReply)) {
+                                    $usedNickid = $latestReply->user_id;
+                                }
                             }
                         }else{
                             $usedNickid = $myNews->submitter_nick_id;

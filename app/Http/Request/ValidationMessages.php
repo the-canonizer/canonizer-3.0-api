@@ -521,4 +521,49 @@ class ValidationMessages
             'nick_name_id.required' => trans('message.validation_agree_to_change.nick_name_id_required'),
         ];
     }
+
+    public function getTopicHistoryValidationMessages(): array
+    {
+        return ([
+            'topic_num.required' => trans('message.validation_get_topic_history.topic_num_required'),
+            'type.in' => trans('message.validation_get_topic_history.type_in'),
+            'per_page.required' => trans('message.validation_get_topic_history.per_page_required'),
+            'page.required' => trans('message.validation_get_topic_history.page_required'),
+        ]);
+    }
+    
+    public function getManageCampValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_manage_camp.topic_num_required'),
+            'camp_num.required' => trans('message.validation_manage_camp.camp_num_required'),
+            'camp_id.required' => trans('message.validation_manage_camp.camp_id_required'),
+            'nick_name.required' => trans('message.validation_manage_camp.nick_name_required'),
+            'submitter.required' => trans('message.validation_manage_camp.submitter_required'),
+            'event_type.required' => trans('message.validation_manage_camp.event_type_required'),
+            'event_type.in' => trans('message.validation_manage_camp.event_type_in'),
+            'camp_name.required' => trans('message.validation_manage_camp.camp_name_required'),
+            'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
+        ];
+    }
+
+    public function getManageTopicValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_manage_topic.topic_num_required'),
+            'topic_id.required' => trans('message.validation_manage_topic.topic_id_required'),
+            'nick_name.required' => trans('message.validation_manage_topic.nick_name_required'),
+            'submitter.required' => trans('message.validation_manage_topic.submitter_required'),
+            'event_type.required' => trans('message.validation_manage_topic.event_type_required'),
+            'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
+            'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+        ];
+    }
+
+    public function getFcmTokenValidationMessages(): array
+    {
+        return ([
+            'fcm_token.required' => trans('message.notification_message.fcm_token_required'),
+        ]);
+    }
 }

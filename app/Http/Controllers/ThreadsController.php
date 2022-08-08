@@ -173,7 +173,7 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_success');
 
                 // Return Url after creating thread Successfully
-                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num . '/threads';
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads';
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
@@ -187,23 +187,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-
-                    $topic = Topic::getLiveTopic($request->topic_num, $request->asof);
-                    $filter['topicNum'] = $request->topic_num;
-                    $filter['asOf'] = $request->asof;
-                    $filter['campNum'] = $request->camp_num;
-                    $camp = Camp::getLiveCamp($filter);
-                    $PushNotificationData =  new stdClass();
-                    $PushNotificationData->user_id = $request->user()->id;
-                    $PushNotificationData->thread_id = $thread->id;
-                    $PushNotificationData->topic_num = $topic->topic_num;
-                    $PushNotificationData->camp_num = $camp->camp_num;
-                    $PushNotificationData->notification_type = config('global.notification_type.Thread');
-                    $PushNotificationData->title = trans('message.notification_title.createThread');
-                    $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->user()->first_name, 'last_name' => $request->user()->last_name, 'thread_name'=> $request->title, 'camp_name' => $camp->camp_name]);
-                    $PushNotificationData->fcm_token = $request->fcm_token;
-                    $PushNotificationData->link = $return_url;
-                    PushNotification::sendPushNotification($PushNotificationData);
+                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id) ;
             } else {
                 $data = null;
                 $status = 400;
@@ -417,7 +401,7 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 foreach($threads->items as $value){
-                    $postCount =  Reply::where('thread_id',$value->id)->get();
+                    $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                     foreach($namspaceId as $nId){
                         $value->namespace_id = $nId->namespace_id;
@@ -473,7 +457,7 @@ class ThreadsController extends Controller
             }
             $threads = Util::getPaginatorResponse($threads);
             foreach($threads->items as $value){
-                $postCount =  Reply::where('thread_id',$value->id)->get();
+                $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
                 $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                 foreach($namspaceId as $nId){
                     $value->namespace_id = $nId->namespace_id;

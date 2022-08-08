@@ -30,6 +30,7 @@
                                 If no supporters of this {{ $data['type'] }}
                                 <a href="{{ config('global.APP_URL_FRONT_END') . '/' . $link }}">{{ $data['object'] }} </a> object to this change,
                                 it will go live in one day / 24 hours
+                                <br>
                             @endif.
                             @if (!empty($data['note']))
                                 <p>Edit summary : {{ $data['note'] }}</p>
