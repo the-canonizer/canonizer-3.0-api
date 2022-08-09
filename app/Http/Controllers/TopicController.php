@@ -125,6 +125,15 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        $result = Topic::where('topic_name', $request->topic_name)->first();
+        if (!empty($result)) {
+            $status = 400;
+            $result->if_exist =true;
+            $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+            $message = trans('message.error.invalid_data');
+            return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+        }
+
         try {
             $current_time = time();
             $input = [

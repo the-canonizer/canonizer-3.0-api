@@ -22,7 +22,7 @@
                 <tr>
                     <td style="padding:10px 0px 10px;">
                         <p style="margin-bottom: 15px;">
-                            <a target="_blank" href="#">{{ $data['nick_name']->nick_name }}</a> {{ $data['post_type'] }}
+                            <a target="_blank" href="{{ $nickname_url }}">{{ $data['nick_name']->nick_name }}</a> {{ $data['post_type'] }}
                             the following post to the Camp
                             <a href="{{ $data['camp_url'] }}"> {{ $data['camp_name'] }} </a> forum:
 
