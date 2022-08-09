@@ -175,7 +175,7 @@ class SupportController extends Controller
         $nickNameId = $all['nick_name_id'];
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
-        $orderUpdate = $all['order_update'];        
+        $orderUpdate = $all['order_update'];  
 
         try{
             
@@ -243,16 +243,11 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-           
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate);                
-            //PushNotification::pushNotificationToSupporter($topicNum, $campNum, $fcm_token, 'remove');
-            
-            //case 1 removing direct support
-            if($type == 'direct'){  
+
                 TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $fcm_token);                
                 PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, 'remove');
-            }
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
+            
+                return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
