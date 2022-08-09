@@ -163,7 +163,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
-                $val->namespace = $val->nameSpace->name;
+                $val->namespace = $val->nameSpace->label;
                 $val->unsetRelation('nameSpace');
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
