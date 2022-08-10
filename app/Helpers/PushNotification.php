@@ -227,7 +227,7 @@ class PushNotification
         }
     }
 
-    public static function pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo = [])
+    public static function pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo = [])
     {
 
         try {
@@ -246,9 +246,12 @@ class PushNotification
                 $PushNotificationData->message_body = trans('message.notification_message.promotedDirect', ['nick_name' => $promotedFrom->nick_name, 'camp_name' => $camp->camp_name, 'topic_name' => $topic->title]);
             }
 
-            $PushNotificationData->fcm_token = $fcmToken;
+            $PushNotificationData->fcm_token = $user->fcm_token;
             $PushNotificationData->link = $campLink;
-            self::sendPushNotification($PushNotificationData);
+            
+            if(!empty($user->fcm_token)){
+                self::sendPushNotification($PushNotificationData);
+            }
         } catch (Throwable $e) {
             echo $message = $e->getMessage();
         }
