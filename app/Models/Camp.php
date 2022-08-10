@@ -453,7 +453,11 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function validateParentsupport($topicNum, $campNum, $userNicknames) 
     {
         $filter = self::getLiveCampFilter($topicNum, $campNum);
-        $oneCamp = self::getLiveCamp($filter);        
+        $oneCamp = self::getLiveCamp($filter);   
+
+        if(empty($oneCamp)){
+            return 'notfound';
+        }
 
         if ($oneCamp->count() <= 0) {
             return 'notlive';
