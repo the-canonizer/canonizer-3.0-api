@@ -48,6 +48,7 @@ class CampForum
         $data['nick_name_id'] = $nick_id;
 
         $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $data['camp_name']);
+        $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
 
         $data['thread_title'] = $thread_title;
 
@@ -266,6 +267,7 @@ class CampForum
         $data['subject'] = $topic_name . " / " . $camp_name . " / " . $data['thread'][0]->title . " post " . $post_msg;
         $data['namespace_id'] = CampForum::getNamespaceId($topicid);
         $data['nick_name_id'] = $nick_id;
+        $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
 
         $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $camp_name);
         $data['nick_name'] = CampForum::getForumNickName($nick_id);
