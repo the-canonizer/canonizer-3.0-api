@@ -480,7 +480,7 @@ class StatementController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement ojected',
+            'activity' => 'Statement objected',
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,
