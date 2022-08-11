@@ -23,7 +23,7 @@
                             <a target="_blank"
                                 href="<?= config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
-                                href="{{ $link }}">{{ $data['object'] }} </a>
+                                href="{{ config('global.APP_URL_FRONT_END') . '/' . $link }}">{{ $data['object'] }} </a>
                             @if (empty($data['is_live']) || $data['is_live'] != 1)
                                 which you currently
                                 {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
