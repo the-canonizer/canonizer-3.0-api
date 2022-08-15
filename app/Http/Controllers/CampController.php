@@ -1072,6 +1072,7 @@ class CampController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         try {
+            $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
             $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
             $submitTime = $liveCamp->submit_time;
