@@ -792,7 +792,7 @@ class TopicSupport
         if(!empty($returnData)){
             return $returnData;
         }
-
+        
         $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
         if(!empty($returnData)){
             return $returnData;
@@ -855,7 +855,11 @@ class TopicSupport
         $returnData['topic_num'] = $topicNum;
         $returnData['camp_num'] = $campNum;
 
-        if ($parentSupport === "notlive") { 
+        if($parentSupport === "notfound"){
+
+            $returnData['warning'] =  trans('message.support_warning.not_found');
+
+        }else if ($parentSupport === "notlive") { 
                             
             $returnData['warning'] =  trans('message.support_warning.not_live');
 
