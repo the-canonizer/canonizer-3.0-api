@@ -239,9 +239,10 @@ class Util
      * @param boolean $updateAll
      * @return void
      */
-    public function dispatchJob($topic, $campNum = 1, $updateAll = 0) {
+    public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $is_disabled = 0, $is_one_level = 0)
+    {
 
-        try{
+        try {
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';
             $asOfDefaultDate = time();
@@ -251,19 +252,21 @@ class Util
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
                 'updateAll' => $updateAll,
-                'camp_num'  => $campNum
+                'camp_num'  => $campNum,
+                "is_disabled" => $is_disabled,
+                "is_one_level" => $is_one_level
             ];
             // Dispatch job when create a camp/topic
             dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
 
             // Incase the topic is mind expert then find all the affected topics 
-            if($topic->topic_num == config('global.mind_expert_topic_num')) {
+            if ($topic->topic_num == config('global.mind_expert_topic_num')) {
                 $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
-                if(!empty($camp)) {
+                if (!empty($camp)) {
                     // Get submitter nick name id
                     $submitterNickNameID = $camp->camp_about_nick_id;
-                    $affectedTopicNums = Support::where('nick_name_id',$submitterNickNameID)->where('end',0)->distinct('topic_num')->pluck('topic_num');
-                    foreach($affectedTopicNums as $affectedTopicNum) {
+                    $affectedTopicNums = Support::where('nick_name_id', $submitterNickNameID)->where('end', 0)->distinct('topic_num')->pluck('topic_num');
+                    foreach ($affectedTopicNums as $affectedTopicNum) {
                         $topic = Topic::where('topic_num', $affectedTopicNum)->get()->last();
                         $canonizerServiceData = [
                             'topic_num' => $topic->topic_num,
@@ -271,18 +274,19 @@ class Util
                             'asOfDate'  => $asOfDefaultDate,
                             'asOf'      => $asOf,
                             'updateAll' => 1,
-                            'camp_num'  => $campNum
+                            'camp_num'  => $campNum,
+                            "is_disabled" => $is_disabled,
+                            "is_one_level" => $is_one_level
                         ];
                         // Dispact job when create a camp
                         dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                           // ->unique(Topic::class, $topic->topic_num);
+                        // ->unique(Topic::class, $topic->topic_num);
                     }
                 }
             }
-        } catch(Exception $ex) {
-            Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
+        } catch (Exception $ex) {
+            Log::error("Util :: DispatchJob :: message: " . $ex->getMessage());
         }
-        
     }
 
      /**

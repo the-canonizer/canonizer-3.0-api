@@ -144,12 +144,14 @@ class TopicController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => isset($request->note) ? $request->note : "",
-                "grace_period" => 0
+                "grace_period" => 0,
+                "is_disabled" =>  $request->is_disabled,
+                "is_one_level" =>  $request->is_one_level
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
-                Util::dispatchJob($topic, 1, 1);
+                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_disabled);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
