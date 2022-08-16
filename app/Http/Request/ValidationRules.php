@@ -499,4 +499,11 @@ class ValidationRules
             'fcm_token' => 'required',
         ]);
     }
+
+    public function getParseStatementValidationRules(): array
+    {
+        return ([
+            'value' => 'required'
+        ]);
+    }
 }

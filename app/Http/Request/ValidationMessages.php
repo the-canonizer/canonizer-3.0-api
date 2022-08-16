@@ -566,4 +566,11 @@ class ValidationMessages
             'fcm_token.required' => trans('message.notification_message.fcm_token_required'),
         ]);
     }
+
+    public function getParseStatementValidationMessages(): array
+    {
+        return [
+            'value.required' => trans('message.validation_parse_statement.value_required')
+        ];
+    }
 }
