@@ -145,8 +145,8 @@ class TopicController extends Controller
                 "language" => 'English',
                 "note" => isset($request->note) ? $request->note : "",
                 "grace_period" => 0,
-                "is_disabled" =>  $request->is_disabled,
-                "is_one_level" =>  $request->is_one_level
+                "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
+                "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
