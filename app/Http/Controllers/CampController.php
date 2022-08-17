@@ -1280,13 +1280,12 @@ class CampController extends Controller
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
             $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp, time());
-            if ($all['event_type'] == "update") {
-                Util::checkParentCampChanged($all, false, $liveCamp);
-            }
+          
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
+                Util::checkParentCampChanged($all, false, $liveCamp);
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
             }
