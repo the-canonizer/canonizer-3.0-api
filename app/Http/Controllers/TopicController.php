@@ -422,7 +422,7 @@ class TopicController extends Controller
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
-                'activity' => 'Commited change',
+                'activity' => 'Committed change',
                 'url' => $link,
                 'model' => $model,
                 'topic_num' => $model->topic_num,

@@ -105,7 +105,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         }
     }
 
-    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement')
+    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Agreement')
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);

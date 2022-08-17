@@ -1072,6 +1072,7 @@ class CampController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         try {
+            $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
             $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
             $submitTime = $liveCamp->submit_time;
@@ -1251,7 +1252,7 @@ class CampController extends Controller
         $all = $request->all();
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
         $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
-        if (strtolower(trim($all['camp_name'])) == 'agreement') {
+        if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
         }
         try {

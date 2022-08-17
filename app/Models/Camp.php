@@ -366,16 +366,16 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $filter['topicNum'] = $subs->topic_num;
                 $filter['asOf'] = '';
                 $filter['campNum'] = $subs->camp_num;
-                $topic = self::getLiveCamp($filter);
+                $liveCamp = self::getLiveCamp($filter);
                 $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
-                $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());
                 if ($subs->camp_num == 0) {
-                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());
+                    $link = Util::getTopicCampUrl($topic_num, 1, $topicLive, $liveCamp, time());
                     if (!empty($topicLive)) {
                         $list[] = '<a href="' . $link . '">' . $topicLive->topic_name . '</a>';
                     }
                 } else {
-                    $list[] = '<a href="' . $link . '">' . $topicLive->camp_name . '</a>';
+                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $liveCamp, time());
+                    $list[] = '<a href="' . $link . '">' . $liveCamp->camp_name . '</a>';
                 }
             }
         }

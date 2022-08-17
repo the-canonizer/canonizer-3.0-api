@@ -480,7 +480,7 @@ class StatementController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement ojected',
+            'activity' => 'Statement objected',
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,
@@ -623,6 +623,46 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
+        }
+    }
+    
+     /**
+     * @OA\Post(path="/parse-camp-statement",
+     *   tags={"Statement"},
+     *   summary="Parse a string using wiki parser",
+     *   description="This API is used to parse a string through wiki parser.",
+     *   operationId="wiki-parser",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="parse sting",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="value",
+     *                   description="string to be parsed is required",
+     *                   required=true,
+     *                   type="string",
+     *               )
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function parseStatement(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getParseStatementValidationRules(), $this->validationMessages->getParseStatementValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $WikiParser = new wikiParser;
+            $parsedValue = $WikiParser->parse($request->value);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $parsedValue, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }

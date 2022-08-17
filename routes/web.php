@@ -43,6 +43,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/client-token','UserController@clientToken');
     $router->post('/get-topic-history','TopicController@getTopicHistory');
     $router->post('/get-camp-history','CampController@getCampHistory');
+    $router->post('/parse-camp-statement', 'StatementController@parseStatement');
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
