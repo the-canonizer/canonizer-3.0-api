@@ -1198,6 +1198,12 @@ class UserController extends Controller
                 $user = User::find($social_user->user_id);
             }
 
+            if ($user->is_active != 1) {
+                $status = 402;
+                $message = trans('message.error.in_active_message');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+
             $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
                 'grant_type' => 'password',
