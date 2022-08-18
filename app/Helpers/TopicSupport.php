@@ -26,15 +26,15 @@ class TopicSupport
     public static $model = 'App\Models\Support';
 
 
-    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $fcmToken)
+    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user)
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type, $fcmToken);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type, $user);
         
         }else if(isset($action) && $action == 'partial')
         {
-            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate);
+            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate, $user);
         }
     }
 
@@ -45,10 +45,10 @@ class TopicSupport
      * @param integer $delegateNickId is nick_name_id of user from whome delegation is removed
      * 
      */
-    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId, $fcmToken)
+    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId)
     {
         
-        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $fcmToken, $delegateNickNameId); 
+        self::removeCompleteSupport($topicNum,'',$nickNameId, 'all', 'delegate', $delegateNickNameId); 
         return;
     }
 
@@ -62,7 +62,7 @@ class TopicSupport
      * @param string $action defines remove status [all|partial]
      * @param string $type defines support type [direct|delegate]
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $fcmToken, $delegateNickNameId = '')
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '')
     { 
         
         if((isset($action) && $action == 'all') || empty($removeCamps))  //abandon entire topic and promote deleagte
@@ -86,7 +86,7 @@ class TopicSupport
                 $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
 
                 //push notification to promoted delegates
-                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId, $fcmToken);
+                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
 
             }
 
@@ -103,10 +103,9 @@ class TopicSupport
      * Also remove support from those camps for delegated supporter
      * 
      */
-    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array())
+    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
-       // $campArray = explode(',', trim($campNum));
 
         if(!empty($removeCamps)){
 
@@ -120,7 +119,9 @@ class TopicSupport
             {
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                 $campModel  = self::getLiveCamp($campFilter);
-                //self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);                
+                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel); 
+                
+                PushNotification::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
             }
 
              //log activity
@@ -196,7 +197,7 @@ class TopicSupport
      * [Add deleagte support]
      * 
      */
-    public static function addDelegateSupport($user,$topicNum, $campNum, $nickNameId, $delegateNickNameId, $fcmToken)
+    public static function addDelegateSupport($user,$topicNum, $campNum, $nickNameId, $delegateNickNameId)
     { 
         $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
@@ -222,10 +223,9 @@ class TopicSupport
        
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        
         PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
-        die('fd');
-        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
+
+       if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
             $notifyDelegatedUser = true;
         }
@@ -792,7 +792,7 @@ class TopicSupport
         if(!empty($returnData)){
             return $returnData;
         }
-
+        
         $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
         if(!empty($returnData)){
             return $returnData;
@@ -855,7 +855,11 @@ class TopicSupport
         $returnData['topic_num'] = $topicNum;
         $returnData['camp_num'] = $campNum;
 
-        if ($parentSupport === "notlive") { 
+        if($parentSupport === "notfound"){
+
+            $returnData['warning'] =  trans('message.support_warning.not_found');
+
+        }else if ($parentSupport === "notlive") { 
                             
             $returnData['warning'] =  trans('message.support_warning.not_live');
 
@@ -980,7 +984,7 @@ class TopicSupport
             'log_type' =>  $logType,
             'activity' => $activity,
             'url' => $link,
-            'model' => $model,
+            'model' => new Support(),
             'topic_num' => $topicNum,
             'camp_num' =>  $campNum,
             'user' => $user,
@@ -1183,7 +1187,7 @@ class TopicSupport
      * [send push notfication]
      * 
      */
-    public static function sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId, $fcmToken)
+    public static function sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId)
     {
         
         $promotedTo = [];
@@ -1204,7 +1208,8 @@ class TopicSupport
         foreach($allDirectDelegates as $supporter)
         {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
-            PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
+           // PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);
+            PushNotification::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
         }
 
         

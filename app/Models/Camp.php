@@ -147,7 +147,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', time())
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function liveCampReviewAsOfFilter($filter)
@@ -155,7 +155,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function liveCampByDateFilter($filter)
@@ -163,9 +163,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', $asOfDate)
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index = 0): array
@@ -366,16 +365,16 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $filter['topicNum'] = $subs->topic_num;
                 $filter['asOf'] = '';
                 $filter['campNum'] = $subs->camp_num;
-                $topic = self::getLiveCamp($filter);
+                $liveCamp = self::getLiveCamp($filter);
                 $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
-                $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());
                 if ($subs->camp_num == 0) {
-                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $topic, time());
+                    $link = Util::getTopicCampUrl($topic_num, 1, $topicLive, $liveCamp, time());
                     if (!empty($topicLive)) {
                         $list[] = '<a href="' . $link . '">' . $topicLive->topic_name . '</a>';
                     }
                 } else {
-                    $list[] = '<a href="' . $link . '">' . $topicLive->camp_name . '</a>';
+                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $liveCamp, time());
+                    $list[] = '<a href="' . $link . '">' . $liveCamp->camp_name . '</a>';
                 }
             }
         }
@@ -453,7 +452,11 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function validateParentsupport($topicNum, $campNum, $userNicknames) 
     {
         $filter = self::getLiveCampFilter($topicNum, $campNum);
-        $oneCamp = self::getLiveCamp($filter);        
+        $oneCamp = self::getLiveCamp($filter);   
+
+        if(empty($oneCamp)){
+            return 'notfound';
+        }
 
         if ($oneCamp->count() <= 0) {
             return 'notlive';

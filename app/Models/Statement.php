@@ -37,7 +37,7 @@ class Statement extends Model
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
-            ->orderBy('submit_time', 'desc')
+            ->orderBy('go_live_time', 'desc')
             ->first();
     }
 
@@ -46,9 +46,8 @@ class Statement extends Model
         $asofdate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate'])));
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', $asofdate)
-            ->orderBy('submit_time', 'desc')
+            ->orderBy('go_live_time', 'desc')
             ->first();
     }
 
