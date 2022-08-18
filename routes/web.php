@@ -19,7 +19,7 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('/social/twitter/callback','UserController@twitterCallback');
+$router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback','middleware' => 'checkstatus']);
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
@@ -47,10 +47,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
-        $router->post('/user/login','UserController@loginUser');
+        $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
         $router->post('/post-verify-otp','UserController@postVerifyOtp');
         $router->post('/user/social/login','UserController@socialLogin');
-        $router->post('/user/social/callback','UserController@socialCallback');
+        $router->post('/user/social/callback',['uses'=>'UserController@socialCallback','middleware' => 'checkstatus']);
         $router->get('/country/list','UserController@countryList');
         $router->post('/forgot-password/send-otp','ForgotPasswordController@sendOtp');
         $router->post('/forgot-password/verify-otp','ForgotPasswordController@verifyOtp');
