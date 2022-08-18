@@ -245,8 +245,9 @@ class SupportController extends Controller
 
                 TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());                
                // PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, 'remove');
-            
-                return $this->resProvider->apiJsonResponse(200, trans('message.support.complete_support_removed'), '','');
+               $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
+               return $this->resProvider->apiJsonResponse(200, $message, '','');
+               
         } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
