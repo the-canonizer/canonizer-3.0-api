@@ -611,7 +611,7 @@ class UserController extends Controller
             // Create nickname
             $nicknameObj = new Nickname();
             $nicknameObj->owner_code = Util::canon_encode($userID);
-            $nicknameObj->nick_name = $nickname;
+            $nicknameObj->nick_name = substr($nickname, 0, 50);
             $nicknameObj->private = 0;
             $nicknameObj->create_time = time();
             $nicknameObj->save();
