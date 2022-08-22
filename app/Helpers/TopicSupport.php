@@ -491,12 +491,14 @@ class TopicSupport
             $filter['asOf'] = '';
             $filter['campNum'] =  $camp_num;
             $livecamp = Camp::getLiveCamp($filter);
-            $topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-            $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($livecamp->title != '') ? $livecamp->title : $livecamp->camp_name);
+            $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+            //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+           // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
+            $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
             $topic_id = $topic_num . "-" . $title;
-            $url = Util::getTopicCampUrl($topicLive->topic_num, 1, $topicLive, $livecamp, time());
+            $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
             
-            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
+            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {die('dd');
 
                 $tempCamp = [
                             'camp_name' => $livecamp->camp_name, 
@@ -512,19 +514,19 @@ class TopicSupport
                     $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
                 }
 
-            } else if ($camp_num == 1) {
+            } else if ($camp_num == 1) { 
 
-                if($rs->title ==''){
-                    $topicData = Topic::where('topic_num','=',$topic_num)->where('go_live_time', '<=', time())->latest('submit_time')->get();
-                    $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-                    $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name);
-                    $topic_id = $topic_num . "-" . $title;
-                }
+               /* if($rs->title ==''){ can-963 code to be removed after testing passed
+                   // $topicData = Topic::where('topic_num','=',$topic_num)->where('go_live_time', '<=', time())->latest('submit_time')->get();
+                   // $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+                    //$title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name);
+                    //$topic_id = $topic_num . "-" . $title;
+                }*/
 
                 //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                 $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
                 $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
-                $supports[$nickname->id]['topic'][$topic_num]['title'] = $title;
+                $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
                 $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                 $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
                 if($rs->delegate_nick_name_id){
@@ -537,7 +539,7 @@ class TopicSupport
                     'camp_name' => $livecamp->camp_name, 
                     'camp_num' => $camp_num, 
                     'support_order' => $rs->support_order,
-                    'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
+                    'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
                     'delegate_nick_name_id'=>$rs->delegate_nick_name_id
                 ];
 
