@@ -7,6 +7,7 @@ return [
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',
+        'in_active_message'  => 'Your account has been suspended temporarily. Please contact support@canonizer.com for further assistance.',
         'otp_failed' => 'Failed to Send OTP.',
         'otp_not_match' => 'OTP does not match',
         'email_not_registered' => 'Email is not registered with us!',

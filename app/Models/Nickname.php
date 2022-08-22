@@ -42,7 +42,7 @@ class Nickname extends Model {
         // Create nickname
         $nickname = new Nickname();
         $nickname->owner_code = Util::canon_encode($userID);
-        $nickname->nick_name = $input['nick_name'];
+        $nickname->nick_name = substr($input['nick_name'], 0, 50);
         $nickname->private = $input['visibility_status'];
         $nickname->create_time = time();
         $nickname->save();
