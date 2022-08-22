@@ -147,7 +147,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', time())
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function liveCampReviewAsOfFilter($filter)
@@ -155,7 +155,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function liveCampByDateFilter($filter)
@@ -163,9 +163,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', $asOfDate)
-            ->latest('submit_time')->first();
+            ->latest('go_live_time')->first();
     }
 
     public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index = 0): array
