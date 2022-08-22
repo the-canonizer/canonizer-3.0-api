@@ -396,7 +396,10 @@ return [
         "removeSupport" => "Support Removed from Camp - :camp_name",
         "addDelegateSupport" => "Delegate Support Added to Camp - :camp_name",
         "promotedDelegate" => "You have been Promoted to Your delegate's place. in camp - :camp_name under topic - :topic_name",
-        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name."
+        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name.",
+        "commitTopicChange" => "Proposed a change to topic - :topic_name.",
+        "commitCampChange" => "Proposed a change to camp - :camp_name.",
+        "commitStatementChange" => "Proposed a change to statement of camp - :camp_name under topic - :topic_name",
     ],
     'notification_message' => [
         "fcm_token_required" => "Fcm Token is required.",
@@ -411,6 +414,9 @@ return [
         "addDelegateSupport" => ":first_name :last_name has just added delegate support to the Camp - :camp_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
+        "commitCampChange" => ":first_name :last_name has just proposed a change to - :camp_name camp.",
+        "commitStatementChange" => ":first_name :last_name has just proposed a change to statement of - :camp_name camp.",
+        "commitTopicChange" => ":first_name :last_name has just proposed a change - :topic_name topic.",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
