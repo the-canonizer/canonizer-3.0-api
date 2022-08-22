@@ -1290,7 +1290,7 @@ class CampController extends Controller
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
-                Util::dispatchJob($topic, $camp->camp_num, 1);
+                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_disabled);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -1309,6 +1309,8 @@ class CampController extends Controller
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'] ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         return $camp;
     }
 
@@ -1326,6 +1328,8 @@ class CampController extends Controller
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'] ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->camp_num = $all['camp_num'];
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];
@@ -1339,6 +1343,8 @@ class CampController extends Controller
         $camp = Camp::where('id', $all['camp_id'])->first();
         $camp->objector_nick_id = $all['nick_name'];
         $camp->object_reason = $all['objection_reason'];
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->object_time = time();
         return $camp;
     }

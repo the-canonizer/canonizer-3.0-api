@@ -669,6 +669,8 @@ class TopicController extends Controller
                 $topic->objector_nick_id = $all['nick_name'];
                 $topic->object_reason = $all['objection_reason'];
                 $topic->object_time = $current_time;
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_object');
             }
 
@@ -678,6 +680,8 @@ class TopicController extends Controller
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_update');
             }
 
@@ -692,6 +696,8 @@ class TopicController extends Controller
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
                 $topic->grace_period = 0;
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_update');
             }
 
@@ -710,7 +716,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
-                Util::dispatchJob($topic, 1, 1);
+                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_disabled);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -723,7 +729,7 @@ class TopicController extends Controller
     private function objectedTopicNotification($all, $topic, $request)
     {
         if (isset($topic)) {
-            Util::dispatchJob($topic, 1, 1);
+            Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_disabled);
         }
         $user = Nickname::getUserByNickName($all['submitter']);
         $liveTopic = Topic::select('topic.*')
