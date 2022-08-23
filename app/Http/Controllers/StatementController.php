@@ -8,20 +8,21 @@ use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Models\Statement;
+use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
+use App\Jobs\ActivityLoggerJob;
 use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
-use App\Library\wiki_parser\wikiParser as wikiParser;
-use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use App\Jobs\ActivityLoggerJob;
+use App\Library\wiki_parser\wikiParser as wikiParser;
 
 
 class StatementController extends Controller
@@ -651,6 +652,7 @@ class StatementController extends Controller
                         'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
                         'status' => $status ?? null,
                         'namespace_id' => $val->namespace_id,
+                        'namespace' => Namespaces::find($val->namespace_id)->label
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -670,6 +672,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['parsed_value'] = $liveStatement->topic_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
+                    $statement['liveStatement']['namespace'] = Namespaces::find($val->namespace_id)->label;
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
