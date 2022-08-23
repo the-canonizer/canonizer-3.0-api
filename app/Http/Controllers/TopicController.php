@@ -882,4 +882,16 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function getTopicSubscriptions(Request $request)
+    {
+        try {
+            $filter['topicNum'] = $request->camp_num;
+            $subscriptions = Camp::getTopicSubscription($filter, $request->user()->id);
+            //dd($subscriptions);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $subscriptions, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }

@@ -626,4 +626,34 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         return ($camp_existsLive || $camp_existsNL);
     }
+
+    public static function getTopicSubscription($filter, $userid = null): array
+    {
+        $response=[];
+        $topicModel = Topic::getLiveTopic($filter['topicNum'], "");
+        $topicSubscriptions = CampSubscription::select('id as subscription_id', 'camp_num')->where('user_id', '=', $userid)
+        ->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))
+        ->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get()->toArray();
+        $i=0;
+        foreach($topicSubscriptions as $value){
+            $filter['campNum']=$value['camp_num'];
+            $liveCamp=self::getLiveCamp($filter);
+            $response[$value['camp_num']]['imp']=0;
+            $response[$value['camp_num']]['camp_num']=$value['camp_num'];
+            $response[$value['camp_num']]['camp_name']=$liveCamp->camp_name;
+            $response[$value['camp_num']]['subscription_id']=$value['subscription_id'];
+            $response[$value['camp_num']]['link'] = Util::getTopicCampUrl($filter['topicNum'], $filter['campNum'], $topicModel, $liveCamp);
+            if(isset($liveCamp->parent_camp_num) && !array_search($value['camp_num'], array_column($topicSubscriptions, 'camp_num')) && !array_search($liveCamp->parent_camp_num, array_column($response, 'camp_num'))){
+                $i++;
+                //dd($liveCamp);
+                $response[$liveCamp->parent_camp_num]['imp']=1;
+                $response[$liveCamp->parent_camp_num]['camp_num']=$liveCamp->parent_camp_num;
+                $response[$liveCamp->parent_camp_num]['camp_name']=$liveCamp->camp_name;
+                $response[$liveCamp->parent_camp_num]['subscription_id']=$value['subscription_id'];
+                $response[$liveCamp->parent_camp_num]['link'] = Util::getTopicCampUrl($filter['topicNum'], $filter['campNum'], $topicModel, $liveCamp);
+            }
+            $i++;
+        }
+        return $response;
+    }
 }

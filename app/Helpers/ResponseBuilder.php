@@ -20,7 +20,7 @@ class ResponseBuilder implements ResponseInterface
             "status_code" => $code,
             "message"     => $message,
             "error"       => $error,
-            "data"        => $data
+            "data"        => (object) $data
         ];
         
         if ( $error ) {
