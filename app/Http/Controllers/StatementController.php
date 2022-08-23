@@ -660,7 +660,7 @@ class StatementController extends Controller
                 $filter['asOf'] = "";
                 $filter['asOfDate'] = "";
                 $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof);
-                $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
+                $latestRevision = Topic::where('topic_num', $request->topic_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
@@ -694,7 +694,6 @@ class StatementController extends Controller
                 $campStatement =  Camp::whereIn('id', $request->ids)->get();
 
                 foreach ($campStatement as $val) {
-
                     $statement['comparison'][] = array(
                         'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
                         'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
@@ -714,7 +713,10 @@ class StatementController extends Controller
                         'grace_period' => $val->grace_period,
                         'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
                         'status' => $status ?? null,
+                        'key_words' => $val->key_words,
                         'namespace_id' => $val->namespace_id,
+                        'camp_about_url' => $val->camp_about_url,
+                        'parent_camp_name'=> Camp::where('parent_camp_num', $val->parent_camp_num)->first()->camp_name
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -722,7 +724,7 @@ class StatementController extends Controller
                 $filter['asOf'] = "";
                 $filter['asOfDate'] = "";
                 $liveStatement = Camp::getLiveCamp($filter);
-                $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
+                $latestRevision = Camp::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
@@ -735,6 +737,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
+                    $statement['liveStatement']['parent_camp_name'] = Camp::where('parent_camp_num', $val->parent_camp_num)->first()->camp_name;
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
