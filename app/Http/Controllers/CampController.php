@@ -489,6 +489,11 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
+            foreach($result as $value){
+                $parentCamp = Camp::where('camp_num',$value->parent_camp_num)->where('topic_num',$request->topic_num)->first();
+                $value->parent_camp_is_disabled = $parentCamp->is_disabled ?? 0;
+                $value->parent_camp_is_one_level = $parentCamp->is_one_level ?? 0;
+            }
             if (empty($result)) {
                 $status = 400;
                 $message = trans('message.error.exception');
