@@ -385,6 +385,7 @@ return [
         'event_type_in' => "Possible values are update, edit, objection.",
         'camp_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
+        'camp_about_url_regex' => 'Camp about url is invalid.',
     ],
     'notification_title' => [
         "createTopic" => "Topic Create",

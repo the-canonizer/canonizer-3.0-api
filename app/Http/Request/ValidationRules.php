@@ -475,6 +475,7 @@ class ValidationRules
             'nick_name' => 'required',
             'submitter' => 'required',
             'camp_name' => 'required',
+            'camp_about_url' => ['regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/'],
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'
         ];
