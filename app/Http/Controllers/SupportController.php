@@ -17,6 +17,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use App\Helpers\SupportAndScoreCount;
 
 
 class SupportController extends Controller
@@ -389,4 +390,29 @@ class SupportController extends Controller
 
     }
 
+    /**
+     * score count
+     */
+
+    public function getCampSupportAndCount(Request $request) 
+    {
+        $all = $request->all();
+        $algorithm = $all['algorithm'];
+        $topicNum = $all['topic_num'];
+        $campNum = $all['camp_num'];
+        $asOfDate = isset($all['as_of_date']) ? $all['as_of_date'] : time();
+
+        try{
+
+            $supportCount = new SupportAndScoreCount();
+            $data = SupportAndScoreCount::getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+           
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+        
+        
+    }
 }
