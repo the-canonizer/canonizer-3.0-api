@@ -195,7 +195,7 @@ class CampController extends Controller
 
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
-                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_disabled);
+                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -1291,11 +1291,11 @@ class CampController extends Controller
                 Util::checkParentCampChanged($all, false, $liveCamp);
             }
             if ($all['event_type'] == "objection") {
-                Util::dispatchJob($topic, $camp->camp_num, 1);
+                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
-                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_disabled);
+                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
