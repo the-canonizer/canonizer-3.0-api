@@ -30,8 +30,8 @@ class CheckStatus
                 "error"       => null,
                 "data"        => null
             ];
+            return (new ErrorResource($res))->response()->setStatusCode($status);
         }
-        return (new ErrorResource($res))->response()->setStatusCode($status);
         //If the status is not approved redirect to login 
         if ($user->status != 1) {
             $status = 402;
