@@ -155,6 +155,21 @@ class PushNotification
                         $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
                         $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
                         $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    } else if ($action == 'statement-commit') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Statement');
+                        $PushNotificationData->title = trans('message.notification_title.commitStatementChange', ['topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.commitStatementChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    }else if ($action == 'camp-commit') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Camp');
+                        $PushNotificationData->title = trans('message.notification_title.commitCampChange', ['camp_name' => $camp->camp_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.commitCampChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                    }else if ($action == 'topic-commit') {
+                        $PushNotificationData->notification_type = config('global.notification_type.Topic');
+                        $PushNotificationData->title = trans('message.notification_title.commitTopicChange', ['topic_name' => $topic->topic_name]);
+                        $PushNotificationData->message_body = trans('message.notification_message.commitTopicChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'topic_name' => $topic->topic_name]);
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num . '-' . $topic->topic_name;
                     } else {
                         $PushNotificationData->notification_type = config('global.notification_type.Support');
                         $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);

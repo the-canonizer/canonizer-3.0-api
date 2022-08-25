@@ -394,6 +394,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
             } else if ($type == 'camp') {
                 $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -406,6 +407,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
@@ -419,6 +421,7 @@ class TopicController extends Controller
                   Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
