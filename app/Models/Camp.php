@@ -98,7 +98,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('camp.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)
-            ->latest('topic.submit_time')->first();
+            ->where('topic.grace_period', 0) 
+            ->latest('topic.go_live_time')->first();
     }
 
     public static function agreementTopicByDateFilter($filter)
@@ -155,6 +156,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
+            ->where('grace_period', 0) 
             ->latest('go_live_time')->first();
     }
 
