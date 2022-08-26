@@ -37,6 +37,7 @@ class Statement extends Model
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
+            ->where('grace_period', 0) 
             ->orderBy('go_live_time', 'desc')
             ->first();
     }

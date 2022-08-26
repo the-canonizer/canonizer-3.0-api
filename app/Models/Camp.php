@@ -26,7 +26,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
+    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -98,7 +98,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('camp.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)
-            ->latest('topic.submit_time')->first();
+            ->where('topic.grace_period', 0) 
+            ->latest('topic.go_live_time')->first();
     }
 
     public static function agreementTopicByDateFilter($filter)
@@ -155,6 +156,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return self::where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
+            ->where('grace_period', 0) 
             ->latest('go_live_time')->first();
     }
 

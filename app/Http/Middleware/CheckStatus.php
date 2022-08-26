@@ -21,7 +21,17 @@ class CheckStatus
 
         $response = $next($request);
         $user = User::where('email', '=', $request->username)->first();
-
+        if (empty($user)) {
+            $status = 400;
+            $message = trans('message.error.email_not_registered');
+            $res = (object) [
+                "status_code" => $status,
+                "message"     => $message,
+                "error"       => null,
+                "data"        => null
+            ];
+            return (new ErrorResource($res))->response()->setStatusCode($status);
+        }
         //If the status is not approved redirect to login 
         if ($user->status != 1) {
             $status = 402;

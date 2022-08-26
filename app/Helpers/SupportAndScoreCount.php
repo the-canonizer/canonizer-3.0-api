@@ -38,12 +38,17 @@ class SupportAndScoreCount
                 $support_total = $support_total + $supportPoint;
             }
 
+            $liveTopic = Topic::getLiveTopic($topicNum, ['nofilter'=>true]);
+            $namespaceId = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id ) ? $liveTopic->namespace_id : 1; 
+
             $supporter = [
                 'nick_name' => $support->nick_name,
+                'nick_name_id' => $support->nick_name_id,
+                'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum),
                 'score' => $support_total,
             ];
 
-            $delegates = self::getSubDelegates($support_total, $algorithm, $topicNum, $campNum, $support->nick_name_id, $asOfTime);
+            $delegates = self::getSubDelegates($support_total, $algorithm, $topicNum, $campNum, $support->nick_name_id, $asOfTime, $namespaceId);
             
             if(isset($delegates) && !empty($delegates)){
                 $supporter['score'] = $delegates['score_count'];
@@ -58,7 +63,7 @@ class SupportAndScoreCount
 
     }
 
-    private static function getSubDelegates($totalSupport, $algorithm, $topicNum, $campNum, $delegateNickNameId, $asOfTime)
+    private static function getSubDelegates($totalSupport, $algorithm, $topicNum, $campNum, $delegateNickNameId, $asOfTime, $namespaceId = 1)
     {
         $supporter = [];
         $delegates = Support::where('topic_num', '=', $topicNum)
@@ -82,7 +87,10 @@ class SupportAndScoreCount
                 $supporter = [
                     'childs' => [
                             'nick_name' => $support->nick_name,
-                            'score' => 1
+                            'score' => 1,
+                            'nick_name_id' => $support->nick_name_id,
+                            'delegate_nick_name_id' => $support->delegate_nick_name_id,
+                            'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum)
                     ],
                     'score_count' => $totalSupport
                 ];
