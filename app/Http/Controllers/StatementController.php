@@ -101,16 +101,15 @@ class StatementController extends Controller
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name', 'exists'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }else{
+                $statement[0]['exists'] = false;
                 $filter['asOf'] = "review";
                 $campStatement =  Statement::getLiveStatement($filter);
                 if($campStatement){
-                    $statement[]['exists'] = true;
+                    $statement[0]['exists'] = true;
                 }else{
                     $filter['asOf'] = "default";
                     $campStatement =  Statement::getLiveStatement($filter);
-                    if($campStatement){
-                        $statement[]['exists'] = true;
-                    }
+                    $statement[0]['exists'] = isset($campStatement) ?  true : false;
                 }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
