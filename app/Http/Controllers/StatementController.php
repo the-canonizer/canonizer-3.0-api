@@ -95,10 +95,23 @@ class StatementController extends Controller
             if ($campStatement) {
                 $WikiParser = new wikiParser;
                 $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
+                $campStatement->exists = true;
                 $campStatement->submitter_nick_name = $campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
-                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
+                $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name', 'exists'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
+            }else{
+                $filter['asOf'] = "review";
+                $campStatement =  Statement::getLiveStatement($filter);
+                if($campStatement){
+                    $statement[]['exists'] = true;
+                }else{
+                    $filter['asOf'] = "default";
+                    $campStatement =  Statement::getLiveStatement($filter);
+                    if($campStatement){
+                        $statement[]['exists'] = true;
+                    }
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
@@ -349,6 +362,10 @@ class StatementController extends Controller
         $filters['campNum'] = $all['camp_num'];
         $filters['asOf'] = 'default';
         $eventType = $all['event_type'];
+        $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+        if (!in_array($request->nick_name, $nickNameIds)) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
+        }
         try {
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
