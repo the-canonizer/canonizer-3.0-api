@@ -159,6 +159,27 @@ class CampController extends Controller
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
+            if(isset($request->parent_camp_num) && !empty($request->parent_camp_num)){
+                $parentCamp = Camp::where('camp_num',$request->parent_camp_num)->where('topic_num',$request->topic_num)->first();
+            }
+            $topic = Topic::where('topic_num',$request->topic_num)->first();
+            $isDisabled = ($parentCamp->is_disabled == 1 || $topic->is_disabled == 1) ? 1 : 0;
+            $isOneLevel = ($parentCamp->is_one_level == 1 || $topic->is_one_level == 1) ? 1 : 0;
+            //dd($isDisabled);
+
+            if($isDisabled == 1){
+                $message = trans('message.validation_camp_store.camp_creation_not_allowed');
+                $status = 400;
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            if($isOneLevel == 1){
+                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
+                if($campsCount >= 1){
+                    $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
+                    $status = 400;
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+            }
 
             $current_time = time();
 
