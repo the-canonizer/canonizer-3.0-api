@@ -442,12 +442,12 @@ class ThreadsController extends Controller
             }
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
-                $query = Thread::Join('post', function($join) {
+                $query = Thread::leftJoin('post', function($join) {
                         $join->on('thread.id', '=', 'post.thread_id');
                         $join->where('post.is_delete',0);
                     })
-                    ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
-                    ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+                    ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+                    ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
