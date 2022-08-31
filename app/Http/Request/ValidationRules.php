@@ -488,6 +488,7 @@ class ValidationRules
             'topic_id' => 'required',
             'submitter' => 'required',
             'topic_name' => 'required',
+            'nick_name' => 'required',
             'namespace_id' => 'required',
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'

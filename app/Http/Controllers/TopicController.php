@@ -658,11 +658,13 @@ class TopicController extends Controller
         $all = $request->all();
         $current_time = time();
         try {
-
+            $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+            if (!in_array($request->nick_name, $nickNameIds)) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
+            }
             if(Topic::ifTopicNameAlreadyTaken($all)){
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', '');
             }                    
-
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {
                 $topic = Topic::where('id', $all['topic_id'])->first();

@@ -350,6 +350,10 @@ class StatementController extends Controller
         $filters['asOf'] = 'default';
         $eventType = $all['event_type'];
         try {
+            $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+            if (!in_array($request->nick_name, $nickNameIds)) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
+            }
             $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
