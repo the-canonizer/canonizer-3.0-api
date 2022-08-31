@@ -408,4 +408,10 @@ class Util
                 }
         }
     }
+
+    public static function replaceSpecialCharacters($topic_name)
+    {
+        $text = preg_replace('/[^A-Za-z0-9\-]/', '',  $topic_name);
+        return preg_replace("/\-\-+/", '-', $text);
+    }
 }
