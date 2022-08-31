@@ -388,9 +388,13 @@ class SupportController extends Controller
 
     }
 
-    /**
-     * score count
+     /* @OA\Post(path="support-and-score-count",
+     *  tags = "{topicSupport}"
+     *  description = "This will return support tree with score for camp."
+     * ) 
+     * 
      */
+
 
     public function getCampSupportAndCount(Request $request) 
     {
@@ -398,12 +402,12 @@ class SupportController extends Controller
         $algorithm = $all['algorithm'];
         $topicNum = $all['topic_num'];
         $campNum = $all['camp_num'];
-        $asOfDate = isset($all['as_of_date']) ? $all['as_of_date'] : time();
+        $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
 
-        try{
-
+       try{
+            
             $supportCount = new SupportAndScoreCount();
-            $data = SupportAndScoreCount::getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
+            $data = $supportCount->getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
            
         } catch (\Throwable $e) {
