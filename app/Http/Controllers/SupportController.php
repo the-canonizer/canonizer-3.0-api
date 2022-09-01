@@ -417,4 +417,32 @@ class SupportController extends Controller
         
         
     }
+
+    /**
+     *  @OA\Post(path="camp-total-support-score",
+     *  tags = "{campSupport}"
+     *  description = "This will return camp's total support score count"
+     * )
+     * 
+     */
+
+     public function getCampTotalSupportScore(Request $request)
+     {
+        $all = $request->all();
+        $algorithm = $all['algorithm'];
+        $topicNum = $all['topic_num'];
+        $campNum = $all['camp_num'];
+        $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
+        $asOf = (isset($all['as_of']) && $all['as_of']) ? $all['as_of'] : ""; 
+
+        try{
+            $supportCount = new SupportAndScoreCount();
+            $data = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asOfDate, $asOf);
+        
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+        } catch (\Throwable $e) {
+
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+     }
 }
