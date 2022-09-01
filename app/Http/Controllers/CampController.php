@@ -514,7 +514,7 @@ class CampController extends Controller
             $result = Camp::filterParentCampForForm($result);
             if (empty($result)) {
                 $status = 400;
-                $message = trans('message.error.exception');
+                $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $data = $result;
