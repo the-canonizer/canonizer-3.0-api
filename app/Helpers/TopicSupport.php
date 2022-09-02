@@ -483,6 +483,7 @@ class TopicSupport
         $supports[$nickname->id] = [];
         $supports[$nickname->id]['nick_name_id'] = $nickname->id;
         $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
+        $supports[$nickname->id]['private_status'] = $nickname->private;
         
         foreach ($results as $rs) {
             $topic_num = $rs->topic_num;
@@ -498,7 +499,7 @@ class TopicSupport
             $topic_id = $topic_num . "-" . $title;
             $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
             
-            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {die('dd');
+            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
 
                 $tempCamp = [
                             'camp_name' => $livecamp->camp_name, 
