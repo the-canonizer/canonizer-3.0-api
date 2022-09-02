@@ -376,6 +376,10 @@ class StatementController extends Controller
                 $statement->grace_period = 1;
             }
 
+            if($eventType == 'objection') {
+                $statement->grace_period = 0;
+            }
+
             $statement->save();
             PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
             $livecamp = Camp::getLiveCamp($filters);
