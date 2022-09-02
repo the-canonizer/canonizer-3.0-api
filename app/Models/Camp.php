@@ -13,6 +13,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Models\CampSubscription;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
+
+
+
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -627,5 +632,35 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             }
         }
         return ($camp_existsLive || $camp_existsNL);
+    }
+
+    /**
+     * Get the camp tree count.
+     * @param int $topicNumber
+     * @param int $nickNameId
+     * @param int $asOfTime
+     *
+     * @return $expertCamp
+     */
+
+    public static function getExpertCamp($topicnum, $nick_name_id, $asOfTime)
+    {
+        $camps = new Collection;
+        $camps = Cache::remember("$topicnum-bydate-support-$asOfTime", 2, function () use ($topicnum, $asOfTime) {
+                return $expertCamp = self::where('topic_num', '=', $topicnum)
+                    ->where('objector_nick_id', '=', null)
+                    ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicnum . ' and objector_nick_id is null group by camp_num)')
+                    ->where('go_live_time', '<', $asOfTime)
+                    ->orderBy('submit_time', 'desc')
+                    ->groupBy('camp_num')
+                    ->get();
+            });
+
+        $expertCamp = $camps->filter(function($item) use($nick_name_id){
+            return  $item->camp_about_nick_id == $nick_name_id;
+        })->last();
+        
+        return $expertCamp;
+       
     }
 }
