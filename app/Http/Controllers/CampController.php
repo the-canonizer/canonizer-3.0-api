@@ -159,6 +159,28 @@ class CampController extends Controller
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
+            
+            $parentCamp = Camp::leftJoin('topic', function($join) {
+                $join->on('camp.topic_num', '=', 'topic.topic_num');
+            })
+            ->select('camp.*', 'topic.is_one_level as topic_is_one_level','topic.is_disabled as topic_is_disabled');
+            if($request->parent_camp_num){
+                $parentCamp->where('camp.camp_num', $request->parent_camp_num);
+            }
+            $parentCamp = $parentCamp->where('camp.topic_num', $request->topic_num)->first();
+            if($parentCamp->is_disabled == 1 || $parentCamp->topic_is_disabled == 1){
+                $message = trans('message.validation_camp_store.camp_creation_not_allowed');
+                $status = 400;
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            if($parentCamp->is_one_level == 1 || $parentCamp->topic_is_one_level == 1){
+                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
+                if($campsCount >= 1){
+                    $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
+                    $status = 400;
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
+            }
 
             $current_time = time();
 
@@ -195,7 +217,7 @@ class CampController extends Controller
 
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
-                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -489,14 +511,10 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
-            foreach($result as $value){
-                $parentCamp = Camp::where('camp_num',$value->parent_camp_num)->where('topic_num',$request->topic_num)->first();
-                $value->parent_camp_is_disabled = $parentCamp->is_disabled ?? 0;
-                $value->parent_camp_is_one_level = $parentCamp->is_one_level ?? 0;
-            }
+            $result = Camp::filterParentCampForForm($result);
             if (empty($result)) {
-                $status = 400;
-                $message = trans('message.error.exception');
+                $status = 200;
+                $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $data = $result;
@@ -1291,11 +1309,11 @@ class CampController extends Controller
                 Util::checkParentCampChanged($all, false, $liveCamp);
             }
             if ($all['event_type'] == "objection") {
-                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
-                Util::dispatchJob($topic, $camp->camp_num, 1, $camp->is_disabled, $camp->is_one_level);
+                Util::dispatchJob($topic, $camp->camp_num, 1);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {

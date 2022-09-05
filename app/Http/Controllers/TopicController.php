@@ -152,7 +152,7 @@ class TopicController extends Controller
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -732,7 +732,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -745,7 +745,7 @@ class TopicController extends Controller
     private function objectedTopicNotification($all, $topic, $request)
     {
         if (isset($topic)) {
-            Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+            Util::dispatchJob($topic, 1, 1);
         }
         $user = Nickname::getUserByNickName($all['submitter']);
         $liveTopic = Topic::select('topic.*')
