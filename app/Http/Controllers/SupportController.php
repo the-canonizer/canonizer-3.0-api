@@ -177,8 +177,13 @@ class SupportController extends Controller
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update'];  
 
-        try{
-            
+        //authenticate nicknameID belongs to logged in user
+        $allNickNames = Nickname::getNicknamesIdsByUserId($user->id);
+        if(!in_array($nickNameId, $allNickNames)){
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_data'), '', '');
+        }
+
+        try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -202,13 +207,19 @@ class SupportController extends Controller
         }
         
         $all = $request->all();  
+        $user = $request->user();
 
         try{
-            $topicNum = $all['topic_num'];
+            $topicNum   = $all['topic_num'];
             $nickNameId = $all['nick_name_id'];
-            $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
+            $campNum    = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegated_nick_name_id'];
-            //$fcmToken = $all['fcm_token'];
+
+            //authenticate nicknameID belongs to logged in user
+            $allNickNames = Nickname::getNicknamesIdsByUserId($user->id);
+            if(!in_array($nickNameId, $allNickNames)){
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_data'), '', '');
+            }
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
