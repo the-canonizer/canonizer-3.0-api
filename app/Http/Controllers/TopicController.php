@@ -28,6 +28,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use Carbon\Carbon;
 
 class TopicController extends Controller
 {
@@ -144,7 +145,9 @@ class TopicController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => isset($request->note) ? $request->note : "",
-                "grace_period" => 0
+                "grace_period" => 0,
+                "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
+                "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
@@ -394,6 +397,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
             } else if ($type == 'camp') {
                 $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -406,6 +410,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
@@ -419,6 +424,7 @@ class TopicController extends Controller
                   Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
+                PushNotification::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -561,6 +567,7 @@ class TopicController extends Controller
                     if ($agreeCount == $supporters) {           
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
+                        self::updateTopicsInReview($topic);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete(); 
                         if(isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
@@ -577,6 +584,20 @@ class TopicController extends Controller
         }
     }
 
+    private function updateTopicsInReview($topic){
+        $inReviewTopicChanges = Topic::where([['topic_num', '=', $topic->topic_num], 
+        ['submit_time', '<', $topic->submit_time],
+        ['go_live_time', '>', Carbon::now()->timestamp]])->whereNull('objector_nick_id')->get();
+        if(count($inReviewTopicChanges)) {
+            $topicIds = [];
+            foreach ($inReviewTopicChanges as $topic) {
+                $topicIds[] = $topic->id;
+            }
+            if(count($topicIds)) {
+                Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
+            }
+        }
+    }
      /**
      * @OA\Post(path="/manage-topic",
      *   tags={"Topic"},
@@ -664,6 +685,8 @@ class TopicController extends Controller
                 $topic->objector_nick_id = $all['nick_name'];
                 $topic->object_reason = $all['objection_reason'];
                 $topic->object_time = $current_time;
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_object');
             }
 
@@ -673,6 +696,8 @@ class TopicController extends Controller
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_update');
             }
 
@@ -687,6 +712,8 @@ class TopicController extends Controller
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
                 $topic->grace_period = 0;
+                $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
+                $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_update');
             }
 

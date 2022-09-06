@@ -7,6 +7,7 @@ return [
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',
+        'in_active_message'  => 'Your account has been suspended temporarily. Please contact support@canonizer.com for further assistance.',
         'otp_failed' => 'Failed to Send OTP.',
         'otp_not_match' => 'OTP does not match',
         'email_not_registered' => 'Email is not registered with us!',
@@ -107,6 +108,8 @@ return [
         'objection_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default,review,bydate) or leave it empty",
+        'camp_creation_not_allowed' => "Camp creation is disabled under this topic or camp!",
+        'camp_only_one_level_allowed' => "Camp creation only one level allowed under this topic or camp!",
     ],
     'validation_topic_store' => [
         'topic_name_required' => 'Topic name is required.',
@@ -384,6 +387,7 @@ return [
         'event_type_in' => "Possible values are update, edit, objection.",
         'camp_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
+        'camp_about_url_regex' => 'Camp about url is invalid.',
     ],
     'notification_title' => [
         "createTopic" => "Topic Create",
@@ -396,7 +400,10 @@ return [
         "removeSupport" => "Support Removed from Camp - :camp_name",
         "addDelegateSupport" => "Delegate Support Added to Camp - :camp_name",
         "promotedDelegate" => "You have been Promoted to Your delegate's place. in camp - :camp_name under topic - :topic_name",
-        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name."
+        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name.",
+        "commitTopicChange" => "Proposed a change to topic - :topic_name.",
+        "commitCampChange" => "Proposed a change to camp - :camp_name.",
+        "commitStatementChange" => "Proposed a change to statement of camp - :camp_name under topic - :topic_name",
     ],
     'notification_message' => [
         "fcm_token_required" => "Fcm Token is required.",
@@ -411,6 +418,9 @@ return [
         "addDelegateSupport" => ":first_name :last_name has just added delegate support to the Camp - :camp_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
+        "commitCampChange" => ":first_name :last_name has just proposed a change to - :camp_name camp.",
+        "commitStatementChange" => ":first_name :last_name has just proposed a change to statement of - :camp_name camp.",
+        "commitTopicChange" => ":first_name :last_name has just proposed a change - :topic_name topic.",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",

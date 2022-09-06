@@ -17,6 +17,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use App\Helpers\SupportAndScoreCount;
 
 
 class SupportController extends Controller
@@ -348,7 +349,6 @@ class SupportController extends Controller
 
             }else{
                 $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
-
                 $message = trans('message.support.support_not_exist');
                 $data['support_flag'] = 0;
             }
@@ -376,7 +376,6 @@ class SupportController extends Controller
         $topicNum = $all['topic_num'];
         $user = $request->user();
         $userId = $user->id;
-
         try{
             
             $data = Support::getSupportedCampsList($topicNum, $userId);              
@@ -389,4 +388,33 @@ class SupportController extends Controller
 
     }
 
+     /* @OA\Post(path="support-and-score-count",
+     *  tags = "{topicSupport}"
+     *  description = "This will return support tree with score for camp."
+     * ) 
+     * 
+     */
+
+
+    public function getCampSupportAndCount(Request $request) 
+    {
+        $all = $request->all();
+        $algorithm = $all['algorithm'];
+        $topicNum = $all['topic_num'];
+        $campNum = $all['camp_num'];
+        $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
+
+       try{
+            
+            $supportCount = new SupportAndScoreCount();
+            $data = $supportCount->getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+           
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+        
+        
+    }
 }

@@ -611,7 +611,7 @@ class UserController extends Controller
             // Create nickname
             $nicknameObj = new Nickname();
             $nicknameObj->owner_code = Util::canon_encode($userID);
-            $nicknameObj->nick_name = $nickname;
+            $nicknameObj->nick_name = substr($nickname, 0, 50);
             $nicknameObj->private = 0;
             $nicknameObj->create_time = time();
             $nicknameObj->save();
@@ -1196,6 +1196,12 @@ class UserController extends Controller
                 $this->createSocialUser($providerId, $providerEmail, $providerUserName, $provider, $user->id);
             } else {
                 $user = User::find($social_user->user_id);
+            }
+
+            if ($user->is_active != 1) {
+                $status = 402;
+                $message = trans('message.error.in_active_message');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $postUrl = URL::to('/') . '/oauth/token';

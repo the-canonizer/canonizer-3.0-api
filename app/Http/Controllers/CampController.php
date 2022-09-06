@@ -153,11 +153,33 @@ class CampController extends Controller
             if (!empty($result)) {
                 $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
                 $status = 400;
-                $result->if_exist =true;
-                $result->topic_name =$topic_name->topic_name;
+                $result->if_exist = true;
+                $result->topic_name = $topic_name->topic_name;
                 $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+            }
+            
+            $parentCamp = Camp::leftJoin('topic', function($join) {
+                $join->on('camp.topic_num', '=', 'topic.topic_num');
+            })
+            ->select('camp.*', 'topic.is_one_level as topic_is_one_level','topic.is_disabled as topic_is_disabled');
+            if($request->parent_camp_num){
+                $parentCamp->where('camp.camp_num', $request->parent_camp_num);
+            }
+            $parentCamp = $parentCamp->where('camp.topic_num', $request->topic_num)->first();
+            if($parentCamp->is_disabled == 1 || $parentCamp->topic_is_disabled == 1){
+                $message = trans('message.validation_camp_store.camp_creation_not_allowed');
+                $status = 400;
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
+            if($parentCamp->is_one_level == 1 || $parentCamp->topic_is_one_level == 1){
+                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
+                if($campsCount >= 1){
+                    $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
+                    $status = 400;
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                }
             }
 
             $current_time = time();
@@ -186,7 +208,9 @@ class CampController extends Controller
                 "camp_about_url" => $request->camp_about_url ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
-                "grace_period" => 0
+                "grace_period" => 0,
+                "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
+                "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
             ];
 
             $camp = Camp::create($input);
@@ -220,8 +244,8 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $camp->camp_num, config('global.notification_type.Camp')) ;
-                } catch (Throwable $e) {  
+                    PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
+                } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
                     $message = $e->getMessage();
@@ -487,9 +511,10 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
+            $result = Camp::filterParentCampForForm($result);
             if (empty($result)) {
-                $status = 400;
-                $message = trans('message.error.exception');
+                $status = 200;
+                $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $data = $result;
@@ -1082,7 +1107,7 @@ class CampController extends Controller
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
-            }else{
+            } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
@@ -1090,8 +1115,8 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-    
-     /**
+
+    /**
      * @OA\Get(path="/edit-camp",
      *   tags={"Camp"},
      *   summary="Get camp record",
@@ -1118,7 +1143,7 @@ class CampController extends Controller
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
-     */ 
+     */
     public function editCampRecord($id)
     {
         try {
@@ -1134,11 +1159,11 @@ class CampController extends Controller
                 $data->camp = $camp;
                 $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
                 $response[0] = $data;
-                $indexes = ['camp', 'nick_name','parent_camp','topic'];
+                $indexes = ['camp', 'nick_name', 'parent_camp', 'topic'];
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
-            }else {
+            } else {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
         } catch (Exception $e) {
@@ -1146,7 +1171,7 @@ class CampController extends Controller
         }
     }
 
-     /**
+    /**
      * @OA\Post(path="/manage-camp",
      *   tags={"Camp"},
      *   summary="Edit/update/object camp",
@@ -1256,7 +1281,7 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
         }
         try {
-            if(Camp::IfTopicCampNameAlreadyExists($all)){
+            if (Camp::IfTopicCampNameAlreadyExists($all)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
             }
             $nickNames = Nickname::personNicknameArray();
@@ -1306,6 +1331,8 @@ class CampController extends Controller
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'] ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         return $camp;
     }
 
@@ -1323,6 +1350,8 @@ class CampController extends Controller
         $camp->submitter_nick_id = $all['nick_name'];
         $camp->camp_about_url = $all['camp_about_url'] ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->camp_num = $all['camp_num'];
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];
@@ -1336,6 +1365,8 @@ class CampController extends Controller
         $camp = Camp::where('id', $all['camp_id'])->first();
         $camp->objector_nick_id = $all['nick_name'];
         $camp->object_reason = $all['objection_reason'];
+        $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
+        $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->object_time = time();
         return $camp;
     }
