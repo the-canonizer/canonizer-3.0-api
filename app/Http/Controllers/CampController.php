@@ -8,13 +8,14 @@ use Throwable;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -23,9 +24,8 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Models\Support;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use App\Library\General;
+use App\Facades\GetPushNotificationToSupporter;
 
 class CampController extends Controller
 {
@@ -244,7 +244,7 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
+                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
