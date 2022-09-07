@@ -159,21 +159,25 @@ class CampController extends Controller
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
-            
-            $parentCamp = Camp::leftJoin('topic', function($join) {
-                $join->on('camp.topic_num', '=', 'topic.topic_num');
-            })
-            ->select('camp.*', 'topic.is_one_level as topic_is_one_level','topic.is_disabled as topic_is_disabled');
-            if($request->parent_camp_num){
-                $parentCamp->where('camp.camp_num', $request->parent_camp_num);
+            $parentCamp = Camp::getParentFromParent($request->parent_camp_num,$request->topic_num);
+            //  echo json_encode($parentCamp);die;
+            $is_disabled = false;
+            $is_one_level = false;
+            foreach($parentCamp as $val){
+                if($val->is_disabled === 1){
+                    $is_disabled = true; 
+                }
+                if($val->is_one_level === 1){
+                    $is_one_level = true; 
+                }
             }
-            $parentCamp = $parentCamp->where('camp.topic_num', $request->topic_num)->first();
-            if($parentCamp->is_disabled == 1 || $parentCamp->topic_is_disabled == 1){
+
+            if($is_disabled == true){
                 $message = trans('message.validation_camp_store.camp_creation_not_allowed');
                 $status = 400;
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-            if($parentCamp->is_one_level == 1 || $parentCamp->topic_is_one_level == 1){
+            if($is_one_level == true){
                 $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
                 if($campsCount >= 1){
                     $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
