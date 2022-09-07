@@ -2,11 +2,11 @@
 
 namespace App\Helpers;
 
+use App\Facades\PushNotification;
 use stdClass;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
-use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Support;
@@ -112,7 +112,7 @@ class GetPushNotificationToSupporter
                     }
                     $PushNotificationData->fcm_token = $user->fcm_token;
                     if($user->id != $request->id && !empty($user->fcm_token)){
-                        Util::sendPushNotification($PushNotificationData);
+                        PushNotification::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
                     echo  $message = $e->getMessage();
@@ -167,7 +167,7 @@ class GetPushNotificationToSupporter
                     }
                     $PushNotificationData->fcm_token = $userSub->fcm_token;
                     if($userSub->id != $request->id && !empty($userSub->fcm_token)){
-                        Util::sendPushNotification($PushNotificationData);
+                        PushNotification::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
                     echo $message = $e->getMessage();
@@ -199,7 +199,7 @@ class GetPushNotificationToSupporter
             $PushNotificationData->link = $campLink;
             
             if(!empty($user->fcm_token)){
-                Util::sendPushNotification($PushNotificationData);
+                PushNotification::sendPushNotification($PushNotificationData);
             }
         } catch (Throwable $e) {
             echo $message = $e->getMessage();
