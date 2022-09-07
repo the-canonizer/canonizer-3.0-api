@@ -519,7 +519,7 @@ class CampController extends Controller
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse($status, $message, $result, null);
             }
             $data = $result;
             $status = 200;
