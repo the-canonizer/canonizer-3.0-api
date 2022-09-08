@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Thread;
 use App\Models\Topic;
+use App\Models\User;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -59,18 +61,14 @@ class TopicStoreApiTest extends TestCase
         print sprintf(" \n Valid Topic Store details submitted %d %s", 200,PHP_EOL);
 
         $topic = Topic::factory()->make();
-
         $parameters = [
-            'topic_name' => 'Test 1234 Test',
-            'namespace' => '12',
-            'create_namespace' => '',
-            'nick_name' => '12',
-            'asof' => ''
+            'topic_name' => 'test'. rand(10, 99),
+            'namespace'=>'16',
+            'nick_name'=>'439',
         ];
      
-        $this->actingAs($topic)
-            ->post('/api/v3/topic/save',$parameters);   
-
+        $this->actingAs($topic)->post('/api/v3/topic/save', $parameters);
+      //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
    

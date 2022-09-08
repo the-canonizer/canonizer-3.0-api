@@ -51,12 +51,13 @@ class LoginApiTest extends TestCase
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
         $user = User::factory()->make();
         $parameters = [
-            "client_id" => "4",
-            "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
+            "client_id" => "2",
+            "client_secret" => "5S0WQMrw3Hu6D0kfwib7Kkch86ToKJvrrzMojhuF",
             "username" => "saurabh.singh@iffort.com",
             "password" => "Test@123",
         ];
         $this->actingAs($user)->post('/api/v3/user/login', $parameters);
+        //dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }

@@ -20,7 +20,7 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         print sprintf(" \n Invalid Forgot Password details submitted %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
         $user->otp = "123456";
-        $user->username = "email@email.com";
+        $user->username = "saurabh.singh@iffort.com";
 
         $parameters = [
             "otp" => '',
@@ -28,7 +28,7 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -42,7 +42,7 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -52,12 +52,13 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
         $parameters = [
-            "otp" => '677681',
-            "username" => 'saurabh1.singh@iffort.com'
+            "otp" => '931979',
+            "username" => 'saurabh.singh@iffort.com'
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/verifyOtp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
+          //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }

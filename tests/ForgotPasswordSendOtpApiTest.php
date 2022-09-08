@@ -40,7 +40,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/forgotpassword/sendOtp', $parameter);
+        ->post('/api/v3/forgot-password/send-otp', $parameter);
         
         $this->assertEquals(400, $this->response->status());
     }
@@ -54,8 +54,8 @@ class ForgotPasswordSendOtpApiTest extends TestCase
             "email" => "saurabh.singh@iffort.com"
         ];
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/sendOtp',$parameters);   
-
+            ->post('/api/v3/forgot-password/send-otp',$parameters);   
+          //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
    
