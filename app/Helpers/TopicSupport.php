@@ -493,6 +493,10 @@ class TopicSupport
             $filter['campNum'] =  $camp_num;
             $livecamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+
+            if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
+                continue;
+            }
             //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
            // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
             $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
@@ -516,13 +520,6 @@ class TopicSupport
                 }
 
             } else if ($camp_num == 1) { 
-
-               /* if($rs->title ==''){ can-963 code to be removed after testing passed
-                   // $topicData = Topic::where('topic_num','=',$topic_num)->where('go_live_time', '<=', time())->latest('submit_time')->get();
-                   // $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-                    //$title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name);
-                    //$topic_id = $topic_num . "-" . $title;
-                }*/
 
                 //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                 $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
