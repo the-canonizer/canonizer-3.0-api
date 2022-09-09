@@ -634,6 +634,47 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return ($camp_existsLive || $camp_existsNL);
     }
 
+    public static function filterParentCampForForm($parentCamps = []) {
+        $campHierarchy = array();
+        foreach ($parentCamps as $camp){
+            $camp['children'] = [];
+            $campHierarchy[$camp->parent_camp_num ?? 0][] = $camp;
+        }
+        $tree = self::createTree($campHierarchy, $campHierarchy[0]);
+
+        $parents = self::createParentForForm($tree);
+
+        return $parents;
+
+    }
+
+    public static function createParentForForm($tree = []) {
+        $parents = [];
+        foreach ($tree as $camp) {
+            if ($camp->is_disabled != 1) {
+                if ($camp->is_one_level == 1) {
+                    $camp['children'] = [];
+                }
+                $parents[] = $camp;
+                if (!empty($camp['children'])) {
+                    $children = self::createParentForForm($camp['children']);
+                    $parents = array_merge($parents, $children);
+                }
+            }
+        }
+        return $parents;
+    }
+
+    public static function createTree(&$list, $parent){
+        $tree = array();
+        foreach ($parent as $l){
+            if(isset($list[$l->camp_num])){
+                $l['children'] = self::createTree($list, $list[$l->camp_num]);
+            }
+            $tree[] = $l;
+        } 
+        return $tree;
+    }
     /**
      * Get the camp tree count.
      * @param int $topicNumber

@@ -108,6 +108,8 @@ return [
         'objection_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default,review,bydate) or leave it empty",
+        'camp_creation_not_allowed' => "Camp creation is disabled under this topic or camp!",
+        'camp_only_one_level_allowed' => "Camp creation only one level allowed under this topic or camp!",
     ],
     'validation_topic_store' => [
         'topic_name_required' => 'Topic name is required.',

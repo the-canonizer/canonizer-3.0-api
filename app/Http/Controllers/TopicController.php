@@ -28,6 +28,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use Carbon\Carbon;
 
 class TopicController extends Controller
 {
@@ -151,7 +152,7 @@ class TopicController extends Controller
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -566,6 +567,7 @@ class TopicController extends Controller
                     if ($agreeCount == $supporters) {           
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
+                        self::updateTopicsInReview($topic);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete(); 
                         if(isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
@@ -582,6 +584,20 @@ class TopicController extends Controller
         }
     }
 
+    private function updateTopicsInReview($topic){
+        $inReviewTopicChanges = Topic::where([['topic_num', '=', $topic->topic_num], 
+        ['submit_time', '<', $topic->submit_time],
+        ['go_live_time', '>', Carbon::now()->timestamp]])->whereNull('objector_nick_id')->get();
+        if(count($inReviewTopicChanges)) {
+            $topicIds = [];
+            foreach ($inReviewTopicChanges as $topic) {
+                $topicIds[] = $topic->id;
+            }
+            if(count($topicIds)) {
+                Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
+            }
+        }
+    }
      /**
      * @OA\Post(path="/manage-topic",
      *   tags={"Topic"},
@@ -716,7 +732,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -729,7 +745,7 @@ class TopicController extends Controller
     private function objectedTopicNotification($all, $topic, $request)
     {
         if (isset($topic)) {
-            Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+            Util::dispatchJob($topic, 1, 1);
         }
         $user = Nickname::getUserByNickName($all['submitter']);
         $liveTopic = Topic::select('topic.*')
