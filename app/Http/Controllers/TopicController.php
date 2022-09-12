@@ -848,6 +848,7 @@ class TopicController extends Controller
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
+            $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {
