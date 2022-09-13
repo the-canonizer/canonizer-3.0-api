@@ -45,6 +45,7 @@ class SupportAndScoreCount
         foreach($supports as $key =>$support){            
             $array[$support->nick_name_id] = [
                     'score' => 0,
+                    'support_order' => $support->support_order,
                     'nick_name' => $support->nick_name,
                     'nick_name_id' => $support->nick_name_id,
                     'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum),
@@ -103,6 +104,7 @@ class SupportAndScoreCount
         foreach($delegatedSupports as $support){ 
             if($support->camp_num == $campNum){ 
                     $array[$support->nick_name_id]['score'] =$delegateTree[$support->nick_name_id]['score'];
+                    $array[$support->nick_name_id]['support_order'] = $support->support_order;
                     $array[$support->nick_name_id]['nick_name'] = $support->nick_name;
                     $array[$support->nick_name_id]['nick_name_id'] = $support->nick_name_id;
                     $array[$support->nick_name_id]['nick_name_link'] = Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum);
