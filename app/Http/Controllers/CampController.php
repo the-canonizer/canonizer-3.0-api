@@ -834,6 +834,13 @@ class CampController extends Controller
             $response->msg = $msg;
             $indexes = ['msg', 'subscriptionId', 'flag', 'subscriptionId', 'subscriptionCampName'];
             $data[0] = $response;
+
+            /* Update the subscription for Mongo Tree -- CAN-1162 */
+            $topic = Topic::where('topic_num', $filter['topicNum'])->orderBy('id', 'DESC')->first();
+            if(!empty($topic)) {
+                Util::dispatchJob($topic, $filter['campNum'], 1);
+            }
+            
             $data = $this->resourceProvider->jsonResponse($indexes, $data);
             $data = $data[0];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
@@ -1279,6 +1286,8 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         $all = $request->all();
+
+
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
         $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
@@ -1290,6 +1299,7 @@ class CampController extends Controller
             }
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+         
             if ($all['event_type'] == "update") {
                 $camp = $this->updateCamp($all);
                 if (!$ifIamSingleSupporter) {
@@ -1309,13 +1319,14 @@ class CampController extends Controller
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
             $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp, time());
-            if ($all['event_type'] == "update") {
-                Util::checkParentCampChanged($all, false, $liveCamp);
-            }
+          
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
+                if($ifIamSingleSupporter){
+                    Util::checkParentCampChanged($all, false, $liveCamp);
+                }                
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
             }
@@ -1346,6 +1357,7 @@ class CampController extends Controller
         $camp = new Camp();
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
+        $camp->old_parent_camp_num = isset($all['old_parent_camp_num']) ? $all['old_parent_camp_num'] : null;
         $camp->camp_name = isset($all['camp_name']) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $all['camp_name'])))  : "";
         $camp->submit_time = strtotime(date('Y-m-d H:i:s'));
         $camp->go_live_time =  time();
