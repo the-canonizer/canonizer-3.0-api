@@ -148,9 +148,9 @@ class Statement extends Model
                     array_push($statementHistory, $val);
                 }
             }
-            $data->items = $statementHistory;
-            return  $data;
         }
+        $data->items = $statementHistory;
+        return  $data;
     }
 
 }

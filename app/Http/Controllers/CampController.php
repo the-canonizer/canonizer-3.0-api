@@ -830,6 +830,13 @@ class CampController extends Controller
             $response->msg = $msg;
             $indexes = ['msg', 'subscriptionId', 'flag', 'subscriptionId', 'subscriptionCampName'];
             $data[0] = $response;
+
+            /* Update the subscription for Mongo Tree -- CAN-1162 */
+            $topic = Topic::where('topic_num', $filter['topicNum'])->orderBy('id', 'DESC')->first();
+            if(!empty($topic)) {
+                Util::dispatchJob($topic, $filter['campNum'], 1);
+            }
+            
             $data = $this->resourceProvider->jsonResponse($indexes, $data);
             $data = $data[0];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
