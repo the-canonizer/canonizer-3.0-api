@@ -90,7 +90,7 @@ class TopicSupport
 
             }
 
-            /* To update the Mongo Tree while deleting delegate support - CAN-1042 */
+            /* To update the Mongo Tree while deleting delegate support */
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             if(!empty($campNum)) {
                 Util::dispatchJob($topic, $campNum, 1);
@@ -129,8 +129,8 @@ class TopicSupport
                 $campModel  = self::getLiveCamp($campFilter);
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel); 
 
-                /* To update the Mongo Tree while removing support - CAN-1042 */
-                /* We need to update the execute the job for remove as well, only when this is topicnumber == 81 */
+                /* To update the Mongo Tree while removing support */
+                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 if($topicNum == config('global.mind_expert_topic_num')) {
                     Util::dispatchJob($topic, $camp, 1);
@@ -163,7 +163,7 @@ class TopicSupport
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
 
-        /* To update the Mongo Tree while adding support - CAN-1042 */
+        /* To update the Mongo Tree while adding support */
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
 
          if(!empty($removeCamps)){
@@ -179,8 +179,8 @@ class TopicSupport
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
 
-                /* To update the Mongo Tree while removing at add support - CAN-1042 */
-                /* We need to update the execute the job for remove as well, only when this is topicnumber == 81 */
+                /* To update the Mongo Tree while removing at add support */
+                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                 if($topicNum == config('global.mind_expert_topic_num')) {
                     Util::dispatchJob($topic, $camp, 1);
                 }
@@ -214,12 +214,12 @@ class TopicSupport
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
            
-           /* To update the Mongo Tree while adding support - CAN-1042 */
+           /* To update the Mongo Tree while adding support */
            Util::dispatchJob($topic, $campNum, 1);
          }
 
-        /* To update the Mongo Tree while adding support - CAN-1042 */
-        /* We need to update the execute the job for reordering as well, only when topicnumber != 81 */
+        /* To update the Mongo Tree while adding support */
+        /* Execute job here only when topicnumber != 81 (because there are multiple camps here) */
         if($topicNum != config('global.mind_expert_topic_num')) {
             Util::dispatchJob($topic, 1, 1);
         }
@@ -263,7 +263,7 @@ class TopicSupport
             $notifyDelegatedUser = true;
         }
 
-        /* To update the Mongo Tree while delegating at add support - CAN-1042 */
+        /* To update the Mongo Tree while delegating at add support*/
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
         if(!empty($campNum)) {
             Util::dispatchJob($topic, $campNum, 1);
@@ -628,7 +628,7 @@ class TopicSupport
     {
 
         try{
-            /* To update the Mongo Tree while adding support - CAN-1042 */
+            /* To update the Mongo Tree while adding support */
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             
             DB::beginTransaction();
@@ -643,8 +643,8 @@ class TopicSupport
                     ->update(['support_order' => $order['order']  // update your field(s) here
                         ]);
                     
-                    /* To update the Mongo Tree while adding support - CAN-1042 */
-                    /* We need to update the execute the job for reordering as well, only when topicnumber == 81 */
+                    /* To update the Mongo Tree while adding support */
+                    /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     if($topicNum == config('global.mind_expert_topic_num')) {
                         Util::dispatchJob($topic, $order['camp_num'], 1);
                     }
