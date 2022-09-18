@@ -754,8 +754,7 @@ class TopicController extends Controller
             ->where('topic.objector_nick_id', "=", null)
             ->latest('topic.submit_time')
             ->first();
-        $link = 'topic-history/' . $topic->topic_num;
-        $data['object'] = $liveTopic->topic_name;
+        $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
         $data['type'] = "Topic";
