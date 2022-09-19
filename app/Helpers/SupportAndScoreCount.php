@@ -64,7 +64,6 @@ class SupportAndScoreCount
                     if(count($tree_node) > 0){
                         foreach($tree_node as $camp_num=>$camp_score){                          
                             if($camp_num == $campNum){
-                                //echo "<pre>"; print_r($camp_score); exit;
                                 $currentCampSupport = 1;
                                 $supportOrder = $supp_order;
                                 $delegateTree = $camp_score['delegates'];               
@@ -120,6 +119,7 @@ class SupportAndScoreCount
 
     /**
      * this calculate the score with delegates and sumup score added back to parent
+     * in support tree
     */
 
     public static function sumTranversedArraySupportCount($traversedTreeArray=array())
@@ -172,7 +172,7 @@ class SupportAndScoreCount
 	}
 
     /**
-     * get
+     * get camp and nickname wise score under topic
      */
     public function getCampAndNickNameWiseSupportTree($algorithm, $topicNumber,$asOfTime)
     {
@@ -188,7 +188,8 @@ class SupportAndScoreCount
         ->orderBy('camp_num','ASC')->orderBy('support_order','ASC')
         ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num'])
         ->get();
-        
+
+       
         if(count($topic_support) > 0){
             foreach($topic_support as $support){
                     if(array_key_exists($support->nick_name_id, $nick_name_wise_support)){
@@ -317,7 +318,6 @@ class SupportAndScoreCount
 
     public function getCampTotalSupportScore($algorithm, $topicNum, $startCamp = 1, $asOfTime, $asOf = '')
     {
-
         if($asOf == 'review') {
             $topicChild = Camp::where('topic_num', '=', $topicNum)
                             ->where('camp_name', '!=', 'Agreement')
@@ -339,6 +339,7 @@ class SupportAndScoreCount
         }
         
         $this->sessionTempArray["topic-child-{$topicNum}"] = $topicChild;
+        
 
         $tree = [];
         
@@ -346,8 +347,7 @@ class SupportAndScoreCount
         $tree[$startCamp]['camp_num'] = $startCamp;
         $tree[$startCamp]['score'] = $this->getCamptSupportCount($algorithm, $topicNum, $startCamp, $asOfTime);
         $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNum, $startCamp, null, $asOfTime);
-        
-        $reducedTree = $this->sumTranversedTreeScore($tree);
+        $reducedTree = $this->sumTranversedTreeScore($tree);        
         $sortTree = $this->sortTree($reducedTree);
 
         return $sortTree;
@@ -359,17 +359,18 @@ class SupportAndScoreCount
      * 
      */
     public function getCamptSupportCount($algorithm, $topicNum, $campNum, $asOfTime, $nickNameId = null) 
-    {
+    {   $asOfTime = time();
         if(!Arr::exists($this->sessionTempArray, "score_tree_{$topicNum}_{$algorithm}")){
             $score_tree = $this->getCampAndNickNameWiseSupportTree($algorithm, $topicNum,$asOfTime);
             $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"] = $score_tree;
         }else{
             $score_tree = $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"];
-        }            
+        } 
+        
         $support_total = 0;
         if(array_key_exists('camp_wise_tree',$score_tree) && count($score_tree['camp_wise_tree']) > 0 && array_key_exists($campNum,$score_tree['camp_wise_tree'])){
             if(count($score_tree['camp_wise_tree'][$campNum]) > 0){
-                foreach($score_tree['camp_wise_tree'][$campNum] as $order=>$tree_node){                                        
+                foreach($score_tree['camp_wise_tree'][$campNum] as $order=>$tree_node){                                                        
                     if(count($tree_node) > 0){
                         foreach($tree_node as $nick=>$score){
                             $delegate_arr = $score_tree['nick_name_wise_tree'][$nick][$order][$campNum];
@@ -379,7 +380,7 @@ class SupportAndScoreCount
                     }
                 }    
             }
-        }         
+        } 
         return $support_total;
     }
 
@@ -393,8 +394,7 @@ class SupportAndScoreCount
         }
 
         $this->traversetempArray[] = $key;
-        $childs = $this->campChildrens($topicNum, $parentCamp);
-        
+        $childs = $this->campChildrens($topicNum, $parentCamp);        
         $array = [];
         foreach ($childs as $key => $child) 
         {
@@ -429,8 +429,12 @@ class SupportAndScoreCount
         return $childs;
     }
 
+    /**
+     * sumup score count of child camps and added back them to parent camp
+     */
     public static function sumTranversedTreeScore($traversedTreeArray=array())
     {
+        
         if(isset($traversedTreeArray) && is_array($traversedTreeArray)) {
  
             foreach($traversedTreeArray as $key => $array){
@@ -446,6 +450,7 @@ class SupportAndScoreCount
                     return $a['score'] < $b['score'];
                 });
         } 
+        
         return $traversedTreeArray; 
      }
 
