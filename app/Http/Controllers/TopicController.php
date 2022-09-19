@@ -283,7 +283,7 @@ class TopicController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         try {
-            $topic = Camp::getAgreementTopic($filter);
+            $topic = Topic::getLiveTopic($filter);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -754,8 +754,7 @@ class TopicController extends Controller
             ->where('topic.objector_nick_id', "=", null)
             ->latest('topic.submit_time')
             ->first();
-        $link = 'topic-history/' . $topic->topic_num;
-        $data['object'] = $liveTopic->topic_name;
+        $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
         $data['type'] = "Topic";
