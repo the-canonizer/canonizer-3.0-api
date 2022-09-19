@@ -162,8 +162,8 @@ class ThreadsController extends Controller
         try {
             $thread = Thread::create([
                 'user_id'  => $request->nick_name,
-                'title'    => $request->title,
-                'body'     => $request->title,
+                'title'    => Util::remove_emoji($request->title),
+                'body'     => Util::remove_emoji($request->title),
                 'camp_id'  => $request->camp_num,
                 'topic_id' => $request->topic_num,
             ]);
@@ -583,15 +583,15 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $update = ["title" => $request->title];
+            $update = ["title" =>  Util::remove_emoji($request->title)];
             $threads = Thread::find($id);
             if(!$threads){
                 $threads = null;
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
-                if($threads->title !=$request->title){
-                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+                if($threads->title !=Util::remove_emoji($request->title)){
+                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', Util::remove_emoji($request->title))->get();
                     if (count($thread_flag) > 0) {
                         $status = 400;
                         $message = trans('message.thread.title_unique');
@@ -601,7 +601,7 @@ class ThreadsController extends Controller
                 $threads->update($update);
                 $topic_name = CampForum::getTopicName($threads->topic_id);
                 $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
-                $url = 'forum/' . $request->topic_num . '-' .   urlencode($request->topic_name) . '/'  . $request->camp_num . '-' . urlencode($request->camp_name) . '/threads';
+                $url = 'forum/' . $request->topic_num . '-' .   urlencode(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . urlencode($request->camp_name) . '/threads';
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',
