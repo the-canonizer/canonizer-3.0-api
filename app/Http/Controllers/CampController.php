@@ -26,6 +26,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Models\Support;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Library\General;
+use Illuminate\Support\Facades\Gate;
 
 class CampController extends Controller
 {
@@ -147,6 +148,11 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+                
         try {
 
             $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
@@ -1281,9 +1287,12 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
-
-
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
         $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {

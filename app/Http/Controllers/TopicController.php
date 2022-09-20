@@ -29,6 +29,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Gate;
 
 class TopicController extends Controller
 {
@@ -124,6 +125,10 @@ class TopicController extends Controller
         $validationErrors = $validate->validate($request, $this->rules->getTopicStoreValidationRules(), $this->validationMessages->getTopicStoreValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
 
         $result = Topic::where('topic_name', $request->topic_name)->first();
@@ -672,6 +677,11 @@ class TopicController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
         $current_time = time();
         try {
