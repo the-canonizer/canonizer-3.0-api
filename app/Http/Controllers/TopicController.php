@@ -190,7 +190,7 @@ class TopicController extends Controller
                         "type" => "topic",
                         "link" => $link,
                         "historylink" => $historylink,
-                        "object" => $topic->topic_name . " / Agreement",
+                        "object" => $topic->topic_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
