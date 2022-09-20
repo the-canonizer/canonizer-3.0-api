@@ -18,7 +18,6 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use App\Helpers\SupportAndScoreCount;
-
 use Illuminate\Support\Facades\Gate;
 
 

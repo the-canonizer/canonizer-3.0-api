@@ -23,6 +23,8 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Support\Facades\Gate;
+
 
 
 class StatementController extends Controller

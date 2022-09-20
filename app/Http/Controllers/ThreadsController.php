@@ -21,6 +21,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
+use Illuminate\Support\Facades\Gate;
 
 class ThreadsController extends Controller
 {
@@ -160,6 +161,11 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
         try {
+
+            if (! Gate::allows('nickname-check', $request->nick_name)) {
+                return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            }
+            
             $thread = Thread::create([
                 'user_id'  => $request->nick_name,
                 'title'    => $request->title,
