@@ -283,7 +283,7 @@ class TopicController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         try {
-            $topic = Camp::getAgreementTopic($filter);
+            $topic = Topic::getLiveTopic($filter);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -541,14 +541,15 @@ class TopicController extends Controller
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $data['parent_camp_num'] = $camp->parent_camp_num;
-                    $data['old_parent_camp_num'] = "";
+                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;;
                     $liveCamp = Camp::getLiveCamp($filter);
-                    Util::checkParentCampChanged($data, true, $liveCamp);
+                   // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
+                        Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         $topic = $camp->topic;
                         if (isset($topic)) {
@@ -753,8 +754,7 @@ class TopicController extends Controller
             ->where('topic.objector_nick_id', "=", null)
             ->latest('topic.submit_time')
             ->first();
-        $link = 'topic-history/' . $topic->topic_num;
-        $data['object'] = $liveTopic->topic_name;
+        $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
         $data['type'] = "Topic";
@@ -848,6 +848,7 @@ class TopicController extends Controller
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
+            $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {
