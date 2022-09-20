@@ -144,7 +144,7 @@ class TopicController extends Controller
                 "submitter_nick_id" => $request->nick_name,
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
-                "note" => Util::allow_emoji($request->note),
+                "note" => $request->note ?? "",
                 "grace_period" => 0,
                 "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
                 "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
