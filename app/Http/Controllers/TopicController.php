@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use stdClass;
 use Exception;
 use Throwable;
+use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Models\Statement;
 use App\Models\Namespaces;
@@ -17,7 +19,6 @@ use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +27,10 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Gate;
+use App\Facades\GetPushNotificationToSupporter;
 
 class TopicController extends Controller
 {
@@ -126,7 +128,15 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+<<<<<<< HEAD
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $result = Topic::where('topic_name', $request->topic_name)->first();
+=======
+        $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
+>>>>>>> development
         if (!empty($result)) {
             $status = 400;
             $result->if_exist =true;
@@ -138,13 +148,13 @@ class TopicController extends Controller
         try {
             $current_time = time();
             $input = [
-                "topic_name" => $request->topic_name,
+                "topic_name" => Util::remove_emoji($request->topic_name),
                 "namespace_id" => $request->namespace,
                 "submit_time" => $current_time,
                 "submitter_nick_id" => $request->nick_name,
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
-                "note" => isset($request->note) ? $request->note : "",
+                "note" => $request->note ?? "",
                 "grace_period" => 0,
                 "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
                 "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
@@ -190,7 +200,7 @@ class TopicController extends Controller
                         "type" => "topic",
                         "link" => $link,
                         "historylink" => $historylink,
-                        "object" => $topic->topic_name . " / Agreement",
+                        "object" => $topic->topic_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -397,7 +407,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
             } else if ($type == 'camp') {
                 $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -410,7 +420,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
@@ -424,7 +434,7 @@ class TopicController extends Controller
                   Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -672,6 +682,11 @@ class TopicController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
         $current_time = time();
         try {
@@ -693,7 +708,7 @@ class TopicController extends Controller
 
             if ($all['event_type'] == "edit") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
-                $topic->topic_name = isset($all['topic_name']) ? $all['topic_name'] : "";
+                $topic->topic_name == Util::remove_emoji($all['topic_name']) ?? "";
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
@@ -705,7 +720,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "update") {
                 $topic = new Topic();
                 $topic->topic_num = $all['topic_num'];
-                $topic->topic_name = $all['topic_name'];
+                $topic->topic_name = Util::remove_emoji($all['topic_name']);
                 $topic->namespace_id = $all['namespace_id'];
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];

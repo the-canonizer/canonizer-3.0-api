@@ -15,14 +15,16 @@ use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use App\Facades\GetPushNotificationToSupporter;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Support\Facades\Gate;
+
 
 
 class StatementController extends Controller
@@ -344,6 +346,11 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+        
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
@@ -381,7 +388,7 @@ class StatementController extends Controller
             }
 
             $statement->save();
-            PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
+            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 

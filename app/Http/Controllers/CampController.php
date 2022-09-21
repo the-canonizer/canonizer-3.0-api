@@ -8,13 +8,14 @@ use Throwable;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -23,9 +24,10 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Models\Support;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Library\General;
+use Illuminate\Support\Facades\Gate;
+use App\Facades\GetPushNotificationToSupporter;
 
 class CampController extends Controller
 {
@@ -147,6 +149,11 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+                
         try {
 
             $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
@@ -159,21 +166,25 @@ class CampController extends Controller
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
-            
-            $parentCamp = Camp::leftJoin('topic', function($join) {
-                $join->on('camp.topic_num', '=', 'topic.topic_num');
-            })
-            ->select('camp.*', 'topic.is_one_level as topic_is_one_level','topic.is_disabled as topic_is_disabled');
-            if($request->parent_camp_num){
-                $parentCamp->where('camp.camp_num', $request->parent_camp_num);
+            $parentCamp = Camp::getParentFromParent($request->parent_camp_num,$request->topic_num);
+            //  echo json_encode($parentCamp);die;
+            $is_disabled = false;
+            $is_one_level = false;
+            foreach($parentCamp as $val){
+                if($val->is_disabled === 1){
+                    $is_disabled = true; 
+                }
+                if($val->is_one_level === 1){
+                    $is_one_level = true; 
+                }
             }
-            $parentCamp = $parentCamp->where('camp.topic_num', $request->topic_num)->first();
-            if($parentCamp->is_disabled == 1 || $parentCamp->topic_is_disabled == 1){
+
+            if($is_disabled == true){
                 $message = trans('message.validation_camp_store.camp_creation_not_allowed');
                 $status = 400;
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-            if($parentCamp->is_one_level == 1 || $parentCamp->topic_is_one_level == 1){
+            if($is_one_level == true){
                 $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
                 if($campsCount >= 1){
                     $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
@@ -195,7 +206,7 @@ class CampController extends Controller
                 ->latest('submit_time')->first();
             $nextCampNum->camp_num++;
             $input = [
-                "camp_name" => $request->camp_name,
+                "camp_name" =>  Util::remove_emoji($request->camp_name),
                 "camp_num" => $nextCampNum->camp_num,
                 "parent_camp_num" => $request->parent_camp_num,
                 "topic_num" => $request->topic_num,
@@ -204,8 +215,8 @@ class CampController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => $request->note ?? "",
-                "key_words" => $request->key_words ?? "",
-                "camp_about_url" => $request->camp_about_url ?? "",
+                "key_words" =>  Util::remove_emoji($request->key_words) ?? "",
+                "camp_about_url" => Util::remove_emoji($request->camp_about_url) ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 0,
@@ -244,7 +255,7 @@ class CampController extends Controller
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
+                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -515,7 +526,7 @@ class CampController extends Controller
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse($status, $message, $result, null);
             }
             $data = $result;
             $status = 200;
@@ -1281,9 +1292,12 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
-
-
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
         $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
@@ -1337,11 +1351,11 @@ class CampController extends Controller
         $camp = Camp::where('id', $all['camp_id'])->first();
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
-        $camp->camp_name = $all['camp_name'];
+        $camp->camp_name = Util::remove_emoji($all['camp_name']);
         $camp->note = $all['note'] ?? null;
-        $camp->key_words = $all['keywords'] ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
@@ -1350,18 +1364,19 @@ class CampController extends Controller
 
     private function updateCamp($all)
     {
+        $camp_name = Util::remove_emoji($all['camp_name']);
         $camp = new Camp();
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
         $camp->old_parent_camp_num = isset($all['old_parent_camp_num']) ? $all['old_parent_camp_num'] : null;
-        $camp->camp_name = isset($all['camp_name']) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $all['camp_name'])))  : "";
+        $camp->camp_name = isset($camp_name) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ",  $camp_name)))  : "";
         $camp->submit_time = strtotime(date('Y-m-d H:i:s'));
         $camp->go_live_time =  time();
         $camp->language = 'English';
         $camp->note = $all['note'] ?? "";
-        $camp->key_words = $all['keywords'] ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;

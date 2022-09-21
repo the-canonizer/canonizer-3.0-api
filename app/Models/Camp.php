@@ -704,4 +704,20 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $expertCamp;
        
     }
+
+    public static function getParentFromParent($parent_camp_num, $topic_num)
+    {
+        if (!empty($parent_camp_num)) {
+            $parent = array();
+            $selfData = self::where('topic_num', $topic_num)->where('camp_num', $parent_camp_num)->orderBy('id', 'desc')->first();
+            $parent[] = $selfData;
+                if ($selfData->parent_camp_num) {
+                    $push = self::getParentFromParent($selfData->parent_camp_num, $selfData->topic_num);
+                    $parent = array_merge($parent,$push);
+                    return $parent;
+                }else{
+                    return $parent;
+                }
+            }
+        }
 }
