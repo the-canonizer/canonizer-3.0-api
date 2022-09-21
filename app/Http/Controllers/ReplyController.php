@@ -14,13 +14,13 @@ use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
-use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use Illuminate\Support\Facades\Gate;
+use App\Facades\GetPushNotificationToSupporter;
 
 class ReplyController extends Controller
 {
@@ -170,7 +170,7 @@ class ReplyController extends Controller
                 $message = trans('message.post.create_success');
                 $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
                 // Return Url after creating post Successfully
-                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id) ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id) ;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
             } else {
                 $data = null;
@@ -508,7 +508,7 @@ class ReplyController extends Controller
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
-            PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id) ;
+            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id) ;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {

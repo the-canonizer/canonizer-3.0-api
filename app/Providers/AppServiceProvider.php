@@ -6,6 +6,7 @@ use App\Helpers\Aws;
 use App\Helpers\Util;
 use App\Helpers\PushNotification;
 use Illuminate\Support\ServiceProvider;
+use App\Helpers\GetPushNotificationToSupporter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +23,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('campForum', CampForum::class);
         $this->app->bind('topicSupport', TopicSupport::class);
         $this->app->bind('PushNotification', PushNotification::class);
+        $this->app->bind('GetPushNotificationToSupporter', GetPushNotificationToSupporter::class);
     }
 }
