@@ -199,7 +199,7 @@ class CampController extends Controller
                 ->latest('submit_time')->first();
             $nextCampNum->camp_num++;
             $input = [
-                "camp_name" => $request->camp_name,
+                "camp_name" =>  Util::remove_emoji($request->camp_name),
                 "camp_num" => $nextCampNum->camp_num,
                 "parent_camp_num" => $request->parent_camp_num,
                 "topic_num" => $request->topic_num,
@@ -208,8 +208,8 @@ class CampController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => $request->note ?? "",
-                "key_words" => $request->key_words ?? "",
-                "camp_about_url" => $request->camp_about_url ?? "",
+                "key_words" =>  Util::remove_emoji($request->key_words) ?? "",
+                "camp_about_url" => Util::remove_emoji($request->camp_about_url) ?? "",
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 0,
@@ -1341,11 +1341,11 @@ class CampController extends Controller
         $camp = Camp::where('id', $all['camp_id'])->first();
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
-        $camp->camp_name = $all['camp_name'];
+        $camp->camp_name = Util::remove_emoji($all['camp_name']);
         $camp->note = $all['note'] ?? null;
-        $camp->key_words = $all['keywords'] ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
@@ -1354,18 +1354,19 @@ class CampController extends Controller
 
     private function updateCamp($all)
     {
+        $camp_name = Util::remove_emoji($all['camp_name']);
         $camp = new Camp();
         $camp->topic_num = $all['topic_num'];
         $camp->parent_camp_num = $all['parent_camp_num'];
         $camp->old_parent_camp_num = isset($all['old_parent_camp_num']) ? $all['old_parent_camp_num'] : null;
-        $camp->camp_name = isset($all['camp_name']) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ", $all['camp_name'])))  : "";
+        $camp->camp_name = isset($camp_name) ? trim(preg_replace('/\s\s+/', ' ', str_replace("\n", " ",  $camp_name)))  : "";
         $camp->submit_time = strtotime(date('Y-m-d H:i:s'));
         $camp->go_live_time =  time();
         $camp->language = 'English';
         $camp->note = $all['note'] ?? "";
-        $camp->key_words = $all['keywords'] ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = $all['camp_about_url'] ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
