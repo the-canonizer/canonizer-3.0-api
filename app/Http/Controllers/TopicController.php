@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use stdClass;
 use Exception;
 use Throwable;
+use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Models\Statement;
 use App\Models\Namespaces;
@@ -17,7 +19,6 @@ use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +27,8 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use Carbon\Carbon;
+use App\Facades\GetPushNotificationToSupporter;
 
 class TopicController extends Controller
 {
@@ -397,7 +397,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
             } else if ($type == 'camp') {
                 $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -410,7 +410,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
@@ -424,7 +424,7 @@ class TopicController extends Controller
                   Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",

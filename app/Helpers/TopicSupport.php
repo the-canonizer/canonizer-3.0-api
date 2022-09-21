@@ -2,20 +2,20 @@
 
 namespace App\Helpers;
 
+use DB;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
 use App\Models\Topic;
 use App\Models\Support;
 use App\Models\Nickname;
-use Illuminate\Support\Facades\Event;
-use App\Events\PromotedDelegatesMailEvent;
-use App\Events\SupportRemovedMailEvent;
-use App\Events\SupportAddedMailEvent;
-use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Jobs\ActivityLoggerJob;
-use DB;
-use App\Facades\PushNotification;
+use App\Events\SupportAddedMailEvent;
+use Illuminate\Support\Facades\Event;
+use App\Events\SupportRemovedMailEvent;
+use App\Events\PromotedDelegatesMailEvent;
+use App\Facades\GetPushNotificationToSupporter;
+use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 
 
 class TopicSupport
@@ -136,7 +136,7 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
                 }
                 
-                PushNotification::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
             }
 
              //log activity
@@ -186,7 +186,7 @@ class TopicSupport
                 }
 
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                 PushNotification::pushNotificationToSupporter($user,$topicNum, $camp, 'remove');
+                 GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove');
              }
 
              //log activity
@@ -210,7 +210,7 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, 'add');
+           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add');
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
            
@@ -256,7 +256,7 @@ class TopicSupport
        
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
+        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
 
        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
