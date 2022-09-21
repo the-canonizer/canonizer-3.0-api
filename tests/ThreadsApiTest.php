@@ -65,7 +65,7 @@ class ThreadsApiTest extends TestCase
 
         $rand = rand(10, 99);
         $parameters = [
-            "title" => "Test 3",
+            "title" => "Test 3". $rand,
             "nick_name" => "449",
             "camp_num" => "1",
             "topic_num" => "290",
@@ -104,9 +104,17 @@ class ThreadsApiTest extends TestCase
     public function testThreadUpdateValidData(){
         print sprintf(" \n  Get Thread Update Valid Data %d %s", 200,PHP_EOL);
         $Thread = Thread::factory()->make();
-        $parameters = ["title" => "Test 3"];
+        $rand = rand(10, 99);
+        $parameters = [
+            "title" => "Test 3". $rand,
+            "nick_name" => "449",
+            "camp_num" => "1",
+            "topic_num" => "290",
+            "topic_name" => "Saurabh singh te11s111t 142"
+        ];
         $this->actingAs($Thread)
-        ->put('/api/v3/thread/update/465', $parameters);
+        ->put('/api/v3/thread/update/51', $parameters);
+       // dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }

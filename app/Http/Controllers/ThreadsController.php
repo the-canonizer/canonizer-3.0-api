@@ -14,13 +14,13 @@ use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
-use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
+use App\Facades\GetPushNotificationToSupporter;
 
 class ThreadsController extends Controller
 {
@@ -187,7 +187,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id) ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id) ;
             } else {
                 $data = null;
                 $status = 400;
@@ -583,6 +583,12 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
+            $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+            if (count($thread_flag) > 0) {
+                $status = 400;
+                $message = trans('message.thread.title_unique');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             $update = ["title" => $request->title];
             $threads = Thread::find($id);
             if(!$threads){
