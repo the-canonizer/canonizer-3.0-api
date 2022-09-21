@@ -18,6 +18,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use App\Helpers\SupportAndScoreCount;
+use Illuminate\Support\Facades\Gate;
 
 
 class SupportController extends Controller
@@ -169,16 +170,19 @@ class SupportController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        if (! Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
         $user = $request->user();
         $topicNum = $all['topic_num'];
         $nickNameId = $all['nick_name_id'];
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
-        $orderUpdate = $all['order_update'];  
+        $orderUpdate = $all['order_update']; 
 
-        try{
-            
+        try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -200,15 +204,19 @@ class SupportController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
         
         $all = $request->all();  
+        $user = $request->user();
 
         try{
-            $topicNum = $all['topic_num'];
+            $topicNum   = $all['topic_num'];
             $nickNameId = $all['nick_name_id'];
-            $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
+            $campNum    = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegated_nick_name_id'];
-            //$fcmToken = $all['fcm_token'];
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
@@ -404,8 +412,7 @@ class SupportController extends Controller
         $campNum = $all['camp_num'];
         $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
 
-       try{
-            
+       try{            
             $supportCount = new SupportAndScoreCount();
             $data = $supportCount->getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
