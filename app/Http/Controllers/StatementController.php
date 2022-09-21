@@ -23,6 +23,8 @@ use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Support\Facades\Gate;
+
 
 
 class StatementController extends Controller
@@ -344,6 +346,11 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+        
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];

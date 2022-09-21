@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
+use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
 
 class ReplyController extends Controller
@@ -153,6 +154,11 @@ class ReplyController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
         try {
+
+            if (! Gate::allows('nickname-check', $request->nick_name)) {
+                return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            }
+            
             $thread = Reply::create([
                 'user_id'  => $request->nick_name,
                 'body'     => $request->body,

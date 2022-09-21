@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
+use App\Models\Nickname;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,8 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
+        //$this->registerPolicies();
         \Dusterio\LumenPassport\LumenPassport::routes($this->app);
 
         // Here you may define how you wish users to be authenticated for your Lumen
@@ -38,6 +42,15 @@ class AuthServiceProvider extends ServiceProvider
             if ($request->input('api_token')) {
                 return User::where('api_token', $request->input('api_token'))->first();
             }
+        });
+
+        // gate to check nicnameId belonges to authorized user only 
+        Gate::define('nickname-check', function (User $user, $nickNameId) {
+            $allNickNames = Nickname::getNicknamesIdsByUserId($user->id);
+            if(!in_array($nickNameId, $allNickNames)){
+                return false;
+            }
+            return true;
         });
     }
 }
