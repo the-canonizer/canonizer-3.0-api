@@ -25,7 +25,6 @@ use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use App\Library\General;
 use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
 
