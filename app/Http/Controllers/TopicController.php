@@ -128,15 +128,12 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-<<<<<<< HEAD
+
         if (! Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
-
-        $result = Topic::where('topic_name', $request->topic_name)->first();
-=======
         $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
->>>>>>> development
+
         if (!empty($result)) {
             $status = 400;
             $result->if_exist =true;
