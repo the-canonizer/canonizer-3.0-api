@@ -13,6 +13,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Models\CampSubscription;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
+
+
+
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -404,7 +409,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $camp_subscription = CampSubscription::select('id as subscription_id')->where('user_id', '=', $userid)->where('camp_num', '=', $filter['campNum'])->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>', strtotime(date('Y-m-d H:i:s')))->get();
         $flag = sizeof($camp_subscription) > 0  || 0;
         if (!$flag) {
-            $onecamp = self::liveCampByDateFilter($filter);
+            $onecamp = self::getLiveCamp($filter);
             $childCampData = [];
             if ($onecamp) {
                 $childCampData = $onecamp->campChild($filter['topicNum'], $filter['campNum']);
@@ -628,4 +633,91 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         return ($camp_existsLive || $camp_existsNL);
     }
+
+    public static function filterParentCampForForm($parentCamps = []) {
+        $campHierarchy = array();
+        foreach ($parentCamps as $camp){
+            $camp['children'] = [];
+            $campHierarchy[$camp->parent_camp_num ?? 0][] = $camp;
+        }
+        $tree = self::createTree($campHierarchy, $campHierarchy[0]);
+
+        $parents = self::createParentForForm($tree);
+
+        return $parents;
+
+    }
+
+    public static function createParentForForm($tree = []) {
+        $parents = [];
+        foreach ($tree as $camp) {
+            if ($camp->is_disabled != 1) {
+                if ($camp->is_one_level == 1) {
+                    $camp['children'] = [];
+                }
+                $parents[] = $camp;
+                if (!empty($camp['children'])) {
+                    $children = self::createParentForForm($camp['children']);
+                    $parents = array_merge($parents, $children);
+                }
+            }
+        }
+        return $parents;
+    }
+
+    public static function createTree(&$list, $parent){
+        $tree = array();
+        foreach ($parent as $l){
+            if(isset($list[$l->camp_num])){
+                $l['children'] = self::createTree($list, $list[$l->camp_num]);
+            }
+            $tree[] = $l;
+        } 
+        return $tree;
+    }
+    /**
+     * Get the camp tree count.
+     * @param int $topicNumber
+     * @param int $nickNameId
+     * @param int $asOfTime
+     *
+     * @return $expertCamp
+     */
+
+    public static function getExpertCamp($topicnum, $nick_name_id, $asOfTime)
+    {
+        $camps = new Collection;
+        $camps = Cache::remember("$topicnum-bydate-support-$asOfTime", 2, function () use ($topicnum, $asOfTime) {
+                return $expertCamp = self::where('topic_num', '=', $topicnum)
+                    ->where('objector_nick_id', '=', null)
+                    ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicnum . ' and objector_nick_id is null group by camp_num)')
+                    ->where('go_live_time', '<', $asOfTime)
+                    ->orderBy('submit_time', 'desc')
+                    ->groupBy('camp_num')
+                    ->get();
+            });
+
+        $expertCamp = $camps->filter(function($item) use($nick_name_id){
+            return  $item->camp_about_nick_id == $nick_name_id;
+        })->last();
+        
+        return $expertCamp;
+       
+    }
+
+    public static function getParentFromParent($parent_camp_num, $topic_num)
+    {
+        if (!empty($parent_camp_num)) {
+            $parent = array();
+            $selfData = self::where('topic_num', $topic_num)->where('camp_num', $parent_camp_num)->orderBy('id', 'desc')->first();
+            $parent[] = $selfData;
+                if ($selfData->parent_camp_num) {
+                    $push = self::getParentFromParent($selfData->parent_camp_num, $selfData->topic_num);
+                    $parent = array_merge($parent,$push);
+                    return $parent;
+                }else{
+                    return $parent;
+                }
+            }
+        }
 }

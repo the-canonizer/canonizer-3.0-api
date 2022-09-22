@@ -27,10 +27,13 @@ class AlgorithmSeeder extends Seeder
             'transhumanist' => 'Transhumanist',
             'united_utah' => 'United Utah',
             'republican' => 'Republican',
+            'forward_party'=>'Forward Party',
             'democrat' => 'Democrat',
             'ether' => 'Ethereum',
             'shares' => 'Canonizer Shares',
             'shares_sqrt' => 'Canonizer Canonizer',
+            'sandy_city' => "Sandy City",
+            'sandy_city_council' => "Sandy City Council"
         );
 
         foreach ($algorithms as $key => $value) {

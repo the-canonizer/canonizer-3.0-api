@@ -15,14 +15,16 @@ use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use App\Facades\GetPushNotificationToSupporter;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Illuminate\Support\Facades\Gate;
+
 
 
 class StatementController extends Controller
@@ -344,6 +346,11 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+        
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
@@ -380,8 +387,12 @@ class StatementController extends Controller
                 $statement->grace_period = 1;
             }
 
+            if($eventType == 'objection') {
+                $statement->grace_period = 0;
+            }
+
             $statement->save();
-            PushNotification::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
+            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
 
@@ -547,18 +558,18 @@ class StatementController extends Controller
         }
         $statement = [];
         try {
-
+    
             $compare = !empty($request->compare) ? $request->compare : 'statement';
-
+    
             if ($compare == 'statement') {
                 $campStatement =  Statement::whereIn('id', $request->ids)->get();
-
+    
                 $WikiParser = new wikiParser;
                 $currentTime = time();
                 $currentLive = 0;
                 if ($campStatement) {
                     foreach ($campStatement as $val) {
-
+    
                         switch ($val) {
                             case $val->objector_nick_id !== NULL:
                                 $status = "objected";
@@ -575,9 +586,9 @@ class StatementController extends Controller
                         }
                         $namspaceId =  Topic::select('namespace_id')->where('topic_num', $val->topic_num)->first();
                         $statement['comparison'][] = array(
-                            'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
-                            'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
-                            'object_time' => Util::convertUnixToDateFormat($val->object_time),
+                            'go_live_time' => ($val->go_live_time),
+                            'submit_time' => ($val->submit_time),
+                            'object_time' => ($val->object_time),
                             'parsed_value' => $WikiParser->parse($val->value),
                             'value' => $val->value,
                             'topic_num' => $val->topic_num,
@@ -608,9 +619,9 @@ class StatementController extends Controller
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
-                    $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
-                    $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
-                    $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
+                    $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
+                    $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
+                    $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
@@ -629,17 +640,17 @@ class StatementController extends Controller
                             $statement['liveStatement']['status'] = "old";
                     }
                 }
-                $statement['latestRevision'] = Util::convertUnixToDateFormat($latestRevision->submit_time);
+                $statement['latestRevision'] = ($latestRevision->submit_time);
             }
             if ($request->compare == 'topic') {
                 $campStatement =  Topic::whereIn('id', $request->ids)->get();
-
+    
                 foreach ($campStatement as $val) {
-
+    
                     $statement['comparison'][] = array(
-                        'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
-                        'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
-                        'object_time' => Util::convertUnixToDateFormat($val->object_time),
+                        'go_live_time' => ($val->go_live_time),
+                        'submit_time' => ($val->submit_time),
+                        'object_time' => ($val->object_time),
                         'parsed_value' => $val->topic_name,
                         'value' => $val->topic_name,
                         'topic_num' => $val->topic_num,
@@ -670,9 +681,9 @@ class StatementController extends Controller
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
-                    $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
-                    $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
-                    $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
+                    $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
+                    $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
+                    $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $liveStatement->topic_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
@@ -692,16 +703,16 @@ class StatementController extends Controller
                             $statement['liveStatement']['status'] = "NULL";
                     }
                 }
-                $statement['latestRevision'] = Util::convertUnixToDateFormat($latestRevision->submit_time);
+                $statement['latestRevision'] = ($latestRevision->submit_time);
             }
             if ($request->compare == 'camp') {
                 $campStatement =  Camp::whereIn('id', $request->ids)->get();
-
+    
                 foreach ($campStatement as $val) {
                     $statement['comparison'][] = array(
-                        'go_live_time' => Util::convertUnixToDateFormat($val->go_live_time),
-                        'submit_time' => Util::convertUnixToDateFormat($val->submit_time),
-                        'object_time' => Util::convertUnixToDateFormat($val->object_time),
+                        'go_live_time' => ($val->go_live_time),
+                        'submit_time' => ($val->submit_time),
+                        'object_time' => ($val->object_time),
                         'parsed_value' => $val->camp_name,
                         'value' => $val->camp_name,
                         'topic_num' => $val->topic_num,
@@ -734,9 +745,9 @@ class StatementController extends Controller
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
-                    $statement['liveStatement']['go_live_time'] = Util::convertUnixToDateFormat($liveStatement->go_live_time);
-                    $statement['liveStatement']['submit_time'] = Util::convertUnixToDateFormat($liveStatement->submit_time);
-                    $statement['liveStatement']['object_time'] = Util::convertUnixToDateFormat($liveStatement->object_time);
+                    $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
+                    $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
+                    $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
@@ -757,7 +768,7 @@ class StatementController extends Controller
                             $statement['liveStatement']['status'] = "NULL";
                     }
                 }
-                $statement['latestRevision'] = Util::convertUnixToDateFormat($latestRevision->submit_time);
+                $statement['latestRevision'] = ($latestRevision->submit_time);
             }
           
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);

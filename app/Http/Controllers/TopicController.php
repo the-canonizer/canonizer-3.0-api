@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use stdClass;
 use Exception;
 use Throwable;
+use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Library\General;
 use App\Models\Nickname;
 use App\Models\Statement;
 use App\Models\Namespaces;
@@ -17,7 +19,6 @@ use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\PushNotification;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +27,9 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
-use App\Library\General;
 use App\Jobs\ObjectionToSubmitterMailJob;
+use Illuminate\Support\Facades\Gate;
+use App\Facades\GetPushNotificationToSupporter;
 
 class TopicController extends Controller
 {
@@ -125,7 +127,12 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $result = Topic::where('topic_name', $request->topic_name)->first();
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+        $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
+
         if (!empty($result)) {
             $status = 400;
             $result->if_exist =true;
@@ -137,13 +144,13 @@ class TopicController extends Controller
         try {
             $current_time = time();
             $input = [
-                "topic_name" => $request->topic_name,
+                "topic_name" => Util::remove_emoji($request->topic_name),
                 "namespace_id" => $request->namespace,
                 "submit_time" => $current_time,
                 "submitter_nick_id" => $request->nick_name,
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
-                "note" => isset($request->note) ? $request->note : "",
+                "note" => $request->note ?? "",
                 "grace_period" => 0,
                 "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
                 "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
@@ -151,7 +158,7 @@ class TopicController extends Controller
             DB::beginTransaction();
             $topic = Topic::create($input);
             if ($topic) {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -189,7 +196,7 @@ class TopicController extends Controller
                         "type" => "topic",
                         "link" => $link,
                         "historylink" => $historylink,
-                        "object" => $topic->topic_name . " / Agreement",
+                        "object" => $topic->topic_name,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -282,7 +289,7 @@ class TopicController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         try {
-            $topic = Camp::getAgreementTopic($filter);
+            $topic = Topic::getLiveTopic($filter);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -396,7 +403,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
             } else if ($type == 'camp') {
                 $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -409,7 +416,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
                 $link = 'topic-history/' . $liveTopic->topic_num;
@@ -423,7 +430,7 @@ class TopicController extends Controller
                   Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                PushNotification::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -540,14 +547,15 @@ class TopicController extends Controller
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $data['parent_camp_num'] = $camp->parent_camp_num;
-                    $data['old_parent_camp_num'] = "";
+                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;;
                     $liveCamp = Camp::getLiveCamp($filter);
-                    Util::checkParentCampChanged($data, true, $liveCamp);
+                   // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
+                        Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         $topic = $camp->topic;
                         if (isset($topic)) {
@@ -566,6 +574,7 @@ class TopicController extends Controller
                     if ($agreeCount == $supporters) {           
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
+                        self::updateTopicsInReview($topic);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete(); 
                         if(isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
@@ -582,6 +591,20 @@ class TopicController extends Controller
         }
     }
 
+    private function updateTopicsInReview($topic){
+        $inReviewTopicChanges = Topic::where([['topic_num', '=', $topic->topic_num], 
+        ['submit_time', '<', $topic->submit_time],
+        ['go_live_time', '>', Carbon::now()->timestamp]])->whereNull('objector_nick_id')->get();
+        if(count($inReviewTopicChanges)) {
+            $topicIds = [];
+            foreach ($inReviewTopicChanges as $topic) {
+                $topicIds[] = $topic->id;
+            }
+            if(count($topicIds)) {
+                Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
+            }
+        }
+    }
      /**
      * @OA\Post(path="/manage-topic",
      *   tags={"Topic"},
@@ -655,6 +678,11 @@ class TopicController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
         $current_time = time();
         try {
@@ -678,7 +706,7 @@ class TopicController extends Controller
 
             if ($all['event_type'] == "edit") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
-                $topic->topic_name = isset($all['topic_name']) ? $all['topic_name'] : "";
+                $topic->topic_name == Util::remove_emoji($all['topic_name']) ?? "";
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
@@ -690,7 +718,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "update") {
                 $topic = new Topic();
                 $topic->topic_num = $all['topic_num'];
-                $topic->topic_name = $all['topic_name'];
+                $topic->topic_name = Util::remove_emoji($all['topic_name']);
                 $topic->namespace_id = $all['namespace_id'];
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];
@@ -718,7 +746,7 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
-                Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+                Util::dispatchJob($topic, 1, 1);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -731,7 +759,7 @@ class TopicController extends Controller
     private function objectedTopicNotification($all, $topic, $request)
     {
         if (isset($topic)) {
-            Util::dispatchJob($topic, 1, 1, $topic->is_disabled, $topic->is_one_level);
+            Util::dispatchJob($topic, 1, 1);
         }
         $user = Nickname::getUserByNickName($all['submitter']);
         $liveTopic = Topic::select('topic.*')
@@ -739,8 +767,7 @@ class TopicController extends Controller
             ->where('topic.objector_nick_id', "=", null)
             ->latest('topic.submit_time')
             ->first();
-        $link = 'topic-history/' . $topic->topic_num;
-        $data['object'] = $liveTopic->topic_name;
+        $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
         $data['type'] = "Topic";
@@ -834,6 +861,7 @@ class TopicController extends Controller
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
+            $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
             if ($request->user()) {

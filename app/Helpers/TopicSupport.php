@@ -2,20 +2,20 @@
 
 namespace App\Helpers;
 
+use DB;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
 use App\Models\Topic;
 use App\Models\Support;
 use App\Models\Nickname;
-use Illuminate\Support\Facades\Event;
-use App\Events\PromotedDelegatesMailEvent;
-use App\Events\SupportRemovedMailEvent;
-use App\Events\SupportAddedMailEvent;
-use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Jobs\ActivityLoggerJob;
-use DB;
-use App\Facades\PushNotification;
+use App\Events\SupportAddedMailEvent;
+use Illuminate\Support\Facades\Event;
+use App\Events\SupportRemovedMailEvent;
+use App\Events\PromotedDelegatesMailEvent;
+use App\Facades\GetPushNotificationToSupporter;
+use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 
 
 class TopicSupport
@@ -90,6 +90,14 @@ class TopicSupport
 
             }
 
+            /* To update the Mongo Tree while deleting delegate support */
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            if(!empty($campNum)) {
+                Util::dispatchJob($topic, $campNum, 1);
+            } else {
+                Util::dispatchJob($topic, 1, 1);
+            }
+
             //log remove support activity
             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
             return;
@@ -120,8 +128,15 @@ class TopicSupport
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                 $campModel  = self::getLiveCamp($campFilter);
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel); 
+
+                /* To update the Mongo Tree while removing support */
+                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
+                $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $camp, 1);
+                }
                 
-                PushNotification::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
             }
 
              //log activity
@@ -147,7 +162,10 @@ class TopicSupport
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
- 
+
+        /* To update the Mongo Tree while adding support */
+        $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+
          if(!empty($removeCamps)){
  
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
@@ -160,8 +178,15 @@ class TopicSupport
              {     
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
+
+                /* To update the Mongo Tree while removing at add support */
+                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $camp, 1);
+                }
+
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                 PushNotification::pushNotificationToSupporter($user,$topicNum, $camp, 'remove');
+                 GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove');
              }
 
              //log activity
@@ -185,11 +210,19 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, 'add');
+           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add');
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
+           
+           /* To update the Mongo Tree while adding support */
+           Util::dispatchJob($topic, $campNum, 1);
          }
- 
+
+        /* To update the Mongo Tree while adding support */
+        /* Execute job here only when topicnumber != 81 (because there are multiple camps here) */
+        if($topicNum != config('global.mind_expert_topic_num')) {
+            Util::dispatchJob($topic, 1, 1);
+        }
     }
 
 
@@ -223,11 +256,19 @@ class TopicSupport
        
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        PushNotification::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
+        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
 
        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
             $notifyDelegatedUser = true;
+        }
+
+        /* To update the Mongo Tree while delegating at add support*/
+        $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+        if(!empty($campNum)) {
+            Util::dispatchJob($topic, $campNum, 1);
+        } else {
+            Util::dispatchJob($topic, 1, 1);
         }
         
         self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
@@ -483,6 +524,7 @@ class TopicSupport
         $supports[$nickname->id] = [];
         $supports[$nickname->id]['nick_name_id'] = $nickname->id;
         $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
+        $supports[$nickname->id]['private_status'] = $nickname->private;
         
         foreach ($results as $rs) {
             $topic_num = $rs->topic_num;
@@ -492,13 +534,17 @@ class TopicSupport
             $filter['campNum'] =  $camp_num;
             $livecamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+
+            if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
+                continue;
+            }
             //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
            // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
             $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
             $topic_id = $topic_num . "-" . $title;
             $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
             
-            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {die('dd');
+            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
 
                 $tempCamp = [
                             'camp_name' => $livecamp->camp_name, 
@@ -515,13 +561,6 @@ class TopicSupport
                 }
 
             } else if ($camp_num == 1) { 
-
-               /* if($rs->title ==''){ can-963 code to be removed after testing passed
-                   // $topicData = Topic::where('topic_num','=',$topic_num)->where('go_live_time', '<=', time())->latest('submit_time')->get();
-                   // $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-                    //$title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name);
-                    //$topic_id = $topic_num . "-" . $title;
-                }*/
 
                 //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                 $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
@@ -589,6 +628,9 @@ class TopicSupport
     {
 
         try{
+            /* To update the Mongo Tree while adding support */
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            
             DB::beginTransaction();
                 // do all your updates here
                 foreach($orders as $order)
@@ -600,6 +642,12 @@ class TopicSupport
                     ->whereIn('nick_name_id', $allNickNames)
                     ->update(['support_order' => $order['order']  // update your field(s) here
                         ]);
+                    
+                    /* To update the Mongo Tree while adding support */
+                    /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
+                    if($topicNum == config('global.mind_expert_topic_num')) {
+                        Util::dispatchJob($topic, $order['camp_num'], 1);
+                    }
                 }
             DB::commit();
 

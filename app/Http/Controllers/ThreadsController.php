@@ -14,13 +14,14 @@ use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
-use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
+use Illuminate\Support\Facades\Gate;
+use App\Facades\GetPushNotificationToSupporter;
 
 class ThreadsController extends Controller
 {
@@ -160,10 +161,15 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
         try {
+
+            if (! Gate::allows('nickname-check', $request->nick_name)) {
+                return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            }
+            
             $thread = Thread::create([
                 'user_id'  => $request->nick_name,
-                'title'    => $request->title,
-                'body'     => $request->title,
+                'title'    => Util::remove_emoji($request->title),
+                'body'     => Util::remove_emoji($request->title),
                 'camp_id'  => $request->camp_num,
                 'topic_id' => $request->topic_num,
             ]);
@@ -187,7 +193,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                PushNotification::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id) ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id) ;
             } else {
                 $data = null;
                 $status = 400;
@@ -442,12 +448,12 @@ class ThreadsController extends Controller
             }
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
-                $query = Thread::Join('post', function($join) {
+                $query = Thread::leftJoin('post', function($join) {
                         $join->on('thread.id', '=', 'post.thread_id');
                         $join->where('post.is_delete',0);
                     })
-                    ->Join('nick_name as n1', 'n1.id', '=', 'post.user_id')
-                    ->Join('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+                    ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+                    ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                     ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
@@ -583,15 +589,15 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $update = ["title" => $request->title];
+            $update = ["title" =>  Util::remove_emoji($request->title)];
             $threads = Thread::find($id);
             if(!$threads){
                 $threads = null;
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
-                if($threads->title !=$request->title){
-                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', $request->title)->get();
+                if($threads->title !=Util::remove_emoji($request->title)){
+                    $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', Util::remove_emoji($request->title))->get();
                     if (count($thread_flag) > 0) {
                         $status = 400;
                         $message = trans('message.thread.title_unique');
@@ -601,7 +607,7 @@ class ThreadsController extends Controller
                 $threads->update($update);
                 $topic_name = CampForum::getTopicName($threads->topic_id);
                 $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
-                $url = 'forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters($request->topic_name) . '/'  . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads';
+                $url = 'forum/' . $request->topic_num . '-' .   urlencode(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . urlencode($request->camp_name) . '/threads';
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',

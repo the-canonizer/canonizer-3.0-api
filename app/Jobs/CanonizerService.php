@@ -53,9 +53,7 @@ class CanonizerService implements ShouldQueue, Uniqueable
             'topic_num'     => $this->canonizerData['topic_num'],
             'asofdate'      => $this->canonizerData['asOfDate'],
             'algorithm'     => $this->canonizerData['algorithm'],
-            'update_all'    => $updateAll,
-            "is_disabled" =>  $this->canonizerData['is_disabled'],
-            "is_one_level" => $this->canonizerData['is_one_level']
+            'update_all'    => $updateAll
         ];
 
         $appURL = env('CS_APP_URL');

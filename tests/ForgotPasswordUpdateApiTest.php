@@ -16,14 +16,14 @@ class ForgotPasswordUpdateApiTest extends TestCase
     public function testForgotPasswordApiWithInvalidData()
     {
         print sprintf("Invalid Forgot Password update details submitted %d %s", 302, PHP_EOL);
-        $response = $this->call('POST', '/api/v3/forgotpassword/update', []);
+        $response = $this->call('POST', '/api/v3/forgot-password/update', []);
         $this->assertEquals(400, $response->status());
     }
 
     public function testForgotPasswordUnauthorizedUserCanNotUpdate()
     {
         print sprintf("\n Unauthorized ForgotPassword update User can not  request this api %d %s", 500, PHP_EOL);
-        $response = $this->call('POST', '/api/v3/forgotpassword/update', []);
+        $response = $this->call('POST', '/api/v3/forgot-password/update', []);
         $this->assertEquals(400, $response->status());
     }
 
@@ -50,7 +50,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
         print sprintf(" \n Invalid Forgot Password Update details submitted %d %s", 400, PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/update', []);
+            ->post('/api/v3/forgot-password/update', []);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -67,7 +67,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-            ->post('/api/v3/forgotpassword/update',  $data);
+            ->post('/api/v3/forgot-password/update',  $data);
         $this->assertEquals(200, $this->response->status());
     }
 }

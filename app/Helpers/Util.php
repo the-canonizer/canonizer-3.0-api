@@ -239,10 +239,9 @@ class Util
      * @param boolean $updateAll
      * @return void
      */
-    public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $is_disabled = 0, $is_one_level = 0)
-    {
+    public function dispatchJob($topic, $campNum = 1, $updateAll = 0) {
 
-        try {
+        try{
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';
             $asOfDefaultDate = time();
@@ -252,21 +251,19 @@ class Util
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
                 'updateAll' => $updateAll,
-                'camp_num'  => $campNum,
-                "is_disabled" => $is_disabled,
-                "is_one_level" => $is_one_level
+                'camp_num'  => $campNum
             ];
             // Dispatch job when create a camp/topic
             dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
 
             // Incase the topic is mind expert then find all the affected topics 
-            if ($topic->topic_num == config('global.mind_expert_topic_num')) {
+            if($topic->topic_num == config('global.mind_expert_topic_num')) {
                 $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
-                if (!empty($camp)) {
+                if(!empty($camp)) {
                     // Get submitter nick name id
                     $submitterNickNameID = $camp->camp_about_nick_id;
-                    $affectedTopicNums = Support::where('nick_name_id', $submitterNickNameID)->where('end', 0)->distinct('topic_num')->pluck('topic_num');
-                    foreach ($affectedTopicNums as $affectedTopicNum) {
+                    $affectedTopicNums = Support::where('nick_name_id',$submitterNickNameID)->where('end',0)->distinct('topic_num')->pluck('topic_num');
+                    foreach($affectedTopicNums as $affectedTopicNum) {
                         $topic = Topic::where('topic_num', $affectedTopicNum)->get()->last();
                         $canonizerServiceData = [
                             'topic_num' => $topic->topic_num,
@@ -274,19 +271,18 @@ class Util
                             'asOfDate'  => $asOfDefaultDate,
                             'asOf'      => $asOf,
                             'updateAll' => 1,
-                            'camp_num'  => $campNum,
-                            "is_disabled" => $is_disabled,
-                            "is_one_level" => $is_one_level
+                            'camp_num'  => $campNum
                         ];
                         // Dispact job when create a camp
                         dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                        // ->unique(Topic::class, $topic->topic_num);
+                           // ->unique(Topic::class, $topic->topic_num);
                     }
                 }
             }
-        } catch (Exception $ex) {
-            Log::error("Util :: DispatchJob :: message: " . $ex->getMessage());
+        } catch(Exception $ex) {
+            Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
         }
+        
     }
 
      /**
@@ -386,7 +382,7 @@ class Util
 
     public function checkParentCampChanged($all, $in_review_status, $liveCamp)
     {
-        if ($in_review_status) {
+       /* if ($in_review_status) { // to be removed after testing
             $allChildCamps = Camp::getAllChildCamps($liveCamp);
             $allChildSupporters = Support::where('topic_num', $all['topic_num'])
                 ->where('end', 0)
@@ -395,7 +391,8 @@ class Util
             if (sizeof($allChildSupporters) > 0) {
                 Support::removeSupport($all['topic_num'], $all['parent_camp_num'], $allChildSupporters);
             }
-        } else if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+        } else */
+        if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
                 $allParentCamps = Camp::getAllParent($liveCamp);
                 $allChildSupporters = Support::where('topic_num', $all['topic_num'])
                     ->where('end', 0)
@@ -407,11 +404,31 @@ class Util
                     }
                 }
         }
+        return;
+    }
+
+    function remove_emoji($string)
+    {
+        $symbols = "\x{1F100}-\x{1F1FF}" // Enclosed Alphanumeric Supplement
+            . "\x{1F300}-\x{1F5FF}" // Miscellaneous Symbols and Pictographs
+            . "\x{1F600}-\x{1F64F}" //Emoticons
+            . "\x{1F680}-\x{1F6FF}" // Transport And Map Symbols
+            . "\x{1F900}-\x{1F9FF}" // Supplemental Symbols and Pictographs
+            . "\x{2600}-\x{26FF}" // Miscellaneous Symbols
+            . "\x{2700}-\x{27BF}"; // Dingbats
+
+        return preg_replace('/[' . $symbols . ']+/u', '', $string);
+    }
+
+    public function allow_emoji($string)
+    {
+        $unicodes = config('global.emoji_unicodes');
+        return preg_match('/[\x{' . implode('}\x{', $unicodes) . '}]/u', $string) ? $string : '';
     }
 
     public static function replaceSpecialCharacters($topic_name)
     {
-        $text = preg_replace('/[^A-Za-z0-9\-]/', '',  $topic_name);
+        $text = preg_replace('/[^A-Za-z0-9\-]/', '-',  $topic_name);
         return preg_replace("/\-\-+/", '-', $text);
     }
 }

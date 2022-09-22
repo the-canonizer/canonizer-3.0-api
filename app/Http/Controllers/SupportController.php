@@ -17,6 +17,8 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use App\Helpers\SupportAndScoreCount;
+use Illuminate\Support\Facades\Gate;
 
 
 class SupportController extends Controller
@@ -168,16 +170,19 @@ class SupportController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        if (! Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->all();
         $user = $request->user();
         $topicNum = $all['topic_num'];
         $nickNameId = $all['nick_name_id'];
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
-        $orderUpdate = $all['order_update'];  
+        $orderUpdate = $all['order_update']; 
 
-        try{
-            
+        try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -199,15 +204,19 @@ class SupportController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        if (! Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
         
         $all = $request->all();  
+        $user = $request->user();
 
         try{
-            $topicNum = $all['topic_num'];
+            $topicNum   = $all['topic_num'];
             $nickNameId = $all['nick_name_id'];
-            $campNum = isset($all['camp_num']) ? $all['camp_num'] : '';
+            $campNum    = isset($all['camp_num']) ? $all['camp_num'] : '';
             $delegatedNickId = $all['delegated_nick_name_id'];
-            //$fcmToken = $all['fcm_token'];
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
@@ -348,7 +357,6 @@ class SupportController extends Controller
 
             }else{
                 $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames);
-
                 $message = trans('message.support.support_not_exist');
                 $data['support_flag'] = 0;
             }
@@ -376,7 +384,6 @@ class SupportController extends Controller
         $topicNum = $all['topic_num'];
         $user = $request->user();
         $userId = $user->id;
-
         try{
             
             $data = Support::getSupportedCampsList($topicNum, $userId);              
@@ -389,4 +396,60 @@ class SupportController extends Controller
 
     }
 
+     /* @OA\Post(path="support-and-score-count",
+     *  tags = "{topicSupport}"
+     *  description = "This will return support tree with score for camp."
+     * ) 
+     * 
+     */
+
+
+    public function getCampSupportAndCount(Request $request) 
+    {
+        $all = $request->all();
+        $algorithm = $all['algorithm'];
+        $topicNum = $all['topic_num'];
+        $campNum = $all['camp_num'];
+        $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
+
+       try{            
+            $supportCount = new SupportAndScoreCount();
+            $data = $supportCount->getSupporterWithScore($algorithm, $topicNum, $campNum, $asOfDate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+           
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+        
+        
+    }
+
+      /**
+     *  @OA\Post(path="camp-total-support-score",
+     *  tags = "{campSupport}"
+     *  description = "This will return camp's total support score count"
+     * )
+     * 
+     */
+
+    public function getCampTotalSupportScore(Request $request)
+    {
+       $all = $request->all();
+       $algorithm = $all['algorithm'];
+       $topicNum = $all['topic_num'];
+       $campNum = $all['camp_num'];
+       $asOfDate = (isset($all['as_of_date']) && $all['as_of_date']) ? $all['as_of_date'] : time();
+       $asOf = (isset($all['as_of']) && $all['as_of']) ? $all['as_of'] : ""; 
+
+       try{
+           $supportCount = new SupportAndScoreCount();
+           $data = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asOfDate, $asOf);
+       
+           return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
+       } catch (\Throwable $e) {
+
+          return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+       }  
+    }
 }
