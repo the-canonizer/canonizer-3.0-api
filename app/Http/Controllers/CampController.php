@@ -521,7 +521,7 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
-            $result = Camp::filterParentCampForForm($result);
+            $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');

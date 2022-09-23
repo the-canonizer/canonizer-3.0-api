@@ -634,7 +634,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return ($camp_existsLive || $camp_existsNL);
     }
 
-    public static function filterParentCampForForm($parentCamps = []) {
+    public static function filterParentCampForForm($parentCamps = [],$topic_num = null, $existingParent = null) {
         $campHierarchy = array();
         foreach ($parentCamps as $camp){
             $camp['children'] = [];
@@ -643,7 +643,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $tree = self::createTree($campHierarchy, $campHierarchy[0]);
 
         $parents = self::createParentForForm($tree);
-
+        $parents = self::removeKeyFromArray($parents, 'children');
+        if (!empty($topic_num) && !empty($existingParent)) {
+            $existingParentCamp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $existingParent, 'asOf' => 'default']);
+            if (!empty($existingParentCamp)) {
+                $parents = array_merge($parents, [$existingParentCamp]);
+            }
+        }
+        $parents = array_map("unserialize", array_unique(array_map("serialize", $parents)));
         return $parents;
 
     }
@@ -675,6 +682,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         } 
         return $tree;
     }
+
+    public static function removeKeyFromArray($array, $keyToRemove) {
+        foreach ($array as $ele) {
+            unset($ele[$keyToRemove]);
+        }
+        return $array;
+    }
+    
     /**
      * Get the camp tree count.
      * @param int $topicNumber
