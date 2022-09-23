@@ -370,6 +370,10 @@ class Support extends Model
                     WHERE t1.topic_num = t2.topic_num AND t1.topic_num = t3.topic_num ORDER BY t2.support_order ASC,t2.start DESC, t2.topic_num";
 
         $result = DB::select($query);
+
+        $result = array_map(function ($value) {
+          return (array) $value;
+        }, $result);
         return $result;
     }
 
