@@ -425,4 +425,10 @@ class Util
         $unicodes = config('global.emoji_unicodes');
         return preg_match('/[\x{' . implode('}\x{', $unicodes) . '}]/u', $string) ? $string : '';
     }
+
+    public static function replaceSpecialCharacters($topic_name)
+    {
+        $text = preg_replace('/[^A-Za-z0-9\-]/', '-',  $topic_name);
+        return preg_replace("/\-\-+/", '-', $text);
+    }
 }
