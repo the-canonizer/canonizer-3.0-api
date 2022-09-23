@@ -1309,6 +1309,10 @@ class CampController extends Controller
         $all = $request->all();
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
         $all['old_parent_camp_num'] = $all['old_parent_camp_num'] ?? null;
+        $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+        if (!in_array($request->nick_name, $nickNameIds)) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
+        }
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
         }
