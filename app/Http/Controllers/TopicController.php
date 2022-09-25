@@ -769,7 +769,7 @@ class TopicController extends Controller
             ->first();
         $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
-        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
+        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1);
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
         $data['object'] = $liveTopic->topic_name;

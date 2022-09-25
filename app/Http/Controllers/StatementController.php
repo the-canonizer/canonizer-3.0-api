@@ -484,7 +484,7 @@ class StatementController extends Controller
         $user = Nickname::getUserByNickName($all['submitter']);
         $nickName = Nickname::getNickName($all['nick_name']);
         $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
-        $data['topic_link'] = Util::getTopicCampUrl($statement->topic_num, $statement->camp_num, $topicLive, $livecamp, time());
+        $data['topic_link'] = Util::getTopicCampUrl($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
         $data['type'] = "Camp";
         $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
         $data['object_type'] = "statement";
