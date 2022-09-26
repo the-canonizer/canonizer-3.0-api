@@ -534,7 +534,7 @@ class TopicSupport
             $filter['campNum'] =  $camp_num;
             $livecamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-
+            $delegatedToNickname = '';
             if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
                 continue;
             }
@@ -544,6 +544,11 @@ class TopicSupport
             $topic_id = $topic_num . "-" . $title;
             $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
             
+            if(isset($rs->delegate_nick_name_id) && $rs->delegate_nick_name_id){
+                $dnModel = Nickname::getNickName($rs->delegate_nick_name_id);
+                $delegatedToNickname = $dnModel->nick_name;
+            }
+
             if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
 
                 $tempCamp = [
@@ -551,7 +556,8 @@ class TopicSupport
                             'camp_num' => $camp_num, 
                             'support_order' => $rs->support_order,
                             'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
-                            'delegate_nick_name_id' => $rs->delegate_nick_name_id
+                            'delegate_nick_name_id' => $rs->delegate_nick_name_id,
+                            'delegate_nick_name' => $delegatedToNickname
                         ];
                 
                 if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
@@ -570,6 +576,7 @@ class TopicSupport
                 $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
                 if($rs->delegate_nick_name_id){
                     $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
+                    $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name'] = $delegatedToNickname;
                 }
                 
             } else {
@@ -579,7 +586,8 @@ class TopicSupport
                     'camp_num' => $camp_num, 
                     'support_order' => $rs->support_order,
                     'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
-                    'delegate_nick_name_id'=>$rs->delegate_nick_name_id
+                    'delegate_nick_name_id'=>$rs->delegate_nick_name_id,
+                    'delegate_nick_name' => $delegatedToNickname
                 ];
 
                 if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
