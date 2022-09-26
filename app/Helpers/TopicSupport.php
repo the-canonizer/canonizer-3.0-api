@@ -1190,7 +1190,7 @@ class TopicSupport
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
 
         $data['object']     = $object;
-        $data['subject']    = "You has just delegated your support to  " . $delegatedToNickname->nick_nam. ".";
+        $data['subject']    = "You has just delegated your support to " . $delegatedToNickname->nick_name . ".";
         $data['topic']      = $topic;
         $data['camp']       = $camp;
         $data['camp_name']  = $camp->camp_name;
