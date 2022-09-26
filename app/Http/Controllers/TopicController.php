@@ -419,7 +419,7 @@ class TopicController extends Controller
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
-                $link = 'topic-history/' . $liveTopic->topic_num;
+                $link = 'topic/history/' . $liveTopic->topic_num;
                 $data['support_camp'] = $model->topic_name;
                 $data['type'] = 'topic : ';
                 $data['typeobject'] = 'topic';
