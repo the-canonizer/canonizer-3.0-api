@@ -558,7 +558,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $data->details = $response;
         $statementHistory = [];
         if (isset($data->items) && count($data->items) > 0) {
-            foreach ($data->items as $val) {
+                $nickNameIds = Nickname::getNicknamesIdsByUserId($filter['userId']);
+                foreach ($data->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
                 $submittime = $val->submit_time;
                 $starttime = time();
@@ -566,8 +567,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name ?? null;
-                $val->parent_camp_name = isset($val->parent_camp_num) ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
+                $val->parent_camp_name = isset($val->parent_camp_num) && $val->parent_camp_num !=0 ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
+                $val->agreed_to_change = 0;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -575,6 +577,10 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         $val->unsetRelation('objectorNickName');
                         break;
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->agreed_to_change = (int) ChangeAgreeLog::whereIn('nick_name_id', $nickNameIds)
+                        ->where('change_for', '=', 'camp')
+                        ->where('change_id', '=', $val->id)
+                        ->exists(); 
                         $val->status = "in_review";
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":

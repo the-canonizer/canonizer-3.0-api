@@ -156,6 +156,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     {
         $topicHistory = [];
         if (isset($response->items) && count($response->items) > 0) {
+            $nickNameIds = isset($request->user()->id) ? Nickname::getNicknamesIdsByUserId($request->user()->id) : [];
             foreach ($response->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
                 $submittime = $val->submit_time;
@@ -167,6 +168,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $val->unsetRelation('nameSpace');
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
+                $val->agreed_to_change = 0;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -174,6 +176,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                         $val->unsetRelation('objectorNickName');
                         break;
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->agreed_to_change = (int) ChangeAgreeLog::whereIn('nick_name_id', $nickNameIds)
+                        ->where('change_for', '=', 'topic')
+                        ->where('change_id', '=', $val->id)
+                        ->exists(); 
                         $val->status = "in_review";
                         break;
                     case $liveTopic->id == $val->id && $filter['type'] != "old":
