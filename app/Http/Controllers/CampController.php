@@ -1341,7 +1341,7 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp, time());
+            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);

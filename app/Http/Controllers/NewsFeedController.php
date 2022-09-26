@@ -207,7 +207,7 @@ class NewsFeedController extends Controller
             $campFilter = ['topicNum' => $news->topic_num, 'campNum' => $news->camp_num];
             $topic = Camp::getAgreementTopic($topicFilter);
             $camp  = TopicSupport::getLiveCamp($campFilter);
-            $url = Util::getTopicCampUrl($news->topic_num, $news->camp_num, $topic, $camp, time());
+            $url = Util::getTopicCampUrl($news->topic_num, $news->camp_num, $topic, $camp);
             $activitLogData = [
                 'log_type' =>  "topic/camps",
                 'activity' => 'News updated',
@@ -322,7 +322,7 @@ class NewsFeedController extends Controller
             $campFilter = ['topicNum' => $request->topic_num, 'campNum' => $request->camp_num];
             $topic = Camp::getAgreementTopic($topicFilter);
             $camp  = TopicSupport::getLiveCamp($campFilter);
-            $url = Util::getTopicCampUrl($request->topic_num, $request->camp_num, $topic, $camp, time());
+            $url = Util::getTopicCampUrl($request->topic_num, $request->camp_num, $topic, $camp);
             $activitLogData = [
                 'log_type' =>  "topic/camps",
                 'activity' => 'News added',
@@ -393,7 +393,7 @@ class NewsFeedController extends Controller
                 $campFilter = ['topicNum' => $newsFeed->topic_num, 'campNum' => $newsFeed->camp_num];
                 $topic = Camp::getAgreementTopic($topicFilter);
                 $camp  = TopicSupport::getLiveCamp($campFilter);
-                $url = Util::getTopicCampUrl($newsFeed->topic_num, $newsFeed->camp_num, $topic, $camp, time());
+                $url = Util::getTopicCampUrl($newsFeed->topic_num, $newsFeed->camp_num, $topic, $camp);
                 $activitLogData = [
                     'log_type' =>  "topic/camps",
                     'activity' => 'News deleted',
