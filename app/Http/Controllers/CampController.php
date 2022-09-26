@@ -214,8 +214,8 @@ class CampController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => $request->note ?? "",
-                "key_words" =>  Util::remove_emoji($request->key_words) ?? "",
-                "camp_about_url" => Util::remove_emoji($request->camp_about_url) ?? "",
+                "key_words" =>  Util::remove_emoji($request->key_words ?? ""),
+                "camp_about_url" => Util::remove_emoji($request->camp_about_url  ?? ""),
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 0,
@@ -521,7 +521,17 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
-            $result = Camp::filterParentCampForForm($result);
+            $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
+            if($request->camp_num){
+                $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num, 'asOf' => 'default']);
+                $childCamps = array_unique(Camp::getAllChildCamps($camp));
+                foreach($result as $key => $val){
+                    if(in_array($val->camp_num, $childCamps)){
+                        unset($result[$key]);
+                    }
+                }
+                $result = array_unique($result);
+            }
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
@@ -1356,9 +1366,9 @@ class CampController extends Controller
         $camp->parent_camp_num = $all['parent_camp_num'];
         $camp->camp_name = Util::remove_emoji($all['camp_name']);
         $camp->note = $all['note'] ?? null;
-        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words'] ?? "");
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url'] ?? "");
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
@@ -1377,9 +1387,9 @@ class CampController extends Controller
         $camp->go_live_time =  time();
         $camp->language = 'English';
         $camp->note = $all['note'] ?? "";
-        $camp->key_words = Util::remove_emoji($all['key_words']) ?? "";
+        $camp->key_words = Util::remove_emoji($all['key_words'] ?? "");
         $camp->submitter_nick_id = $all['nick_name'];
-        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url']) ?? "";
+        $camp->camp_about_url = Util::remove_emoji($all['camp_about_url'] ?? "");
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;

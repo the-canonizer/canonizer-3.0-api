@@ -706,7 +706,7 @@ class TopicController extends Controller
 
             if ($all['event_type'] == "edit") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
-                $topic->topic_name == Util::remove_emoji($all['topic_name']) ?? "";
+                $topic->topic_name == Util::remove_emoji($all['topic_name']  ?? "");
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
