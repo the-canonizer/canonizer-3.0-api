@@ -419,7 +419,7 @@ class TopicController extends Controller
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
             }else if($type == 'topic'){
                 $model->camp_num=1;
-                $link = 'topic-history/' . $liveTopic->topic_num;
+                $link = 'topic/history/' . $liveTopic->topic_num;
                 $data['support_camp'] = $model->topic_name;
                 $data['type'] = 'topic : ';
                 $data['typeobject'] = 'topic';
@@ -706,7 +706,7 @@ class TopicController extends Controller
 
             if ($all['event_type'] == "edit") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
-                $topic->topic_name == Util::remove_emoji($all['topic_name']) ?? "";
+                $topic->topic_name == Util::remove_emoji($all['topic_name']  ?? "");
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
@@ -769,7 +769,7 @@ class TopicController extends Controller
             ->first();
         $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
-        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1, time());
+        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1);
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
         $data['object'] = $liveTopic->topic_name;

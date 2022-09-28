@@ -214,8 +214,8 @@ class CampController extends Controller
                 "go_live_time" =>  $current_time,
                 "language" => 'English',
                 "note" => $request->note ?? "",
-                "key_words" =>  Util::remove_emoji($request->key_words) ?? "",
-                "camp_about_url" => Util::remove_emoji($request->camp_about_url) ?? "",
+                "key_words" =>  Util::remove_emoji($request->key_words ?? ""),
+                "camp_about_url" => Util::remove_emoji($request->camp_about_url  ?? ""),
                 "title" => $request->title ?? "",
                 "camp_about_nick_id" =>  $request->camp_about_nick_id,
                 "grace_period" => 0,
@@ -521,7 +521,17 @@ class CampController extends Controller
 
         try {
             $result = Camp::getAllParentCamp($request->topic_num, $request->filter, $request->asOfDate);
-            $result = Camp::filterParentCampForForm($result);
+            $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
+            if($request->camp_num){
+                $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num, 'asOf' => 'default']);
+                $childCamps = array_unique(Camp::getAllChildCamps($camp));
+                foreach($result as $key => $val){
+                    if(in_array($val->camp_num, $childCamps)){
+                        unset($result[$key]);
+                    }
+                }
+                $result = array_unique($result);
+            }
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
@@ -1331,7 +1341,7 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp, time());
+            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);

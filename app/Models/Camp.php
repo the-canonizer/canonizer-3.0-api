@@ -375,12 +375,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $liveCamp = self::getLiveCamp($filter);
                 $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
                 if ($subs->camp_num == 0) {
-                    $link = Util::getTopicCampUrl($topic_num, 1, $topicLive, $liveCamp, time());
+                    $link = Util::getTopicCampUrl($topic_num, 1, $topicLive, $liveCamp);
                     if (!empty($topicLive)) {
                         $list[] = '<a href="' . $link . '">' . $topicLive->topic_name . '</a>';
                     }
                 } else {
-                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $liveCamp, time());
+                    $link = Util::getTopicCampUrl($topic_num, $subs->camp_num, $topicLive, $liveCamp);
                     $list[] = '<a href="' . $link . '">' . $liveCamp->camp_name . '</a>';
                 }
             }
@@ -558,7 +558,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $data->details = $response;
         $statementHistory = [];
         if (isset($data->items) && count($data->items) > 0) {
-            foreach ($data->items as $val) {
+                $nickNameIds = Nickname::getNicknamesIdsByUserId($filter['userId']);
+                foreach ($data->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
                 $submittime = $val->submit_time;
                 $starttime = time();
@@ -566,8 +567,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name ?? null;
-                $val->parent_camp_name = isset($val->parent_camp_num) ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
+                $val->parent_camp_name = isset($val->parent_camp_num) && $val->parent_camp_num !=0 ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
+                $val->agreed_to_change = 0;
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -575,6 +577,10 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         $val->unsetRelation('objectorNickName');
                         break;
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->agreed_to_change = (int) ChangeAgreeLog::whereIn('nick_name_id', $nickNameIds)
+                        ->where('change_for', '=', 'camp')
+                        ->where('change_id', '=', $val->id)
+                        ->exists(); 
                         $val->status = "in_review";
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":
@@ -634,7 +640,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return ($camp_existsLive || $camp_existsNL);
     }
 
-    public static function filterParentCampForForm($parentCamps = []) {
+    public static function filterParentCampForForm($parentCamps = [],$topic_num = null, $existingParent = null) {
         $campHierarchy = array();
         foreach ($parentCamps as $camp){
             $camp['children'] = [];
@@ -643,7 +649,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $tree = self::createTree($campHierarchy, $campHierarchy[0]);
 
         $parents = self::createParentForForm($tree);
-
+        $parents = self::removeKeyFromArray($parents, 'children');
+        if (!empty($topic_num) && !empty($existingParent)) {
+            $existingParentCamp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $existingParent, 'asOf' => 'default']);
+            if (!empty($existingParentCamp)) {
+                $parents = array_merge($parents, [$existingParentCamp]);
+            }
+        }
+        $parents = array_map("unserialize", array_unique(array_map("serialize", $parents)));
         return $parents;
 
     }
@@ -675,6 +688,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         } 
         return $tree;
     }
+
+    public static function removeKeyFromArray($array, $keyToRemove) {
+        foreach ($array as $ele) {
+            unset($ele[$keyToRemove]);
+        }
+        return $array;
+    }
+    
     /**
      * Get the camp tree count.
      * @param int $topicNumber

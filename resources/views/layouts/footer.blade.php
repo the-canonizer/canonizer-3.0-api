@@ -41,10 +41,10 @@
                     <table width="100%">
                         <tr>
                             <td verticle-align="middle" style="padding-top:30px;  text-align: center;   padding-bottom: 20px;"> 
-                                <a href="https://canonizer3.canonizer.com/help/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
-                                <a href="https://canonizer3.canonizer.com/white-paper/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
+                                <a href="https://canonizer3.canonizer.com/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
+                                <a href="https://canonizer3.canonizer.com/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
                                 <a href="https://canonizer3.canonizer.com/blog/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
-                                <a href="https://canonizer3.canonizer.com/jobs/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
+                                <a href="https://canonizer3.canonizer.com/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
                             </td>
                         </tr>
                     </table>

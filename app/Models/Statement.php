@@ -115,6 +115,7 @@ class Statement extends Model
         unset($response->statement);
         $data->details = $response;
         $statementHistory = [];
+        $nickNameIds = isset($request->user()->id) ? Nickname::getNicknamesIdsByUserId($request->user()->id) : [];
         if (isset($data->items) && count($data->items) > 0) {
             foreach ($data->items as $val) {
                 $submitterUserID = Nickname::getUserIDByNickNameId($val->submitter_nick_id);
@@ -123,6 +124,7 @@ class Statement extends Model
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->agreed_to_change = 0;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 switch ($val) {
@@ -132,6 +134,10 @@ class Statement extends Model
                         $val->unsetRelation('objectorNickName');
                         break;
                     case $filter['currentTime'] < $val->go_live_time && $filter['currentTime'] >= $val->submit_time:
+                        $val->agreed_to_change = (int) ChangeAgreeLog::whereIn('nick_name_id', $nickNameIds)
+                        ->where('change_for', '=', 'statement')
+                        ->where('change_id', '=', $val->id)
+                        ->exists(); 
                         $val->status = "in_review";
                         break;
                     case $campLiveStatement->id == $val->id && $filter['type'] != "old":
