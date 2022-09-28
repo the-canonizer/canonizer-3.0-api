@@ -1123,6 +1123,7 @@ class CampController extends Controller
         $response->ifIAmImplicitSupporter = null;
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
+        $response->ifIAmExplicitSupporter = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
@@ -1133,6 +1134,7 @@ class CampController extends Controller
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
