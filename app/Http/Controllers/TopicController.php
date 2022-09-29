@@ -850,6 +850,7 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         $filter['topicNum'] = $request->topic_num;
+        $filter['campNum'] = 1;
         $filter['per_page'] = $request->per_page;
         $filter['page'] = $request->page;
         $filter['currentTime'] = time();
@@ -861,6 +862,7 @@ class TopicController extends Controller
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
+            $details->ifIAmExplicitSupporter = null;
             $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
@@ -868,6 +870,7 @@ class TopicController extends Controller
                 $nickNames = Nickname::personNicknameArray();
                 $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
                 $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+                $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
             }
             $response->details = $details;
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
