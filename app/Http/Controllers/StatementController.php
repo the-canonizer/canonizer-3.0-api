@@ -186,6 +186,7 @@ class StatementController extends Controller
         $response->statement = [];
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
+        $response->ifIAmExplicitSupporter = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $response->liveCamp = Camp::getLiveCamp($filter);
@@ -197,6 +198,7 @@ class StatementController extends Controller
                 $submitTime = $campLiveStatement ? $campLiveStatement->submit_time : null;
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
+                $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);

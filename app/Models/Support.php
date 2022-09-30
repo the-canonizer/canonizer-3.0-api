@@ -390,4 +390,24 @@ class Support extends Model
 
         return isset($support) ? $support->nick_name_id : 0 ;
     }
+
+    public static function ifIamExplicitSupporter($filter,$nickNames, $type = null){
+            Camp::clearChildCampArray();
+            if($type == "topic"){
+                $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
+                ->where('go_live_time', '<=', time())
+                ->groupBy('camp_num')
+                ->get()
+                ->toArray();
+            }else{
+                $liveCamp = Camp::getLiveCamp($filter);
+                $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+                $key = array_search($liveCamp->camp_num, $childCamps, true);
+                if ($key !== false) {
+                    unset($childCamps[$key]);
+                }
+            }
+            $mysupports = Support::where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $nickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+            return (count($mysupports)) ? true : false;
+    }
 }
