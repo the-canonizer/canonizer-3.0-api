@@ -922,8 +922,6 @@ class TopicSupport
         $as_of_time = time();
         $parentSupport = Camp::validateParentsupport($topicNum, $campNum, $nickNames);
 
-       // echo "<pre>"; print_r($parentSupport); exit;
-
         if(empty($parentSupport))
           return $returnData;
 
