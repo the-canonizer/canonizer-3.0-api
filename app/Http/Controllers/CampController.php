@@ -202,12 +202,11 @@ class CampController extends Controller
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
 
-            $nextCampNum =  Camp::where('topic_num', $request->topic_num)
-                ->latest('submit_time')->first();
-            $nextCampNum->camp_num++;
+            $nextCampNum = Camp::where('topic_num', $request->topic_num)->max('camp_num');
+            $nextCampNum++;
             $input = [
                 "camp_name" =>  Util::remove_emoji($request->camp_name),
-                "camp_num" => $nextCampNum->camp_num,
+                "camp_num" => $nextCampNum,
                 "parent_camp_num" => $request->parent_camp_num,
                 "topic_num" => $request->topic_num,
                 "submit_time" => strtotime(date('Y-m-d H:i:s')),
