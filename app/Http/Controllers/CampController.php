@@ -169,12 +169,14 @@ class CampController extends Controller
             //  echo json_encode($parentCamp);die;
             $is_disabled = false;
             $is_one_level = false;
+            $allowUnderCamp = [];
             foreach($parentCamp as $val){
                 if($val->is_disabled === 1){
                     $is_disabled = true; 
                 }
                 if($val->is_one_level === 1){
                     $is_one_level = true; 
+                    $allowUnderCamp[] = $val->camp_num;
                 }
             }
 
@@ -184,12 +186,11 @@ class CampController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if($is_one_level == true){
-                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
-                if($campsCount >= 1){
+                if (!in_array($request->parent_camp_num, $allowUnderCamp)){
                     $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
                     $status = 400;
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
-                }
+               }
             }
 
             $current_time = time();
