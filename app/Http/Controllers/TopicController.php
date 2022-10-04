@@ -379,7 +379,7 @@ class TopicController extends Controller
                 $liveCamp = Camp::getLiveCamp($filter);
                 $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
                 $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
-                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $model->camp_name;
+                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
             }
