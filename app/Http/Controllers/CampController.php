@@ -1094,9 +1094,11 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
+            $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
+                $data->topic_name = $topic_name ?? '';
                 $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
                 $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
             }
@@ -1106,6 +1108,8 @@ class CampController extends Controller
             $response = $response[0];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
+            print_r($e);
+            die();
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
