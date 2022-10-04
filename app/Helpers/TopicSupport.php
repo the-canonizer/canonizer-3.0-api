@@ -889,6 +889,7 @@ class TopicSupport
                 $livecamp = Camp::getLiveCamp($filter);
                 $temp = [
                     'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
                     'camp_name' => $livecamp->camp_name,
                     'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
                 ];
@@ -949,6 +950,7 @@ class TopicSupport
                 $livecamp = Camp::getLiveCamp($filter);
                 $temp = [
                     'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
                     'camp_name' => $livecamp->camp_name,
                     'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
                 ];
@@ -990,6 +992,7 @@ class TopicSupport
                 $livecamp = Camp::getLiveCamp($filter);
                 $temp = [
                     'camp_num' => $child->camp_num,
+                    'support_order' => $child->support_order,
                     'camp_name' => $livecamp->camp_name,
                     'link' => Camp::campLink($topicNum, $child->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
                 ];
