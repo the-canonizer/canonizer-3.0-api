@@ -1088,7 +1088,7 @@ class CampController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         $data = new stdClass();
-        $data->flag = 121;
+        $data->flag = 0;
         $data->subscription_id = null;
         $data->subscribed_camp_name = null;
         try {
