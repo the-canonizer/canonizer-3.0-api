@@ -1098,19 +1098,16 @@ class CampController extends Controller
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
-                 $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
+                $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
                 $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
             }
             $data->topic_name = $topic->topic_name ?? '';
-
             $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name', 'topic_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response = $response[0];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
-            print_r($e);
-            die();
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
