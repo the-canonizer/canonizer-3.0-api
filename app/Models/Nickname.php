@@ -125,7 +125,7 @@ class Nickname extends Model {
                                 $usedNickid = $mythread->user_id;
                             }else{
                                 $currentTopicThreadsIds =Thread::select('id')->where('topic_id', $topic_num)->get();
-                                $latestReply =  Reply::select('user_id')->whereIn('thread_id', $currentTopicThreadsIds)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                                $latestReply =  Reply::select('user_id')->whereIn('c_thread_id', $currentTopicThreadsIds)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
                                 if(!empty($latestReply)) {
                                     $usedNickid = $latestReply->user_id;
                                 }
