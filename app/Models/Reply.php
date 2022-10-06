@@ -32,6 +32,7 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
 
         self::created(function($model){
             // ... code here
+            $model->thread_id = $model->c_thread_id;
         });
 
         self::updating(function($model){
@@ -40,6 +41,7 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
 
         self::updated(function($model){
             // ... code here
+            $model->thread_id = $model->c_thread_id;
         });
 
         self::deleting(function($model){
@@ -49,11 +51,15 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         self::deleted(function($model){
             // ... code here
         });
+
+        self::retrieved(function($model){
+            $model->thread_id = $model->c_thread_id;
+        });
     }
 
     // Fillable Columns
 
-    protected $fillable = ['thread_id', 'user_id', 'body', 'is_delete'];
+    protected $fillable = ['c_thread_id', 'user_id', 'body', 'is_delete'];
 
     public function owner()
     {
