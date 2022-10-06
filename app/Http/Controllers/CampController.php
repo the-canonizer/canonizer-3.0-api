@@ -1094,13 +1094,15 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
+            $topic = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
                 $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
                 $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
             }
-            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
+            $data->topic_name = $topic->topic_name ?? '';
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name', 'topic_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response = $response[0];
