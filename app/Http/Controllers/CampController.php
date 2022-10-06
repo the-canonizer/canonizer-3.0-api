@@ -169,12 +169,14 @@ class CampController extends Controller
             //  echo json_encode($parentCamp);die;
             $is_disabled = false;
             $is_one_level = false;
+            $allowUnderCamp = [];
             foreach($parentCamp as $val){
                 if($val->is_disabled === 1){
                     $is_disabled = true; 
                 }
                 if($val->is_one_level === 1){
                     $is_one_level = true; 
+                    $allowUnderCamp[] = $val->camp_num;
                 }
             }
 
@@ -184,12 +186,11 @@ class CampController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if($is_one_level == true){
-                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
-                if($campsCount >= 1){
+                if (!in_array($request->parent_camp_num, $allowUnderCamp)){
                     $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
                     $status = 400;
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
-                }
+               }
             }
 
             $current_time = time();
@@ -201,12 +202,11 @@ class CampController extends Controller
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
 
-            $nextCampNum =  Camp::where('topic_num', $request->topic_num)
-                ->latest('submit_time')->first();
-            $nextCampNum->camp_num++;
+            $nextCampNum = Camp::where('topic_num', $request->topic_num)->max('camp_num');
+            $nextCampNum++;
             $input = [
                 "camp_name" =>  Util::remove_emoji($request->camp_name),
-                "camp_num" => $nextCampNum->camp_num,
+                "camp_num" => $nextCampNum,
                 "parent_camp_num" => $request->parent_camp_num,
                 "topic_num" => $request->topic_num,
                 "submit_time" => strtotime(date('Y-m-d H:i:s')),
@@ -349,7 +349,7 @@ class CampController extends Controller
                 }
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
