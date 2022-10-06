@@ -16,6 +16,7 @@ use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
+use App\Facades\Util;
 
 
 class TopicSupport
@@ -873,12 +874,27 @@ class TopicSupport
     {
         $returnData = [];
         $supportedCamps = [];
-        $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames);                
+        $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames); 
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
         if ($delegatedSupport->count()) {
             $nickName = Nickname::getNickName($delegatedSupport[0]->delegate_nick_name_id);
 
             foreach($delegatedSupport as $support){
-                 array_push($supportedCamps, $support->camp_num);
+
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+                array_push($supportedCamps, $support->camp_num);
             }
 
             if(in_array($campNum, $supportedCamps)){
@@ -890,7 +906,9 @@ class TopicSupport
             $returnData['is_delegator'] = 1;
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
+            $returnData['delegated_nick_name_id'] = $nickName->id;
             $returnData['is_confirm'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
         }
 
         return $returnData;
@@ -900,7 +918,7 @@ class TopicSupport
      *  [This will check & return warning if support switched from child to parent]
      */
     public static function checkIfSupportswitchToChild($topicNum, $campNum, $nickNames)
-    {
+    { 
         $returnData = [];
         $as_of_time = time();
         $parentSupport = Camp::validateParentsupport($topicNum, $campNum, $nickNames);
@@ -921,9 +939,29 @@ class TopicSupport
                             
             $returnData['warning'] =  trans('message.support_warning.not_live');
 
-        } else {           
+        } else { 
+            $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+            $campsToemoved = [];   
+            
+            foreach($parentSupport as $support){
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
             $res = self::ValidateAndCheckWarning($parentSupport, $onecamp, $campNum, $as_of_time);
             $returnData = array_merge($returnData,$res);
+            if(isset($returnData['is_confirm']) && $returnData['is_confirm']){
+                $returnData['remove_camps'] = $campsToemoved;
+            }
+
              
             
         }
@@ -942,20 +980,34 @@ class TopicSupport
 
         $filter = Camp::getLiveCampFilter($topicNum, $campNum);
         $onecamp = self::getLiveCamp($filter);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
 
         if($childSupport && !empty($childSupport)){
+            foreach ($childSupport as $child)
+            {
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $child->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $child->camp_num,
+                    'support_order' => $child->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $child->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
             if (count($childSupport) == 1) {
-                foreach ($childSupport as $child)
-                {
-                    $childCampName = Camp::getCampNameByTopicIdCampId($topicNum, $child->camp_num, $as_of_time);
-                    if ($child->camp_num == $campNum && $child->delegate_nick_name_id == 0) {                        
-                        $returnData['is_confirm'] = 0;  
+                $child = $childSupport[0];
+                $childCampName = Camp::getCampNameByTopicIdCampId($topicNum, $child->camp_num, $as_of_time);
+                if ($child->camp_num == $campNum && $child->delegate_nick_name_id == 0) {                        
+                    $returnData['is_confirm'] = 0;  
 
-                    }else{
-                        $returnData['is_confirm'] = 1;  
-                        $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
+                }else{
+                    $returnData['is_confirm'] = 1;  
+                    $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
 
-                    }
                 }
             } else {
                 $returnData['is_confirm'] = 1;    
@@ -965,6 +1017,10 @@ class TopicSupport
 
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
+            if(isset($returnData['is_confirm']) && $returnData['is_confirm']){
+                $returnData['remove_camps'] = $campsToemoved;
+            }
+            
         }
 
         return $returnData;
