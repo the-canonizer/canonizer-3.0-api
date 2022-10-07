@@ -1127,7 +1127,7 @@ class TopicSupport
             $user = Nickname::getUserByNickName($nickNameId);
 
             $logType = "support";
-            $activity = "support removed";
+            $activity = "Support removed";
             $model = new Support();
             $description = "supoort removed";
 
@@ -1168,7 +1168,7 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             $logType = "support";
-            $activity = "support added";
+            $activity = "Support added";
             $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
             $model = new Support();
             $description = "supoort added";
