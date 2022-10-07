@@ -20,7 +20,7 @@
                 <tr>
                     <td style="padding-top: 0px;  font-weight:400;">
                         <p> <a target="_blank"
-                                href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
+                                href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
                             has removed their support from this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
                         </p>
                     </td>
