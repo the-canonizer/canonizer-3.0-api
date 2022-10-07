@@ -48,6 +48,8 @@ class UpdateS3FilePathInStatementTable extends Command
             foreach ($statementRecords as $val) {
                 $val->value = Str::replace('http://canonizer.com/files/', env('AWS_URL'), $val->value);
                 $val->value = Str::replace('https://canonizer.com/files/', env('AWS_URL'), $val->value);
+                $val->note = Str::replace('http://canonizer.com/files/', env('AWS_URL'), $val->note);
+                $val->note = Str::replace('https://canonizer.com/files/', env('AWS_URL'), $val->note);
                 $val->update();
                 $updateRecored++;
             }
