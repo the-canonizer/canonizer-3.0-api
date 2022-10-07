@@ -28,7 +28,7 @@ class Statement extends Model
             ->where('camp_num', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', time())
-            ->orderBy('submit_time', 'desc')
+            ->orderBy('go_live_time', 'desc')
             ->first();
     }
 

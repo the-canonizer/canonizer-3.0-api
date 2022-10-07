@@ -63,17 +63,17 @@ class GetPushNotificationToSupporter
                         $PushNotificationData->notification_type = config('global.notification_type.Thread');
                         $PushNotificationData->title = trans('message.notification_title.createThread');
                         $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
-                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters($request->topic_name)  . '/' . $request->camp_num . '/threads';
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)  . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads';
                     } else if ($action == config('global.notification_type.Post')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.createPost');
                         $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
-                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '/threads/' . $threadId;
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                     } else if ($action == 'updatePost') {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.updatePost');
                         $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
-                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '/threads/' . $threadId;
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                     } else if ($action == config('global.notification_type.Statement')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Statement');
                         $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);
@@ -133,17 +133,17 @@ class GetPushNotificationToSupporter
                         $PushNotificationData->notification_type = config('global.notification_type.Thread');
                         $PushNotificationData->title = trans('message.notification_title.createThread');
                         $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
-                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num . '/threads';
+                        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)  . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads';
                     }else if ($action == config('global.notification_type.Post')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.createPost');
                         $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
-                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '/threads/' . $threadId;
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                     } else if ($action == 'updatePost') {
                         $PushNotificationData->notification_type = config('global.notification_type.Post');
                         $PushNotificationData->title = trans('message.notification_title.updatePost');
                         $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
-                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '/threads/' . $threadId;
+                        $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                     } else if ($action == config('global.notification_type.Statement')) {
                         $PushNotificationData->notification_type = config('global.notification_type.Statement');
                         $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);

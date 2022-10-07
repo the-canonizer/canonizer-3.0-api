@@ -289,7 +289,7 @@ class TopicController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         try {
-            $topic = Topic::getLiveTopic($filter);
+            $topic = Camp::getAgreementTopic($filter);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -385,7 +385,7 @@ class TopicController extends Controller
                 $liveCamp = Camp::getLiveCamp($filter);
                 $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
                 $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
-                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $model->camp_name;
+                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
             }
