@@ -739,6 +739,10 @@ class TopicController extends Controller
                 $topic->go_live_time;
                 $topic->grace_period = 1;
             }
+
+            if ($all['event_type'] == "objection") {
+                $topic->grace_period = 0;
+            }
             
             $topic->save();
             DB::commit();
