@@ -596,6 +596,7 @@ class ReplyController extends Controller
                 $message = trans('message.post.post_not_exist');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+            unset($post->thread_id);
             $post->update($update);
             $status = 200;
             $message = trans('message.post.delete_success');
