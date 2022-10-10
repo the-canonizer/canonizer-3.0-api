@@ -16,11 +16,7 @@ use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
-<<<<<<< HEAD
-use App\Facades\util;
-=======
 use App\Facades\Util;
->>>>>>> development
 
 
 class TopicSupport
