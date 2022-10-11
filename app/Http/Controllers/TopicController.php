@@ -577,14 +577,14 @@ class TopicController extends Controller
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $data['parent_camp_num'] = $camp->parent_camp_num;
-                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;;
-                    $liveCamp = Camp::getLiveCamp($filter);
+                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
+                        $liveCamp = Camp::getLiveCamp($filter);
                         Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         $topic = $camp->topic;
