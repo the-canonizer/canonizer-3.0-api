@@ -170,6 +170,7 @@ class TopicSupport
          if(!empty($removeCamps)){
  
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
+             Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
  
              $nicknameModel = Nickname::getNickName($nickNameId);
              $topicFilter = ['topicNum' => $topicNum];
