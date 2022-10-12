@@ -155,18 +155,41 @@ class CampController extends Controller
                 
         try {
 
-            $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
-            if (!empty($result)) {
-                $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
-                $status = 400;
-                $result->if_exist = true;
-                $result->topic_name = $topic_name->topic_name;
-                $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
-                $message = trans('message.error.invalid_data');
-                return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+            $liveCamps = Camp::getAllLiveCampsInTopic($request->topic_num);
+            $nonLiveCamps = Camp::getAllNonLiveCampsInTopic($request->topic_num);
+            $camp_existsLive = 0;
+            $camp_existsNL = 0;
+
+            if(!empty($liveCamps)){
+                foreach($liveCamps as $value){
+                    if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
+                            $camp_existsLive = 1;
+                    }
+                }
             }
+
+            if(!empty($nonLiveCamps)){
+                foreach($nonLiveCamps as $value){
+                    if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
+                             $camp_existsNL = 1;
+                    }
+                }
+            }
+
+            if($camp_existsLive || $camp_existsNL){
+                $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
+                if (!empty($result)) {
+                    $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
+                    $status = 400;
+                    $result->if_exist = true;
+                    $result->topic_name = $topic_name->topic_name;
+                    $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
+                    $message = trans('message.error.invalid_data');
+                    return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+                }
+            }
+
             $parentCamp = Camp::getParentFromParent($request->parent_camp_num,$request->topic_num);
-            //  echo json_encode($parentCamp);die;
             $is_disabled = false;
             $is_one_level = false;
             $allowUnderCamp = [];
@@ -1094,7 +1117,7 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $topic = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
+            $topic =  Camp::getAgreementTopic($filter);
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
