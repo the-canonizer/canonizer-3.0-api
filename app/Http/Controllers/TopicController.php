@@ -426,7 +426,7 @@ class TopicController extends Controller
             $data['nick_name'] = $nickName->nick_name;
             $data['nick_name_id'] = $nickName->id;
             if ($type == 'statement') {
-                $link = 'statement/history/' . $model->topic_num . '/' . $model->camp_num;
+                $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $model->topic_num . '/' . $model->camp_num;
                 $data['support_camp'] = $liveCamp->camp_name;
                 $data['type'] = 'statement : for camp ';
                 $data['typeobject'] = 'statement';
@@ -435,7 +435,7 @@ class TopicController extends Controller
                 $message = trans('message.success.statement_commit');
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit");
             } else if ($type == 'camp') {
-                $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
+                $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
                 $data['type'] = 'camp : ';
                 $data['typeobject'] = 'camp';
@@ -449,7 +449,7 @@ class TopicController extends Controller
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit');
             } else if ($type == 'topic') {
                 $model->camp_num = 1;
-                $link = 'topic/history/' . $liveTopic->topic_num;
+                $link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $liveTopic->topic_num;
                 $data['support_camp'] = $model->topic_name;
                 $data['type'] = 'topic : ';
                 $data['typeobject'] = 'topic';
@@ -497,7 +497,7 @@ class TopicController extends Controller
      *         ) 
      *    ),
      *    @OA\RequestBody(
-     *       required=true,
+     *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
      *       description="Agree to change",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
