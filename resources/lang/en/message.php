@@ -53,7 +53,9 @@ return [
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
-        'permission_denied' => "You don't have permission to access this resource."
+        'permission_denied' => "You don't have permission to access this resource.",
+        'support_added' => "Support added.",
+        'support_removed' => "Support removed."
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
