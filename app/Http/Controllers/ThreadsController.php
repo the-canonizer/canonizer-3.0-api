@@ -596,7 +596,7 @@ class ThreadsController extends Controller
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
-                if($threads->title !=Util::remove_emoji($request->title)){
+                if($threads->title !== Util::remove_emoji($request->title)){
                     $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', Util::remove_emoji($request->title))->get();
                     if (count($thread_flag) > 0) {
                         $status = 400;
