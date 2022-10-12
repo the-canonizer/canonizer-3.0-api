@@ -166,9 +166,11 @@ class TopicSupport
 
         /* To update the Mongo Tree while adding support */
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+        $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
 
          if(!empty($removeCamps)){
- 
+
+             // before removing get delegation support
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
  
              $nicknameModel = Nickname::getNickName($nickNameId);
@@ -208,6 +210,12 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+            if(count($allDelegates))
+            {
+                $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
+                self::insertDelegateSupport($allDelegates, $supportToAdd);
+            }
+            
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
@@ -1324,8 +1332,6 @@ class TopicSupport
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
            // PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);
             PushNotification::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
-        }
-
-        
+        }        
     }
 }
