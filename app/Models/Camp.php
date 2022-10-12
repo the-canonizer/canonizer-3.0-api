@@ -60,7 +60,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId . '#statement');
+        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
     }
 
     public static function getAgreementTopic($filter = array())
