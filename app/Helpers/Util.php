@@ -400,17 +400,17 @@ class Util
                     ->whereIn('camp_num', $allParentCamps)
                     ->pluck('nick_name_id');
 
-                    if (sizeof($supporterNicknames) > 0) 
+                if (sizeof($supporterNicknames) > 0) 
+                {
+                    foreach ($allParentCamps as $parentCamp) 
                     {
-                        foreach ($allParentCamps as $parentCamp) 
+                        foreach($supporterNicknames as $nickId)
                         {
-                            foreach($supporterNicknames as $nickId)
-                            {
-                                Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $nickId); 
-                                Support::reOrderSupport($all['topic_num'], [$nickId]);
-                            }
+                            Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $nickId); 
+                            Support::reOrderSupport($all['topic_num'], [$nickId]);
                         }
                     }
+                }
 
                /* if (sizeof($supporterNicknames) > 0) {
                     foreach ($allParentCamps as $parentCamp) {
