@@ -172,6 +172,7 @@ class TopicSupport
 
              // before removing get delegation support
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
+             Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
  
              $nicknameModel = Nickname::getNickName($nickNameId);
              $topicFilter = ['topicNum' => $topicNum];

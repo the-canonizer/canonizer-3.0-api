@@ -410,4 +410,70 @@ class Support extends Model
             $mysupports = Support::where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $nickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
             return (count($mysupports)) ? true : false;
     }
+
+    /**
+     * Remove Support along with  delegates
+     */
+
+    public static function removeSupportWithDelegates($topicNum, $campNum, $nickId)
+    {
+        $supports = self::where('topic_num', '=', $topicNum)
+                    ->where('camp_num', $campNum)
+                    ->where('nick_name_id', $nickId)
+                    ->update(['end' => time()]);
+
+        $delegators = self::getDelegatorForNicknameId($topicNum, $nickId);
+
+        if(count($delegators)){
+            foreach($delegators as $delegator)
+            {
+                return self::removeSupportWithDelegates($topicNum, $campNum, $delegator->nick_name_id);
+            }
+        }
+    }
+
+    public static function reOrderSupport($topicNum, $nicknameId)
+    {
+        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, [$nicknameId]);
+        
+        $order = 1;
+        foreach($support as $support)
+        {
+            if($order === $support->support_order){
+                $order++;
+                continue;
+            }
+
+            $support->support_order = $order;
+            $support->update();
+
+            //update delegators support order as well
+            self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
+
+            $order++;
+        }
+
+        return;
+    }
+
+    public static function updateDeleagtorsSupportOrder($topicNum, $nicknameId, $campNum, $order)
+    {
+        $delegators = self::getDelegatorForNicknameId($topicNum, $nicknameId);
+        if(count($delegators))
+        {
+             self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', $campNum)
+            ->whereIn('delegate_nick_name_id', [$nicknameId])
+            ->update(['support_order' => $order]);
+
+            foreach($delegators as $delegator){               
+                return self::updateDeleagtorsSupportOrder($topicNum, $delegator->nick_name_id, $campNum, $order); 
+            }
+        }
+        return;
+    }
+
+
+
+
 }
