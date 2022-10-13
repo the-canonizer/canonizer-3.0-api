@@ -177,8 +177,7 @@ class TopicSupport
              $topicFilter = ['topicNum' => $topicNum];
              $topicModel = Camp::getAgreementTopic($topicFilter);
      
-             foreach($removeCamps as $camp)
-             {     
+             foreach($removeCamps as $camp) {     
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
 
@@ -210,8 +209,7 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
-            if(count($allDelegates))
-            {
+            if(count($allDelegates)) {
                 $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
                 self::insertDelegateSupport($allDelegates, $supportToAdd);
             }
