@@ -555,6 +555,10 @@ class CampController extends Controller
                 }
                 $result = array_unique($result);
             }
+            foreach($result as $key => $val){
+                $supportOrder = Support::where('camp_num',$val->camp_num)->where('topic_num',$val->topic_num)->where('nick_name_id',$val->submitter_nick_id)->first();
+                $val->support_order = $supportOrder->support_order ?? null;
+            }
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');

@@ -22,11 +22,11 @@
                                         <td vertical-align="middle" style="padding-right: 10px; padding-top: 4px; padding-bottom: 4px; font-size: 16px;"> 
                                             Follow Us
                                         </td>
-                                        <td><a href="#"><img src="{{URL::asset('assets/images/instagram.svg') }}" width="28px;" style="padding-left:10px;"></a></td>
-                                        <td><a href="#"><img src="{{URL::asset('assets/images/facebook.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
-                                        <td><a href="#"><img src="{{URL::asset('assets/images/twitter.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
-                                        <td><a href="#"><img src="{{URL::asset('assets/images/youtube.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
-                                        <td><a href="#"><img src="{{URL::asset('assets/images/linkedin.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
+                                        <td><a href="https://www.instagram.com/"><img src="{{URL::asset('assets/images/instagram.svg') }}" width="28px;" style="padding-left:10px;"></a></td>
+                                        <td><a href="https://www.facebook.com/pages/Canonizercom/103927141540408"><img src="{{URL::asset('assets/images/facebook.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
+                                        <td><a href="https://twitter.com/"><img src="{{URL::asset('assets/images/twitter.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
+                                        <td><a href="https://www.youtube.com/"><img src="{{URL::asset('assets/images/youtube.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
+                                        <td><a href="https://www.linkedin.com/"><img src="{{URL::asset('assets/images/linkedin.svg') }}" width="28px;" style="padding-left:5px;"></a></td>
                                         <td width="30">&nbsp;</td>
                                     </tr>
                                 </table>
