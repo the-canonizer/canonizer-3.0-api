@@ -179,7 +179,7 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_success');
 
                 // Return Url after creating thread Successfully
-                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num.'-'. Util::replaceSpecialCharacters($request->camp_name) . '/threads';
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num.'-'. Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $data->id;
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
@@ -605,9 +605,7 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
-                $topic_name = CampForum::getTopicName($threads->topic_id);
-                $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
-                $url = 'forum/' . $request->topic_num . '-' .   urlencode(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . urlencode($request->camp_name) . '/threads';
+                $url = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $id;
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',
