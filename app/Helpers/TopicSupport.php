@@ -348,6 +348,7 @@ class TopicSupport
         }
         
         $object = $topic->topic_name ." / ".$camp->camp_name;
+        $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['topic_num'] = $topicNum;
         $data['camp_num'] = $campNum;
         $data['promotedFrom'] = $promotedFrom;
@@ -358,13 +359,15 @@ class TopicSupport
         $data['camp_link'] = $campLink;   
         $data['url_portion'] =  $seoUrlPortion;
         $data['delegate_nick_name_id'] =  $delegateNickNameId;
+        $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegate_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         $data['promotedTo'] = isset($promotedTo) ? $promotedTo : [];
         $data['topic_name'] = $topic->topic_name;
         $data['camp_name'] = $camp->camp_name;
         $data['nick_name_id'] = $promotedFrom->id;
         $data['nick_name'] = $promotedFrom->nick_name;
         $data['support_action'] = "deleted"; //default will be 'added'        
-        $data['object'] = $object;
+        $data['object'] = $object;       
+        $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         
 
         foreach($allDirectDelegates as $promoted)
@@ -758,8 +761,9 @@ class TopicSupport
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
-        $data['support_action'] = $action; //default will be 'added'
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
+        $data['support_action'] = $action; //default will be 'added'       
         $topic_name_space_id = $data['namespace_id'];
         
         /** If delegate support */
@@ -767,7 +771,7 @@ class TopicSupport
             $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
             $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
             $data['delegated_nick_name_id'] = $delegatedToNickname->id;
-
+            $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
             $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
         }        
         
@@ -813,7 +817,6 @@ class TopicSupport
                     $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
                 try { 
-                    
                     if($action == 'add'){
                         Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
                     }else{
@@ -1273,10 +1276,12 @@ class TopicSupport
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
-        $data['support_action'] = $action; //default will be 'added'
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $data['nick_name_link'] = Nickname::getNickNameLink($nickname->id, $data['namespace_id'], $data['topic_num'], $data['camp_num']);
+        $data['support_action'] = $action; //default will be 'added'       
         $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
         $data['delegated_nick_name_id'] = $delegatedToNickname->id;
+        $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         $data['action'] = $action;
         $topic_name_space_id = $data['namespace_id'];
 
