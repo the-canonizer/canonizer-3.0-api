@@ -198,10 +198,11 @@ class TopicSupport
 
          }
  
-         if(isset($orderUpdate) && !empty($orderUpdate)){
+        if(isset($orderUpdate) && !empty($orderUpdate)){
              self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
          }
 
+         $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
             $campNum = $addCamp['camp_num'];
             $supportOrder = $addCamp['support_order'];
@@ -209,9 +210,9 @@ class TopicSupport
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
 
-            self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
-            if(count($allDelegates)) {
-                $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
+            $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+            array_push($supportToAdd, $support);
+            if(count($allDelegates)) { 
                 self::insertDelegateSupport($allDelegates, $supportToAdd);
             }
             
@@ -624,11 +625,8 @@ class TopicSupport
     {
         $delegators = Support::getActiveDelegators($topicNum, $allNickNames);
         Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
-        
 
-       
-
-        if(isset($delegators) && count($delegators) > 0)
+        if(count($delegators))
         { 
             foreach($delegators as $delegator)
             {
@@ -1063,30 +1061,19 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId,  $delegatedNickNameId = 0)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0)
     {
        
-        $data = [
-            'topic_num' => $topicNum,
-            'nick_name_id' => $nickNameId,
-            'delegate_nick_name_id' => $delegatedNickNameId,
-            'camp_num' => $campNum,
-            'support_order' => $supportOrder,
-            'start' => time()
-        ];
-        Support::insert($data);
+        $support = new Support();
+        $support->topic_num = $topicNum;
+        $support->nick_name_id = $nickNameId;
+        $support->delegate_nick_name_id = $delegatedNickNameId;
+        $support->camp_num = $campNum;
+        $support->support_order = $supportOrder;
+        $support->start = time();
+        $support->save();
 
-        //add support to all delegators as well
-        $delegatedSupport = Support::getDelegatorForNicknameId($topicNum, $nickNameId);  
-       
-        if($delegatedSupport->count()) {
-            foreach($delegatedSupport as $support){
-                
-                 return self::addSupport($topicNum, $campNum, $supportOrder, $support->nick_name_id, $nickNameId);
-            }
-        }
-
-        return;
+        return $support;        
     }
     
     /**
