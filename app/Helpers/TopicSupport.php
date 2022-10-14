@@ -1176,7 +1176,7 @@ class TopicSupport
             if($delegateNickNameId){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = $nicknameModel->name  . " delegated their support to " . $delegatedTo->nick_name; 
-                $description = "Support delegated.";
+                $description = trans('message.general.support_delegated');
             }
             
             return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
