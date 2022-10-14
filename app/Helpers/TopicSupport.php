@@ -851,23 +851,33 @@ class TopicSupport
     /** 
      * 
      */
-    public static function checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames)
+    public static function checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId = 0)
     {
         $returnData = [];
-        $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
-        }
-        
-        $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
+
+        if($delegataedNickNameId){
+            $returnData = self::checkIfSupportSwitchToDirectToDelegate($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+        }else{
+            $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+            
+            $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+
+            $returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
         }
 
-        $returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
-        }
+       
 
         return $returnData;
 
@@ -1332,5 +1342,45 @@ class TopicSupport
            // PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);
             PushNotification::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
         }        
+    }
+
+    /**
+     *  check is supported is a direct supporter and switching to delegate
+     *  @return $returnData with warning messages
+     */
+    public static function checkIfSupportSwitchToDirectToDelegate($topicNum, $campNum, $nickNames)
+    {
+        $returnData = [];
+        $supportedCamps = [];
+        $directSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, true);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
+        if (count($directSupport)) {
+            foreach($directSupport as $support){
+
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
+
+            $returnData['warning'] = "You are directly supporting one or more camps under this topic. If you continue, your direct support will be removed.";
+
+            $returnData['is_delegator'] = 0;
+            $returnData['topic_num'] = $topicNum;
+            $returnData['camp_num'] = $campNum;
+            $returnData['is_confirm'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
+        }
+
+        return $returnData;
     }
 }
