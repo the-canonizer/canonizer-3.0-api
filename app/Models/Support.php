@@ -440,9 +440,9 @@ class Support extends Model
         }
     }
 
-    public static function reOrderSupport($topicNum, $nicknameId)
+    public static function reOrderSupport($topicNum, $nickNames)
     {
-        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, [$nicknameId]);
+        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
         
         $order = 1;
         foreach($support as $support)
