@@ -1137,9 +1137,9 @@ class TopicSupport
             $user = Nickname::getUserByNickName($nickNameId);
 
             $logType = "support";
-            $activity = "support removed";
+            $activity =  trans('message.general.support_removed');
             $model = new Support();
-            $description = "supoort removed";
+            $description = trans('message.general.support_removed');
 
             if($delegateNickNameId){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
@@ -1178,15 +1178,15 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             $logType = "support";
-            $activity = "support added";
+            $activity = trans('message.general.support_added');
             $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
             $model = new Support();
-            $description = "supoort added";
+            $description = trans('message.general.support_added');
 
             if($delegateNickNameId){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = $nicknameModel->name  . " delegated their support to " . $delegatedTo->nick_name; 
-                $description = "Support delegated.";
+                $description = trans('message.general.support_delegated');
             }
             
             return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
