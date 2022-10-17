@@ -172,12 +172,20 @@ class Support extends Model
         return $delegators;
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $camps = array())
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $onlyDirectSupport = false)
     {
-        $supports = self::where('topic_num', '=', $topicNum)
+        if($onlyDirectSupport){
+            $supports = self::where('topic_num', '=', $topicNum)
+            ->whereIn('nick_name_id', $nickNames)
+            ->where('delegate_nick_name_id','=', 0)
+            ->orderBy('support_order', 'ASC')
+            ->where('end', '=', '0')->get();
+        }else{
+            $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
             ->orderBy('support_order', 'ASC')
             ->where('end', '=', '0')->get();
+        }
 
         return $supports;
     }
@@ -432,9 +440,9 @@ class Support extends Model
         }
     }
 
-    public static function reOrderSupport($topicNum, $nicknameId)
+    public static function reOrderSupport($topicNum, $nickNames)
     {
-        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, [$nicknameId]);
+        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
         
         $order = 1;
         foreach($support as $support)
