@@ -228,6 +228,7 @@ class TopicController extends Controller
                         "link" => $link,
                         "historylink" => $historylink,
                         "object" => $topic->topic_name,
+                        'namespace_id' => $topic->namespace_id
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
