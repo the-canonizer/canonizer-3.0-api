@@ -784,6 +784,17 @@ class TopicController extends Controller
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
                 Util::dispatchJob($topic, 1, 1);
+                $currentTime = time();
+                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
+                    Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
+                    Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
+                } else {
+                    if($current_time < $topic->go_live_time && $topic->objector_nick_id == null) {
+                        Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
+                    }
+                }
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');

@@ -29,7 +29,11 @@ class CanonizerService implements ShouldQueue, Uniqueable
 
     public function uniqueable()
     {
-        return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
+        if ($this->canonizerData['isUniqueJob']) {
+            return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
+        } else {
+            return null; // for case of delay jobs it will automatically generate random string in unique id.
+        }
     }
 
     /**
