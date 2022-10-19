@@ -318,7 +318,10 @@ class Util
             if(preg_match('/sandbox testing/i',$namespace->name)){
                 $subject = 'canon/sandbox testing/';
             }
-            if(env('APP_ENV') == 'staging' || env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
+            if(env('APP_ENV') == 'staging'){
+               return '[staging.' . $subject . ']';
+            }
+            if(env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
                return '[local.' . $subject . ']';
             }else{
               return  '[' . $subject . ']';
