@@ -278,6 +278,56 @@ class Algorithm extends Model
     }
 
     /**
+     * Get the united_utah algorithm score.
+     * Forward party Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+    public static function forward_party($nick_name_id,$topicnum=0,$campnum=0){
+        $condition = '(topic_num = 231 and camp_num = 6)';
+        return self::camp_count($nick_name_id,$condition,true,231,6,$topicnum);
+    }
+
+
+     /**
+     * Get the united_utah algorithm score.
+     * Sandy City Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+
+    public static function sandy_city($nick_name_id,$topicnum=0,$campnum=0){
+        return self::sandy_city_algo($nick_name_id);
+    }
+
+
+     /**
+     * Get the united_utah algorithm score.
+     * Sandy City Council Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+
+    public static function sandy_city_council($nick_name_id,$topicnum=0,$campnum=0){
+        return self::sandy_city_council_algo($nick_name_id);
+    }
+
+    /**
      * Get user ethers.
      *
      * @param int $nickNameId
@@ -362,7 +412,7 @@ class Algorithm extends Model
     public static function shares_sqrt($nickNameId = null, $topicNumber = 0, $campNumber = 0, $asOfTime = null)
     {
         $algo = 'shares_sqrt';
-        return $this->shareAlgo($nickNameId, $topicNumber, $campNumber, $algo, $asOfTime);
+        return self::shareAlgo($nickNameId, $topicNumber, $campNumber, $algo, $asOfTime);
     }
 
     /**
@@ -609,5 +659,38 @@ class Algorithm extends Model
         
         return [];
         
+    }
+
+     /**
+     * Get the camp count .
+     * @param int $nickNameId
+     * @return int $score
+     */
+
+    public static function sandy_city_algo($nick_name_id){
+        $user=\App\Model\Nickname::getUserByNickName($nick_name_id);
+        $score = 0;
+        if($user && $user->city !=='' && str_contains(strtolower($user->city),'sandy')){
+            $score = 1;
+        }
+        return $score;
+
+    }
+
+    /**
+     * Get the camp count .
+     * @param int $nickNameId
+     * @return int $score
+     */
+
+    public static function sandy_city_council_algo($nick_name_id){
+        $nick_name_list=[1,346];
+        $nick_name_score_list = [1=>1,346=>1];
+        $score = 0;
+        if(in_array($nick_name_id,$nick_name_list)){
+            $score = $nick_name_score_list[$nick_name_id];
+        }
+        return $score;
+
     }
 }
