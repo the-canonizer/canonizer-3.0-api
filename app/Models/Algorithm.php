@@ -288,9 +288,9 @@ class Algorithm extends Model
      *
      * @return int $score
      */
-    public static function forward_party($nick_name_id,$topicnum=0,$campnum=0){
+    public static function forward_party($nickNameId,$topicNumber = 0, $campNumber = 0, $asOfTime = null){
         $condition = '(topic_num = 231 and camp_num = 6)';
-        return self::camp_count($nick_name_id,$condition,true,231,6,$topicnum);
+        return self::campCount($topicNumber,$condition,true,231,6,$campNumber,$asOfTime);
     }
 
 
@@ -306,8 +306,8 @@ class Algorithm extends Model
      * @return int $score
      */
 
-    public static function sandy_city($nick_name_id,$topicnum=0,$campnum=0){
-        return self::sandy_city_algo($nick_name_id);
+    public static function sandy_city($nickNameId,$topicNumber=0,$campNumber=0,$asOfTime = null){
+        return self::sandy_city_algo($nickNameId);
     }
 
 
@@ -323,8 +323,8 @@ class Algorithm extends Model
      * @return int $score
      */
 
-    public static function sandy_city_council($nick_name_id,$topicnum=0,$campnum=0){
-        return self::sandy_city_council_algo($nick_name_id);
+    public static function sandy_city_council($nickNameId,$topicNumber=0,$campNumber=0,$asOfTime = null){
+        return self::sandy_city_council_algo($nickNameId);
     }
 
     /**
@@ -667,8 +667,8 @@ class Algorithm extends Model
      * @return int $score
      */
 
-    public static function sandy_city_algo($nick_name_id){
-        $user=\App\Model\Nickname::getUserByNickName($nick_name_id);
+    public static function sandy_city_algo($nickNameId){
+        $user=Nickname::getUserByNickName($nickNameId);
         $score = 0;
         if($user && $user->city !=='' && str_contains(strtolower($user->city),'sandy')){
             $score = 1;
@@ -683,12 +683,12 @@ class Algorithm extends Model
      * @return int $score
      */
 
-    public static function sandy_city_council_algo($nick_name_id){
+    public static function sandy_city_council_algo($nickNameId){
         $nick_name_list=[1,346];
         $nick_name_score_list = [1=>1,346=>1];
         $score = 0;
-        if(in_array($nick_name_id,$nick_name_list)){
-            $score = $nick_name_score_list[$nick_name_id];
+        if(in_array($nickNameId,$nick_name_list)){
+            $score = $nick_name_score_list[$nickNameId];
         }
         return $score;
 
