@@ -17,6 +17,11 @@ return [
         "Post" => "Post",
         "Statement" => "Statement",
         "Support" => "Support",
+        "addSupport" => "add",
+        "addDelegate" => "add-delegate",
+        "statementCommit" => "statement-commit",
+        "campCommit" => "camp-commit",
+        "topicCommit" => "topic-commit",
     ],
     'emoji_unicodes' => array( '1F600','1F603','1F604','1F601','1F606','1F605','1F923','1F602','1F642','1F643'),
 ];
