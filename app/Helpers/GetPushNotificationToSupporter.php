@@ -55,7 +55,7 @@ class GetPushNotificationToSupporter
                 try {
                     $PushNotificationData->user_id = $user->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $action);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
@@ -76,7 +76,7 @@ class GetPushNotificationToSupporter
                 try {
                     $PushNotificationData->user_id = $userSub->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $action);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
@@ -124,7 +124,7 @@ class GetPushNotificationToSupporter
         }
     }
 
-    public function getMessageData($request, $topic, $camp, $liveThread, $action)
+    public function getMessageData($request, $topic, $camp, $liveThread, $threadId, $action)
     {
         $PushNotificationData =  new stdClass();
 
