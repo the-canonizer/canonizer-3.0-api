@@ -67,7 +67,7 @@
                     <tr>
                         <td style="padding:20px 0px 20px; font-size:12px;" align="center">
                             <a href="https://canonizer3.canonizer.com/privacy-policy"  target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Privacy Policy</a>
-                            <p style="border-right:solid 1px #BDC1C8;display: inline-block; font-size:12px; border-left:solid 1px #BDC1C8; padding:0px 10px; color: #76787c;"> Pattern: US 8,160,970 B2</p>
+                            <p style="border-right:solid 1px #BDC1C8;display: inline-block; font-size:12px; border-left:solid 1px #BDC1C8; padding:0px 10px; color: #76787c;"> Patent: US 8,160,970 B2</p>
                             <a href="https://canonizer3.canonizer.com/terms-and-services" target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Terms & Services</a>
                         </td>
                     </tr>
