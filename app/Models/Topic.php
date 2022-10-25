@@ -77,7 +77,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
     }
 
-    public static function getLiveTopic($topicNum, $filter = array())
+    public static function getLiveTopic($topicNum, $filter = array(), $asofdate = null)
     {
         switch ($filter) {
             case "default":
@@ -92,11 +92,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                     ->latest('submit_time')->first();
                 break;
             case "bydate":
-                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
+                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
                 return self::where('topic_num', $topicNum)
-                    ->where('objector_nick_id', '=', NULL)
                     ->where('go_live_time', '<=', $asOfDate)
-                    ->latest('submit_time')->first();
+                    ->latest('go_live_time')->first();
                 break;
             default:
                 return self::where('topic_num', $topicNum)

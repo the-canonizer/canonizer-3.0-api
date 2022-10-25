@@ -1121,7 +1121,7 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $topic =  Camp::getAgreementTopic($filter);
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
