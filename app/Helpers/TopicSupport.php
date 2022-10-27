@@ -31,7 +31,7 @@ class TopicSupport
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type, $user);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type);
         
         }else if(isset($action) && $action == 'partial')
         {
@@ -1124,7 +1124,7 @@ class TopicSupport
      * 
      * @return void
      */
-    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId='')
+    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId = '')
     {
         if(!empty($removeCamps))
         {         
@@ -1138,7 +1138,7 @@ class TopicSupport
             $model = new Support();
             $description = trans('message.general.support_removed');
 
-            if($delegateNickNameId){
+            if(!empty($delegateNickNameId)){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = "Delegated support removed from " . $delegatedTo->nick_name; 
             }
@@ -1332,7 +1332,7 @@ class TopicSupport
         {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
            // PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);
-            PushNotification::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
+           GetPushNotificationToSupporter::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
         }        
     }
 
