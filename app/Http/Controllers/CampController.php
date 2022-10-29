@@ -1347,6 +1347,9 @@ class CampController extends Controller
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
         }
+        if (strtolower(trim($all['camp_name'])) != 'agreement' && $all['camp_num'] == 1) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_name'), '', '');
+        }
         try {
             if (Camp::IfTopicCampNameAlreadyExists($all)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
