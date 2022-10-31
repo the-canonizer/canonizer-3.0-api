@@ -686,7 +686,7 @@ class StatementController extends Controller
                 $filter['campNum'] = $request->camp_num;
                 $filter['asOf'] = "";
                 $filter['asOfDate'] = "";
-                $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof);
+                $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof ?? "default");
                 $latestRevision = Topic::where('topic_num', $request->topic_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
