@@ -405,7 +405,7 @@ class StatementController extends Controller
 
             $statement->save();
             $livecamp = Camp::getLiveCamp($filters);
-            $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            $link = '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             
             if ($eventType == "create" && $statement->grace_period == 0) {
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
