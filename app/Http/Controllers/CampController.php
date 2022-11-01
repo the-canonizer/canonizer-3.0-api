@@ -263,6 +263,7 @@ class CampController extends Controller
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
                         "object" =>  $topic->topic_name . " / " . $camp->camp_name,
+                        "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -1499,7 +1500,7 @@ class CampController extends Controller
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $data['topic_link'] = $link;
+        $data['topic_link'] = config('global.APP_URL_FRONT_END') . '/' . $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
         $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;
