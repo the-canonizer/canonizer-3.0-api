@@ -19,7 +19,7 @@ class AddSupportApiTest extends TestCase
         print sprintf(" \n check if support exists Api... %d %s", 200, PHP_EOL);
         
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=724&camp_num=1');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=715&camp_num=1');
         
         $this->seeJsonEquals([
             'status_code'=>200,
@@ -39,7 +39,7 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=724&camp_num=2');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=3');
         
         $this->seeJsonEquals([
             'status_code'=>200,
@@ -47,6 +47,9 @@ class AddSupportApiTest extends TestCase
             'message'=>"This camp is already supported",
             "data" => [
                 'support_flag' => 1,
+                "camp_num"=>"3",
+                "is_confirm"=>0,
+                "topic_num"=>"173"
             ],
         ]);
     }
@@ -58,10 +61,10 @@ class AddSupportApiTest extends TestCase
         print sprintf(" \n Warning Message appears when support exists in child and now switching to parent  %d %s", 200, PHP_EOL);
         
         $user = User::factory()->make([
-            'id' => '413',
+            'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=724&camp_num=1');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
 
         $response = [
             "status_code"=>200,
@@ -69,8 +72,8 @@ class AddSupportApiTest extends TestCase
             "error"=> "",
             "data"=>[
                 "is_confirm"=> 1,
-                "warning"=>"\"Agreement\" is a parent camp to \"camp 1\", so if you commit support to \"Agreement\", the support of the child camp \"camp 1\" will be removed.",
-                "topic_num"=> "724",
+                "warning"=>"\"Agreement\" is a parent camp to \"Types Of Testing\", so if you commit support to \"Agreement\", the support of the child camp \"Types Of Testing\" will be removed.",
+                "topic_num"=> "173",
                 "camp_num"=> "1",
                 "support_flag"=> 0
             ]
@@ -89,15 +92,15 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=435&camp_num=2');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=192&camp_num=2');
 
         $response = [
                 "data" => [
                         "camp_num"=>"2",
                         "is_confirm"=>1,
                         "support_flag"=>0,
-                        "topic_num"=>"435",
-                        "warnng"=>"camp 1 updated\" is a child camp to \"Agreement\", so if you commit support to \"camp 1 updated\", the support of the parent camp \"Agreement\" will be removed."
+                        "topic_num"=>"192",
+                        "warnng"=>"testtesttesttesttesttes\" is a child camp to \"Agreement\", so if you commit support to \"testtesttesttesttesttes\", the support of the parent camp \"Agreement\" will be removed."
                         ],
                 "error"=>"",
                 "message"=>"This camp doesn't have your support",
@@ -110,7 +113,7 @@ class AddSupportApiTest extends TestCase
 
 
     
-    
+    /*
     public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
     {
         print sprintf(" \n Warning appear when delegate support exists in topic and now adding direct support %d %s", 200, PHP_EOL);
@@ -162,5 +165,5 @@ class AddSupportApiTest extends TestCase
 
         $this->actingAs($user)->post('/api/v3/support/add', $data);
         $this->assertEquals(200, $this->response->status());
-    }
+    }*/
 }
