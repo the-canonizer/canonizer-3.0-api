@@ -828,7 +828,7 @@ class TopicController extends Controller
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($topic->namespace_id) && $topic->namespace_id)  ?  $topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $data['help_link'] = General::getDealingWithDisagreementUrl();
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
             'activity' => 'Change to topic objected',
