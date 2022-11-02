@@ -17,6 +17,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_camp_name' => 'Invalid camp name.',
         'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
@@ -53,7 +54,10 @@ return [
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
-        'permission_denied' => "You don't have permission to access this resource."
+        'permission_denied' => "You don't have permission to access this resource.",
+        'support_added' => "Support added.",
+        'support_removed' => "Support removed.",
+        'support_delegated' => "Support delegated."
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',

@@ -162,7 +162,7 @@ class ReplyController extends Controller
             $thread = Reply::create([
                 'user_id'  => $request->nick_name,
                 'body'     => $request->body,
-                'thread_id'  => $request->thread_id,
+                'c_thread_id'  => $request->thread_id,
             ]);
             if ($thread) {
                 $data = $thread;
@@ -339,9 +339,9 @@ class ReplyController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
 
             $result = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-            ->Join('thread as t', 't.id', '=', 'post.thread_id')
+            ->Join('thread as t', 't.id', '=', 'post.c_thread_id')
             ->select('post.*','nick_name.nick_name','t.topic_id')
-            ->where('thread_id', $id)->where('is_delete','0')->latest()->paginate($per_page);
+            ->where('c_thread_id', $id)->where('is_delete','0')->latest()->paginate($per_page);
 
 
             $response = Util::getPaginatorResponse($result);
@@ -503,6 +503,7 @@ class ReplyController extends Controller
                 $message = trans('message.post.post_not_exist');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+            unset($post->thread_id);
             $post->update($update);
             $status = 200;
             $message = trans('message.post.update_success');
@@ -595,6 +596,7 @@ class ReplyController extends Controller
                 $message = trans('message.post.post_not_exist');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+            unset($post->thread_id);
             $post->update($update);
             $status = 200;
             $message = trans('message.post.delete_success');

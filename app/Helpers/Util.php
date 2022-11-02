@@ -19,6 +19,7 @@ use App\Models\User;
 use Throwable;
 use App\Jobs\PurposedToSupportersMailJob;
 use App\Models\Nickname;
+use Carbon\Carbon;
 
 class Util
 {
@@ -239,7 +240,7 @@ class Util
      * @param boolean $updateAll
      * @return void
      */
-    public function dispatchJob($topic, $campNum = 1, $updateAll = 0) {
+    public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $delay = null, $campChangeID = null) {
 
         try{
             $selectedAlgo = 'blind_popularity';
@@ -251,11 +252,21 @@ class Util
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
                 'updateAll' => $updateAll,
-                'camp_num'  => $campNum
+                'camp_num'  => $campNum,
+                'campChangeID' => $campChangeID,
+                'isUniqueJob' => true
             ];
             // Dispatch job when create a camp/topic
-            dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
-
+            if ($delay) {
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds($delay);
+                $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
+                $canonizerServiceData['isUniqueJob'] = false;
+                dispatch((new CanonizerService($canonizerServiceData))->delay($delayTime))->onQueue(env('DELAY_QUEUE_SERVICE_NAME'));
+            } else {
+                dispatch(new CanonizerService($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            }
+            
             // Incase the topic is mind expert then find all the affected topics 
             if($topic->topic_num == config('global.mind_expert_topic_num')) {
                 $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
@@ -318,7 +329,10 @@ class Util
             if(preg_match('/sandbox testing/i',$namespace->name)){
                 $subject = 'canon/sandbox testing/';
             }
-            if(env('APP_ENV') == 'staging' || env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
+            if(env('APP_ENV') == 'staging'){
+               return '[staging.' . $subject . ']';
+            }
+            if(env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
                return '[local.' . $subject . ']';
             }else{
               return  '[' . $subject . ']';
@@ -392,17 +406,33 @@ class Util
                 Support::removeSupport($all['topic_num'], $all['parent_camp_num'], $allChildSupporters);
             }
         } else */
+      
         if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
                 $allParentCamps = Camp::getAllParent($liveCamp);
-                $allChildSupporters = Support::where('topic_num', $all['topic_num'])
+                $supporterNicknames = Support::where('topic_num', $all['topic_num'])
                     ->where('end', 0)
                     ->whereIn('camp_num', $allParentCamps)
                     ->pluck('nick_name_id');
-                if (sizeof($allChildSupporters) > 0) {
+
+                if (sizeof($supporterNicknames) > 0) {
                     foreach ($allParentCamps as $parentCamp) {
-                        Support::removeSupport($all['topic_num'], $parentCamp, $allChildSupporters, $all['camp_num']);
+                        foreach($supporterNicknames as $nickId) {
+                            Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $nickId); 
+                            Support::reOrderSupport($all['topic_num'], [$nickId]);
+                        }
                     }
                 }
+
+               /* if (sizeof($supporterNicknames) > 0) {
+                    foreach ($allParentCamps as $parentCamp) {
+                        Support::removeSupportWithAllNicknames($all['topic_num'], [$parentCamp], $supporterNicknames);
+                    }
+
+                    foreach($supporterNicknames as $nickId){
+                        Support::reOrderSupport($all['topic_num'], [$nickId]);
+                    }
+                   
+                }*/
         }
         return;
     }

@@ -155,26 +155,51 @@ class CampController extends Controller
                 
         try {
 
-            $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
-            if (!empty($result)) {
-                $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
-                $status = 400;
-                $result->if_exist = true;
-                $result->topic_name = $topic_name->topic_name;
-                $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
-                $message = trans('message.error.invalid_data');
-                return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+            $liveCamps = Camp::getAllLiveCampsInTopic($request->topic_num);
+            $nonLiveCamps = Camp::getAllNonLiveCampsInTopic($request->topic_num);
+            $camp_existsLive = 0;
+            $camp_existsNL = 0;
+
+            if(!empty($liveCamps)){
+                foreach($liveCamps as $value){
+                    if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
+                            $camp_existsLive = 1;
+                    }
+                }
             }
+
+            if(!empty($nonLiveCamps)){
+                foreach($nonLiveCamps as $value){
+                    if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
+                             $camp_existsNL = 1;
+                    }
+                }
+            }
+
+            if($camp_existsLive || $camp_existsNL){
+                $result = Camp::where('topic_num', $request->topic_num)->where('camp_name', $request->camp_name)->first();
+                if (!empty($result)) {
+                    $topic_name = Topic::select('topic_name')->where('topic_num', $request->topic_num)->first();
+                    $status = 400;
+                    $result->if_exist = true;
+                    $result->topic_name = $topic_name->topic_name;
+                    $error['camp_name'][] = trans('message.validation_camp_store.camp_name_unique');
+                    $message = trans('message.error.invalid_data');
+                    return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+                }
+            }
+
             $parentCamp = Camp::getParentFromParent($request->parent_camp_num,$request->topic_num);
-            //  echo json_encode($parentCamp);die;
             $is_disabled = false;
             $is_one_level = false;
+            $allowUnderCamp = [];
             foreach($parentCamp as $val){
                 if($val->is_disabled === 1){
                     $is_disabled = true; 
                 }
                 if($val->is_one_level === 1){
                     $is_one_level = true; 
+                    $allowUnderCamp[] = $val->camp_num;
                 }
             }
 
@@ -184,12 +209,11 @@ class CampController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             if($is_one_level == true){
-                $campsCount =Camp::where('camp_name', '!=','Agreement')->where('topic_num',$request->topic_num)->count();
-                if($campsCount >= 1){
+                if (!in_array($request->parent_camp_num, $allowUnderCamp)){
                     $message = trans('message.validation_camp_store.camp_only_one_level_allowed');
                     $status = 400;
                     return $this->resProvider->apiJsonResponse($status, $message, null, null);
-                }
+               }
             }
 
             $current_time = time();
@@ -201,12 +225,11 @@ class CampController extends Controller
                 $request->camp_about_nick_id = $request->camp_about_nick_id ?? "";
             }
 
-            $nextCampNum =  Camp::where('topic_num', $request->topic_num)
-                ->latest('submit_time')->first();
-            $nextCampNum->camp_num++;
+            $nextCampNum = Camp::where('topic_num', $request->topic_num)->max('camp_num');
+            $nextCampNum++;
             $input = [
                 "camp_name" =>  Util::remove_emoji($request->camp_name),
-                "camp_num" => $nextCampNum->camp_num,
+                "camp_num" => $nextCampNum,
                 "parent_camp_num" => $request->parent_camp_num,
                 "topic_num" => $request->topic_num,
                 "submit_time" => strtotime(date('Y-m-d H:i:s')),
@@ -349,7 +372,7 @@ class CampController extends Controller
                 }
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -531,6 +554,10 @@ class CampController extends Controller
                     }
                 }
                 $result = array_unique($result);
+            }
+            foreach($result as $key => $val){
+                $supportOrder = Support::where('camp_num',$val->camp_num)->where('topic_num',$val->topic_num)->where('nick_name_id',$val->submitter_nick_id)->first();
+                $val->support_order = $supportOrder->support_order ?? null;
             }
             if (empty($result)) {
                 $status = 200;
@@ -1094,13 +1121,15 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
                 $data->subscription_id = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ??  null;
                 $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
             }
-            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name'];
+            $data->topic_name = $topic->topic_name ?? '';
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name', 'topic_name'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response = $response[0];
@@ -1123,6 +1152,7 @@ class CampController extends Controller
         $response->ifIAmImplicitSupporter = null;
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
+        $response->ifIAmExplicitSupporter = null;
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
@@ -1133,6 +1163,7 @@ class CampController extends Controller
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
+                $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
@@ -1316,6 +1347,9 @@ class CampController extends Controller
         if (strtolower(trim($all['camp_name'])) == 'agreement' && $all['camp_num'] != 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
         }
+        if (strtolower(trim($all['camp_name'])) != 'agreement' && $all['camp_num'] == 1) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_name'), '', '');
+        }
         try {
             if (Camp::IfTopicCampNameAlreadyExists($all)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
@@ -1347,11 +1381,22 @@ class CampController extends Controller
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
-                if($ifIamSingleSupporter){
+               if($ifIamSingleSupporter){
                     Util::checkParentCampChanged($all, false, $liveCamp);
                 }                
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+                $currentTime = time();
+                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
+                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
+                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                } else {
+                    if($currentTime < $camp->go_live_time && $camp->objector_nick_id == null) {
+                        Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                    }
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {

@@ -18,7 +18,7 @@
                     <td style="padding:30px 0px 20px; font-weight:600;">Dear user,</td>
             </tr>
             <tr>
-              <td>You delegated your support to <a target="_blank" href="<?= route('user_supports',$user->id) .'?topicnum=&campnum=&namespace=' . $data['topic']->namespace_id; ?>"><?= $user->nick_name; ?></a> who was directly supporting <a href="<?= $data['camp_link']; ?>" target="_blank"><?= $data['camp']->camp_name; ?></a> camp in <a href="<?= $data['topic_link']; ?>" target="_blank"><?= $data['topic']->topic_name; ?></a> topic.</td>
+              <td>You delegated your support to <a target="_blank" href="{{ $data['nick_name_link'] }}"><?= $user->nick_name; ?></a> who was directly supporting <a href="<?= $data['camp_link']; ?>" target="_blank"><?= $data['camp']->camp_name; ?></a> camp in <a href="<?= $data['topic_link']; ?>" target="_blank"><?= $data['topic']->topic_name; ?></a> topic.</td>
             </tr>
             
             <tr>

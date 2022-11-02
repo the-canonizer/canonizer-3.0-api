@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Mingalevme\Illuminate\UQueue\Jobs\Uniqueable;
+use App\Exceptions\ServiceAuthenticationException;
 
 class CanonizerService implements ShouldQueue, Uniqueable
 {
@@ -28,7 +29,11 @@ class CanonizerService implements ShouldQueue, Uniqueable
 
     public function uniqueable()
     {
-        return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
+        if ($this->canonizerData['isUniqueJob']) {
+            return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
+        } else {
+            return null; // for case of delay jobs it will automatically generate random string in unique id.
+        }
     }
 
     /**
@@ -58,15 +63,29 @@ class CanonizerService implements ShouldQueue, Uniqueable
 
         $appURL = env('CS_APP_URL');
         $endpointCSStoreTree = env('CS_STORE_TREE');
-        if(empty($appURL) || empty($endpointCSStoreTree)) {
-            Log::error("App url or endpoints of store tree is not defined");
+        $apiToken = env('API_TOKEN');
+        if(empty($appURL) || empty($endpointCSStoreTree) || empty($apiToken)) {
+            Log::error("App url or endpoints or API Token of store tree is not defined");
             return;
         }
         $endpoint = $appURL."/".$endpointCSStoreTree;
        
-        $headers = array('Content-Type:multipart/form-data');
+        //$headers = array('Content-Type:multipart/form-data');
+        $headers = []; // Prepare headers for request
+        $headers[] = 'Content-Type:multipart/form-data';
+        $headers[] = 'X-Api-Token:'.$apiToken.'';
 
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
+
+        // Check the unauthorized request here...
+        if(isset($response)) {
+            $checkRes = json_decode($response, true);
+            if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
+                Log::error("Unauthorized action.");
+                throw new ServiceAuthenticationException('Authentication Issue!');
+                return;
+            }
+        }
        
         if(isset($response)) {
             $responseData = json_decode($response, true)['data'];
@@ -121,5 +140,9 @@ class CanonizerService implements ShouldQueue, Uniqueable
             return false;
         }
         return true;
+    }
+
+    public function failed($e) {
+        Log::error("Job Failed!");
     }
 }

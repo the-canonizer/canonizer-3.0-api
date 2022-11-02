@@ -179,7 +179,7 @@ class ThreadsController extends Controller
                 $message = trans('message.thread.create_success');
 
                 // Return Url after creating thread Successfully
-                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num.'-'. Util::replaceSpecialCharacters($request->camp_name) . '/threads';
+                $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num.'-'. Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $data->id;
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
@@ -394,12 +394,12 @@ class ThreadsController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
                 $query = Thread::leftJoin('post', function($join) {
-                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->on('thread.id', '=', 'post.c_thread_id');
                         $join->where('post.is_delete',0);
                     })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -407,7 +407,7 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 foreach($threads->items as $value){
-                    $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
+                    $postCount =  Reply::where('c_thread_id',$value->id)->where('post.is_delete',0)->get();
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                     foreach($namspaceId as $nId){
                         $value->namespace_id = $nId->namespace_id;
@@ -425,12 +425,12 @@ class ThreadsController extends Controller
             }
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
             $query = Thread::leftJoin('post', function($join) {
-                    $join->on('thread.id', '=', 'post.thread_id');
+                    $join->on('thread.id', '=', 'post.c_thread_id');
                     $join->where('post.is_delete',0);
                 })
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
+                ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name' ,'post.updated_at as post_updated_at')
                 ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -449,12 +449,12 @@ class ThreadsController extends Controller
             $threads = $query->latest()->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::leftJoin('post', function($join) {
-                        $join->on('thread.id', '=', 'post.thread_id');
+                        $join->on('thread.id', '=', 'post.c_thread_id');
                         $join->where('post.is_delete',0);
                     })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
+                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'),'n1.id as nick_name_id', 'n1.nick_name as nick_name','n2.id as creation_nick_name_id','n2.nick_name as creation_nick_name','post.updated_at as post_updated_at')
                     ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
@@ -463,7 +463,7 @@ class ThreadsController extends Controller
             }
             $threads = Util::getPaginatorResponse($threads);
             foreach($threads->items as $value){
-                $postCount =  Reply::where('thread_id',$value->id)->where('post.is_delete',0)->get();
+                $postCount =  Reply::where('c_thread_id',$value->id)->where('post.is_delete',0)->get();
                 $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
                 foreach($namspaceId as $nId){
                     $value->namespace_id = $nId->namespace_id;
@@ -596,7 +596,7 @@ class ThreadsController extends Controller
                 $status = 400;
                 $message = trans('message.thread.id_not_exist');
             }else{
-                if($threads->title !=Util::remove_emoji($request->title)){
+                if($threads->title !== Util::remove_emoji($request->title)){
                     $thread_flag = Thread::where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num)->where('title', Util::remove_emoji($request->title))->get();
                     if (count($thread_flag) > 0) {
                         $status = 400;
@@ -605,9 +605,7 @@ class ThreadsController extends Controller
                     }
                 }
                 $threads->update($update);
-                $topic_name = CampForum::getTopicName($threads->topic_id);
-                $camp_name = CampForum::getCampName($threads->topic_id,$threads->camp_id);
-                $url = 'forum/' . $request->topic_num . '-' .   urlencode(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . urlencode($request->camp_name) . '/threads';
+                $url = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $id;
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => 'Thread updated',

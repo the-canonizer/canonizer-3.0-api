@@ -125,7 +125,7 @@ class Nickname extends Model {
                                 $usedNickid = $mythread->user_id;
                             }else{
                                 $currentTopicThreadsIds =Thread::select('id')->where('topic_id', $topic_num)->get();
-                                $latestReply =  Reply::select('user_id')->whereIn('thread_id', $currentTopicThreadsIds)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
+                                $latestReply =  Reply::select('user_id')->whereIn('c_thread_id', $currentTopicThreadsIds)->whereIn('user_id', $personNicknameArray)->orderBy('created_at', 'DESC')->first();
                                 if(!empty($latestReply)) {
                                     $usedNickid = $latestReply->user_id;
                                 }
@@ -321,7 +321,7 @@ class Nickname extends Model {
                             where t.namespace_id=$namespace and t.topic_num = tz.topic_num and t.go_live_time = tz.topic_max_glt) uz
                 where s.topic_num = cz.topic_num and s.camp_num=cz.camp_num and s.go_live_time = cz.camp_max_glt and s.topic_num=uz.topic_num) u
         where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
-        (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by u.submit_time DESC";
+        (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by p.support_order ASC, u.submit_time DESC";
         
         $results = DB::select($sql);
         return $results;

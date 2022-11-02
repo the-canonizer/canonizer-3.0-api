@@ -16,6 +16,7 @@ use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
+use App\Facades\Util;
 
 
 class TopicSupport
@@ -30,7 +31,7 @@ class TopicSupport
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type, $user);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type);
         
         }else if(isset($action) && $action == 'partial')
         {
@@ -165,17 +166,19 @@ class TopicSupport
 
         /* To update the Mongo Tree while adding support */
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+        $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
 
          if(!empty($removeCamps)){
- 
+
+             // before removing get delegation support
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
+             Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
  
              $nicknameModel = Nickname::getNickName($nickNameId);
              $topicFilter = ['topicNum' => $topicNum];
              $topicModel = Camp::getAgreementTopic($topicFilter);
      
-             foreach($removeCamps as $camp)
-             {     
+             foreach($removeCamps as $camp) {     
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
 
@@ -195,10 +198,11 @@ class TopicSupport
 
          }
  
-         if(isset($orderUpdate) && !empty($orderUpdate)){
+        if(isset($orderUpdate) && !empty($orderUpdate)){
              self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
          }
 
+         $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
             $campNum = $addCamp['camp_num'];
             $supportOrder = $addCamp['support_order'];
@@ -206,7 +210,12 @@ class TopicSupport
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
 
-            self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+            $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+            array_push($supportToAdd, $support);
+            if(count($allDelegates)) { 
+                self::insertDelegateSupport($allDelegates, $supportToAdd);
+            }
+            
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
@@ -340,6 +349,7 @@ class TopicSupport
         }
         
         $object = $topic->topic_name ." / ".$camp->camp_name;
+        $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['topic_num'] = $topicNum;
         $data['camp_num'] = $campNum;
         $data['promotedFrom'] = $promotedFrom;
@@ -350,13 +360,15 @@ class TopicSupport
         $data['camp_link'] = $campLink;   
         $data['url_portion'] =  $seoUrlPortion;
         $data['delegate_nick_name_id'] =  $delegateNickNameId;
+        $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegate_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         $data['promotedTo'] = isset($promotedTo) ? $promotedTo : [];
         $data['topic_name'] = $topic->topic_name;
         $data['camp_name'] = $camp->camp_name;
         $data['nick_name_id'] = $promotedFrom->id;
         $data['nick_name'] = $promotedFrom->nick_name;
         $data['support_action'] = "deleted"; //default will be 'added'        
-        $data['object'] = $object;
+        $data['object'] = $object;       
+        $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         
 
         foreach($allDirectDelegates as $promoted)
@@ -613,11 +625,8 @@ class TopicSupport
     {
         $delegators = Support::getActiveDelegators($topicNum, $allNickNames);
         Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
-        
 
-       
-
-        if(isset($delegators) && count($delegators) > 0)
+        if(count($delegators))
         { 
             foreach($delegators as $delegator)
             {
@@ -750,8 +759,9 @@ class TopicSupport
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
-        $data['support_action'] = $action; //default will be 'added'
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
+        $data['support_action'] = $action; //default will be 'added'       
         $topic_name_space_id = $data['namespace_id'];
         
         /** If delegate support */
@@ -759,7 +769,7 @@ class TopicSupport
             $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
             $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
             $data['delegated_nick_name_id'] = $delegatedToNickname->id;
-
+            $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
             $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
         }        
         
@@ -805,7 +815,6 @@ class TopicSupport
                     $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
                 try { 
-                    
                     if($action == 'add'){
                         Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
                     }else{
@@ -843,23 +852,33 @@ class TopicSupport
     /** 
      * 
      */
-    public static function checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames)
+    public static function checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId = 0)
     {
         $returnData = [];
-        $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
-        }
-        
-        $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
+
+        if($delegataedNickNameId){
+            $returnData = self::checkIfSupportSwitchToDirectToDelegate($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+        }else{
+            $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+            
+            $returnData = self::checkIfSupportswitchToChild($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+
+            $returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
         }
 
-        $returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames);
-        if(!empty($returnData)){
-            return $returnData;
-        }
+       
 
         return $returnData;
 
@@ -873,12 +892,27 @@ class TopicSupport
     {
         $returnData = [];
         $supportedCamps = [];
-        $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames);                
+        $delegatedSupport = Support::getDelgatedSupportInTopic($topicNum,$nickNames); 
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
         if ($delegatedSupport->count()) {
             $nickName = Nickname::getNickName($delegatedSupport[0]->delegate_nick_name_id);
 
             foreach($delegatedSupport as $support){
-                 array_push($supportedCamps, $support->camp_num);
+
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+                array_push($supportedCamps, $support->camp_num);
             }
 
             if(in_array($campNum, $supportedCamps)){
@@ -890,7 +924,9 @@ class TopicSupport
             $returnData['is_delegator'] = 1;
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
+            $returnData['delegated_nick_name_id'] = $nickName->id;
             $returnData['is_confirm'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
         }
 
         return $returnData;
@@ -900,7 +936,7 @@ class TopicSupport
      *  [This will check & return warning if support switched from child to parent]
      */
     public static function checkIfSupportswitchToChild($topicNum, $campNum, $nickNames)
-    {
+    { 
         $returnData = [];
         $as_of_time = time();
         $parentSupport = Camp::validateParentsupport($topicNum, $campNum, $nickNames);
@@ -921,9 +957,29 @@ class TopicSupport
                             
             $returnData['warning'] =  trans('message.support_warning.not_live');
 
-        } else {           
+        } else { 
+            $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+            $campsToemoved = [];   
+            
+            foreach($parentSupport as $support){
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
             $res = self::ValidateAndCheckWarning($parentSupport, $onecamp, $campNum, $as_of_time);
             $returnData = array_merge($returnData,$res);
+            if(isset($returnData['is_confirm']) && $returnData['is_confirm']){
+                $returnData['remove_camps'] = $campsToemoved;
+            }
+
              
             
         }
@@ -942,20 +998,34 @@ class TopicSupport
 
         $filter = Camp::getLiveCampFilter($topicNum, $campNum);
         $onecamp = self::getLiveCamp($filter);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
 
         if($childSupport && !empty($childSupport)){
+            foreach ($childSupport as $child)
+            {
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $child->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $child->camp_num,
+                    'support_order' => $child->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $child->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
             if (count($childSupport) == 1) {
-                foreach ($childSupport as $child)
-                {
-                    $childCampName = Camp::getCampNameByTopicIdCampId($topicNum, $child->camp_num, $as_of_time);
-                    if ($child->camp_num == $campNum && $child->delegate_nick_name_id == 0) {                        
-                        $returnData['is_confirm'] = 0;  
+                $child = $childSupport[0];
+                $childCampName = Camp::getCampNameByTopicIdCampId($topicNum, $child->camp_num, $as_of_time);
+                if ($child->camp_num == $campNum && $child->delegate_nick_name_id == 0) {                        
+                    $returnData['is_confirm'] = 0;  
 
-                    }else{
-                        $returnData['is_confirm'] = 1;  
-                        $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
+                }else{
+                    $returnData['is_confirm'] = 1;  
+                    $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
 
-                    }
                 }
             } else {
                 $returnData['is_confirm'] = 1;    
@@ -965,6 +1035,10 @@ class TopicSupport
 
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
+            if(isset($returnData['is_confirm']) && $returnData['is_confirm']){
+                $returnData['remove_camps'] = $campsToemoved;
+            }
+            
         }
 
         return $returnData;
@@ -997,30 +1071,19 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId,  $delegatedNickNameId = 0)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0)
     {
        
-        $data = [
-            'topic_num' => $topicNum,
-            'nick_name_id' => $nickNameId,
-            'delegate_nick_name_id' => $delegatedNickNameId,
-            'camp_num' => $campNum,
-            'support_order' => $supportOrder,
-            'start' => time()
-        ];
-        Support::insert($data);
+        $support = new Support();
+        $support->topic_num = $topicNum;
+        $support->nick_name_id = $nickNameId;
+        $support->delegate_nick_name_id = $delegatedNickNameId;
+        $support->camp_num = $campNum;
+        $support->support_order = $supportOrder;
+        $support->start = time();
+        $support->save();
 
-        //add support to all delegators as well
-        $delegatedSupport = Support::getDelegatorForNicknameId($topicNum, $nickNameId);  
-       
-        if($delegatedSupport->count()) {
-            foreach($delegatedSupport as $support){
-                
-                 return self::addSupport($topicNum, $campNum, $supportOrder, $support->nick_name_id, $nickNameId);
-            }
-        }
-
-        return;
+        return $support;        
     }
     
     /**
@@ -1061,7 +1124,7 @@ class TopicSupport
      * 
      * @return void
      */
-    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId='')
+    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId = '')
     {
         if(!empty($removeCamps))
         {         
@@ -1071,11 +1134,11 @@ class TopicSupport
             $user = Nickname::getUserByNickName($nickNameId);
 
             $logType = "support";
-            $activity = "support removed";
+            $activity =  trans('message.general.support_removed');
             $model = new Support();
-            $description = "supoort removed";
+            $description = trans('message.general.support_removed');
 
-            if($delegateNickNameId){
+            if(!empty($delegateNickNameId)){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = "Delegated support removed from " . $delegatedTo->nick_name; 
             }
@@ -1112,15 +1175,15 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
 
             $logType = "support";
-            $activity = "support added";
+            $activity = trans('message.general.support_added');
             $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
             $model = new Support();
-            $description = "supoort added";
+            $description = trans('message.general.support_added');
 
             if($delegateNickNameId){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = $nicknameModel->name  . " delegated their support to " . $delegatedTo->nick_name; 
-                $description = "Support delegated.";
+                $description = trans('message.general.support_delegated');
             }
             
             return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
@@ -1198,7 +1261,7 @@ class TopicSupport
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
 
         $data['object']     = $object;
-        $data['subject']    = "You has just delegated your support to " . $delegatedToNickname->nick_name . ".";
+        $data['subject']    = "You have just delegated your support to " . $delegatedToNickname->nick_name . ".";
         $data['topic']      = $topic;
         $data['camp']       = $camp;
         $data['camp_name']  = $camp->camp_name;
@@ -1210,10 +1273,12 @@ class TopicSupport
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
-        $data['support_action'] = $action; //default will be 'added'
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+        $data['nick_name_link'] = Nickname::getNickNameLink($nickname->id, $data['namespace_id'], $data['topic_num'], $data['camp_num']);
+        $data['support_action'] = $action; //default will be 'added'       
         $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
         $data['delegated_nick_name_id'] = $delegatedToNickname->id;
+        $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
         $data['action'] = $action;
         $topic_name_space_id = $data['namespace_id'];
 
@@ -1267,9 +1332,47 @@ class TopicSupport
         {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
            // PushNotification::pushNotificationToPromotedDelegates($fcmToken, $topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);
-            PushNotification::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
+           GetPushNotificationToSupporter::pushNotificationToPromotedDelegates($topic, $camp, $topicLink, $campLink, $user, $promoteLevel, $promotedFrom, $promotedTo);    
+        }        
+    }
+
+    /**
+     *  check is supported is a direct supporter and switching to delegate
+     *  @return $returnData with warning messages
+     */
+    public static function checkIfSupportSwitchToDirectToDelegate($topicNum, $campNum, $nickNames)
+    {
+        $returnData = [];
+        $supportedCamps = [];
+        $directSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, true);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
+        if (count($directSupport)) {
+            foreach($directSupport as $support){
+
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
+
+            $returnData['warning'] = "You are directly supporting one or more camps under this topic. If you continue, your direct support will be removed.";
+
+            $returnData['is_delegator'] = 0;
+            $returnData['topic_num'] = $topicNum;
+            $returnData['camp_num'] = $campNum;
+            $returnData['is_confirm'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
         }
 
-        
+        return $returnData;
     }
 }

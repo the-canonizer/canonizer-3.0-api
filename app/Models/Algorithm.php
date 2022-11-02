@@ -278,6 +278,56 @@ class Algorithm extends Model
     }
 
     /**
+     * Get the united_utah algorithm score.
+     * Forward party Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+    public static function forward_party($nickNameId,$topicNumber = 0, $campNumber = 0, $asOfTime = null){
+        $condition = '(topic_num = 231 and camp_num = 6)';
+        return self::campCount($nickNameId,$condition,true,231,6,$asOfTime,$topicNumber);
+    }
+
+
+     /**
+     * Get the united_utah algorithm score.
+     * Sandy City Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+
+    public static function sandy_city($nickNameId,$topicNumber=0,$campNumber=0,$asOfTime = null){
+        return self::sandy_city_algo($nickNameId);
+    }
+
+
+     /**
+     * Get the united_utah algorithm score.
+     * Sandy City Council Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+
+    public static function sandy_city_council($nickNameId,$topicNumber=0,$campNumber=0,$asOfTime = null){
+        return self::sandy_city_council_algo($nickNameId);
+    }
+
+    /**
      * Get user ethers.
      *
      * @param int $nickNameId
@@ -362,7 +412,7 @@ class Algorithm extends Model
     public static function shares_sqrt($nickNameId = null, $topicNumber = 0, $campNumber = 0, $asOfTime = null)
     {
         $algo = 'shares_sqrt';
-        return $this->shareAlgo($nickNameId, $topicNumber, $campNumber, $algo, $asOfTime);
+        return self::shareAlgo($nickNameId, $topicNumber, $campNumber, $algo, $asOfTime);
     }
 
     /**
@@ -480,42 +530,51 @@ class Algorithm extends Model
      *
      * @return int $score
      */
-    public static function campCount($nickNameId, $condition, $political=false, $topicNumber=0, $campNumber=0, $asOfTime = null)
+    public static function campCount($nickNameId, $condition, $political=false, $topicNumber=0, $campNumber=0, $asOfTime = null,$topic_num=0)
     {
-        $cacheWithTime = false;
-
+        $cacheWithTime = false; 
+        $total = 0;
+         
         $sql = "select count(*) as countTotal,support_order,camp_num from support where nick_name_id = $nickNameId and (" .$condition.")";
         $sql2 ="and ((start < $asOfTime) and ((end = 0) or (end > $asOfTime)))";
-
+         
         /* Cache applied to avoid repeated queries in recursion */
         if($cacheWithTime){
             $result = Cache::remember("$sql $sql2", 2, function () use($sql,$sql2) {
                 return DB::select("$sql $sql2");
             });
-            return isset($result[0]->countTotal) ? $result[0]->countTotal : 0;
         }else{
             $result = Cache::remember("$sql", 1, function () use($sql,$sql2) {
                 return DB::select("$sql $sql2");
             });
-
-            if($political==true && $topicNumber==231 && ($campNumber==2 ||  $campNumber==3 || $campNumber==4) ) {
-
-                if($result[0]->support_order==1)
-                    $total = $result[0]->countTotal / 2;
-                else if($result[0]->support_order==2)
-                    $total = $result[0]->countTotal / 4;
-                else if($result[0]->support_order==3)
-                    $total = $result[0]->countTotal / 6;
-                else if($result[0]->support_order==4)
-                    $total = $result[0]->countTotal / 8;
-                else $total = $result[0]->countTotal;
-
-            } else {
-                $total = $result[0]->countTotal;
-            }
-
-            return isset($result[0]->countTotal) ? $total : 0;
         }
+           
+		 if($political == true && $topicNumber ==231 && ($campNumber == 2 ||  $campNumber == 3 || $campNumber == 4 || $campNumber == 6) ) {
+            // get support count from topic if political party algo selected
+            $sqlQuery = "select count(*) as countTotal,support_order,camp_num from support where nick_name_id = $nickNameId and topic_num = ".$topicNumber." and ((start < $asOfTime) and ((end = 0) or (end > $asOfTime)))";	
+            $supportCount = DB::select("$sqlQuery");
+            if($supportCount[0]->countTotal > 1 && $topic_num!=231){
+                // echo "<pre>"; print_r($supportCount);print_r($result);
+                if($result[0]->support_order == 1){
+                    for($i=1; $i<=$supportCount[0]->countTotal; $i++){
+                        $supportPoint = $result[0]->countTotal;
+                        if($i == 1 || $i == $supportCount[0]->countTotal){ // adding only last reminder
+                            $total = $total + round($supportPoint * 1 / (2 ** ($i)), 3);
+                        }
+                    }
+                }else{
+                    $supportPoint = $result[0]->countTotal;
+                    $total = $total + round($supportPoint * 1 / (2 ** ($result[0]->support_order)), 3);
+                }
+                
+             }else{
+                $total = $result[0]->countTotal;
+            }     	
+			
+		 } else {
+			$total = $result[0]->countTotal; 
+		 }	
+        return  $total;
     }
 
      /**
@@ -609,5 +668,38 @@ class Algorithm extends Model
         
         return [];
         
+    }
+
+     /**
+     * Get the camp count .
+     * @param int $nickNameId
+     * @return int $score
+     */
+
+    public static function sandy_city_algo($nickNameId){
+        $user=Nickname::getUserByNickName($nickNameId);
+        $score = 0;
+        if($user && $user->city !=='' && str_contains(strtolower($user->city),'sandy')){
+            $score = 1;
+        }
+        return $score;
+
+    }
+
+    /**
+     * Get the camp count .
+     * @param int $nickNameId
+     * @return int $score
+     */
+
+    public static function sandy_city_council_algo($nickNameId){
+        $nick_name_list=[1,346];
+        $nick_name_score_list = [1=>1,346=>1];
+        $score = 0;
+        if(in_array($nickNameId,$nick_name_list)){
+            $score = $nick_name_score_list[$nickNameId];
+        }
+        return $score;
+
     }
 }

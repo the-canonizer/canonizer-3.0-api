@@ -24,11 +24,11 @@
                     <td style="padding-top: 0px;  font-weight:400;">
                         <p>
                             <?php if(isset($data['notify_delegated_user']) && $data['notify_delegated_user']){ ?>
-                                <a target="_blank" href="/user/supports/{{ $data['nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['nick_name']}}</a>
+                                <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
                                     has delegated their support to you in this topic: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
                             <?php } else{ ?>
                                 You have delegated your support to <a target="_blank"
-                                href="/user/supports/{{ $data['delegated_nick_name_id'] }}?topicnum=&campnum=&namespace=' . $data['namespace_id']; ?>">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['object']}}</b></a>
+                                href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['object']}}</b></a>
                             <?php } ?>
                         </p>
                     </td>

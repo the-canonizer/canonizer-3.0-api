@@ -172,12 +172,20 @@ class Support extends Model
         return $delegators;
     }
 
-    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $camps = array())
+    public static function getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames, $onlyDirectSupport = false)
     {
-        $supports = self::where('topic_num', '=', $topicNum)
+        if($onlyDirectSupport){
+            $supports = self::where('topic_num', '=', $topicNum)
+            ->whereIn('nick_name_id', $nickNames)
+            ->where('delegate_nick_name_id','=', 0)
+            ->orderBy('support_order', 'ASC')
+            ->where('end', '=', '0')->get();
+        }else{
+            $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
             ->orderBy('support_order', 'ASC')
             ->where('end', '=', '0')->get();
+        }
 
         return $supports;
     }
@@ -390,4 +398,90 @@ class Support extends Model
 
         return isset($support) ? $support->nick_name_id : 0 ;
     }
+
+    public static function ifIamExplicitSupporter($filter,$nickNames, $type = null){
+            Camp::clearChildCampArray();
+            if($type == "topic"){
+                $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
+                ->where('go_live_time', '<=', time())
+                ->groupBy('camp_num')
+                ->get()
+                ->toArray();
+            }else{
+                $liveCamp = Camp::getLiveCamp($filter);
+                $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+                $key = array_search($liveCamp->camp_num, $childCamps, true);
+                if ($key !== false) {
+                    unset($childCamps[$key]);
+                }
+            }
+            $mysupports = Support::where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $nickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+            return (count($mysupports)) ? true : false;
+    }
+
+    /**
+     * Remove Support along with  delegates
+     */
+
+    public static function removeSupportWithDelegates($topicNum, $campNum, $nickId)
+    {
+        $supports = self::where('topic_num', '=', $topicNum)
+                    ->where('camp_num', $campNum)
+                    ->where('nick_name_id', $nickId)
+                    ->update(['end' => time()]);
+
+        $delegators = self::getDelegatorForNicknameId($topicNum, $nickId);
+
+        if(count($delegators)){
+            foreach($delegators as $delegator)
+            {
+                return self::removeSupportWithDelegates($topicNum, $campNum, $delegator->nick_name_id);
+            }
+        }
+    }
+
+    public static function reOrderSupport($topicNum, $nickNames)
+    {
+        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+        
+        $order = 1;
+        foreach($support as $support)
+        {
+            if($order === $support->support_order){
+                $order++;
+                continue;
+            }
+
+            $support->support_order = $order;
+            $support->update();
+
+            //update delegators support order as well
+            self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
+
+            $order++;
+        }
+
+        return;
+    }
+
+    public static function updateDeleagtorsSupportOrder($topicNum, $nicknameId, $campNum, $order)
+    {
+        $delegators = self::getDelegatorForNicknameId($topicNum, $nicknameId);
+        if(count($delegators))
+        {
+             self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', $campNum)
+            ->whereIn('delegate_nick_name_id', [$nicknameId])
+            ->update(['support_order' => $order]);
+
+            foreach($delegators as $delegator){               
+                return self::updateDeleagtorsSupportOrder($topicNum, $delegator->nick_name_id, $campNum, $order); 
+            }
+        }
+        return;
+    }
+
+
+
+
 }

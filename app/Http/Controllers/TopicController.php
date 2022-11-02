@@ -128,17 +128,48 @@ class TopicController extends Controller
         }
 
 
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+        if (!Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
         $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
+        $liveTopicData = Topic::select('topic.*')
+            ->join('camp', 'camp.topic_num', '=', 'topic.topic_num')
+            ->where('camp.camp_name', '=', 'Agreement')
+            ->where('topic_name', Util::remove_emoji($request->topic_name))
+            ->where('topic.objector_nick_id', "=", null)
+            ->whereRaw('topic.go_live_time in (select max(go_live_time) from topic where objector_nick_id is null and go_live_time < "' . time() . '" group by topic_num)')
+            ->where('topic.go_live_time', '<=', time())
+            ->latest('submit_time')
+            ->first();
 
-        if (!empty($result)) {
-            $status = 400;
-            $result->if_exist =true;
-            $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
-            $message = trans('message.error.invalid_data');
-            return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+        $nonLiveTopicData = Topic::select('topic.*')
+            ->join('camp', 'camp.topic_num', '=', 'topic.topic_num')
+            ->where('camp.camp_name', '=', 'Agreement')
+            ->where('topic_name', Util::remove_emoji($request->topic_name))
+            ->where('topic.objector_nick_id', "=", null)
+            ->where('topic.go_live_time', ">", time())
+            ->first();
+
+        $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
+        
+        if (isset($liveTopicData) && $liveTopicData != null) {
+            if ($liveTopicData && isset($liveTopicData['topic_name'])) {
+                $status = 400;
+                $result->if_exist = true;
+                $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+                $message = trans('message.error.invalid_data');
+                return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+            }
+        }
+
+        if (isset($nonLiveTopicData) && $nonLiveTopicData != null) {
+            if ($nonLiveTopicData && isset($nonLiveTopicData['topic_name'])) {
+                $status = 400;
+                $result->if_exist = true;
+                $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+                $message = trans('message.error.invalid_data');
+                return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
+            }
         }
 
         try {
@@ -197,6 +228,7 @@ class TopicController extends Controller
                         "link" => $link,
                         "historylink" => $historylink,
                         "object" => $topic->topic_name,
+                        'namespace_id' => $topic->namespace_id
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -289,7 +321,7 @@ class TopicController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         try {
-            $topic = Topic::getLiveTopic($filter);
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
@@ -364,8 +396,7 @@ class TopicController extends Controller
                 $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
             } else if ($type == 'camp') {
                 $model = Camp::where('id', '=', $id)->first();
-            }
-            else if ($type == 'topic') {
+            } else if ($type == 'topic') {
                 $model = Topic::where('id', '=', $id)->first();
             }
             if (!$model) {
@@ -375,17 +406,17 @@ class TopicController extends Controller
             $model->update();
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num;
-            if($type == 'topic'){
+            if ($type == 'topic') {
                 $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
-                $directSupporter = Support::getDirectSupporter($liveTopic->topic_num);          
+                $directSupporter = Support::getDirectSupporter($liveTopic->topic_num);
                 $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
                 $data['object'] = $liveTopic->topic_name;
-            }else{
+            } else {
                 $liveCamp = Camp::getLiveCamp($filter);
                 $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
                 $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
-                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $model->camp_name;
+                $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
             }
@@ -396,16 +427,16 @@ class TopicController extends Controller
             $data['nick_name'] = $nickName->nick_name;
             $data['nick_name_id'] = $nickName->id;
             if ($type == 'statement') {
-                $link = 'statement/history/' . $model->topic_num . '/' . $model->camp_num;
+                $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $model->topic_num . '/' . $model->camp_num;
                 $data['support_camp'] = $liveCamp->camp_name;
                 $data['type'] = 'statement : for camp ';
                 $data['typeobject'] = 'statement';
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit") ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit");
             } else if ($type == 'camp') {
-                $link = 'camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
+                $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
                 $data['type'] = 'camp : ';
                 $data['typeobject'] = 'camp';
@@ -416,21 +447,21 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit') ;
-            }else if($type == 'topic'){
-                $model->camp_num=1;
-                $link = 'topic/history/' . $liveTopic->topic_num;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit');
+            } else if ($type == 'topic') {
+                $model->camp_num = 1;
+                $link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $liveTopic->topic_num;
                 $data['support_camp'] = $model->topic_name;
                 $data['type'] = 'topic : ';
                 $data['typeobject'] = 'topic';
                 $data['camp_num'] = 1;
                 $data['forum_link'] = 'forum/' . $liveTopic->topic_num . '-' . $liveTopic->topic_name . '/1/threads';
                 $data['subject'] = "Proposed change to topic " . $liveTopic->topic_name . " submitted";
-               if(isset($liveTopic)) {
-                  Util::dispatchJob($liveTopic, 1, 1);
+                if (isset($liveTopic)) {
+                    Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit') ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit');
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -467,7 +498,7 @@ class TopicController extends Controller
      *         ) 
      *    ),
      *    @OA\RequestBody(
-     *       required=true,
+     *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
      *       description="Agree to change",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
@@ -547,14 +578,14 @@ class TopicController extends Controller
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
                     $data['parent_camp_num'] = $camp->parent_camp_num;
-                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;;
-                    $liveCamp = Camp::getLiveCamp($filter);
-                   // Util::checkParentCampChanged($data, true, $liveCamp);
+                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
+                    // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
                     $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
+                        $liveCamp = Camp::getLiveCamp($filter);
                         Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         $topic = $camp->topic;
@@ -566,23 +597,23 @@ class TopicController extends Controller
                 } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
-            }else if ($data['change_for'] == 'topic') {
+            } else if ($data['change_for'] == 'topic') {
                 $topic = Topic::where('id', $changeId)->first();
-                if($topic) { 
+                if ($topic) {
                     $submitterNickId = $topic->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'],$submitterNickId);
-                    if ($agreeCount == $supporters) {           
+                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    if ($agreeCount == $supporters) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
                         self::updateTopicsInReview($topic);
-                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete(); 
-                        if(isset($topic)) {
+                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                        if (isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
                         }
                     }
                     $message = trans('message.success.topic_agree');
-                } 	
-            }else {
+                }
+            } else {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -591,21 +622,24 @@ class TopicController extends Controller
         }
     }
 
-    private function updateTopicsInReview($topic){
-        $inReviewTopicChanges = Topic::where([['topic_num', '=', $topic->topic_num], 
-        ['submit_time', '<', $topic->submit_time],
-        ['go_live_time', '>', Carbon::now()->timestamp]])->whereNull('objector_nick_id')->get();
-        if(count($inReviewTopicChanges)) {
+    private function updateTopicsInReview($topic)
+    {
+        $inReviewTopicChanges = Topic::where([
+            ['topic_num', '=', $topic->topic_num],
+            ['submit_time', '<', $topic->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewTopicChanges)) {
             $topicIds = [];
             foreach ($inReviewTopicChanges as $topic) {
                 $topicIds[] = $topic->id;
             }
-            if(count($topicIds)) {
+            if (count($topicIds)) {
                 Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
             }
         }
     }
-     /**
+    /**
      * @OA\Post(path="/manage-topic",
      *   tags={"Topic"},
      *   summary="edit, update and object topic record",
@@ -679,7 +713,7 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+        if (!Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
 
@@ -690,9 +724,9 @@ class TopicController extends Controller
             if (!in_array($request->nick_name, $nickNameIds)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
             }
-            if(Topic::ifTopicNameAlreadyTaken($all)){
+            if (Topic::ifTopicNameAlreadyTaken($all)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', '');
-            }                    
+            }
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
@@ -739,6 +773,10 @@ class TopicController extends Controller
                 $topic->go_live_time;
                 $topic->grace_period = 1;
             }
+
+            if ($all['event_type'] == "objection") {
+                $topic->grace_period = 0;
+            }
             
             $topic->save();
             DB::commit();
@@ -747,6 +785,17 @@ class TopicController extends Controller
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
                 Util::dispatchJob($topic, 1, 1);
+                $currentTime = time();
+                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
+                    Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
+                    Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
+                } else {
+                    if($current_time < $topic->go_live_time && $topic->objector_nick_id == null) {
+                        Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
+                    }
+                }
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
@@ -767,9 +816,9 @@ class TopicController extends Controller
             ->where('topic.objector_nick_id', "=", null)
             ->latest('topic.submit_time')
             ->first();
-        $link = 'topic/history/' . $topic->topic_num . '-'.  $liveTopic->topic_name;
+        $link = 'topic/history/' . $topic->topic_num . '-' .  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
-        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic,1);
+        $data['topic_link'] = Util::getTopicCampUrl($topic->topic_num, 1, $liveTopic, 1);
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
         $data['object'] = $liveTopic->topic_name;
@@ -850,6 +899,7 @@ class TopicController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         $filter['topicNum'] = $request->topic_num;
+        $filter['campNum'] = 1;
         $filter['per_page'] = $request->per_page;
         $filter['page'] = $request->page;
         $filter['currentTime'] = time();
@@ -861,6 +911,7 @@ class TopicController extends Controller
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
+            $details->ifIAmExplicitSupporter = null;
             $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
@@ -868,6 +919,7 @@ class TopicController extends Controller
                 $nickNames = Nickname::personNicknameArray();
                 $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
                 $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+                $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
             }
             $response->details = $details;
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
@@ -903,7 +955,7 @@ class TopicController extends Controller
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
-     */ 
+     */
     public function editTopicRecord($id)
     {
         try {
