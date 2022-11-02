@@ -395,44 +395,43 @@ class Util
     }
 
     public function checkParentCampChanged($all, $in_review_status, $liveCamp)
-    {
-       /* if ($in_review_status) { // to be removed after testing
-            $allChildCamps = Camp::getAllChildCamps($liveCamp);
-            $allChildSupporters = Support::where('topic_num', $all['topic_num'])
-                ->where('end', 0)
-                ->whereIn('camp_num', $allChildCamps)
-                ->pluck('nick_name_id');
-            if (sizeof($allChildSupporters) > 0) {
-                Support::removeSupport($all['topic_num'], $all['parent_camp_num'], $allChildSupporters);
-            }
-        } else */
-      
-        if($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+    {      
+        if($all['parent_camp_num'] != $all['old_parent_camp_num']) 
+        {
+                $topicNum = $all['topic_num'];
                 $allParentCamps = Camp::getAllParent($liveCamp);
                 $supporterNicknames = Support::where('topic_num', $all['topic_num'])
                     ->where('end', 0)
                     ->whereIn('camp_num', $allParentCamps)
                     ->pluck('nick_name_id');
 
+                $allChildCamps = Camp::getAllChildCamps($liveCamp);
+
                 if (sizeof($supporterNicknames) > 0) {
                     foreach ($allParentCamps as $parentCamp) {
-                        foreach($supporterNicknames as $nickId) {
-                            Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $nickId); 
-                            Support::reOrderSupport($all['topic_num'], [$nickId]);
-                        }
+                        $supportData = Support::where('topic_num',$topicNum)
+                                        ->where('camp_num',$parentCamp)
+                                        ->whereIn('nick_name_id',$supporterNicknames)
+                                        ->where('end','=',0);
+                        $results = $supportData->get();
+
+                        $supportData_child = Support::where('topic_num',$topicNum)
+                                        ->whereIn('camp_num',$allChildCamps)
+                                        ->whereIn('nick_name_id',$supporterNicknames)
+                                        ->where('end','=',0);
+                        $results_child = $supportData_child->get()->toArray();
+
+                        foreach($results as $value) { 
+                            //if child camp have same supportter of parent camp then remove supportter from parent
+                            if(!empty($results_child)){ 
+                                if(array_search($value->nick_name_id, array_column($results_child, 'nick_name_id')) !== FALSE) { //found
+                                    Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id); 
+                                    Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
+                                } 
+                            }
+                        } 
                     }
                 }
-
-               /* if (sizeof($supporterNicknames) > 0) {
-                    foreach ($allParentCamps as $parentCamp) {
-                        Support::removeSupportWithAllNicknames($all['topic_num'], [$parentCamp], $supporterNicknames);
-                    }
-
-                    foreach($supporterNicknames as $nickId){
-                        Support::reOrderSupport($all['topic_num'], [$nickId]);
-                    }
-                   
-                }*/
         }
         return;
     }
