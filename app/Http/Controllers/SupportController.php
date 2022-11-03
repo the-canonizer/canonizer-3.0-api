@@ -182,14 +182,14 @@ class SupportController extends Controller
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update']; 
 
-        //try{            
+        try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
-       // } catch (\Throwable $e) {
-           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        //}
+         } catch (\Throwable $e) {
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 
 
