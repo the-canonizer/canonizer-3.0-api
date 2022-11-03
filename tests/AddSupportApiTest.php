@@ -13,7 +13,11 @@ class AddSupportApiTest extends TestCase
     use DatabaseTransactions;
     
     
-  
+    /***
+     *  #userId used  362
+     *  #ncikNameId used 347
+     *  rupali.chavan9860@gmail.com
+     */
     public function testAddSupportMessageWhenSupportDoNotExists()
     {
         print sprintf(" \n check if support exists Api... %d %s", 200, PHP_EOL);
@@ -66,7 +70,7 @@ class AddSupportApiTest extends TestCase
         
         $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
 
-        $response = [
+        /*$response = [
             "status_code"=>200,
             "message"=> "This camp doesn't have your support",
             "error"=> "",
@@ -77,13 +81,15 @@ class AddSupportApiTest extends TestCase
                 "camp_num"=> "1",
                 "support_flag"=> 0
             ]
-        ];
+        ];*/
 
        
-        $this->seeJsonEquals($response);
+        $this->seeJson([
+            "warning"=>"\"Agreement\" is a parent camp to \"Types Of Testing\", so if you commit support to \"Agreement\", the support of the child camp \"Types Of Testing\" will be removed.",
+        ]);
     }
 
-    
+
     public function testWarningMessageIfSupportSwitchedFromParentToChild()
     {
         print sprintf(" \n Warning appear when support exists in parent and now switching to child  %d %s", 200, PHP_EOL);
@@ -94,13 +100,13 @@ class AddSupportApiTest extends TestCase
         
         $this->actingAs($user)->get('/api/v3/support/check?topic_num=192&camp_num=2');
 
-        $response = [
+        /*$response = [
                 "data" => [
                         "camp_num"=>"2",
                         "is_confirm"=>1,
                         "support_flag"=>0,
                         "topic_num"=>"192",
-                        "warnng"=>"testtesttesttesttesttes\" is a child camp to \"Agreement\", so if you commit support to \"testtesttesttesttesttes\", the support of the parent camp \"Agreement\" will be removed."
+                        "warnng"=>"\"testtesttesttesttesttes\" is a child camp to \"Agreement\", so if you commit support to \"testtesttesttesttesttes\", the support of the parent camp \"Agreement\" will be removed."
                         ],
                 "error"=>"",
                 "message"=>"This camp doesn't have your support",
@@ -108,13 +114,17 @@ class AddSupportApiTest extends TestCase
             ];
 
        
-        $this->seeJsonEquals($response);
+        $this->seeJsonEquals($response);*/
+
+        $this->seeJson([
+            "warning"=>"\"testtesttesttesttesttes\" is a child camp to \"Agreement\", so if you commit support to \"testtesttesttesttesttes\", the support of the parent camp \"Agreement\" will be removed."
+        ]);
     }
 
 
     
-    /*
-    public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
+   
+   /* public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
     {
         print sprintf(" \n Warning appear when delegate support exists in topic and now adding direct support %d %s", 200, PHP_EOL);
         
@@ -122,9 +132,9 @@ class AddSupportApiTest extends TestCase
             'id' => '413',
         ]);
 
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=267&camp_num=2');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=267&camp_num=3');
 
-        $response = [
+        /*$response = [
                 "status_code"=> 200,
                 "message"=>"This camp is already supported",
                 "error"=> "",
@@ -138,32 +148,35 @@ class AddSupportApiTest extends TestCase
                 ]
             ];
 
-        $this->seeJsonEquals($response);
+        $this->seeJsonEquals($response);*
+        $this->seeJson([
+            "warning"=> "You have delegated your support to user Rupali C in this camp. If you continue your delegated support will be removed."
+        ]);
     }  
-
+*/
   
     public function testAddSupportWithValidData()
     {
         print sprintf(" \n  Add Direct Support %d %s", 200, PHP_EOL);
         
         $user = User::factory()->make([
-            'id' => '413',
+            'id' => '362',
         ]);
         $data = [
-            "topic_num" => 435,
+            "topic_num" => 173,
             "add_camp" => 
                     [
                         "camp_num" => 2,
-                        "support_order" => 1
+                        "support_order" => 2
                     ],
             "remove_camps" => [],
             "type" => "direct",
             "action" => "add",
-            "nick_name_id" => 357,
+            "nick_name_id" => 347,
             "order_update" => []
         ];
 
         $this->actingAs($user)->post('/api/v3/support/add', $data);
         $this->assertEquals(200, $this->response->status());
-    }*/
+    }
 }
