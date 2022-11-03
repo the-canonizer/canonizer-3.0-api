@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\NewsFeed;
 
 class UpdateNewsFeedApiTest extends TestCase
 {
@@ -9,10 +10,12 @@ class UpdateNewsFeedApiTest extends TestCase
      * Check Api with empty form data
      * validation
      */
-    public function testUpdateNewsFeedApiWithEmptyFormData()
+    public function testUpdateNewsFeedApiWithEmptyFormData() 
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin',
+        ]);
         $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -31,7 +34,9 @@ class UpdateNewsFeedApiTest extends TestCase
             "submitter_nick_id"=>""
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin'
+        ]);
         $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
@@ -40,17 +45,19 @@ class UpdateNewsFeedApiTest extends TestCase
      * Check Api with invalid data
      * validation
      */
-    public function testUpdateNewsFeedApiWithInvalidData()
+    public function testUpdateNewsFeedApiWithInvalidData() 
     {
         $invalidData = [
             "newsfeed_id"=>"abc",
             "display_text" => "xyz",
             "link" => "facebook.com",
-            "available_for_child" => 1,
+            "available_for_child" => "abc",
             "submitter_nick_id"=>"abc"
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin'
+        ]);
         $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -58,17 +65,18 @@ class UpdateNewsFeedApiTest extends TestCase
     /**
      * Check Api response code with valid data
      */
-    public function testUpdateNewsFeedApiStatus()
+    public function testUpdateNewsFeedApiStatus() 
     {
+        $newsFeed = NewsFeed::factory()->create();
         $data = [
-            "newsfeed_id"=>1,
+            "newsfeed_id"=> $newsFeed->id,
             "display_text" => "abc",
             "link" => "facebook.com",
             "available_for_child" =>  1,
-            "submitter_nick_id"=>1010
+            "submitter_nick_id"=>1
         ];
         print sprintf("\n Update NewsFeed ", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::find(1);
         $this->actingAs($user)->post(
             '/api/v3/update-camp-newsfeed',
             $data

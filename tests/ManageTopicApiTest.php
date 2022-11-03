@@ -20,7 +20,7 @@ class ManageTopicApiTest extends TestCase
      * Check Api with empty data
      * validation
      */
-    public function testManageTopicApiWithEmptyValues()
+    public function testManageTopicApiWithEmptyValues()  
     {
         $emptyData = [
             "topic_num" => "",
@@ -65,13 +65,13 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateManageTopicWithValidData()
+    public function testUpdateManageTopicWithValidData() 
     {
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "12",
-            "topic_name" => "1211111",
+            "nick_name" => "1",
+            "topic_name" => rand(),
             "submitter" => "1",
             "namespace_id" => "1",
             "note" => "1",
@@ -87,16 +87,16 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageTopicWithValidData()
+    public function testObjectionManageTopicWithValidData() 
     {
 
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "12",
-            "topic_name" => "1211111",
+            "nick_name" => "1",
+            "topic_name" => rand(),
             "submitter" => "1",
-            "namespace_id" => "1",
+            "namespace_id" => 1,
             "note" => "1",
             "event_type" => "objection",
             "objection_reason" => "reason",
@@ -111,13 +111,13 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testEditManageTopicWithValidData()
+    public function testEditManageTopicWithValidData() //delte
     {
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "12",
-            "topic_name" => "1211111",
+            "nick_name" => 1,
+            "topic_name" =>  rand(),
             "submitter" => "1",
             "namespace_id" => "1",
             "note" => "1",
