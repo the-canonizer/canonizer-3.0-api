@@ -115,7 +115,9 @@ class SocialApiTest extends TestCase
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
 
-        $this->call('POST', '/api/v3/user/social/socialLink', $parameters);
+        $this->call('POST', '/api/v3/user/social/social-link', $parameters);
+
+        // dd($this->response);
         $this->seeJsonStructure([
             'status_code',
             'message',

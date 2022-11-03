@@ -42,7 +42,8 @@ class SendOtpApiTest extends TestCase
         print sprintf(" \n Invalid details submitted %d %s", 400,PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-        ->post('/api/v3/sendotp',['phone_number'=>'9876567890']);    
+        ->post('/api/v3/send-otp',['phone_number'=>'9876567890']);  
+       // dd($this->response);  
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -56,7 +57,7 @@ class SendOtpApiTest extends TestCase
             "mobile_carrier" => "test"
         ];
         $this->actingAs($user)
-            ->post('/api/v3/sendotp',$parameters);   
+            ->post('/api/v3/send-otp',$parameters);   
 
         $this->assertEquals(200, $this->response->status());
     }

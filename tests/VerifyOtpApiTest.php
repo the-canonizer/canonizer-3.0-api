@@ -27,7 +27,7 @@ class VerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/verifyOtp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -42,7 +42,7 @@ class VerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/verifyOtp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -51,12 +51,12 @@ class VerifyOtpApiTest extends TestCase
         print sprintf(" \n Correct Otp  submitted %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
         $parameters = [
-            "client_id" => "4",
-            "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
-            "username" => "saurabh1.singh@iffort.com",
-            "otp" => '677681',
+            "client_id" => "1",
+            "client_secret" => "UmhfZ84xLlBe2suHbn83OJ0oDfx8ZeL44NnxLbSm",
+            "username" => "brent.allsop@canonizer.com",
+            "otp" => '697427',
         ];
-        $this->actingAs($user)->post('/api/v3/verifyOtp',$parameters);   
+        $this->actingAs($user)->post('/api/v3/forgot-password/verify-otp',$parameters);  
         $this->assertEquals(200, $this->response->status());
     }
 }
