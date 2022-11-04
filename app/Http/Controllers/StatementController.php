@@ -199,6 +199,9 @@ class StatementController extends Controller
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
+                // if ($response->ifIamSupporter == 0 && $response->ifSupportDelayed == 0) {
+                //     $response->ifIAmExplicitSupporter = false;
+                // }
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);

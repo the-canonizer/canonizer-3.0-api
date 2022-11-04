@@ -24,10 +24,10 @@ class Support extends Model
      */
     protected $hidden = [];
 
-    public function getStartAttribute($value)
-    {
-        return date("Y-m-d", strtotime($value));
-    }
+    // public function getStartAttribute($value)
+    // {
+    //     return date("Y-m-d", strtotime($value));
+    // }
 
     public static function getDirectSupporter($topic_num, $camp_num = 1)
     {
@@ -52,6 +52,13 @@ class Support extends Model
             }
         } else {
             $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->first();
+        }
+
+        if (!is_null($support) && $support->end == 0) {
+            $supporter = Statement::isStatementSupporterBySubmitTime($topic_num, $camp_num, $support->start);
+            if (!$supporter) {
+                return 0;
+            }
         }
 
         return !empty($support) ? $support->nick_name_id : 0;

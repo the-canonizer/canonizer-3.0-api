@@ -159,4 +159,12 @@ class Statement extends Model
         return  $data;
     }
 
+    public static function isStatementSupporterBySubmitTime ($topic_num, $camp_num, $submit_time = null) {
+        $statements = Statement::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->where('submit_time', '>=', $submit_time);
+        if ($statements->count() < 1) {
+            return false;
+        }
+
+        return true;
+    }
 }
