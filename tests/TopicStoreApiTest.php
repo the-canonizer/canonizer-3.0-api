@@ -60,11 +60,11 @@ class TopicStoreApiTest extends TestCase
     {
         print sprintf(" \n Valid Topic Store details submitted %d %s", 200,PHP_EOL);
 
-        $topic = Topic::factory()->make();
+        $topic = User::factory()->make();
         $parameters = [
             'topic_name' => 'test'. rand(10, 99),
             'namespace'=>'16',
-            'nick_name'=>'439',
+            'nick_name'=>'1',
         ];
      
         $this->actingAs($topic)->post('/api/v3/topic/save', $parameters);

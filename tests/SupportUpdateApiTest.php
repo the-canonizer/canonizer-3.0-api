@@ -66,15 +66,18 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Support re-order api %d %s", 200,PHP_EOL);
 
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => '362',
+        ]);
+
         $data = [
-            "topic_num" => '1',
+            "topic_num" => '173',
             'camp_num' =>'',
-            "nick_name_id" => 1,
+            "nick_name_id" => 347,
             "order_update" => [
                 [
-                    'camp_num' => 2,
-                    'order'=> 2
+                    'camp_num' => 3,
+                    'order'=> 1
                 ]
             ]
         ];
@@ -97,17 +100,17 @@ class SupportUpdateApiTest extends TestCase
 
     public function testRemoveDelegataeSupporttWithValidaData()
     {
-        print sprintf("\n Remove delegate support with valida data %d %s", 401,PHP_EOL);
-
-        $user = User::factory()->make();
+        print sprintf("\n Remove delegate support with valida data %d %s", 200,PHP_EOL);
+        $user = User::factory()->make([
+            'id' => '362',
+        ]);
         $data = [
-            "topic_num" => '1',
-            'delegate_nick_name_id' => '23',
-            "nick_name_id" => '1'
+            "topic_num"=>"416",
+            "nick_name_id" => "347",
+            "delegated_nick_name_id" => "1"
         ];
 
-        $this->actingAs($user)
-        ->post('/api/v3/support/remove-delegate',$data);
+        $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
         $this->assertEquals(200, $this->response->status());
     }
     

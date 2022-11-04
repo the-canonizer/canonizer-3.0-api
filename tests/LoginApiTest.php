@@ -25,7 +25,7 @@ class LoginApiTest extends TestCase
         ];
 
         $data = [
-            "username" => "saurabh.singh@iffort.com",
+            "username" => "brent.allsop@canonizer.com",
             "password" => "Test@123",
             "client_id" => "4",
             "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
@@ -53,11 +53,10 @@ class LoginApiTest extends TestCase
         $parameters = [
             "client_id" => "2",
             "client_secret" => "5S0WQMrw3Hu6D0kfwib7Kkch86ToKJvrrzMojhuF",
-            "username" => "saurabh.singh@iffort.com",
+            "username" => "malia.allsop@gmail.com",
             "password" => "Test@123",
         ];
         $this->actingAs($user)->post('/api/v3/user/login', $parameters);
-        //dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }

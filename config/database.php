@@ -78,6 +78,19 @@ return [
             'prefix' => '',
         ],
 
+        'mysql_testing' => [
+            'driver'    => 'mysql',
+            'host'      => env('TEST_DB_HOST', 'localhost'),
+            'database'  => env('TEST_DB_DATABASE', 'forge'),
+            'username'  => env('TEST_DB_USERNAME', 'forge'),
+            'password'  => env('TEST_DB_PASSWORD', ''),
+            'port'      => env('DB_PORT','33060'),
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+            'strict'    => false,
+        ],
+
     ],
 
     /*

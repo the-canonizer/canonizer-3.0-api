@@ -20,7 +20,7 @@ class GetMobileCarrierApiTest extends TestCase
     public function testGetMobileCarrierApi()
     {   
         print sprintf("\n Get mobile carrier ",200, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/mobilecarrier', []);
+        $response = $this->call('GET', '/api/v3/mobile-carrier', []);
         $this->assertEquals(200, $response->status()); 
         
     }
