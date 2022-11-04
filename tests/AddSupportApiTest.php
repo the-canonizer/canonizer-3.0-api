@@ -124,15 +124,15 @@ class AddSupportApiTest extends TestCase
 
     
    
-   /* public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
+    public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
     {
         print sprintf(" \n Warning appear when delegate support exists in topic and now adding direct support %d %s", 200, PHP_EOL);
         
         $user = User::factory()->make([
-            'id' => '413',
+            'id' => '362',
         ]);
 
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=267&camp_num=3');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=416&camp_num=3');
 
         /*$response = [
                 "status_code"=> 200,
@@ -148,12 +148,12 @@ class AddSupportApiTest extends TestCase
                 ]
             ];
 
-        $this->seeJsonEquals($response);*
+        $this->seeJsonEquals($response);*/
         $this->seeJson([
-            "warning"=> "You have delegated your support to user Rupali C in this camp. If you continue your delegated support will be removed."
+            "warning"=> "You have delegated your support to user Brent_Allsop in this camp. If you continue your delegated support will be removed."
         ]);
     }  
-*/
+
   
     public function testAddSupportWithValidData()
     {

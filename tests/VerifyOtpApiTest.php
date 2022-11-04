@@ -27,11 +27,12 @@ class VerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/verifyOtp',$parameters);   
+            ->post('/api/v3/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
 
+    
     public function testVerifyOtpWithInvalidOtp(){
         print sprintf(" \n Incorrect Otp  submitted %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
@@ -42,7 +43,7 @@ class VerifyOtpApiTest extends TestCase
         ];
        
         $this->actingAs($user)
-            ->post('/api/v3/verifyOtp',$parameters);   
+            ->post('/api/v3/verify-otp',$parameters);   
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -56,7 +57,7 @@ class VerifyOtpApiTest extends TestCase
             "username" => "saurabh1.singh@iffort.com",
             "otp" => '677681',
         ];
-        $this->actingAs($user)->post('/api/v3/verifyOtp',$parameters);   
+        $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);   
         $this->assertEquals(200, $this->response->status());
     }
 }
