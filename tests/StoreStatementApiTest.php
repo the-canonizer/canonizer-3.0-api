@@ -40,7 +40,7 @@ class StoreStatementApiTest extends TestCase
      * Check Api with invalid data
      * validation
      */
-    public function testStoreStatementApiWithInvalidData()
+    public function testStoreStatementApiWithInvalidData() 
     {
         $invalidData = [
             "topic_num" => "47",
@@ -61,12 +61,12 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateStatementApiWithValidData()
+    public function testUpdateStatementApiWithValidData()  
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "533",
+            "nick_name" => "1",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -82,12 +82,12 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testCreateStatementApiWithValidData()
+    public function testCreateStatementApiWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "533",
+            "nick_name" => "1",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -103,12 +103,12 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionStatementApiWithValidData()
+    public function testObjectionStatementApiWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "533",
+            "nick_name" => "1",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -126,12 +126,12 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testEditStatementApiWithValidData()
+    public function testEditStatementApiWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "533",
+            "nick_name" => "1",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -152,7 +152,6 @@ class StoreStatementApiTest extends TestCase
     public function testStoreStatementApiWithoutAuth()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
         $this->post('/api/v3/store-camp-statement', []);
         $this->assertEquals(401,  $this->response->status());
     }

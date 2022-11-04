@@ -28,8 +28,8 @@ class ManageCampApiTest extends TestCase
             "nick_name" => "",
             "note" => "",
             "submitter" => "",
-            "camp_id" => "1",
-            "camp_name" => "1",
+            "camp_id" => "2",
+            "camp_name" => rand(),
             "nick_name" => "533",
             "camp_about_nick_id" => "123",
         ];
@@ -65,14 +65,14 @@ class ManageCampApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateManageCampWithValidData()
+    public function testUpdateManageCampWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
-            "camp_num" => "1",
-            "camp_id" => "1",
-            "camp_name" => "1",
-            "nick_name" => "533",
+            "camp_num" => "2",
+            "camp_id" => "2",
+            "camp_name" => rand(),
+            "nick_name" => "1",
             "camp_about_nick_id" => "123",
             "note" => "note",
             "submitter" => "1",
@@ -88,14 +88,14 @@ class ManageCampApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageCampWithValidData()
+    public function testObjectionManageCampWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
-            "camp_num" => "1",
-            "camp_id" => "1",
-            "camp_name" => "1",
-            "nick_name" => "533",
+            "camp_num" => "2",
+            "camp_id" => "3",
+            "camp_name" => rand(),
+            "nick_name" => "1",
             "note" => "note",
             "camp_about_nick_id" => "123",
             "submitter" => "1",
@@ -108,7 +108,7 @@ class ManageCampApiTest extends TestCase
         $this->assertEquals(200,  $this->response->status());
     }
 
-         /**
+    /**
      * Check Api with valid data
      * validation
      */
@@ -116,11 +116,11 @@ class ManageCampApiTest extends TestCase
     {
         $validData = [
             "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "533",
+            "camp_num" => "2",
+            "nick_name" => "1",
             "camp_about_nick_id" => "123",
-            "camp_name" => "1",
-            "camp_id" => "1",
+            "camp_name" => rand(),
+            "camp_id" => "2",
             "note" => "note",
             "submitter" => "1",
             "keywords" => "1",

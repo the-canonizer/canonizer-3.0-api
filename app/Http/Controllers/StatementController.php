@@ -405,7 +405,7 @@ class StatementController extends Controller
 
             $statement->save();
             $livecamp = Camp::getLiveCamp($filters);
-            $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            $link = '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             
             if ($eventType == "create" && $statement->grace_period == 0) {
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'));
@@ -686,7 +686,7 @@ class StatementController extends Controller
                 $filter['campNum'] = $request->camp_num;
                 $filter['asOf'] = "";
                 $filter['asOfDate'] = "";
-                $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof);
+                $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof ?? "default");
                 $latestRevision = Topic::where('topic_num', $request->topic_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
