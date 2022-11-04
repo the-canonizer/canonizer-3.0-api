@@ -30,7 +30,7 @@ class EditStatmentTest extends TestCase
     /**
      * Check Api response structure
      */
-    public function testEditStatementApiResponse()
+    public function testEditStatementApiResponse()  
     {
         print sprintf("\n Test edit statement API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
@@ -44,7 +44,7 @@ class EditStatmentTest extends TestCase
                     'topic',
                     'parent_camp',
                     'nick_name',
-                    'parentcampnum'
+                    'parent_camp_num'
             ]
         ]);
     }

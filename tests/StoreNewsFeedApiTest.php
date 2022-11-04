@@ -12,7 +12,9 @@ class StoreNewsFeedApiTest extends TestCase
     public function testStoreNewsFeedApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin',
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -32,7 +34,9 @@ class StoreNewsFeedApiTest extends TestCase
             "submitter_nick_id" => ""
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin',
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
@@ -52,7 +56,9 @@ class StoreNewsFeedApiTest extends TestCase
             "submitter_nick_id" => "0"
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'type' => 'admin',
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -64,7 +70,6 @@ class StoreNewsFeedApiTest extends TestCase
     public function testStoreNewsFeedWithoutUserAuth()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
         $this->post('/api/v3/store-camp-newsfeed', []);
         $this->assertEquals(401,  $this->response->status());
     }

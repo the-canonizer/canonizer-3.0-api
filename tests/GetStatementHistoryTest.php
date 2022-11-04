@@ -90,7 +90,7 @@ class GetStatementHistoryTest extends TestCase
     /**
      * Check Api response structure
      */
-    public function testGetStatementHistoryApiResponse()
+    public function testGetStatementHistoryApiResponse() 
     {
         $data = [
             "per_page" => "10",

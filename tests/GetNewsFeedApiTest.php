@@ -50,10 +50,10 @@ class GetNewsFeedApiTest extends TestCase
     /**
      * Check Api response structure
      */
-    public function testGetNewsFeedApiResponse()
+    public function testGetNewsFeedApiResponse() 
     {
         $data = [
-            'topic_num' => 12,
+            'topic_num' => 10,
             'camp_num' => 1
         ]; 
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
@@ -70,7 +70,11 @@ class GetNewsFeedApiTest extends TestCase
                     'available_for_child',
                     'submitter_nick_name',
                     'submit_time',
-                    'owner_flag'
+                    'owner_flag',
+                    'manage_flag',
+                    'parent_camp_name',
+                    'parent_camp_url'
+
                 ]
             ]
         ]);

@@ -68,7 +68,7 @@ class GetTopicRecordApiTest extends TestCase
     /**
      * Check Api response code with correct data
      */
-    public function testGetTopicRecordApiStatus()
+    public function testGetTopicRecordApiStatus() 
     {
         $data = [
             'topic_num' => 45,
