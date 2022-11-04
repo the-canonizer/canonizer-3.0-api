@@ -49,11 +49,10 @@ class VerifyOtpApiTest extends TestCase
 
     public function testVerifyOtpWithValidData(){
         print sprintf(" \n Correct Otp  submitted %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'otp'=> '697427'
+        ]);
         $parameters = [
-            "client_id" => "1",
-            "client_secret" => "UmhfZ84xLlBe2suHbn83OJ0oDfx8ZeL44NnxLbSm",
-            "username" => "brent.allsop@canonizer.com",
             "otp" => '697427',
         ];
         $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);  
