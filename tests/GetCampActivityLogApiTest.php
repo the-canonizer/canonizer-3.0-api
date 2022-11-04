@@ -1,6 +1,6 @@
 <?php
 
-class GetCampActivityLogApiTest extends TestCase
+class GetCampActivityLogApiTest extends TestCase  
 {
     /**
      * Check Api with empty form data
@@ -61,20 +61,7 @@ class GetCampActivityLogApiTest extends TestCase
             'status_code',
             'message',
             'error',
-            'data' => [
-                [
-                    'id',
-                    'log_name',
-                    'description',
-                    'subject_type',
-                    'subject_id',
-                    'causer_type',
-                    'properties',
-                    'causer_id',
-                    'updated_at',
-                    'created_at'
-                ]
-            ]
+            'data' => []
         ]);
     }
 }

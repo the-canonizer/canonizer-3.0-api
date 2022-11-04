@@ -88,7 +88,7 @@ class GetTopicHistoryApiTest extends TestCase
     /**
      * Check Api response structure
      */
-    public function testGetTopicHistoryApiResponse()
+    public function testGetTopicHistoryApiResponse()    
     {
         $data = [
             "per_page" => "10",

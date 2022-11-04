@@ -100,6 +100,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             default:
                 return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', time())
                     ->latest('submit_time')->first();
         }
     }

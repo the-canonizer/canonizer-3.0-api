@@ -2,6 +2,7 @@
 namespace App\Mail;
  
 use App\Models\User;
+use App\Facades\Util;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -23,6 +24,7 @@ class SupportRemovedMail extends Mailable {
     //build the message.
     public function build() 
     {
-        return $this->markdown('emails.supportRemovedMail')->subject($this->data['subject']);  
+        $subject = Util::getEmailSubjectForSandbox($this->data['namespace_id']);
+        return $this->markdown('emails.supportRemovedMail')->subject($subject.' '.$this->data['subject']);  
     }
 }

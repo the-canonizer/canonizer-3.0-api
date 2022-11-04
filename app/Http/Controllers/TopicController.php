@@ -740,7 +740,7 @@ class TopicController extends Controller
 
             if ($all['event_type'] == "edit") {
                 $topic = Topic::where('id', $all['topic_id'])->first();
-                $topic->topic_name == Util::remove_emoji($all['topic_name']  ?? "");
+                $topic->topic_name = Util::remove_emoji($all['topic_name']  ?? "");
                 $topic->namespace_id = isset($all['namespace_id']) ? $all['namespace_id'] : "";
                 $topic->submitter_nick_id = isset($all['nick_name']) ? $all['nick_name'] : "";
                 $topic->note = isset($all['note']) ? $all['note'] : "";
@@ -828,7 +828,7 @@ class TopicController extends Controller
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($topic->namespace_id) && $topic->namespace_id)  ?  $topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $data['help_link'] = General::getDealingWithDisagreementUrl();
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
             'activity' => 'Change to topic objected',

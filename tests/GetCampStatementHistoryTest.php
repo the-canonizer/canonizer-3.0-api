@@ -54,12 +54,14 @@ class GetCampStatementHistoryTest extends TestCase
     /**
      * Check Api response code with correct data
      */
-    public function testGetCampStatementHistoryApiStatus()
+    public function testGetCampStatementHistoryApiStatus()   
     {
         $data = [
-            "topic_num" => "320",
+            "topic_num" => "1",
             "camp_num" => "1",
-            "type" => "all"
+            "type" => "all",
+            "per_page" => 10,
+            "page" => 1
         ];
         print sprintf("\n with correct form data ", 200, PHP_EOL);
         $user = User::factory()->make();
@@ -73,12 +75,14 @@ class GetCampStatementHistoryTest extends TestCase
      /**
      * Check Api response structure
      */
-    public function testGetCampStatementHistoryApiResponse()
+    public function testGetCampStatementHistoryApiResponse()  
     {
         $data = [
             "topic_num" => "320",
             "camp_num" => "1",
-            "type" => "all"
+            "type" => "all",
+            "per_page" => 10,
+            "page" => 1
         ];
         print sprintf("\n Test API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
@@ -88,14 +92,14 @@ class GetCampStatementHistoryTest extends TestCase
             'message',
             'error',
             'data' => [
-                [
-                    'statement',
-                    'topic',
-                    'liveCamp',
-                    'parentCamp',
-                    'ifSupportDelayed',
-                    'ifIamSupporter'
-                ]
+                    'items',
+                    'current_page',
+                    'per_page',
+                    'last_page',
+                    'total_rows',
+                    'from',
+                    'to',
+                    'details'
             ]
         ]);
     }

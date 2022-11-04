@@ -402,7 +402,7 @@ class NewsFeedController extends Controller
                     'topic_num' => $newsFeed->topic_num,
                     'camp_num' =>  $newsFeed->camp_num,
                     'user' => $request->user(),
-                    'nick_name' => Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name,
+                    'nick_name' =>  Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name ?? "",
                     'description' =>  $newsFeed->display_text
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
