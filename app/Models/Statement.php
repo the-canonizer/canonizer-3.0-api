@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Models\Nickname;
 use App\Facades\Util;
-use Exception;
 
 class Statement extends Model
 {
