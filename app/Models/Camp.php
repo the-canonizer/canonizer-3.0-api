@@ -394,6 +394,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $childsData = Camp::where('topic_num', '=', $topicnum)
             ->where('parent_camp_num', '=', $parentcamp)
             ->where('camp_name', '!=', 'Agreement')
+            ->where('objector_nick_id', '=', NULL) 
             ->get()->unique('camp_num');
         return $childsData;
     }
