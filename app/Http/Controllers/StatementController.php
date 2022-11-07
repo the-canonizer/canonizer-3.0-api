@@ -385,7 +385,7 @@ class StatementController extends Controller
             }
 
             if (!$ifIamSingleSupporter) {
-                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+2 minutes')));
                 $statement->grace_period = 1;
             }
 
@@ -399,7 +399,7 @@ class StatementController extends Controller
              * */
             if($statement->grace_period == 1) {
                 $topic = Topic::getLiveTopic($all['topic_num']);
-                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = (1*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 Util::dispatchJob($topic, $all['camp_num'], 1, $delayCommitTimeInSeconds);
             }
 

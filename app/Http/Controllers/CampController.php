@@ -1361,7 +1361,7 @@ class CampController extends Controller
             if ($all['event_type'] == "update") {
                 $camp = $this->updateCamp($all);
                 if (!$ifIamSingleSupporter) {
-                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+2 minutes')));
                 } else {
                     $camp->grace_period = 0;
                 }
@@ -1388,8 +1388,8 @@ class CampController extends Controller
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $currentTime = time();
-                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = (1*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (2*60) + 10; // 24 hour commit time + 10 seconds for delay job
                 if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
                     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
                     Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
