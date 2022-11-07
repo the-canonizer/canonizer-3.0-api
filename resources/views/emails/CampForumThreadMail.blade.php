@@ -23,7 +23,7 @@
                 <tr>
                     <td style="padding-top: 0px;  font-weight:400;">
                         <p> <a target="_blank"
-                                href="{{ $nickname_url }}">{{ $data['nick_name']->nick_name }}</a>
+                                href="{{ $data['nickname_url'] }}">{{ $data['nick_name']->nick_name }}</a>
                             has created the new thread
                             <a href="{{ $link }}">{{ $data['thread_title'] }}</a></b>
                         </p> 

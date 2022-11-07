@@ -118,7 +118,7 @@ class ForgotPasswordController extends Controller
                 } catch (Throwable $e) {
                     $status = 403;
                     $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message,null, $e->getMessage());
+                    return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
                 }
                 $status = 200;
                 $message = trans('message.success.forgot_password');
@@ -214,22 +214,30 @@ class ForgotPasswordController extends Controller
         try {
 
             $user = User::where('email', '=', $request->username)->first();
-
+            if (strlen($request->otp) < 6) {
+                $status = 403;
+                $message = trans('message.error.otp_lenth_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            } elseif (strlen($request->otp) > 6) {
+                $status = 403;
+                $message = trans('message.error.otp_lenth_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             if (empty($user) || $request->otp != $user->otp) {
-                $status = 401;
+                $status = 403;
                 $message = trans('message.error.otp_not_match');
-                return $this->resProvider->apiJsonResponse($status, $message,null, null);
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             } else {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '']);
 
                 $status = 200;
                 $message = trans('message.success.otp_verified');
-                return $this->resProvider->apiJsonResponse($status, $message,null, null);
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
         } catch (Exception $e) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 
@@ -321,7 +329,7 @@ class ForgotPasswordController extends Controller
         if (empty($user)) {
             $status = 401;
             $message = trans('message.error.user_not_exist');
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
 
         try {
@@ -330,11 +338,11 @@ class ForgotPasswordController extends Controller
             $user->save();
             $status = 200;
             $message = trans('message.success.password_reset');
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Exception $e) {
             $status = 400;
             $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message,null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
 }

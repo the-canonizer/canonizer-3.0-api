@@ -21,6 +21,7 @@ return [
         'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
+        'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
     ],
     'success' => [
         'success'          => 'Success',
