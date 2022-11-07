@@ -11,7 +11,9 @@ class ManageTopicApiTest extends TestCase
     public function testManageTopicApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', []);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -20,7 +22,7 @@ class ManageTopicApiTest extends TestCase
      * Check Api with empty data
      * validation
      */
-    public function testManageTopicApiWithEmptyValues()  
+    public function testManageTopicApiWithEmptyValues()
     {
         $emptyData = [
             "topic_num" => "",
@@ -33,7 +35,9 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "",
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
@@ -47,7 +51,7 @@ class ManageTopicApiTest extends TestCase
         $invalidData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "topic_name" => "1",
             "submitter" => "1",
             "namespace_id" => "1",
@@ -55,7 +59,9 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "533",
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -65,12 +71,12 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateManageTopicWithValidData() 
+    public function testUpdateManageTopicWithValidData()
     {
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "topic_name" => rand(),
             "submitter" => "1",
             "namespace_id" => "1",
@@ -78,22 +84,24 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "update",
         ];
         print sprintf("Test with valid values for updating camp based on a version");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
 
-     /**
+    /**
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageTopicWithValidData() 
+    public function testObjectionManageTopicWithValidData()
     {
 
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "topic_name" => rand(),
             "submitter" => "1",
             "namespace_id" => 1,
@@ -102,21 +110,23 @@ class ManageTopicApiTest extends TestCase
             "objection_reason" => "reason",
         ];
         print sprintf("Test with valid values for objecting a camp");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
 
-         /**
+    /**
      * Check Api with valid data
      * validation
      */
-    public function testEditManageTopicWithValidData() //delte
+    public function testEditManageTopicWithValidData()
     {
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => 1,
+            "nick_name" => "347",
             "topic_name" =>  rand(),
             "submitter" => "1",
             "namespace_id" => "1",
@@ -124,7 +134,9 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "edit"
         ];
         print sprintf("Test with valid values for editing a camp");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
         $this->assertEquals(200,  $this->response->status());
     }

@@ -11,7 +11,9 @@ class StoreStatementApiTest extends TestCase
     public function testStoreStatementApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', []);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -25,13 +27,15 @@ class StoreStatementApiTest extends TestCase
         $emptyData = [
             "topic_num" => "",
             "camp_num" => "",
-            "nick_name" => "",
+            "nick_name" => "347",
             "note" => "",
             "submitter" => "",
             "statement" => "",
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
@@ -51,7 +55,9 @@ class StoreStatementApiTest extends TestCase
             "objection" => "1",
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -64,16 +70,18 @@ class StoreStatementApiTest extends TestCase
     public function testUpdateStatementApiWithValidData()  
     {
         $validData = [
-            "topic_num" => "47",
+            "topic_num" => "200",
             "camp_num" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
             "event_type" => "update",
         ];
         print sprintf("Test with valid values for updating statement based on a version");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
@@ -87,14 +95,16 @@ class StoreStatementApiTest extends TestCase
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
             "event_type" => "create",
         ];
         print sprintf("Test with valid values for creating a statement");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
@@ -108,7 +118,7 @@ class StoreStatementApiTest extends TestCase
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -117,7 +127,9 @@ class StoreStatementApiTest extends TestCase
             "statement_id" => "1",
         ];
         print sprintf("Test with valid values for objecting a statement");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
@@ -131,7 +143,7 @@ class StoreStatementApiTest extends TestCase
         $validData = [
             "topic_num" => "47",
             "camp_num" => "1",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "note" => "note",
             "submitter" => "1",
             "statement" => "statement",
@@ -139,7 +151,9 @@ class StoreStatementApiTest extends TestCase
             "statement_id" => "1",
         ];
         print sprintf("Test with valid values for editing a statement");
-        $user = User::factory()->make();
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
