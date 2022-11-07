@@ -113,11 +113,11 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=192&camp_num=2');
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=602&camp_num=2');
 
 
         $this->seeJson([
-            "warning"=>"\"testtesttesttesttesttes\" is a child camp to \"Agreement\", so if you commit support to \"testtesttesttesttesttes\", the support of the parent camp \"Agreement\" will be removed."
+            "warning"=>"\"camp 1\" is a child camp to \"Agreement\", so if you commit support to \"camp 1\", the support of the parent camp \"Agreement\" will be removed."
         ]);
     }
 
