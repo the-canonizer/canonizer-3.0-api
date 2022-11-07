@@ -418,7 +418,7 @@ return [
         "updatePost" => ":first_name :last_name has updated the Post under Thread - :thread_name",
         "manageStatement" => ":first_name :last_name has proposed a change to the statement for Camp - :camp_name",
         "addSupport" => ":first_name :last_name has just added support to the Camp - :camp_name",
-        "removeSupport" => ":first_name :last_name  has just removed support to the Camp - :camp_name",
+        "removeSupport" => ":first_name :last_name  has just removed support from the Camp - :camp_name",
         "addDelegateSupport" => ":first_name :last_name has just added delegate support to the Camp - :camp_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
