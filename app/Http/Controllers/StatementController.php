@@ -242,6 +242,13 @@ class StatementController extends Controller
         try {
             $statement = Statement::where('id', $id)->first();
             if ($statement) {
+                // check if statement is live
+                if ($statement->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.history_changed', ['history' => 'statement']), '', '')->original)->toArray();
+                    $response['live_statement'] = true;
+                    return $response;
+                }
+
                 $filter['topicNum'] = $statement->topic_num;
                 $filter['campNum'] = $statement->camp_num;
                 $filter['asOf'] = 'default';
@@ -263,6 +270,9 @@ class StatementController extends Controller
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
             }
+            $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '')->original)->toArray();
+            $response['live_statement'] = false;
+            return $response;
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -1208,6 +1208,13 @@ class CampController extends Controller
         try {
             $camp = Camp::where('id', $id)->first();
             if ($camp) {
+
+                if ($camp->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.history_changed', ['history' => 'camp']), '', '')->original)->toArray();
+                    $response['live_camp'] = true;
+                    return $response;
+                }
+
                 $filter['topicNum'] = $camp->topic_num;
                 $filter['campNum'] = $camp->camp_num;
                 $filter['asOf'] = 'default';
@@ -1221,6 +1228,11 @@ class CampController extends Controller
                 $indexes = ['camp', 'nick_name', 'parent_camp', 'topic'];
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
+
+                $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '')->original)->toArray();
+                $response['live_camp'] = false;
+                return $response;
+
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
             } else {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
