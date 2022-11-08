@@ -122,6 +122,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-topic','TopicController@manageTopic');
         $router->get('/edit-topic/{id}', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
+        $router->get('/thread/{id}','ThreadsController@getThreadById');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
