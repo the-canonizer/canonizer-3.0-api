@@ -961,6 +961,14 @@ class TopicController extends Controller
         try {
             $topic = Topic::where('id', $id)->first();
             if ($topic) {
+
+                // if topic is agreed and live by another supporter, then it is not objectionable.
+                if ($topic->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
+                }
+
                 $nickName = Nickname::topicNicknameUsed($topic->topic_num);
                 $data = new stdClass();
                 $data->topic = $topic;
@@ -970,7 +978,10 @@ class TopicController extends Controller
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+
+            $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '')->original)->toArray();
+            $response['is_live'] = false;
+            return $response;
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
