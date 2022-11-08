@@ -242,14 +242,6 @@ class StatementController extends Controller
         try {
             $statement = Statement::where('id', $id)->first();
             if ($statement) {
-                
-                // if statement is agreed and live by another supporter, then it is not objectionable.
-                if ($statement->go_live_time <= time()) {
-                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'statement']), '', '')->original)->toArray();
-                    $response['is_live'] = true;
-                    return $response;
-                }
-
                 $filter['topicNum'] = $statement->topic_num;
                 $filter['campNum'] = $statement->camp_num;
                 $filter['asOf'] = 'default';
@@ -271,9 +263,7 @@ class StatementController extends Controller
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
             }
-            $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '')->original)->toArray();
-            $response['is_live'] = false;
-            return $response;
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
