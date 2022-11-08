@@ -1209,8 +1209,9 @@ class CampController extends Controller
             $camp = Camp::where('id', $id)->first();
             if ($camp) {
 
+                // if camp record is agreed and live by another supporter, then it is not objectionable.
                 if ($camp->go_live_time <= time()) {
-                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.history_changed', ['history' => 'camp']), '', '')->original)->toArray();
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'camp']), '', '')->original)->toArray();
                     $response['live_camp'] = true;
                     return $response;
                 }
@@ -1232,8 +1233,6 @@ class CampController extends Controller
                 $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '')->original)->toArray();
                 $response['live_camp'] = false;
                 return $response;
-
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
             } else {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }

@@ -22,7 +22,7 @@ return [
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
-        'history_changed' => 'Cannot object to the :history. It is already live.', 
+        'objection_history_changed' => 'Cannot object to the :history. It is already live.', 
     ],
     'success' => [
         'success'          => 'Success',
