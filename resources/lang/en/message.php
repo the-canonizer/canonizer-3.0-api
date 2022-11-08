@@ -250,6 +250,7 @@ return [
     'thread' => [
         'title_regex' => 'Title can only contain space and alphanumeric characters.',
         'title_required' => 'Title is required.',
+        'thread_id_required' => 'Thread id is required.',
         'title_max' => 'Title can not be more than 100 characters.',
         'title_unique' => 'Thread title must be unique!',
         'nick_name_required' => 'The nick name field is required.',
