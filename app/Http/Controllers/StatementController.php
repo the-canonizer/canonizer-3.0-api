@@ -246,7 +246,7 @@ class StatementController extends Controller
                 // if statement is agreed and live by another supporter, then it is not objectionable.
                 if ($statement->go_live_time <= time()) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'statement']), '', '')->original)->toArray();
-                    $response['live_statement'] = true;
+                    $response['is_live'] = true;
                     return $response;
                 }
 
@@ -272,7 +272,7 @@ class StatementController extends Controller
                 $response = $response[0];
             }
             $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '')->original)->toArray();
-            $response['live_statement'] = false;
+            $response['is_live'] = false;
             return $response;
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

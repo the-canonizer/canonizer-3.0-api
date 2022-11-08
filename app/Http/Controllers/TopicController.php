@@ -965,7 +965,7 @@ class TopicController extends Controller
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($topic->go_live_time <= time()) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
-                    $response['live_topic'] = true;
+                    $response['is_live'] = true;
                     return $response;
                 }
 
@@ -980,7 +980,7 @@ class TopicController extends Controller
             }
 
             $response = collect($this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '')->original)->toArray();
-            $response['live_topic'] = false;
+            $response['is_live'] = false;
             return $response;
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
