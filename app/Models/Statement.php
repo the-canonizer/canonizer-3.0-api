@@ -101,7 +101,6 @@ class Statement extends Model
         $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
             $q->where('go_live_time', '<=', $filter['currentTime'])
                 ->where('objector_nick_id', NULL)
-                // ->where('id', '!=', $campLiveStatement->id)
                 ->where('submit_time', '<=', $filter['currentTime']);
                 
                 if(!is_null($campLiveStatement)) {
