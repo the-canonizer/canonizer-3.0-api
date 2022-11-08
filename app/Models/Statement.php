@@ -7,8 +7,6 @@ use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Models\Nickname;
 use App\Facades\Util;
 
-
-
 class Statement extends Model
 {
     protected $table = 'statement';
@@ -92,15 +90,22 @@ class Statement extends Model
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $statement_query->when($filter['type'] == "live", function ($q) use ($campLiveStatement) {
-            $q->where('id',  $campLiveStatement->id);
+        $statement_query->when($filter['type'] == "live", function ($q) use ($filter, $campLiveStatement) {
+            if(is_null($campLiveStatement)) {
+                $q->where('go_live_time', '<=', $filter['currentTime']);
+            } else {
+                $q->where('id',  $campLiveStatement->id);
+            }
         });
 
         $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
             $q->where('go_live_time', '<=', $filter['currentTime'])
                 ->where('objector_nick_id', NULL)
-                ->where('id', '!=', $campLiveStatement->id)
                 ->where('submit_time', '<=', $filter['currentTime']);
+                
+                if(!is_null($campLiveStatement)) {
+                    $q->where('id', '!=', $campLiveStatement->id);
+                }
         });
 
 
