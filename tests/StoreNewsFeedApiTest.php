@@ -13,7 +13,8 @@ class StoreNewsFeedApiTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make([
-            'type' => 'admin',
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
+            'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
         $this->assertEquals(400,  $this->response->status());
@@ -35,7 +36,8 @@ class StoreNewsFeedApiTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make([
-            'type' => 'admin',
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
+            'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
         $this->assertEquals(400, $this->response->status());
@@ -57,7 +59,8 @@ class StoreNewsFeedApiTest extends TestCase
         ];
         print sprintf("Test with invalid values");
         $user = User::factory()->make([
-            'type' => 'admin',
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
+            'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
         $this->assertEquals(400,  $this->response->status());

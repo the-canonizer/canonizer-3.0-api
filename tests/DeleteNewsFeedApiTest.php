@@ -14,6 +14,7 @@ class DeleteNewsFeedApiTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', []);
@@ -31,6 +32,7 @@ class DeleteNewsFeedApiTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
@@ -44,6 +46,7 @@ class DeleteNewsFeedApiTest extends TestCase
         ];
         print sprintf("Test with id that dose not exist");
         $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
         $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
@@ -53,8 +56,8 @@ class DeleteNewsFeedApiTest extends TestCase
     /**
      * Check Api response code with correct data
      */
-    
-    public function testDeleteNewsFeedApiStatus()  
+
+    public function testDeleteNewsFeedApiStatus()
     {
         $newsFeed = NewsFeed::factory()->create();
         $data = ['newsfeed_id' => $newsFeed->id];

@@ -11,7 +11,9 @@ class ManageCampApiTest extends TestCase
     public function testManageCampApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', []);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -34,7 +36,9 @@ class ManageCampApiTest extends TestCase
             "camp_about_nick_id" => "123",
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
@@ -55,7 +59,9 @@ class ManageCampApiTest extends TestCase
             "event_type" => "objection",
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
@@ -65,37 +71,39 @@ class ManageCampApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateManageCampWithValidData() 
+    public function testUpdateManageCampWithValidData()
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "2",
             "camp_id" => "2",
             "camp_name" => rand(),
-            "nick_name" => "1",
+            "nick_name" => "347",
             "camp_about_nick_id" => "123",
             "note" => "note",
             "submitter" => "1",
             "event_type" => "update",
         ];
         print sprintf("Test with valid values for updating camp based on a version");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
 
-     /**
+    /**
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageCampWithValidData() 
+    public function testObjectionManageCampWithValidData()
     {
         $validData = [
             "topic_num" => "47",
             "camp_num" => "2",
             "camp_id" => "3",
             "camp_name" => rand(),
-            "nick_name" => "1",
+            "nick_name" => "347",
             "note" => "note",
             "camp_about_nick_id" => "123",
             "submitter" => "1",
@@ -103,7 +111,9 @@ class ManageCampApiTest extends TestCase
             "objection_reason" => "reason",
         ];
         print sprintf("Test with valid values for objecting a camp");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
@@ -117,7 +127,7 @@ class ManageCampApiTest extends TestCase
         $validData = [
             "topic_num" => "47",
             "camp_num" => "2",
-            "nick_name" => "1",
+            "nick_name" => "347",
             "camp_about_nick_id" => "123",
             "camp_name" => rand(),
             "camp_id" => "2",
@@ -127,7 +137,9 @@ class ManageCampApiTest extends TestCase
             "event_type" => "edit",
         ];
         print sprintf("Test with valid values for editing a camp");
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
         $this->assertEquals(200,  $this->response->status());
     }
