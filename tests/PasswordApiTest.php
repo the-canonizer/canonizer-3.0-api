@@ -16,7 +16,7 @@ class PasswordApiTest extends TestCase
 
     public function testGuestuserCannotAccessApi(){
         print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/changepassword', []);
+        $response = $this->call('POST', '/api/v3/change-password', []);
         $this->assertEquals(401, $response->status());
     }
 
@@ -25,7 +25,7 @@ class PasswordApiTest extends TestCase
         print sprintf("Invalid details submitted %d %s", 302,PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)
-        ->post('/api/v3/changepassword',[]);
+        ->post('/api/v3/change-password',[]);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -39,7 +39,7 @@ class PasswordApiTest extends TestCase
 
         ];
 
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
+        $this->actingAs($user)->post('/api/v3/change-password', $parameter);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -53,7 +53,7 @@ class PasswordApiTest extends TestCase
         ];
 
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
+        $this->actingAs($user)->post('/api/v3/change-password', $parameter);
         $this->assertEquals(400, $this->response->status());
 
     }
@@ -69,7 +69,7 @@ class PasswordApiTest extends TestCase
         ];
 
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/changepassword', $parameter);
+        $this->actingAs($user)->post('/api/v3/change-password', $parameter);
         $this->assertEquals(200, $this->response->status());
 
     }
