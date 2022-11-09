@@ -1234,8 +1234,12 @@ class TopicSupport
                     'delegate_nick_name_id' => $ds->delegate_nick_name_id
                 ];
                 array_push($delegates, $temp);
-    
-                self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+
+                $subDelegates =  Support::getActiveDelegators($topicNum, [$ds->nick_name_id]);
+               
+                if(count($subDelegates)){
+                    return self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+                }
             }
         }
 

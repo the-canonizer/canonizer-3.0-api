@@ -26,6 +26,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public $timestamps = false;
     const AGREEMENT_CAMP = "Agreement";
     protected static $chilcampArray = [];
+    protected static $childtempArray = [];
     /**
      * The attributes that are mass assignable.
      *
@@ -741,5 +742,48 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                     return $parent;
                 }
             }
+    }
+
+    public static function getAllLiveChildCamps($camp, $includeLiveCamps=false) {
+        $camparray = [];
+        Camp::$chilcampArray = [];
+        Camp::$childtempArray = [];
+        if ($camp) {
+            $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
+            $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
+           if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$childtempArray)) {
+                return [];/** Skip repeated recursions* */
+            }
+            Camp::$chilcampArray[] = $key;
+            Camp::$childtempArray[] = $key1;
+            $camparray[] = $camp->camp_num;
+            if($includeLiveCamps){
+                //adding go_live_time condition Sunil Talentelgia //->where('go_live_time', '<=', time())
+                $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->where('go_live_time', '<=', time())->groupBy('camp_num')->latest('submit_time')->get();
+           
+            }
+            else{
+                $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->groupBy('camp_num')->latest('submit_time')->get();
+            }
+            foreach ($childCamps as $child) {
+                /***
+                 ** Adding check to skip camps rejected ones 
+                **/
+                if($includeLiveCamps){
+                    $latestParent = Camp::where('topic_num', $child->topic_num)->where('camp_num', $child->camp_num)->latest('submit_time')->where('go_live_time', '<=', time())->where('objector_nick_id', NULL)->first();
+                }
+                else{
+                    $latestParent = Camp::where('topic_num', $child->topic_num)->where('camp_num', $child->camp_num)->where('objector_nick_id', NULL)->latest('submit_time')->first();
+                }
+
+                if($latestParent->parent_camp_num == $camp->camp_num ){ 
+                    $camparray = array_merge($camparray, self::getAllChildCamps($child)); 
+
+                }
+                
+            }
         }
+
+        return $camparray;
+    }
 }
