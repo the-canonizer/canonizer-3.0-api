@@ -36,9 +36,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
         ];
 
         $data = [
-            "username" => "saurabh.singh55@iffort.com",
-            "new_password" => "Test@1234",
-            "confirm_password" => "Test@1234",
+            "username" =>  trans('testSample.user_ids.normal_user.user_2.email'),
+            "new_password" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "confirm_password" =>  trans('testSample.user_ids.normal_user.user_2.password'),
         ];
 
         $v = $this->app['validator']->make($data, $rules);
@@ -61,9 +61,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $user = User::factory()->make();
 
         $data = [
-            "username" => "saurabh.singh@iffort.com",
-            "new_password" => "Test@1234",
-            "confirm_password" => "Test@1234",
+            "username" => trans('testSample.user_ids.normal_user.user_2.email'),
+            "new_password" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "confirm_password" => trans('testSample.user_ids.normal_user.user_2.password'),
         ];
 
         $this->actingAs($user)

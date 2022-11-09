@@ -170,9 +170,11 @@ class SocialApiTest extends TestCase
     public function testSocialDeactivateUserWithValidData()
     {
         print sprintf(" \n Valid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id'=> trans('testSample.user_ids.normal_user.user_2.id'),
+        ]);
         $parameters = [
-            'user_id' => '2'
+            'user_id' => trans('testSample.user_ids.normal_user.user_2.id'),
         ];
         $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
         $this->assertEquals(200, $this->response->status());

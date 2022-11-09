@@ -29,16 +29,16 @@ class RegistrationApiTest extends TestCase
         ];
         
         $data = [
-            "first_name" => "saurabh",
-             "last_name" => "singh",
-            "middle_name" => "kumar",
-            "email" => "saurabh.singh55@iffort.com",
-            "phone_number" => "8765432123",
-            "country_code" => "+91",
-            "password" => "Test@123",
-            "password_confirmation" => "Test@123", 
+            "first_name" => trans('testSample.user_ids.normal_user.user_2.first_name'),
+            "last_name" => trans('testSample.user_ids.normal_user.user_2.last_name'),
+            "middle_name" => trans('testSample.user_ids.normal_user.user_2.middle_name'),
+            "email" => rand(100,999).trans('testSample.user_ids.normal_user.user_2.email'),
+            "phone_number" =>  trans('testSample.user_ids.normal_user.user_2.phone_number'),
+            "country_code" => trans('testSample.user_ids.normal_user.user_2.country_code'),
+            "password" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "password_confirmation" => trans('testSample.user_ids.normal_user.user_2.password'),
         ];
-        
+        // dd($data);
         $v = $this->app['validator']->make($data, $rules);
        // dd($v);
         $this->assertTrue($v->passes());
@@ -68,21 +68,31 @@ class RegistrationApiTest extends TestCase
     }
 
 
-    public function testRegisterWithValidaData(){
+    public function testRegisterWithValidData(){
         
         print sprintf(" \n Register with valid data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            "first_name" => trans('testSample.user_ids.normal_user.user_2.first_name'),
+            "last_name" => trans('testSample.user_ids.normal_user.user_2.last_name'),
+            "middle_name" => trans('testSample.user_ids.normal_user.user_2.middle_name'),
+            "email" => trans('testSample.user_ids.normal_user.user_2.email'),
+            "phone_number" =>  trans('testSample.user_ids.normal_user.user_2.phone_number'),
+            "country_code" => trans('testSample.user_ids.normal_user.user_2.country_code'),
+            "password" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "password_confirmation" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "otp" =>  trans('testSample.user_ids.normal_user.user_2.otp'),
+        ]);
  
         $parameters = [
-            "first_name" => "saurabh",
-            "last_name" => "singh",
-            "middle_name" => "kumar",
-            "email" => "saurabh.singh55@iffort.com",
-            "phone_number" => "8765432123",
-            "country_code" => "+91",
-            "password" => "Test@123",
-            "password_confirmation" => "Test@123",
-            "otp" => "123456"
+            "first_name" => trans('testSample.user_ids.normal_user.user_2.first_name'),
+            "last_name" => trans('testSample.user_ids.normal_user.user_2.last_name'),
+            "middle_name" => trans('testSample.user_ids.normal_user.user_2.middle_name'),
+            "email" => rand(100,999).trans('testSample.user_ids.normal_user.user_2.email'),
+            "phone_number" =>  trans('testSample.user_ids.normal_user.user_2.phone_number'),
+            "country_code" => trans('testSample.user_ids.normal_user.user_2.country_code'),
+            "password" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "password_confirmation" => trans('testSample.user_ids.normal_user.user_2.password'),
+            "otp" =>  trans('testSample.user_ids.normal_user.user_2.otp'),
         ];
         $this->actingAs($user)
         ->post('/api/v3/register',$parameters);

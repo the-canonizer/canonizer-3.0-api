@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ForgotPasswordVerifyOtpApiTest extends TestCase
 {
 
+    // use DatabaseMigrations;
     use DatabaseTransactions;
 
     /**
@@ -16,48 +17,43 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
      * @return void
      */
 
-    public function testForgotPasswordVerifyOtpWithInvalidData(){
-        print sprintf(" \n Invalid Forgot Password details submitted %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
-        $user->otp = "123456";
-        $user->username = "brent.allsop@canonizer.com";
+    public function testForgotPasswordVerifyOtpWithInvalidData()
+    {
+        print sprintf(" \n Invalid Forgot Password details submitted %d %s", 200, PHP_EOL);
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_2.id'),
+            'email' =>  trans('testSample.user_ids.normal_user.user_2.email'),
+            'password' => trans('testSample.user_ids.normal_user.user_2.password'),
+        ]);
+        $user->otp = trans('testSample.user_ids.normal_user.user_2.otp');
+        $user->username = trans('testSample.user_ids.normal_user.user_2.email');
 
         $parameters = [
             "otp" => '',
             "username" => '',
         ];
-       
+
         $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp', $parameters);
 
         $this->assertEquals(400, $this->response->status());
     }
 
-    public function testForgotPasswordVerifyOtpWithInvalidOtp(){
-        print sprintf(" \n Incorrect Forgot Password Otp  submitted %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
-
+    public function testForgotPasswordVerifyOtpWithValidData()
+    {
+        print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200, PHP_EOL);
+        $user = User::factory()->make([
+            "otp" => trans('testSample.user_ids.admin_user.otp'),
+        ]);
+        
         $parameters = [
-            "otp" => '1234',
+            "otp" => trans('testSample.user_ids.admin_user.otp'),
+            "username" => trans('testSample.user_ids.admin_user.email')
         ];
-       
+
         $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
-
-        $this->assertEquals(400, $this->response->status());
-    }
-
-
-    public function testForgotPasswordVerifyOtpWithValidData(){
-        print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
-        $parameters = [
-            "otp" => '697427',
-            "username" => 'brent.allsop@canonizer.com'
-        ];
-       
-        $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp',$parameters);   
+            ->post('/api/v3/forgot-password/verify-otp', $parameters);
+        
         $this->assertEquals(200, $this->response->status());
     }
 }
