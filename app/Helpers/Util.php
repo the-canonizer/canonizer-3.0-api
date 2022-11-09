@@ -330,7 +330,7 @@ class Util
                 $subject = 'canon/sandbox testing/';
             }
             if(env('APP_ENV') == 'staging'){
-                return '[staging.local.' . $subject . ']';
+                return '[staging.' . $subject . ']';
             }
             if(env('APP_ENV') == 'local' || env('APP_ENV') == 'development'){
                return '[local.' . $subject . ']';
