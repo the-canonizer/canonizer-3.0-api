@@ -59,16 +59,15 @@ class TopicStoreApiTest extends TestCase
     public function testTopicStoreWithValidData()
     {
         print sprintf(" \n Valid Topic Store details submitted %d %s", 200,PHP_EOL);
-
-        $topic = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $parameters = [
             'topic_name' => 'test'. rand(10, 99),
             'namespace'=>'16',
-            'nick_name'=>'1',
+            'nick_name'=>'347',
         ];
-     
-        $this->actingAs($topic)->post('/api/v3/topic/save', $parameters);
-      //  dd($this->response);
+        $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
         $this->assertEquals(200, $this->response->status());
     }
    

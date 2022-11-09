@@ -81,6 +81,14 @@ class TopicSupport
             
             Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames);
 
+            //semd Email
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter);
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0){
             
                 Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
