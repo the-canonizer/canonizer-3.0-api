@@ -176,6 +176,7 @@ class TopicSupport
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
         $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
 
+
          if(!empty($removeCamps)){
 
              // before removing get delegation support
@@ -621,8 +622,6 @@ class TopicSupport
         return $supports;
     }
 
-    
-
     /**
      * [Recursive function ro remove delegate support]
      * @param $topicNum is topic_num
@@ -639,7 +638,7 @@ class TopicSupport
             foreach($delegators as $delegator)
             {
                 $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
-                return self::removeSupport($topicNum, $campNum, $delegatorsNickArray);
+                self::removeSupport($topicNum, $campNum, $delegatorsNickArray);
             }
         }
 
@@ -1226,7 +1225,7 @@ class TopicSupport
     public static function getAllDelegates($topicNum, $nickNameId, $delegates = [])
     {
         $delegateSupporters =  Support::getActiveDelegators($topicNum, [$nickNameId]);
-
+        
         if(!empty($delegateSupporters))
         {
             foreach($delegateSupporters as $ds){
@@ -1236,10 +1235,9 @@ class TopicSupport
                 ];
                 array_push($delegates, $temp);
     
-                return self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+                self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
             }
         }
-        
 
         return $delegates;
     }
