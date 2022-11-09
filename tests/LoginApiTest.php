@@ -48,7 +48,7 @@ class LoginApiTest extends TestCase
     }
 
 
-    public function testLoginWithValidaData()
+    public function testLoginWithValidData()
     {
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
         $user = User::factory()->make([

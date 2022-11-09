@@ -3,7 +3,9 @@
 return [
     'user_ids' => [
         'admin_user' => [
-            'admin_1' => '1'
+            'admin_1' => '1',
+            'email' => 'brent.allsop@canonizer.com',
+            'otp' => '697427'
         ],
         'normal_user' => [
             'user_1' => '362',

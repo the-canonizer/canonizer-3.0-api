@@ -39,41 +39,21 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         $this->assertEquals(400, $this->response->status());
     }
 
-    public function testForgotPasswordVerifyOtpWithInvalidOtp()
-    {
-        print sprintf(" \n Incorrect Forgot Password Otp  submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_2.id'),
-            'email' =>  trans('testSample.user_ids.normal_user.user_2.email'),
-            'password' => trans('testSample.user_ids.normal_user.user_2.password'),
-        ]);
-
-        $parameters = [
-            "otp" => trans('testSample.user_ids.normal_user.user_2.otp'),
-        ];
-
-        $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp', $parameters);
-
-        $this->assertEquals(400, $this->response->status());
-    }
-
-
     public function testForgotPasswordVerifyOtpWithValidData()
     {
         print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200, PHP_EOL);
         $user = User::factory()->make([
-            "otp" => trans('testSample.user_ids.normal_user.user_2.otp'),
+            "otp" => trans('testSample.user_ids.admin_user.otp'),
         ]);
-        //  dd($user);
-        // echo gettype($user['otp']);
+        
         $parameters = [
-            "otp" => $user['otp'],
-            "username" => $user['email'],
+            "otp" => trans('testSample.user_ids.admin_user.otp'),
+            "username" => trans('testSample.user_ids.admin_user.email')
         ];
+
         $this->actingAs($user)
             ->post('/api/v3/forgot-password/verify-otp', $parameters);
-        // dd($this->response);
+        
         $this->assertEquals(200, $this->response->status());
     }
 }
