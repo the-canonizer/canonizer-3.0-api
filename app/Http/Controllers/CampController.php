@@ -1158,7 +1158,7 @@ class CampController extends Controller
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
             $campHistoryQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
-            $submitTime = $liveCamp->submit_time;
+            $submitTime = $campHistoryQuery->first()->submit_time;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
