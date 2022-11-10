@@ -256,7 +256,7 @@ class CampController extends Controller
                 $filter['asOf'] = $request->asof;
                 $filter['campNum'] = $camp_id;
                 $livecamp = Camp::getLiveCamp($filter);
-                $link = Util::getTopicCampUrl($topic->topic_num, $camp_id, $topic, $livecamp, time());
+                $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp_id, $topic, $livecamp, time());
                 try {
                     $dataEmail = (object) [
                         "type" => "camp",
