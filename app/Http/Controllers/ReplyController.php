@@ -164,13 +164,18 @@ class ReplyController extends Controller
                 'body'     => $request->body,
                 'c_thread_id'  => $request->thread_id,
             ]);
+            $nickName = '';
+            $nicknameModel = Nickname::getNickName($request->nick_name);
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
             if ($thread) {
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
                 $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
                 // Return Url after creating post Successfully
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id) ;
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id, $nickName) ;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
             } else {
                 $data = null;
@@ -506,10 +511,15 @@ class ReplyController extends Controller
             unset($post->thread_id);
             $post->update($update);
             $status = 200;
+            $nickName = '';
+            $nicknameModel = Nickname::getNickName($post->user_id);
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
-            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id) ;
+            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id, $nickName) ;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {
