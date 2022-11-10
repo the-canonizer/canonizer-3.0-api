@@ -427,8 +427,7 @@ class Util
                             //if child camp have same supportter of parent camp then remove supportter from parent
                             if(!empty($results_child)){ 
                                 if(array_search($value->nick_name_id, array_column($results_child, 'nick_name_id')) !== FALSE) { //found
-                                   // echo 'fdd';
-                                    Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id); 
+                                   Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id); 
                                     Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
                                 } 
                             }
