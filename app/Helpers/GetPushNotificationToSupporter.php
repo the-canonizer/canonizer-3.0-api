@@ -15,7 +15,7 @@ use App\Models\Nickname;
 class GetPushNotificationToSupporter
 {
 
-    public function pushNotificationToSupporter($request, $topicNum, $campNum, $action = 'add', $threadId = null)
+    public function pushNotificationToSupporter($request, $topicNum, $campNum, $action = 'add', $threadId = null, $nickName = '')
     {
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
@@ -55,7 +55,7 @@ class GetPushNotificationToSupporter
                 try {
                     $PushNotificationData->user_id = $user->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
@@ -76,7 +76,7 @@ class GetPushNotificationToSupporter
                 try {
                     $PushNotificationData->user_id = $userSub->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
@@ -124,7 +124,7 @@ class GetPushNotificationToSupporter
         }
     }
 
-    public function getMessageData($request, $topic, $camp, $liveThread, $threadId, $action)
+    public function getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName)
     {
         $PushNotificationData =  new stdClass();
 
@@ -132,67 +132,67 @@ class GetPushNotificationToSupporter
             case config('global.notification_type.addSupport'):
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.addSupport', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)   . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.Thread'):
                 $PushNotificationData->notification_type = config('global.notification_type.Thread');
                 $PushNotificationData->title = trans('message.notification_title.createThread');
-                $PushNotificationData->message_body = trans('message.notification_message.createThread', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.createThread', ['nick_name' => $nickName, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)  . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads';
                 break;
             case config('global.notification_type.Post'):
                 $PushNotificationData->notification_type = config('global.notification_type.Post');
                 $PushNotificationData->title = trans('message.notification_title.createPost');
-                $PushNotificationData->message_body = trans('message.notification_message.createPost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
+                $PushNotificationData->message_body = trans('message.notification_message.createPost', ['nick_name' => $nickName, 'thread_name' => $liveThread->title]);
                 $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                 break;
             case "updatePost":
                 $PushNotificationData->notification_type = config('global.notification_type.Post');
                 $PushNotificationData->title = trans('message.notification_title.updatePost');
-                $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'thread_name' => $liveThread->title]);
+                $PushNotificationData->message_body = trans('message.notification_message.updatePost', ['nick_name' => $nickName, 'thread_name' => $liveThread->title]);
                 $PushNotificationData->link =  config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $threadId;
                 break;
             case config('global.notification_type.Statement'):
                 $PushNotificationData->notification_type = config('global.notification_type.Statement');
                 $PushNotificationData->title = trans('message.notification_title.manageStatement', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.manageStatement', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.Camp'):
                 $PushNotificationData->notification_type = config('global.notification_type.Camp');
                 $PushNotificationData->title = trans('message.notification_title.createCamp');
-                $PushNotificationData->message_body = trans('message.notification_message.createCamp', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.createCamp', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = Camp::campLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name);
                 break;
             case config('global.notification_type.addDelegate'):
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.statementCommit'):
                 $PushNotificationData->notification_type = config('global.notification_type.Statement');
                 $PushNotificationData->title = trans('message.notification_title.commitStatementChange', ['topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.commitStatementChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.commitStatementChange', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.campCommit'):
                 $PushNotificationData->notification_type = config('global.notification_type.Camp');
                 $PushNotificationData->title = trans('message.notification_title.commitCampChange', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.commitCampChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.commitCampChange', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.topicCommit'):
                 $PushNotificationData->notification_type = config('global.notification_type.Topic');
                 $PushNotificationData->title = trans('message.notification_title.commitTopicChange', ['topic_name' => $topic->topic_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.commitTopicChange', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'topic_name' => $topic->topic_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.commitTopicChange', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name);
                 break;
             default:
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
         }
         return $PushNotificationData;

@@ -160,6 +160,12 @@ class CampController extends Controller
             $camp_existsLive = 0;
             $camp_existsNL = 0;
 
+            $nickName = '';
+            $nicknameModel = Nickname::getNickName($request->nick_name);
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
+
             if(!empty($liveCamps)){
                 foreach($liveCamps as $value){
                     if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
@@ -274,11 +280,11 @@ class CampController extends Controller
                         'topic_num' => $filter['topicNum'],
                         'camp_num' =>   $filter['campNum'],
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'nick_name' => $nickName,
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
+                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'), null, $nickName);
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
