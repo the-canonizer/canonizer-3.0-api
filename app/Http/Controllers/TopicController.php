@@ -221,7 +221,7 @@ class TopicController extends Controller
                     $filter['asOf'] = $request->asof;
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
-                    $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topicLive, $camp, time());
                     $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
                     $dataEmail = (object) [
                         "type" => "topic",
