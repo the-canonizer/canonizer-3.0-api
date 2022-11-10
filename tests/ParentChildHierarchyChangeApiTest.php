@@ -60,7 +60,9 @@ class ParentChildHierarchyChangeApiTest extends TestCase
         ]);
 
     }
-
+    /*
+        *This test verify if common support is not exist in parent-child then Parent support remains same  
+    */
     public function testSupportRemainSameIfNotCommon(){
         print sprintf("\n This test verify if common support is not exist in parent-child then Parent support remains same  %d %s", 200,PHP_EOL);
         $user = User::factory()->make([
