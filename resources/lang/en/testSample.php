@@ -19,6 +19,17 @@ return [
                 "phone_number" => "8765432123",
                 "country_code" => "+91",
                 "otp" => "123456",
+            ],
+            'user_3' => [
+                'id' => '1138',
+                'email' => 'mgmt.talentelgia@gmail.com',
+                'password' => 'Test@1234',
+                "first_name" => "Rohit",
+                "last_name" => "Gupta",
+                "middle_name" => "",
+                "phone_number" => "9888376544",
+                "country_code" => "+91",
+                "otp" => "966978",
             ]
         ]
     ],

@@ -195,7 +195,7 @@ class StatementController extends Controller
             $campLiveStatement =  Statement::getLiveStatement($filter);
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
-                $submitTime = $campLiveStatement ? $campLiveStatement->submit_time : null;
+                $submitTime = $statement_query->first()->submit_time ? $statement_query->first()->submit_time : null;
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
