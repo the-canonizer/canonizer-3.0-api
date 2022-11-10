@@ -460,7 +460,7 @@ class StatementController extends Controller
 
     private function createdStatementNotification($livecamp, $link, $statement, $request)
     {
-        $directSupporter = Support::getDirectSupporter($statement->topic_num, $statement->camp_num);
+        $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
         $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
         $dataObject['topic_num'] = $statement->topic_num;
         $dataObject['camp_num'] = $statement->camp_num;

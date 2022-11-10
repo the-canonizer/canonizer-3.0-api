@@ -408,13 +408,13 @@ class TopicController extends Controller
             $filter['campNum'] = $model->camp_num;
             if ($type == 'topic') {
                 $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
-                $directSupporter = Support::getDirectSupporter($liveTopic->topic_num);
+                $directSupporter = Support::getAllDirectSupporters($liveTopic->topic_num);
                 $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
                 $data['object'] = $liveTopic->topic_name;
             } else {
                 $liveCamp = Camp::getLiveCamp($filter);
-                $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
+                $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
                 $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
                 $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;

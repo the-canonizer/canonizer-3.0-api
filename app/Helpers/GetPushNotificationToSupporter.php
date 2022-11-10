@@ -17,7 +17,7 @@ class GetPushNotificationToSupporter
 
     public function pushNotificationToSupporter($request, $topicNum, $campNum, $action = 'add', $threadId = null, $nickName = '')
     {
-        $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
+        $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
         $directSupporterUser = [];
         $directSupporterUserId = [];
