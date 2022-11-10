@@ -90,12 +90,8 @@ class Statement extends Model
                 ->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $statement_query->when($filter['type'] == "live", function ($q) use ($filter, $campLiveStatement) {
-            if(is_null($campLiveStatement)) {
-                $q->where('go_live_time', '<=', $filter['currentTime']);
-            } else {
-                $q->where('id',  $campLiveStatement->id);
-            }
+        $statement_query->when($filter['type'] == "live", function ($q) use ($campLiveStatement) {
+            $q->where('id',  $campLiveStatement->id ?? 0);
         });
 
         $statement_query->when($filter['type'] == "old", function ($q) use ($filter,  $campLiveStatement) {
@@ -103,9 +99,9 @@ class Statement extends Model
                 ->where('objector_nick_id', NULL)
                 ->where('submit_time', '<=', $filter['currentTime']);
                 
-                if(!is_null($campLiveStatement)) {
-                    $q->where('id', '!=', $campLiveStatement->id);
-                }
+            if(!is_null($campLiveStatement)) {
+                $q->where('id', '!=', $campLiveStatement->id);
+            }
         });
 
 

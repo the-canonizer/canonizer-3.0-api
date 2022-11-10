@@ -48,19 +48,15 @@ class LoginApiTest extends TestCase
     }
 
 
-    public function testLoginWithValidaData()
+    public function testLoginWithValidData()
     {
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.admin_user.admin_user'),
-            'email' => "saurabh.singh@iffort.com",
-            'password' => "Test@123",
-        ]);
+        $user = User::factory()->make();
         $parameters = [
             "client_id" => "2",
-            "client_secret" => "5S0WQMrw3Hu6D0kfwib7Kkch86ToKJvrrzMojhuF",
-            "username" => "saurabh.singh@iffort.com",
-            'password' => "Test@123",
+            "client_secret" => "ammkc6FkfLaXnMTGUR5vXNWgGU4PZH87TprL5xlD",
+            "username" =>  trans('testSample.user_ids.normal_user.user_3.email'),
+            'password' =>  trans('testSample.user_ids.normal_user.user_3.password'),
         ];
         $this->actingAs($user)->post('/api/v3/user/login', $parameters);
         // dd($this->response);

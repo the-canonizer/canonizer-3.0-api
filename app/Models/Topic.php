@@ -115,11 +115,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
-    public static function getTopicHistory($filter, $request)
+    public static function getTopicHistory($filter, $request, $topicHistoryQuery )
     {
         $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
-
-        $topicHistoryQuery = self::where('topic_num', $filter['topicNum'])->latest('submit_time');
 
         $topicHistoryQuery->when($filter['type'] == "old", function ($q) use ($filter, $liveTopic) {
                 $q->where('go_live_time', '<=', $filter['currentTime'])
