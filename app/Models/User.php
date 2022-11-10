@@ -120,8 +120,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         'password', 'remember_token',
     ];
 
-    public function getBirthdayAttribute($value){
-        return date("Y-m-d", strtotime($value));
+    public function getBirthdayAttribute($value)
+    {
+        if(!empty($value)){
+            return date("Y-m-d", strtotime($value));
+        }else{
+            return $value;
+        }
     }
 
     public function setBirthdayAttribute($value)
