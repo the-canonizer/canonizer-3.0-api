@@ -421,9 +421,7 @@ class Util
                                         ->whereIn('nick_name_id',$supporterNicknames)
                                         ->where('end','=',0);
 
-                        $results_child = $supportData_child->get()->toArray();
-
-                      
+                        $results_child = $supportData_child->get()->toArray();                      
 
                         foreach($results as $value) { 
                             //if child camp have same supportter of parent camp then remove supportter from parent
