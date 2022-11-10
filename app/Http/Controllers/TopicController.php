@@ -907,14 +907,15 @@ class TopicController extends Controller
         $response = new stdClass();
         $details = new stdClass();
         try {
-            $topics = Topic::getTopicHistory($filter, $request);
+            $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
+            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery);
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
             $details->ifIAmExplicitSupporter = null;
             $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
-            $submit_time = (count($topics->items)) ?  $topics->items[0]->submit_time : null;
+            $submit_time = $topicHistoryQuery->first()->submit_time;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
