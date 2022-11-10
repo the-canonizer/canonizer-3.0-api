@@ -39,24 +39,32 @@ class LoginApiTest extends TestCase
     public function testLoginWithInvalidData()
     {
         print sprintf(" \n Invalid Login details submitted %d %s", 400, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
         $this->actingAs($user)
             ->post('/api/v3/user/login', []);
         $this->assertEquals(400, $this->response->status());
     }
 
 
-    public function testLoginWithValidaData()
+    public function testLoginWithValidData()
     {
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_2.id'),
+            'email' =>  trans('testSample.user_ids.normal_user.user_2.email'),
+            'password' => trans('testSample.user_ids.normal_user.user_2.password'),
+            'status' => 1
+        ]);
         $parameters = [
             "client_id" => "2",
             "client_secret" => "5S0WQMrw3Hu6D0kfwib7Kkch86ToKJvrrzMojhuF",
-            "username" => "malia.allsop@gmail.com",
-            "password" => "Test@123",
+            "username" =>  trans('testSample.user_ids.normal_user.user_2.email'),
+            'password' =>  trans('testSample.user_ids.normal_user.user_2.password'),
         ];
         $this->actingAs($user)->post('/api/v3/user/login', $parameters);
+        // dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }

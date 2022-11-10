@@ -23,7 +23,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         ];
         
         $data = [
-            "email" => "saurabh.singh@iffort.com",
+            "email" =>  trans('testSample.user_ids.normal_user.user_2.email'),
         ];
         
         $v = $this->app['validator']->make($data, $rules);
@@ -51,7 +51,7 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         $user = User::factory()->make();
 
         $parameters = [
-            "email" => "saurabh.singh@iffort.com"
+            "email" => trans('testSample.user_ids.normal_user.user_2.email'),
         ];
         $this->actingAs($user)
             ->post('/api/v3/forgot-password/send-otp',$parameters);   

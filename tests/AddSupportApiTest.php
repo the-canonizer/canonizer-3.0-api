@@ -27,10 +27,10 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         $data = [
-            "topic_num" => 189,
+            "topic_num" => 190,
             "add_camp" => 
                     [
-                        "camp_num" => 2,
+                        "camp_num" => 1,
                         "support_order" => 1
                     ],
             "remove_camps" => [],
