@@ -43,7 +43,7 @@ class LoginApiTest extends TestCase
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $this->actingAs($user)
-            ->post('/api/v3/user/login', []);
+            ->post('/api/v3/user/login?from_test_case=1', []);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -62,7 +62,7 @@ class LoginApiTest extends TestCase
             "username" => "saurabh.singh@iffort.com",
             'password' => "Test@123",
         ];
-        $this->actingAs($user)->post('/api/v3/user/login', $parameters);
+        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters);
         // dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }

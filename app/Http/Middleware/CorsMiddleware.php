@@ -36,6 +36,12 @@ class CorsMiddleware
             return response()->json('{"method":"OPTIONS"}', 200, $headers);
         }
 
+        $isFromTestCases = $request->get('from_test_case', null);
+
+        if ($isFromTestCases == '1') {
+            \Illuminate\Support\Facades\DB::setDefaultConnection('mysql_testing');
+        }
+
         $response = $next($request);
         foreach ($headers as $key => $value) {
             if (strpos($request->url(), 'api/v3')) {
