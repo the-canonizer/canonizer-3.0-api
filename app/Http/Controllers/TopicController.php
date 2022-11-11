@@ -566,6 +566,7 @@ class TopicController extends Controller
                     if ($agreeCount == $supporters) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $statement->update();
+                        self::updateStatementsInReview($statement);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
                     $message = trans('message.success.statement_agree');
@@ -585,6 +586,7 @@ class TopicController extends Controller
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
+                        self::updateCampsInReview($camp);
                         $liveCamp = Camp::getLiveCamp($filter);
                         Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
@@ -630,15 +632,43 @@ class TopicController extends Controller
             ['go_live_time', '>', Carbon::now()->timestamp]
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewTopicChanges)) {
-            $topicIds = [];
-            foreach ($inReviewTopicChanges as $topic) {
-                $topicIds[] = $topic->id;
-            }
-            if (count($topicIds)) {
-                Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
+            foreach ($inReviewTopicChanges as $key=>$topic) {
+                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
             }
         }
     }
+
+    private function updateStatementsInReview($statement)
+    {
+        $inReviewStatementChanges = Statement::where([
+            ['topic_num', '=', $statement->topic_num],
+            ['camp_num', '=', $statement->camp_num],
+            ['submit_time', '<', $statement->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewStatementChanges)) {
+            foreach ($inReviewStatementChanges as $key=>$statement) {
+                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
+            }
+        }
+    }
+
+    private function updateCampsInReview($camp)
+    {
+        $inReviewCampChanges = Camp::where([
+            ['topic_num', '=', $camp->topic_num],
+            ['camp_num', '=', $camp->camp_num],
+            ['submit_time', '<', $camp->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewCampChanges)) {
+            foreach ($inReviewCampChanges as $key=>$Camp) {
+                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
+            }
+        }
+    }
+
+
     /**
      * @OA\Post(path="/manage-topic",
      *   tags={"Topic"},
@@ -915,7 +945,7 @@ class TopicController extends Controller
             $details->ifIAmExplicitSupporter = null;
             $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
-            $submit_time = $topicHistoryQuery->first()->submit_time;
+            $submit_time = $topicHistoryQuery->first() ? $topicHistoryQuery->first()->submit_time : null;
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);

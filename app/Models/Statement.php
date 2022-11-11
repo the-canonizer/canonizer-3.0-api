@@ -87,7 +87,8 @@ class Statement extends Model
 
         $statement_query->when($filter['type'] == "in_review", function ($q) use ($filter) {
             $q->where('go_live_time', '>', $filter['currentTime'])
-                ->where('submit_time', '<=', $filter['currentTime']);
+                ->where('submit_time', '<=', $filter['currentTime'])
+                ->where('objector_nick_id', NULL);
         });
 
         $statement_query->when($filter['type'] == "live", function ($q) use ($campLiveStatement) {
