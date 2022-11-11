@@ -438,6 +438,23 @@ class Util
         return;
     }
 
+     /**
+     * This function only work when we changes parent camp.
+     * @param int $campChangeId
+     */
+    public function parentCampChangedBasedOnCampChangeId($changeID) {
+        $camp = Camp::where('id', $changeID)->first();
+        if(!empty($camp)) {
+            $topic_num = $camp->topic_num;
+            $camp_num = $camp->camp_num;
+            $parent_camp_num = $camp->parent_camp_num;
+            $in_review_status=true;
+            //We have fetched new live camp record
+            $livecamp = Camp::getLiveCamp($topic_num,$camp_num);
+            $this->checkParentCampChanged($all, $in_review_status, $liveCamp);
+        }
+    }
+
     function remove_emoji($string)
     {
         $symbols = "\x{1F100}-\x{1F1FF}" // Enclosed Alphanumeric Supplement
