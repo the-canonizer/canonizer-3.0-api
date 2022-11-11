@@ -252,15 +252,9 @@ class SupportController extends Controller
 
         try{
 
-                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());     
-                // $nickName = '';
-                // $nicknameModel = Nickname::getNickName($nickNameId);
-                // if (!empty($nicknameModel)) {
-                //     $nickName = $nicknameModel->nick_name;
-                // }           
-               // PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, 'remove', null, $nickName);
-               $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
-               return $this->resProvider->apiJsonResponse(200, $message, '','');
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());     
+            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
+            return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
 
