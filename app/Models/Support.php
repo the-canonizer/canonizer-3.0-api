@@ -30,7 +30,11 @@ class Support extends Model
     }
 
     public static function getAllDirectSupporters($topic_num,$camp_num=1){
-        $camp  = Camp::getLiveCamp($topic_num, $camp_num);
+        $filter = [
+            'topicNum' => $topic_num,
+            'campNum'  => $camp_num
+        ];
+        $camp  = Camp::getLiveCamp($filter);
         Camp::clearChildCampArray();
         $subCampIds = array_unique(Camp::getAllChildCamps($camp));
         $directSupporter = [];
