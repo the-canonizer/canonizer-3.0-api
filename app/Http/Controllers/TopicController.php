@@ -631,11 +631,8 @@ class TopicController extends Controller
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewTopicChanges)) {
             $topicIds = [];
-            foreach ($inReviewTopicChanges as $topic) {
-                $topicIds[] = $topic->id;
-            }
-            if (count($topicIds)) {
-                Topic::whereIn('id', $topicIds)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - 1]);
+            foreach ($inReviewTopicChanges as $key=>$topic) {
+                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
             }
         }
     }
