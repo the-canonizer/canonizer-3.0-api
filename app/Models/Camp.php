@@ -531,6 +531,11 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function campHistory($statement_query, $filter, $response,  $liveCamp)
     {
+  
+        $statement_query->when($filter['type'] == "live", function ($q) use ($liveCamp) {
+            $q->where('id', $liveCamp->id);
+        });
+        
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
         });
