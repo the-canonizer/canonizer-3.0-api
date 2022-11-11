@@ -32,7 +32,7 @@ class ObjectionToSubmitterMailJob extends Job
      */
     public function handle()
     {
-        $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $this->user->email : env('ADMIN_EMAIL');
+        $receiver =  $this->user->email;
         Mail::to($receiver)->bcc(env('ADMIN_BCC'))->send(new ObjectionToSubmitterMail($this->user, $this->link, $this->data));
     }
 }

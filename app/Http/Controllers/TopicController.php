@@ -221,7 +221,7 @@ class TopicController extends Controller
                     $filter['asOf'] = $request->asof;
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
-                    $link = Util::getTopicCampUrl($topic->topic_num, 1, $topicLive, $camp, time());
+                    $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topicLive, $camp, time());
                     $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
                     $dataEmail = (object) [
                         "type" => "topic",
@@ -408,13 +408,13 @@ class TopicController extends Controller
             $filter['campNum'] = $model->camp_num;
             if ($type == 'topic') {
                 $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
-                $directSupporter = Support::getDirectSupporter($liveTopic->topic_num);
+                $directSupporter = Support::getAllDirectSupporters($liveTopic->topic_num);
                 $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
                 $data['object'] = $liveTopic->topic_name;
             } else {
                 $liveCamp = Camp::getLiveCamp($filter);
-                $directSupporter =  Support::getDirectSupporter($model->topic_num, $model->camp_num);
+                $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
                 $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
                 $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
@@ -434,7 +434,7 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit");
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
             } else if ($type == 'camp') {
                 $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -447,7 +447,7 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
             } else if ($type == 'topic') {
                 $model->camp_num = 1;
                 $link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $liveTopic->topic_num;
@@ -461,7 +461,7 @@ class TopicController extends Controller
                     Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
