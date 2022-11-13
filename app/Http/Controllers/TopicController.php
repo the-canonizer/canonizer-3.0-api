@@ -322,17 +322,19 @@ class TopicController extends Controller
         $filter['campNum'] = $request->camp_num;
         try {
             $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+            if (!$topic) {
+            $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
+            }
+            $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
+            $topicRecord[] = $topic;
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
+            $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
+            $topicRecord = $topicRecord[0];
+
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
-            }
-            if ($topic) {
-                $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
-                $topicRecord[] = $topic;
-                $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
-                $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
-                $topicRecord = $topicRecord[0];
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
