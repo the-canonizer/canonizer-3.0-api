@@ -23,7 +23,7 @@
                     <td style="padding-top: 10px;  font-weight:400;">
                         <p><a target="_blank"
                                 href="<?=  config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
-                            has objected to your <a href="{{  config('global.APP_URL_FRONT_END') . '/' . $link }}" target='_balnk'>proposed
+                            has objected to your <a href="{{  config('global.APP_URL_FRONT_END') . $link }}" target='_balnk'>proposed
                                 change</a> submitted for {{ $data['type'] }} (<a
                                 href="{{ $data['topic_link'] }}">{{ $data['object'] }}</a>) {{ $data['object_type'] }} </p>
                     </td>
