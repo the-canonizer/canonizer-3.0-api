@@ -116,6 +116,10 @@ class UserController extends Controller
 
         try {
             $postUrl = URL::to('/') . '/oauth/token';
+            $isFromTestCases = $request->get('from_test_case', null);
+            if ($isFromTestCases == '1') {
+                $postUrl .= '?from_test_case=1';
+            }
             $payload = [
                 'grant_type' => 'client_credentials',
                 'client_id' => $request->client_id,
@@ -453,6 +457,10 @@ class UserController extends Controller
             }
 
             $postUrl = URL::to('/') . '/oauth/token';
+            $isFromTestCases = $request->get('from_test_case', null);
+            if ($isFromTestCases == '1') {
+                $postUrl .= '?from_test_case=1';
+            }
             $user->is_admin = ($user->type == 'admin') ? true : false;
             $payload = [
                 'grant_type' => 'password',

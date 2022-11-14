@@ -174,6 +174,11 @@ class ThreadsController extends Controller
                 'topic_id' => $request->topic_num,
             ]);
             if ($thread) {
+                $nickName = '';
+                $nicknameModel = Nickname::getNickName($request->nick_name);
+                if (!empty($nicknameModel)) {
+                    $nickName = $nicknameModel->nick_name;
+                }
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.thread.create_success');
@@ -189,11 +194,11 @@ class ThreadsController extends Controller
                     'topic_num' => $request->topic_num,
                     'camp_num' =>   $request->camp_num,
                     'user' => $request->user(),
-                    'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                    'nick_name' => $nickName,
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id);
+                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id, $nickName);
             } else {
                 $data = null;
                 $status = 400;

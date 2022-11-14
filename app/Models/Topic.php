@@ -89,6 +89,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             case "review":
                 return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
+                    ->where('grace_period', 0) 
                     ->latest('submit_time')->first();
                 break;
             case "bydate":

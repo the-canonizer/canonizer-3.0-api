@@ -125,6 +125,21 @@ class Util
      * @param $camp_num
      * @param $topic
      * @param $camp
+     * @param $currentTime
+     * @return string
+     */
+
+    public static function getTopicCampUrlWithoutTime($topic_num,$camp_num,$topic,$camp,$currentTime = null):string
+    {
+        $urlPortion = self::getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp); 
+        return config('global.APP_URL_FRONT_END').('/topic/' .$urlPortion);
+    }
+
+    /**
+     * @param $topic_num
+     * @param $camp_num
+     * @param $topic
+     * @param $camp
      * @return string
      */
 
