@@ -769,7 +769,7 @@ class TopicController extends Controller
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], 0, $nickNames);
 
             if (!$ifIamSingleSupporter) {
-                $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+2 minutes')));
+                $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
                 $topic->go_live_time;
                 $topic->grace_period = 1;
             }
@@ -786,8 +786,8 @@ class TopicController extends Controller
             } else if ($all['event_type'] == "update") {
                 Util::dispatchJob($topic, 1, 1);
                 $currentTime = time();
-                $delayCommitTimeInSeconds = (1*60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (2*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
                 if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
                     Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
                     Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
