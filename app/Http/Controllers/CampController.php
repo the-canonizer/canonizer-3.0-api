@@ -1389,7 +1389,14 @@ class CampController extends Controller
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
                if($ifIamSingleSupporter){
-                    Util::checkParentCampChanged($all, false, $liveCamp);
+                    $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
+                    $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
+                    if($before_parent_camp_num ==$all['parent_camp_num']){
+                        Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
+                    }
+                    else{
+                        Util::checkParentCampChanged($all, false, $liveCamp);
+                    }
                 }                
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
