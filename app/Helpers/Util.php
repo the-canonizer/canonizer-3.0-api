@@ -378,7 +378,7 @@ class Util
                     $supportData['also_subscriber'] = 1;
                     $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id, $supportData['topic_num'], $supportData['camp_num']);
                 }
-                $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 try {
                     dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
@@ -394,7 +394,7 @@ class Util
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list;
-                    $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;

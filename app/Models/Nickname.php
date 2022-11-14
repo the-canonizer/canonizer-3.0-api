@@ -239,7 +239,7 @@ class Nickname extends Model {
             $topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
             $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($livecamp->title != '') ? $livecamp->title : $livecamp->camp_name);
             $topic_id = $topic_num . "-" . $title;
-            $url = Util::getTopicCampUrl($topicLive->topic_num, 1, $topicLive, $livecamp, time());
+            $url = Util::getTopicCampUrlWithoutTime($topicLive->topic_num, 1, $topicLive, $livecamp, time());
             if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
                 $supports[$topic_num]['array'][$rs->support_order][] = ['camp_name' => $livecamp->camp_name, 'camp_num' => $camp_num, 'link' => $url ,'delegate_nick_name_id'=>$rs->delegate_nick_name_id];
             } else if ($camp_num == 1) {
