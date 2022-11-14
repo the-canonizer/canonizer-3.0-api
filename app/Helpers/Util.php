@@ -464,11 +464,32 @@ class Util
             $camp_num = $camp->camp_num;
             $parent_camp_num = $camp->parent_camp_num;
             $in_review_status=true;
+            $filter['topicNum'] = $topic_num;
+            $filter['campNum'] = $camp_num;
             //We have fetched new live camp record
-            $livecamp = Camp::getLiveCamp($topic_num,$camp_num);
-            $this->checkParentCampChanged($all, $in_review_status, $liveCamp);
+            $liveCamp = Camp::getLiveCamp($filter); 
+            $all['parent_camp_num'] = $camp->parent_camp_num;
+            $all['topic_num'] = $topic_num;
+            $all['old_parent_camp_num']= -1;
+            $this->checkParentCampChanged($all, $in_review_status=true, $liveCamp);
+        }
+        return;
+    }
+
+    /**
+     * This function only work when we changes parent camp.
+     * @param int $campChangeId
+     */
+    public function getCampByChangeId($changeID) {
+        $camp = Camp::where('id', $changeID)->first();
+        if(!empty($camp)) {
+            return $camp;
+        }
+        else{
+            return [];
         }
     }
+
 
     function remove_emoji($string)
     {
