@@ -29,6 +29,32 @@ class Support extends Model
         return date("Y-m-d", strtotime($value));
     }
 
+    public static function getAllDirectSupporters($topic_num,$camp_num=1){
+        $filter = [
+            'topicNum' => $topic_num,
+            'campNum'  => $camp_num
+        ];
+        $camp  = Camp::getLiveCamp($filter);
+        Camp::clearChildCampArray();
+        $subCampIds = array_unique(Camp::getAllChildCamps($camp));
+        $directSupporter = [];
+        $alreadyExists = [];
+        foreach ($subCampIds as $camp_id) {            
+            $data = self::getDirectSupporter($topic_num, $camp_id);
+            if(isset($data) && count($data) > 0){
+                foreach($data as $key=>$value){
+                    if(!in_array($value->nick_name_id, $alreadyExists,TRUE)){
+                        $directSupporter[] = $value;
+                         $alreadyExists[] = $value->nick_name_id;
+                     }  
+                }
+                  
+            }
+            
+        }
+        return $directSupporter;
+    }
+
     public static function getDirectSupporter($topic_num, $camp_num = 1)
     {
         $as_of_time = time();

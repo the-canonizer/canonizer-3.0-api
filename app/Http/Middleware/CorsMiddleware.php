@@ -36,7 +36,16 @@ class CorsMiddleware
             return response()->json('{"method":"OPTIONS"}', 200, $headers);
         }
 
+        $mysqlConfig = config('database.connections.mysql');
+        $testDBConfig = config('database.connections.mysql_testing');
+
+        $isFromTestCases = $request->get('from_test_case', null);
+        if ($isFromTestCases == '1') {
+            config(['database.connections.mysql' => $testDBConfig]);
+        }
+
         $response = $next($request);
+        config(['database.connections.mysql' => $mysqlConfig]);
         foreach ($headers as $key => $value) {
             if (strpos($request->url(), 'api/v3')) {
                 $response->header($key, $value);

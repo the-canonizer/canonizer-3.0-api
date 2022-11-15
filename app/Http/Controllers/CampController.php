@@ -160,6 +160,12 @@ class CampController extends Controller
             $camp_existsLive = 0;
             $camp_existsNL = 0;
 
+            $nickName = '';
+            $nicknameModel = Nickname::getNickName($request->nick_name);
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
+
             if(!empty($liveCamps)){
                 foreach($liveCamps as $value){
                     if(strtolower(trim($value->camp_name)) == strtolower(trim($request->camp_name))){
@@ -256,7 +262,7 @@ class CampController extends Controller
                 $filter['asOf'] = $request->asof;
                 $filter['campNum'] = $camp_id;
                 $livecamp = Camp::getLiveCamp($filter);
-                $link = Util::getTopicCampUrl($topic->topic_num, $camp_id, $topic, $livecamp, time());
+                $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp_id, $topic, $livecamp, time());
                 try {
                     $dataEmail = (object) [
                         "type" => "camp",
@@ -274,11 +280,11 @@ class CampController extends Controller
                         'topic_num' => $filter['topicNum'],
                         'camp_num' =>   $filter['campNum'],
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'nick_name' => $nickName,
                         'description' =>  $request->camp_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'));
+                    GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'), null, $nickName);
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -1376,14 +1382,21 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-            $link = Util::getTopicCampUrl($topic->topic_num, $camp->num, $topic, $liveCamp);
+            $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
                if($ifIamSingleSupporter){
-                    Util::checkParentCampChanged($all, false, $liveCamp);
+                    $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
+                    $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
+                    if($before_parent_camp_num ==$all['parent_camp_num']){
+                        Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
+                    }
+                    else{
+                        Util::checkParentCampChanged($all, false, $liveCamp);
+                    }
                 }                
                 $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 Util::dispatchJob($topic, $camp->camp_num, 1);

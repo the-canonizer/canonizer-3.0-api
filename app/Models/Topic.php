@@ -89,6 +89,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             case "review":
                 return self::where('topic_num', $topicNum)
                     ->where('objector_nick_id', '=', NULL)
+                    ->where('grace_period', 0) 
                     ->latest('submit_time')->first();
                 break;
             case "bydate":
@@ -162,7 +163,12 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
-                $val->namespace = $val->nameSpace->label;
+                $namespace = Namespaces::find($val->namespace_id);
+                $namespaceLabel = '';
+                if (!empty($namespace)) {
+                    $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+                }
+                $val->namespace = $namespaceLabel;
                 $val->unsetRelation('nameSpace');
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;

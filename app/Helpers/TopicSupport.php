@@ -129,6 +129,10 @@ class TopicSupport
             self::removeSupport($topicNum,$removeCamps,$allNickNames);
 
             $nicknameModel = Nickname::getNickName($nickNameId);
+            $nickName = '';
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
             $topicFilter = ['topicNum' => $topicNum];
             $topicModel = Camp::getAgreementTopic($topicFilter);
     
@@ -145,7 +149,7 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
                 }
                 
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
              //log activity
@@ -176,14 +180,19 @@ class TopicSupport
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
         $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
 
+        $nicknameModel = Nickname::getNickName($nickNameId);
+
+        $nickName = '';
+        if (!empty($nicknameModel)) {
+            $nickName = $nicknameModel->nick_name;
+        }
 
          if(!empty($removeCamps)){
 
              // before removing get delegation support
              self::removeSupport($topicNum,$removeCamps,$allNickNames);
              Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
- 
-             $nicknameModel = Nickname::getNickName($nickNameId);
+
              $topicFilter = ['topicNum' => $topicNum];
              $topicModel = Camp::getAgreementTopic($topicFilter);
      
@@ -198,7 +207,7 @@ class TopicSupport
                 }
 
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                 GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove');
+                 GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
              }
 
              //log activity
@@ -228,7 +237,7 @@ class TopicSupport
              
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add');
+           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
            
@@ -269,12 +278,17 @@ class TopicSupport
             $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
         } 
         
-       
+        $nickName = '';
+        $nicknameModel = Nickname::getNickName($nickNameId);
+        if (!empty($nicknameModel)) {
+            $nickName = $nicknameModel->nick_name;
+        }
+
         self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
        
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate');
+        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName);
 
        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {
@@ -791,6 +805,7 @@ class TopicSupport
         
         $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
+
         $i = 0;
         foreach ($directSupporter as $supporter) {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);

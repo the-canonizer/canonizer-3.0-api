@@ -125,6 +125,21 @@ class Util
      * @param $camp_num
      * @param $topic
      * @param $camp
+     * @param $currentTime
+     * @return string
+     */
+
+    public static function getTopicCampUrlWithoutTime($topic_num,$camp_num,$topic,$camp,$currentTime = null):string
+    {
+        $urlPortion = self::getSeoBasedUrlPortion($topic_num,$camp_num,$topic,$camp); 
+        return config('global.APP_URL_FRONT_END').('/topic/' .$urlPortion);
+    }
+
+    /**
+     * @param $topic_num
+     * @param $camp_num
+     * @param $topic
+     * @param $camp
      * @return string
      */
 
@@ -363,7 +378,7 @@ class Util
                     $supportData['also_subscriber'] = 1;
                     $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id, $supportData['topic_num'], $supportData['camp_num']);
                 }
-                $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 try {
                     dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
                 } catch (Throwable $e) {
@@ -379,7 +394,7 @@ class Util
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list;
-                    $receiver = env('APP_ENV') == "production" ? $user->email : env('ADMIN_EMAIL');
+                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
@@ -437,6 +452,44 @@ class Util
         }
         return;
     }
+
+     /**
+     * This function only work when we changes parent camp.
+     * @param int $campChangeId
+     */
+    public function parentCampChangedBasedOnCampChangeId($changeID) {
+        $camp = Camp::where('id', $changeID)->first();
+        if(!empty($camp)) {
+            $topic_num = $camp->topic_num;
+            $camp_num = $camp->camp_num;
+            $parent_camp_num = $camp->parent_camp_num;
+            $in_review_status=true;
+            $filter['topicNum'] = $topic_num;
+            $filter['campNum'] = $camp_num;
+            //We have fetched new live camp record
+            $liveCamp = Camp::getLiveCamp($filter); 
+            $all['parent_camp_num'] = $camp->parent_camp_num;
+            $all['topic_num'] = $topic_num;
+            $all['old_parent_camp_num']= -1;
+            $this->checkParentCampChanged($all, $in_review_status=true, $liveCamp);
+        }
+        return;
+    }
+
+    /**
+     * This function only work when we changes parent camp.
+     * @param int $campChangeId
+     */
+    public function getCampByChangeId($changeID) {
+        $camp = Camp::where('id', $changeID)->first();
+        if(!empty($camp)) {
+            return $camp;
+        }
+        else{
+            return [];
+        }
+    }
+
 
     function remove_emoji($string)
     {

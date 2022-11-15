@@ -53,6 +53,10 @@ class CanonizerService implements ShouldQueue, Uniqueable
         if(array_key_exists('updateAll', $this->canonizerData)) {
             $updateAll = $this->canonizerData['updateAll'];
         }
+
+        if(!empty($this->canonizerData['campChangeID'])) {
+            Util::parentCampChangedBasedOnCampChangeId($this->canonizerData['campChangeID']);
+        }
         
         $requestBody = [
             'topic_num'     => $this->canonizerData['topic_num'],

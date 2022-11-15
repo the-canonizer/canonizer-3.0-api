@@ -67,6 +67,9 @@ class NamespaceController extends Controller
     {
         try {
             $namespaces = Namespaces::all();
+            foreach ($namespaces as $namespace) {
+                $namespace->label = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $namespaces, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -250,9 +250,10 @@ class SupportController extends Controller
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-                TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());                
-                $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
-                return $this->resProvider->apiJsonResponse(200, $message, '','');
+
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());     
+            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
+            return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
 
