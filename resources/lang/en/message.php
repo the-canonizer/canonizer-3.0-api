@@ -427,7 +427,7 @@ return [
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
         "commitCampChange" => ":nick_name has just proposed a change to - :camp_name camp.",
         "commitStatementChange" => ":nick_name has just proposed a change to statement of - :camp_name camp.",
-        "commitTopicChange" => ":nick_name has just proposed a change - :topic_name topic.",
+        "commitTopicChange" => ":nick_name has just proposed a change to - :topic_name topic.",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
