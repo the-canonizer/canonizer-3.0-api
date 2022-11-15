@@ -795,7 +795,7 @@ class TopicSupport
         }        
         
         $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
-        $subscribers = Camp::getCampSubscribers($campNum, $campNum);
+        $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
         $i = 0;
         foreach ($directSupporter as $supporter) {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
