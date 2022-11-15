@@ -224,7 +224,7 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -247,15 +247,12 @@ class SupportController extends Controller
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'];
-        //$fcm_token = $all['fcm_token'];
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
-
                 TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());                
-               // PushNotification::pushNotificationToSupporter($request->user(),$topicNum, $campNum, 'remove');
-               $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
-               return $this->resProvider->apiJsonResponse(200, $message, '','');
+                $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
+                return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
 
