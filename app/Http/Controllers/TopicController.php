@@ -325,7 +325,12 @@ class TopicController extends Controller
             if (!$topic) {
             $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
             }
-            $topic->namespace_name = Namespaces::find($topic->namespace_id)->label;
+            $namespace = Namespaces::find($topic->namespace_id);
+            $namespaceLabel = '';
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+            }
+            $topic->namespace_name = $namespaceLabel;
             $topicRecord[] = $topic;
             $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
