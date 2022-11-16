@@ -66,7 +66,7 @@ class TopicSupport
     public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '')
     { 
         
-        if((isset($action) && $action == 'all') || empty($removeCamps))  //abandon entire topic and promote deleagte
+        if(isset($action) && $action == 'all')  //abandon entire topic and promote deleagte
         {
             $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
 
@@ -89,8 +89,8 @@ class TopicSupport
             $campModel  = self::getLiveCamp($campFilter);
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId);
 
-            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0){
-            
+            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
+            {
                 Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
                 $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
 
@@ -351,7 +351,6 @@ class TopicSupport
     public static function sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId='')
     {
         $promotedDelegatesIds = [];
-        $to = [];
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
 
@@ -399,25 +398,24 @@ class TopicSupport
             $promotedUser = Nickname::getUserByNickName($promoted->nick_name_id);
             $user_id = $promotedUser->id ?? null;
             $promotedDelegates[] = $promotedUser->user_id;
-            $to[] = $promotedUser->email;
+            $to = $promotedUser->email;
+
+            try 
+            {
+                Event::dispatch(new PromotedDelegatesMailEvent($to, $promotedFrom, $data)); 
+
+                //$data['subject'] = $promotedFrom->nick_name . " has removed their support from ".$object. ".";           
+                
+                //$subjectStatement = "has removed their support from";
+                //self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'remove');
+
+            } catch (Throwable $e) 
+            {
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
+            }
         }
-        try 
-        {
-            Event::dispatch(new PromotedDelegatesMailEvent($to, $promotedFrom, $data)); 
-
-            //$data['subject'] = $promotedFrom->nick_name . " has removed their support from ".$object. ".";           
-            
-            $subjectStatement = "has removed their support from";
-            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'remove');
-
-        } catch (Throwable $e) 
-        {
-            $data = null;
-            $status = 403;
-            echo  $message = $e->getMessage();
-        }
-
-
     }
 
 
@@ -757,7 +755,6 @@ class TopicSupport
      */
     public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='')
     {
-       
         $bcc_email = [];
         $subscriber_bcc_email = [];
         $bcc_user = [];
