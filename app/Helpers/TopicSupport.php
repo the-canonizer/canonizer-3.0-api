@@ -87,7 +87,7 @@ class TopicSupport
             $topicModel = Camp::getAgreementTopic($topicFilter);
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
-            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0){
             
@@ -712,7 +712,7 @@ class TopicSupport
      * @param $camp is object of camp model
      * @param $nnickname is object of nickname model
      */
-    public static function supportRemovalEmail($topic, $camp, $nickname)
+    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='')
     {
 
         $object = $topic->topic_name ." / ".$camp->camp_name;
@@ -721,7 +721,11 @@ class TopicSupport
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topic->topic_num, $camp->camp_num, $topic, $camp);
 
         $mailData['object'] = $object;
-        $mailData['subject'] = $nickname->nick_name . " has removed their support from ".$object. ".";
+        if(isset($delegateNickNameId) && !empty($delegateNickNameId)){
+            $mailData['subject'] = $nickname->nick_name . " has removed their delegated support from ".$object. ".";
+        }else{
+            $mailData['subject'] = $nickname->nick_name . " has removed their support from ".$object. ".";
+        }
         $mailData['topic'] = $topic;
         $mailData['camp'] = $camp;
         $mailDta['camp_name'] = $camp->camp_name;
@@ -735,7 +739,12 @@ class TopicSupport
         $mailData['nick_name'] = $nickname->nick_name;
         $mailData['support_action'] = "remove"; //default will be 'added'
 
-        $subjectStatement = "has removed their support from";
+        if(isset($delegateNickNameId) && !empty($delegateNickNameId)){
+            $subjectStatement = "has removed their delegated support from";
+        }else{
+            $subjectStatement = "has removed their support from";
+        }
+        
         self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove');
         return;
     }
@@ -791,11 +800,12 @@ class TopicSupport
             $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
             $data['delegated_nick_name_id'] = $delegatedToNickname->id;
             $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
-            $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
+            $data['subject']  = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
         }        
         
         $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
-        $subscribers = Camp::getCampSubscribers($campNum, $campNum);
+        $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
+
         $i = 0;
         foreach ($directSupporter as $supporter) {
             $user = Nickname::getUserByNickName($supporter->nick_name_id);
@@ -835,6 +845,8 @@ class TopicSupport
                     $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
                     $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                 }
+
+               
                 try { 
                     if($action == 'add'){
                         Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
