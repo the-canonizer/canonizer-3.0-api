@@ -166,12 +166,14 @@ class Nickname extends Model {
                     $h = 1;
                     if(isset($value['array'])){
                         ksort($value['array']);
-                    foreach($value['array'] as $i => $supportData ){
-                        foreach($supportData as $j => $support){
-                            if(count($childCamps) > 0 && in_array($support['camp_num'], $childCamps)){
-                                 $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>'; 
+                        foreach($value['array'] as $i => $supportData ){
+                            foreach($supportData as $j => $support){
+                                if(count($childCamps) > 0 && in_array($support['camp_num'], $childCamps)){
+                                    $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>'; 
+                                } else{
+                                    $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>'; 
+                                }
                             }
-                          }
                         }
                     }else{
                        $returnHtml[] =  '<a href="'.$value['link'].'">'.$value['camp_name'].'</a>'; 
