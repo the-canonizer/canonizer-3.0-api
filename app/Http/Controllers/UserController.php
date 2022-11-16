@@ -784,7 +784,15 @@ class UserController extends Controller
         try {
 
             $user = User::where('email', '=', $request->username)->first();
-
+            if (strlen($request->otp) < 6) {
+                $status = 403;
+                $message = trans('message.error.otp_lenth_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            } elseif (strlen($request->otp) > 6) {
+                $status = 403;
+                $message = trans('message.error.otp_lenth_match');
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             if (empty($user) || $request->otp != $user->otp) {
                 $status = 400;
                 $message = trans('message.error.otp_not_match');
@@ -804,7 +812,8 @@ class UserController extends Controller
             if ($generateToken->status_code == 200) {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
                 if($request->is_login == 0){
-                    Event::dispatch(new WelcomeMailEvent($user));
+                    $link_index_page = config('global.APP_URL_FRONT_END') .'/topic/132-Help/1-Agreement';
+                    Event::dispatch(new WelcomeMailEvent($user,$link_index_page));
                 }
                 $data = [
                     "auth" => $generateToken->data,

@@ -803,7 +803,7 @@ class TopicSupport
             $data['subject']  = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
         }        
         
-        $directSupporter = Support::getDirectSupporter($topicNum, $campNum);
+        $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
 
         $i = 0;

@@ -38,6 +38,7 @@ class WelcomeMailListener implements ShouldQueue
     public function handle($event)
     {
         $user = $event->user;
-        Mail::to($user->email)->send(new welcomeEmail($user));
+        $link_index_page = $event->link_index_page;
+        Mail::to($user->email)->send(new welcomeEmail($user,$link_index_page));
     }
 }

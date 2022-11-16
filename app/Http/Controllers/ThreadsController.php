@@ -412,12 +412,19 @@ class ThreadsController extends Controller
                 $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 foreach ($threads->items as $value) {
-                    $postCount =  Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->get();
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $value->topic_id)->get();
                     foreach ($namspaceId as $nId) {
                         $value->namespace_id = $nId->namespace_id;
                     }
-                    $value->post_count = $postCount->count();
+                    if ($value->post_count > 0) {
+                        $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->latest()->first();
+                        $value->post_updated_at = $latestPost->updated_at;
+                        $value->nick_name_id = $latestPost->user_id;
+                        $nickName = Nickname::find($latestPost->user_id);
+                        if (!empty($nickName)) {
+                            $value->nick_name = $nickName->nick_name;
+                        }
+                    }
                 }
                 $status = 200;
                 $message = trans('message.success.success');
@@ -464,16 +471,25 @@ class ThreadsController extends Controller
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->paginate($per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
             foreach ($threads->items as $value) {
-                $postCount =  Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->get();
+                $postCount =  Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->count();
                 $namspaceId =  Topic::select('namespace_id')->where('topic_num', $value->topic_id)->get();
                 foreach ($namspaceId as $nId) {
                     $value->namespace_id = $nId->namespace_id;
                 }
-                $value->post_count = $postCount->count();
+                $value->post_count = $postCount;
+                if ($postCount > 0) {
+                    $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->latest()->first();
+                    $value->post_updated_at = $latestPost->updated_at;
+                    $value->nick_name_id = $latestPost->user_id;
+                    $nickName = Nickname::find($latestPost->user_id);
+                    if (!empty($nickName)) {
+                        $value->nick_name = $nickName->nick_name;
+                    }
+                }
             }
             $status = 200;
             $message = trans('message.success.success');
