@@ -13,11 +13,13 @@ class WelcomeMailEvent extends Event
      * @return void
      */
     public $user;
+    public $link_index_page;
     
-    public function __construct($user)
+    public function __construct($user,$link_index_page)
     {
        // echo "<pre>"; print_r($user->first_name); die;
         $this->user = $user;
+        $this->link_index_page = $link_index_page;
     }
 
 
