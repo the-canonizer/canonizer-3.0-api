@@ -397,11 +397,29 @@ class Support extends Model
                                 (SELECT 
                                 TO_BASE64 (CONCAT('Malia', $user_id, 'Malia')))) 
                             AND c.end = 0) t2,
-                        (SELECT topic_num, namespace_id 
-                            FROM  topic 
-                             GROUP BY topic_num, namespace_id) t3 
+                        (SELECT
+                                a.topic_num,
+                                a.namespace_id,
+                                a.submit_time
+                            FROM
+                                topic a,
+                                (SELECT
+                                topic_num,
+                                MAX(submit_time) AS submit_time
+                            FROM
+                                topic
+                            GROUP BY topic_num
+                                ) b
+                            WHERE 
+                            a.topic_num = b.topic_num
+                            AND a.submit_time = b.submit_time
+                            AND objector_nick_id IS NULL
+                            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                            GROUP BY topic_num,
+                                namespace_id) t3 
 
                     WHERE t1.topic_num = t2.topic_num AND t1.topic_num = t3.topic_num ORDER BY t2.support_order ASC,t2.start DESC, t2.topic_num";
+
 
         $result = DB::select($query);
 
@@ -483,7 +501,6 @@ class Support extends Model
 
             //update delegators support order as well
             self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
-
             $order++;
         }
 
