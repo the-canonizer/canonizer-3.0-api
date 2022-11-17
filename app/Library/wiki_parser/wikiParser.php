@@ -156,7 +156,7 @@ class wikiParser
 		$m = preg_match_all( "/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
 				
 			if ($m) {
-				$links = $match[0];
+				$links = array_unique($match[0]);
 				foreach($links as $link) {
 					$link = trim(strip_tags($link));
 					$extension = strtolower(trim(@end(explode(".",$link))));
@@ -211,9 +211,10 @@ class wikiParser
 			$links = array_unique($match[0]);
 
 			foreach($links as $link) {
+                $regexToreplace = "~<a.*?(</a>|<a>|</iframe>|<iframe>)(*SKIP)(*F)|" . $link . '~';
 				$link = trim(strip_tags($link));
 				$modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
-                $wiki_text = preg_replace($regExpForPlainLinks, $modifyYouTubeOrVimeo, $wiki_text);
+                $wiki_text = preg_replace($regexToreplace, $modifyYouTubeOrVimeo, $wiki_text);
 			}
 		}
         return $wiki_text;
