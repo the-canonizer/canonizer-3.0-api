@@ -4,8 +4,9 @@
         <td>
             <table width="100%">
                 <tr>
-                    <td style="text-align:center; padding:30px 0px;"><img
-                            src="{{ URL::asset('assets/images/OTP-img.png') }}"></td>
+                    <td style="text-align:center; padding:30px 0px;">
+                        <img src="{{ URL::asset('assets/images/OTP-img.png') }}">
+                    </td>
                 </tr>
             </table>
         </td>

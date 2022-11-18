@@ -295,6 +295,12 @@ class TopicSupport
             $notifyDelegatedUser = true;
         }
 
+        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
+
+        // log activity
+        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
+        
+
         /* To update the Mongo Tree while delegating at add support*/
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
         if(!empty($campNum)) {
@@ -303,10 +309,6 @@ class TopicSupport
             Util::dispatchJob($topic, 1, 1);
         }
         
-        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
-
-        // log activity
-        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
         
     }
 
@@ -768,7 +770,7 @@ class TopicSupport
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
 
-        $object = $topic->topic_name ." / ".$camp->camp_name;
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." / ".$camp->camp_name;
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
@@ -1324,8 +1326,7 @@ class TopicSupport
                 if(isset($notifyDelegatedUser) && $notifyDelegatedUser){
                     $data['notify_delegated_user'] = $notifyDelegatedUser;
                     $data['subject']    = $nickname->nick_name . " has just delegated their support to you.";                    
-                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);
-                    
+                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);                    
                     Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($delegatedUser->email ?? null, $delegatedUser, $data));
                 }
             }
