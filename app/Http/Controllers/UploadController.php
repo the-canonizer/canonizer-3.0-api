@@ -289,7 +289,9 @@ class UploadController extends Controller
         try{
             $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->orderBy('created_at', 'desc')->get();
             $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->orderBy('created_at', 'desc')->get();
-
+            foreach($files as $val){
+                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$val->file_name;
+            } 
             $data = [
                 'files' => $files,
                 'folders' => $folders
