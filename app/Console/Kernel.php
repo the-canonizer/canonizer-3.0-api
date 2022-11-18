@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         'App\Console\Commands\DeleteActivityLogs',
         'App\Console\Commands\UpdateS3FilePathInStatementTable',
+        'App\Console\Commands\UpdateS3FilePathInUploadTable',
     ];
 
     /**
