@@ -150,29 +150,6 @@ class wikiParser
 
     public function parse($wiki_text)
     {
-        //Parse Section
-        //For each section on the config.ini
-		
-		$m = preg_match_all( "/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $wiki_text, $match);
-				
-			if ($m) {
-				$links = array_unique($match[0]);
-				foreach($links as $link) {
-					$link = trim(strip_tags($link));
-					$extension = strtolower(trim(@end(explode(".",$link))));
-					switch($extension) {
-						case 'gif':
-						case 'png':
-						case 'jpg':
-						case 'jpeg':
-							$wiki_text = str_replace($link, '<img src="'.$link.'">', $wiki_text);       
-							break;
-						break;
-					}
-				}
-			}
-        
-		
         $parser_order_config = wikiParser::getConfigINI();
         
         $file_parsing_order = $parser_order_config['FileParsingOrder'];
@@ -203,20 +180,39 @@ class wikiParser
                 $wiki_text = $this->parseSection($parsing_section_name, $wiki_text);
             }            
         }
-
-        $regExpForPlainLinks = "~<a.*?(</a>|<a>|</iframe>|<iframe>)(*SKIP)(*F)|(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?~";
-        $m = preg_match_all($regExpForPlainLinks, $wiki_text, $match);
-
+        //modify image link
+        $m = preg_match_all( "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?~", $wiki_text, $match);
 		if ($m) {
 			$links = array_unique($match[0]);
-
 			foreach($links as $link) {
-                $regexToreplace = "~<a.*?(</a>|<a>|</iframe>|<iframe>)(*SKIP)(*F)|" . $link . '~';
+                $regexToreplace = "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|" . $link . '~';
 				$link = trim(strip_tags($link));
-				$modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
+				$extension = strtolower(trim(@end(explode(".",$link))));
+				switch($extension) {
+					case 'gif':
+					case 'png':
+					case 'jpg':
+					case 'jpeg':
+						$wiki_text = preg_replace($regexToreplace, '<img src="'.$link.'">', $wiki_text);       
+						break;
+					break;
+				}
+			}
+		}
+        
+        //modify youtube and vimeo link
+        $regExpForPlainLinks = "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?~";
+        $m = preg_match_all($regExpForPlainLinks, $wiki_text, $match);
+		if ($m) {
+			$links = array_unique($match[0]);
+			foreach($links as $link) {
+                $regexToreplace = "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|". preg_quote($link) ."~";
+				$link = trim(strip_tags($link));
+                $modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
                 $wiki_text = preg_replace($regexToreplace, $modifyYouTubeOrVimeo, $wiki_text);
 			}
 		}
+       
         return $wiki_text;
     }
 
