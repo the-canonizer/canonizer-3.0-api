@@ -10,7 +10,7 @@
                                 <table class="column" >
                                 <tr>
                                     <td style="padding:0 30px 0px;"> 
-                                        <a href="https://canonizer3.canonizer.com/" target="_blank"><img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo"></a>
+                                        <a href="{{env('APP_URL_FRONT_END')}}" target="_blank"><img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo"></a>
                                     </td>
                                 </tr>
                                 </table>
@@ -41,10 +41,10 @@
                     <table width="100%">
                         <tr>
                             <td verticle-align="middle" style="padding-top:30px;  text-align: center;   padding-bottom: 20px;"> 
-                                <a href="https://canonizer3.canonizer.com/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
-                                <a href="https://canonizer3.canonizer.com/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
-                                <a href="https://canonizer3.canonizer.com/blog/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
-                                <a href="https://canonizer3.canonizer.com/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
+                                <a href="{{env('APP_URL_FRONT_END')}}/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
+                                <a href="{{env('APP_URL_FRONT_END')}}/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
+                                <a href="{{env('APP_URL_FRONT_END')}}/blog/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
+                                <a href="{{env('APP_URL_FRONT_END')}}/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
                             </td>
                         </tr>
                     </table>
