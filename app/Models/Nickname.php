@@ -342,7 +342,7 @@ class Nickname extends Model {
 
     public static function getUserByNickId($nick_id) {
         $nickname = self::find($nick_id);
-        return $nickname->nick_name;
+        return $nickname->nick_name ?? "";
     }
 
     
