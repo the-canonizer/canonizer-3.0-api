@@ -56,10 +56,10 @@ class Nickname extends Model {
 
         if(isset($private) && $private != '')
         {
-            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->get();
+            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->orderBy('nick_name', 'ASC')->get();
         }else
         {
-            $nicknames = self::where('owner_code', $ownerCode)->get();
+            $nicknames = self::where('owner_code', $ownerCode)->orderBy('nick_name', 'ASC')->get();
         }
         
         return $nicknames;
@@ -146,7 +146,7 @@ class Nickname extends Model {
             $usedNickid = $mysupports->nick_name_id;
         }
         if ($usedNickid) {
-            return self::where('id', '=', $usedNickid)->get();
+            return self::where('id', '=', $usedNickid)->orderBy('nick_name', 'ASC')->get();
         } else
             return self::personNickname();
     }
