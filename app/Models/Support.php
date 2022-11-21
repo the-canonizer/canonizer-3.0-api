@@ -524,6 +524,16 @@ class Support extends Model
         return;
     }
 
+    public static function checkIfDelegateSupportExists($topicNum, $nickNames, $deleagtedNicknameId)
+    {
+       
+        $support = self::where('topic_num', '=', $topicNum)
+        ->where('nick_name_id', $deleagtedNicknameId)
+        ->whereIn('delegate_nick_name_id', $nickNames)
+        ->where('end', '=', '0')->count();
+        return $support;
+    }
+
 
 
 
