@@ -744,7 +744,9 @@ class StatementController extends Controller
                         'key_words' => $val->key_words,
                         'namespace_id' => $val->namespace_id,
                         'camp_about_url' => $val->camp_about_url,
-                        'parent_camp_name'=> Camp::where('parent_camp_num', $val->parent_camp_num)->first()->camp_name
+                        'camp_about_nick_id' => $val->camp_about_nick_id,
+                        'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
+                        'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? ""
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -762,10 +764,13 @@ class StatementController extends Controller
                     $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
                     $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $liveStatement->camp_name;
+                    $statement['liveStatement']['camp_about_url'] = $liveStatement->camp_about_url;
+                    $statement['liveStatement']['camp_about_nick_id'] = $liveStatement->camp_about_nick_id;
+                    $statement['liveStatement']['camp_about_nick_name'] = Nickname::getUserByNickId($liveStatement->camp_about_nick_id);
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
-                    $statement['liveStatement']['parent_camp_name'] = Camp::where('parent_camp_num', $val->parent_camp_num)->first()->camp_name;
+                    $statement['liveStatement']['parent_camp_name'] = Camp::where('camp_num', $liveStatement->parent_camp_num)->where('topic_num',$liveStatement->topic_num)->latest('submit_time')->first()->camp_name ?? "";
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
