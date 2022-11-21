@@ -25,10 +25,10 @@
                         <p>
                             <?php if(isset($data['notify_delegated_user']) && $data['notify_delegated_user']){ ?>
                                 <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                    has delegated their support to you in this topic: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
+                                    has delegated their support to you in this topic: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['topic_name'] }}</a></b>
                             <?php } else{ ?>
                                 You have delegated your support to <a target="_blank"
-                                href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['object']}}</b></a>
+                                href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['topic_name']}}</b></a>
                             <?php } ?>
                         </p>
                     </td>

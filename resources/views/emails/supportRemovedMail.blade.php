@@ -18,14 +18,24 @@
                     <td style="padding:30px 0px 20px; font-weight:600;">Hello {{ $user->first_name }}
                         {{ $user->last_name }}, </td>
                 </tr>
-                <tr>
-                    <td style="padding-top: 0px;  font-weight:400;">
-                        <p> <a target="_blank"
-                                href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                            has removed their support from this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
-                        </p>
-                    </td>
-                </tr>
+
+                <?php if(isset($data['delegated_nick_name_id']) && $data['delegated_nick_name_id'] ){ ?>
+                        <td style="padding-top: 0px;  font-weight:400;">
+                            <p> <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
+                              has just removed their delegated support from  <a target="_blank" href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['topic_link'] }}"><b>{{ $data['topic_name']}}</b></a></b>
+                            </p>
+                        </td>
+                <?php }else{  ?>
+                    <tr>
+                        <td style="padding-top: 0px;  font-weight:400;">
+                            <p> <a target="_blank"
+                                    href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
+                                has removed their support from this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
+                            </p>
+                        </td>
+                    </tr>
+                <?php } ?>
+                
                 <tr>
                     <td style="padding-top: 0px;  font-weight:400;">
                         @if (isset($data['subscriber']) && $data['subscriber'] == 1)

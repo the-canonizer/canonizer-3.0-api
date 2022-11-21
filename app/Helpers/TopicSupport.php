@@ -745,7 +745,7 @@ class TopicSupport
             $subjectStatement = "has removed their support from";
         }
         
-        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove');
+        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove', $delegateNickNameId);
         return;
     }
 
