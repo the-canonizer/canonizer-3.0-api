@@ -573,6 +573,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->camp_about_nick_name = NickName::getNickName($val->camp_about_nick_id)->nick_name ?? null;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name ?? null;
                 $val->parent_camp_name = isset($val->parent_camp_num) && $val->parent_camp_num !=0 ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
