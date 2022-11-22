@@ -131,7 +131,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function setBirthdayAttribute($value)
     {
-        $this->attributes['birthday'] = date('Y-m-d', strtotime($value));
+        if(!empty($value)){
+            $this->attributes['birthday'] = date('Y-m-d', strtotime($value));
+        }else{
+            $this->attributes['birthday'] = $value;
+        }
     }
 
     public function update(array $attributes = array(), array $options = []){
