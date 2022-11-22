@@ -22,7 +22,7 @@ return [
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
-        'objection_history_changed' => 'Cannot object to the :history. It is already live.', 
+        'objection_history_changed' => 'Cannot object to the :history. It is already live.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -289,6 +289,10 @@ return [
     'validation_edit_newsfeed' => [
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
+    ],
+    'validation_edit' => [
+        'record_id_required' => "Record id is required.",
+        'event_type_required' => 'Event type is required.',
     ],
     'support'  => [
         'add_direct_support' => 'Support added successfully.',

@@ -1182,7 +1182,7 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\Get(path="/edit-camp",
+     * @OA\Post(path="/edit-camp",
      *   tags={"Camp"},
      *   summary="Get camp record",
      *   description="Get camp details for editing",
@@ -1196,24 +1196,47 @@ class CampController extends Controller
      *              type="Authorization"
      *         ) 
      *    ),
-     *  @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Get camp details for editing",
-     *         @OA\Schema(
-     *              type="integer"
-     *         ) 
-     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Edit camp",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="record_id",
+     *                  description="Record id is required",
+     *                  required=true,
+     *                  type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values are edit, objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
-    public function editCampRecord($id)
+    public function editCampRecord(Request $request, Validate $validate)
     {
         try {
-            $camp = Camp::where('id', $id)->first();
+            $validationErrors = $validate->validate($request, $this->rules->getEditCaseValidationRules(), $this->validationMessages->getEditCaseValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $camp = Camp::where('id', $request->record_id)->first();
             if ($camp) {
+                // if camp record is agreed and live by another supporter, then it is not objectionable.
+                if ($request->event_type == 'objection' && $camp->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'camp']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
+                }
+
                 $filter['topicNum'] = $camp->topic_num;
                 $filter['campNum'] = $camp->camp_num;
                 $filter['asOf'] = 'default';
@@ -1229,7 +1252,7 @@ class CampController extends Controller
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
             } else {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
             }
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

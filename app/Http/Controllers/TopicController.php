@@ -966,7 +966,7 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Get(path="/edit-topic",
+     * @OA\Post(path="/edit-topic",
      *   tags={"Topic"},
      *   summary="Get topic record",
      *   description="Get topic details for editing",
@@ -980,24 +980,47 @@ class TopicController extends Controller
      *              type="Authorization"
      *         ) 
      *    ),
-     *  @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Get topic details for editing",
-     *         @OA\Schema(
-     *              type="integer"
-     *         ) 
-     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Edit topic",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="record_id",
+     *                  description="Record id is required",
+     *                  required=true,
+     *                  type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values are edit, objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
-    public function editTopicRecord($id)
+    public function editTopicRecord(Request $request, Validate $validate)
     {
         try {
-            $topic = Topic::where('id', $id)->first();
+            $validationErrors = $validate->validate($request, $this->rules->getEditCaseValidationRules(), $this->validationMessages->getEditCaseValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $topic = Topic::where('id', $request->record_id)->first();
             if ($topic) {
+                // if topic is agreed and live by another supporter, then it is not objectionable.
+                if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
+                }
+
                 $nickName = Nickname::topicNicknameUsed($topic->topic_num);
                 $data = new stdClass();
                 $data->topic = $topic;
@@ -1006,8 +1029,10 @@ class TopicController extends Controller
                 $indexes = ['topic', 'nick_name'];
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+            } else {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
