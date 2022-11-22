@@ -443,7 +443,7 @@ class Util
                             if(!empty($results_child)){ 
                                 if(array_search($value->nick_name_id, array_column($results_child, 'nick_name_id')) !== FALSE) { //found
                                    Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id); 
-                                    Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
+                                   Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
                                 } 
                             }
                         } 
@@ -470,8 +470,8 @@ class Util
             $liveCamp = Camp::getLiveCamp($filter); 
             $all['parent_camp_num'] = $camp->parent_camp_num;
             $all['topic_num'] = $topic_num;
-            $all['old_parent_camp_num']= -1;
-            $this->checkParentCampChanged($all, $in_review_status=true, $liveCamp);
+            $all['old_parent_camp_num']= -1;//$parent_camp_num;
+            $this->checkParentCampChanged($all, $in_review_status, $liveCamp);
         }
         return;
     }
