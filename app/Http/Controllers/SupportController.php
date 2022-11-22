@@ -220,11 +220,10 @@ class SupportController extends Controller
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
-           
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
         } catch (\Throwable $e) {
-           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 

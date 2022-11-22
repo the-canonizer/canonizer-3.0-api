@@ -24,7 +24,7 @@
                     <?php if(isset($data['delegated_nick_name_id']) && $data['delegated_nick_name_id'] ){ ?>
                         <td style="padding-top: 0px;  font-weight:400;">
                             <p> <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                has delegated their support to <a target="_blank" href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['object']}}</b></a></b>
+                                has just delegated their support to <a target="_blank" href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['topic_link'] }}"><b>{{ $data['object']}}</b></a></b>
                                 
                             </p>
                         </td>
