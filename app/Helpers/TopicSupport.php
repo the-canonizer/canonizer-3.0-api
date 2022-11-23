@@ -87,7 +87,27 @@ class TopicSupport
             $topicModel = Camp::getAgreementTopic($topicFilter);
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
-            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId);
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+            $supportRemovedFrom = Support::getActiveSupporInTopicWithAllNicknames($topicNum, [$delegateNickNameId]);
+            $notifyDelegatedUser = false;   
+            if($supportRemovedFrom[0]->delegate_nick_name_id)  // if  user is a delegated supporter itself, then notify
+            {
+                $notifyDelegatedUser = true;
+            }
+            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
             {
@@ -295,6 +315,12 @@ class TopicSupport
             $notifyDelegatedUser = true;
         }
 
+        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
+
+        // log activity
+        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
+        
+
         /* To update the Mongo Tree while delegating at add support*/
         $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
         if(!empty($campNum)) {
@@ -303,10 +329,6 @@ class TopicSupport
             Util::dispatchJob($topic, 1, 1);
         }
         
-        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
-
-        // log activity
-        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
         
     }
 
@@ -654,7 +676,7 @@ class TopicSupport
             }
         }
 
-        return;
+        return; 
     }
 
     /** 
@@ -710,40 +732,19 @@ class TopicSupport
      * @param $camp is object of camp model
      * @param $nnickname is object of nickname model
      */
-    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='')
+    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='', $notifyDelegatedUser = false)
     {
-
-        $object = $topic->topic_name ." / ".$camp->camp_name;
-        $topicLink =  self::getTopicLink($topic);
-        $campLink = self::getCampLink($topic,$camp);
-        $seoUrlPortion = Util::getSeoBasedUrlPortion($topic->topic_num, $camp->camp_num, $topic, $camp);
-
-        $mailData['object'] = $object;
-        if(isset($delegateNickNameId) && !empty($delegateNickNameId)){
-            $mailData['subject'] = $nickname->nick_name . " has removed their delegated support from ".$object. ".";
-        }else{
-            $mailData['subject'] = $nickname->nick_name . " has removed their support from ".$object. ".";
-        }
-        $mailData['topic'] = $topic;
-        $mailData['camp'] = $camp;
-        $mailDta['camp_name'] = $camp->camp_name;
-        $mailData['topic_name'] = $topic->topic_name;
-        $mailData['topic_num'] = $topic->topic_num;
-        $mailData['camp_num'] = $camp->camp_num;
-        $mailData['topic_link'] = $topicLink;
-        $mailData['camp_link'] = $campLink;   
-        $mailData['url_portion'] =  $seoUrlPortion;
-        $mailData['nick_name_id'] = $nickname->id;
-        $mailData['nick_name'] = $nickname->nick_name;
-        $mailData['support_action'] = "remove"; //default will be 'added'
-
-        if(isset($delegateNickNameId) && !empty($delegateNickNameId)){
+        if(isset($delegateNickNameId) && !empty($delegateNickNameId))
+        {
             $subjectStatement = "has removed their delegated support from";
+             /** Notify removing supporter through email and notification */
+            self::notifyDelegatorAndDelegateduser($topic->topic_num, $camp->camp_num, $nickname->id, 'remove', $delegateNickNameId, $notifyDelegatedUser);
+        
         }else{
             $subjectStatement = "has removed their support from";
         }
-        
-        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove');
+       
+        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove', $delegateNickNameId);
         return;
     }
 
@@ -768,7 +769,7 @@ class TopicSupport
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
 
-        $object = $topic->topic_name ." / ".$camp->camp_name;
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." / ".$camp->camp_name;
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
@@ -1316,18 +1317,27 @@ class TopicSupport
         $topic_name_space_id = $data['namespace_id'];
 
         try {
-                    
+            $user = Nickname::getUserByNickName($nickNameId);
             if($action == 'add'){
-                $user = Nickname::getUserByNickName($nickNameId);
                 Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($user->email ?? null, $user, $data));
 
                 if(isset($notifyDelegatedUser) && $notifyDelegatedUser){
                     $data['notify_delegated_user'] = $notifyDelegatedUser;
                     $data['subject']    = $nickname->nick_name . " has just delegated their support to you.";                    
-                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);
-                    
+                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);                    
                     Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($delegatedUser->email ?? null, $delegatedUser, $data));
                 }
+            }else{               
+                $data['subject']    = "You have removed your delegated support from " . $delegatedToNickname->nick_name . " in " . $data['object'];
+                Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($user->email ?? null, $user, $data));
+
+                if(isset($notifyDelegatedUser) && $notifyDelegatedUser){
+                    $data['notify_delegated_user'] = $notifyDelegatedUser;
+                    $data['subject']    = $nickname->nick_name . " has removed their delegated support from you in " . $data['object'];                    
+                    $delegatedUser = Nickname::getUserByNickName($delegatedNickNameId);                    
+                    Event::dispatch(new NotifyDelegatedAndDelegatorMailEvent($delegatedUser->email ?? null, $delegatedUser, $data));
+                }
+
             }
             
         } catch (Throwable $e) {
