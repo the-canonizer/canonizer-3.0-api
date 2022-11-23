@@ -139,7 +139,7 @@ class GetPushNotificationToSupporter
                 $PushNotificationData->notification_type = config('global.notification_type.Thread');
                 $PushNotificationData->title = trans('message.notification_title.createThread');
                 $PushNotificationData->message_body = trans('message.notification_message.createThread', ['nick_name' => $nickName, 'thread_name' => $liveThread->title, 'camp_name' => $camp->camp_name]);
-                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)  . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads';
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)  . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/'. $threadId;;
                 break;
             case config('global.notification_type.Post'):
                 $PushNotificationData->notification_type = config('global.notification_type.Post');
