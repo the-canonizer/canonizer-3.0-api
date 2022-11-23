@@ -49,6 +49,9 @@ class GetPushNotificationToSupporter
         $PushNotificationData =  new stdClass();
         $PushNotificationData->topic_num = $topic->topic_num;
         $PushNotificationData->camp_num = $camp->camp_num;
+        if($threadId){
+            $PushNotificationData->thread_id = $threadId;
+        }
         if (isset($filtered_direct_supporter_user) && count($filtered_direct_supporter_user) > 0) {
 
             foreach ($filtered_direct_supporter_user as $user) {
