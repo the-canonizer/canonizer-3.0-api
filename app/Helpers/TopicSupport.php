@@ -88,22 +88,10 @@ class TopicSupport
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
 
-            
-
-
-
-
-
-
-
-
-
-
-
-
             $supportRemovedFrom = Support::getActiveSupporInTopicWithAllNicknames($topicNum, [$delegateNickNameId]);
             $notifyDelegatedUser = false;   
-            if($supportRemovedFrom[0]->delegate_nick_name_id)  // if  user is a delegated supporter itself, then notify
+            
+            if(isset($supportRemovedFrom[0]->delegate_nick_name_id) && $supportRemovedFrom[0]->delegate_nick_name_id)  // if  user is a delegated supporter itself, then notify
             {
                 $notifyDelegatedUser = true;
             }
