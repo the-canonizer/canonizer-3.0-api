@@ -107,7 +107,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('support/remove-delegate','SupportController@removeDelegateSupport');
         $router->post('get-activity-log','ActivityController@getActivityLog');
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
-        $router->get('/edit-camp-statement/{id}', 'StatementController@editStatement');
+        $router->post('/edit-camp-statement', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
         $router->post('support-order/update','SupportController@updateSupportOrder');
         $router->post('commit/change','TopicController@commitAndNotifyChange');
@@ -118,9 +118,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-camp', 'CampController@manageCamp');
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
-        $router->get('edit-camp/{id}','CampController@editCampRecord');
+        $router->post('/edit-camp','CampController@editCampRecord');
         $router->post('/manage-topic','TopicController@manageTopic');
-        $router->get('/edit-topic/{id}', 'TopicController@editTopicRecord');
+        $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
         $router->get('/thread/{id}','ThreadsController@getThreadById');
     });
