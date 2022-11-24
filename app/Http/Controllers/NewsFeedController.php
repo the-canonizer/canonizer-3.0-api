@@ -208,15 +208,16 @@ class NewsFeedController extends Controller
             $topic = Camp::getAgreementTopic($topicFilter);
             $camp  = TopicSupport::getLiveCamp($campFilter);
             $url = Util::getTopicCampUrl($news->topic_num, $news->camp_num, $topic, $camp);
+            $nickName = Nickname::getNickName($submitterNickId)->nick_name;
             $activitLogData = [
                 'log_type' =>  "topic/camps",
-                'activity' => 'News updated',
+                'activity' => trans('message.activity_log_message.news_update', ['nick_name' => $nickName]),
                 'url' => $url,
                 'model' => $news,
                 'topic_num' => $topicNum,
                 'camp_num' =>  $campNum,
                 'user' => $request->user(),
-                'nick_name' => Nickname::getNickName($submitterNickId)->nick_name,
+                'nick_name' => $nickName,
                 'description' =>  $display_text
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -323,15 +324,16 @@ class NewsFeedController extends Controller
             $topic = Camp::getAgreementTopic($topicFilter);
             $camp  = TopicSupport::getLiveCamp($campFilter);
             $url = Util::getTopicCampUrl($request->topic_num, $request->camp_num, $topic, $camp);
+            $nickName = Nickname::getNickName($request->submitter_nick_id)->nick_name;
             $activitLogData = [
                 'log_type' =>  "topic/camps",
-                'activity' => 'News added',
+                'activity' => trans('message.activity_log_message.news_create', ['nick_name' => $nickName]),
                 'url' => $url,
                 'model' => $news,
                 'topic_num' => $request->topic_num,
                 'camp_num' => $request->camp_num,
                 'user' => $request->user(),
-                'nick_name' => Nickname::getNickName($request->submitter_nick_id)->nick_name,
+                'nick_name' => $nickName,
                 'description' =>  $request->display_text
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -394,15 +396,16 @@ class NewsFeedController extends Controller
                 $topic = Camp::getAgreementTopic($topicFilter);
                 $camp  = TopicSupport::getLiveCamp($campFilter);
                 $url = Util::getTopicCampUrl($newsFeed->topic_num, $newsFeed->camp_num, $topic, $camp);
+                $nickName = Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name ?? "";
                 $activitLogData = [
                     'log_type' =>  "topic/camps",
-                    'activity' => 'News deleted',
+                    'activity' => trans('message.activity_log_message.news_delete', ['nick_name' => $nickName]),
                     'url' => $url,
                     'model' => $newsFeed,
                     'topic_num' => $newsFeed->topic_num,
                     'camp_num' =>  $newsFeed->camp_num,
                     'user' => $request->user(),
-                    'nick_name' =>  Nickname::getNickName($newsFeed->submitter_nick_id)->nick_name ?? "",
+                    'nick_name' =>  $nickName,
                     'description' =>  $newsFeed->display_text
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));

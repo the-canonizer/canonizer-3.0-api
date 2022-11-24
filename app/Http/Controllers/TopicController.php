@@ -231,15 +231,16 @@ class TopicController extends Controller
                         'namespace_id' => $topic->namespace_id
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
+                    $nickName = Nickname::getNickName($request->nick_name)->nick_name;
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
-                        'activity' => 'Topic created',
+                        'activity' => trans('message.activity_log_message.topic_create', ['nick_name' =>  $nickName]),
                         'url' => $link,
                         'model' => $topic,
                         'topic_num' => $topic->topic_num,
                         'camp_num' =>  1,
                         'user' => $request->user(),
-                        'nick_name' => Nickname::getNickName($request->nick_name)->nick_name,
+                        'nick_name' => $nickName,
                         'description' => $request->topic_name
                     ];
                     dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -471,7 +472,7 @@ class TopicController extends Controller
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
-                'activity' => 'Committed change',
+                'activity' => trans('message.activity_log_message.commit_change', ['nick_name' =>  $nickName->nick_name]),
                 'url' => $link,
                 'model' => $model,
                 'topic_num' => $model->topic_num,
@@ -867,7 +868,7 @@ class TopicController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Change to topic objected',
+            'activity' => trans('message.activity_log_message.topic_object', ['nick_name' =>  $nickName->nick_name]),
             'url' => $link,
             'model' => $topic,
             'topic_num' => $topic->topic_num,
