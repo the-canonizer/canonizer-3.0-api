@@ -22,7 +22,7 @@
             </tr>
             
             <tr>
-               <td>They have entirely removed their support of all camps in this topic, so you have been promoted to a direct supporter in their place. Direct supporters are expected to participate in the maintenance of camps, including receiving and where necessary, responding to emails regarding the maintenance of directly supported camps. If you are not able to do this, you can delegate your support to any other supporter in the <a href="<?= $data['camp_link']; ?>" target="_blank"><?= $data['camp']->camp_name; ?></a> camp. Or you can entirely remove your support of all camps <a href="<?php echo url('support/'.$data['url_portion'] );?>" target="_blank">here</a>.</a></td>
+               <td>They have entirely removed their support of all camps in this topic, so you have been promoted to a direct supporter in their place. Direct supporters are expected to participate in the maintenance of camps, including receiving and where necessary, responding to emails regarding the maintenance of directly supported camps. If you are not able to do this, you can delegate your support to any other supporter in the <a href="<?= $data['camp_link']; ?>" target="_blank"><?= $data['camp']->camp_name; ?></a> camp. Or you can entirely remove your support of all camps <a href="<?= $data['support_link']; ?>" target="_blank">here</a>.</a></td>
             </tr>
 
             <tr>
