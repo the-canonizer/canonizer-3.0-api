@@ -274,7 +274,7 @@ class CampController extends Controller
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
-                        'activity' => 'Camp created',
+                        'activity' => trans('message.activity_log_message.camp_create', ['nick_name' => $nickName]),
                         'url' => $link,
                         'model' => $camp,
                         'topic_num' => $filter['topicNum'],
@@ -1511,7 +1511,7 @@ class CampController extends Controller
         $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Camp updated',
+            'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
             'url' => $link,
             'model' => $camp,
             'topic_num' => $camp->topic_num,
@@ -1541,7 +1541,7 @@ class CampController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Change to camp objected',
+            'activity' => trans('message.activity_log_message.camp_object', ['nick_name' => $nickName->nick_name]),
             'url' => $link,
             'model' => $camp,
             'topic_num' => $camp->topic_num,
