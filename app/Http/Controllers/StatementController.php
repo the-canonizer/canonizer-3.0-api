@@ -210,7 +210,7 @@ class StatementController extends Controller
     }
 
     /**
-     * @OA\Get(path="/edit-camp-statement/{id}",
+     * @OA\Post(path="/edit-camp-statement",
      *   tags={"Statement"},
      *   summary="Get statement",
      *   description="Used to get statement details.",
@@ -224,24 +224,47 @@ class StatementController extends Controller
      *              type="Authorization"
      *         ) 
      *    ),
-     *   @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="get a camp statment from this id",
-     *         @OA\Schema(
-     *              type="integer"
-     *         ) 
-     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Edit Statement",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="record_id",
+     *                  description="Record id is required",
+     *                  required=true,
+     *                  type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Possible values are edit, objected, live, in_review, old, all",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
-    public function editStatement($id)
+    public function editStatement(Request $request, Validate $validate)
     {
         try {
-            $statement = Statement::where('id', $id)->first();
+            $validationErrors = $validate->validate($request, $this->rules->getEditCaseValidationRules(), $this->validationMessages->getEditCaseValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $statement = Statement::where('id', $request->record_id)->first();
             if ($statement) {
+                // if statement is agreed and live by another supporter, then it is not objectionable.
+                if ($request->event_type == 'objection' && $statement->go_live_time <= time()) {
+                    $response = collect($this->resProvider->apiJsonResponse(404, trans('message.error.objection_history_changed', ['history' => 'statement']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
+                }
+
                 $filter['topicNum'] = $statement->topic_num;
                 $filter['campNum'] = $statement->camp_num;
                 $filter['asOf'] = 'default';
@@ -262,8 +285,10 @@ class StatementController extends Controller
                 $indexes = ['statement', 'topic', 'parent_camp', 'nick_name', 'parent_camp_num'];
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+            } else {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -479,7 +504,7 @@ class StatementController extends Controller
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement created',
+            'activity' => trans('message.activity_log_message.statement_create', ['nick_name' =>  $nickName->nick_name]),
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,
@@ -509,7 +534,7 @@ class StatementController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement objected',
+            'activity' => trans('message.activity_log_message.statement_object', ['nick_name' =>  $nickName->nick_name]),
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,

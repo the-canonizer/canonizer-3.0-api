@@ -188,7 +188,7 @@ class ThreadsController extends Controller
                 CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
                 $activitLogData = [
                     'log_type' =>  "threads",
-                    'activity' => 'Thread created',
+                    'activity' => trans('message.activity_log_message.thread_create', ['nick_name' =>  $nickName]),
                     'url' => $return_url,
                     'model' => $thread,
                     'topic_num' => $request->topic_num,
@@ -627,9 +627,10 @@ class ThreadsController extends Controller
                 }
                 $threads->update($update);
                 $url = config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters(Util::remove_emoji($request->title)) . '/'  . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $id;
+                $nickName = Nickname::getNickName($threads->user_id)->nick_name;
                 $activitLogData = [
                     'log_type' =>  "threads",
-                    'activity' => 'Thread updated',
+                    'activity' => trans('message.activity_log_message.thread_update', ['nick_name' =>  $nickName]),
                     'url' => $url,
                     'model' => $threads,
                     'topic_num' => $request->topic_num,
