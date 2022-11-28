@@ -132,4 +132,5 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
+    $router->get('/global-search-uploaded-files', 'UploadController@getGlobalSearchUploadedFiles');
 });
