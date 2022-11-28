@@ -504,7 +504,7 @@ class StatementController extends Controller
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement created',
+            'activity' => trans('message.activity_log_message.statement_create', ['nick_name' =>  $nickName->nick_name]),
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,
@@ -534,7 +534,7 @@ class StatementController extends Controller
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
-            'activity' => 'Statement objected',
+            'activity' => trans('message.activity_log_message.statement_object', ['nick_name' =>  $nickName->nick_name]),
             'url' => $link,
             'model' => $statement,
             'topic_num' => $statement->topic_num,
