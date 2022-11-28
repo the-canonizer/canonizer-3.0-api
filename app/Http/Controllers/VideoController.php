@@ -15,6 +15,16 @@ class VideoController extends Controller
         $this->resProvider = $respProvider;
     }
 
+    /**
+     * @OA\Get(path="/videos",
+     *   tags={"videos"},
+     *   summary="",
+     *   description="Get list of videos",
+     *   operationId="videos",
+     *   @OA\Response(response=200, description="Sucsess")
+     *   @OA\Response(response=400, description="Something went wrog")
+     * )
+     */
     public function getVideos(Request $request)
     {
         try {
