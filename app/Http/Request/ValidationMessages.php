@@ -574,4 +574,12 @@ class ValidationMessages
             'value.required' => trans('message.validation_parse_statement.value_required')
         ];
     }
+
+    public function getEditCaseValidationMessages(): array
+    {
+        return [
+            'record_id.required' => trans('message.validation_edit.record_id_required'),
+            'event_type.required' => trans('message.validation_edit.event_type_required')
+        ];
+    }
 }

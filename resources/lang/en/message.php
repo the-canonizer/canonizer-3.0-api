@@ -22,7 +22,7 @@ return [
         'invalid_data' => 'The given data was invalid.',
         'record_not_found' => 'No record found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
-        'objection_history_changed' => 'Cannot object to the :history. It is already live.', 
+        'objection_history_changed' => 'Cannot object to the :history. It is already live.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -290,6 +290,10 @@ return [
         'newsfeed_id_required' => "Newsfeed id is required.",
         'not_found' => 'No record found against provided id.',
     ],
+    'validation_edit' => [
+        'record_id_required' => "Record id is required.",
+        'event_type_required' => 'Event type is required.',
+    ],
     'support'  => [
         'add_direct_support' => 'Support added successfully.',
         'add_delegate_support' => 'You have delegated your support successfully.',
@@ -442,5 +446,26 @@ return [
     ],
     'validation_parse_statement' => [
         'value_required' => "string to be parsed is required."
+    ],
+    'activity_log_message' => [
+        "camp_create" => ":nick_name created a camp",
+        "camp_update" => ":nick_name updated a camp",
+        "camp_object" => ":nick_name objected a change to camp",
+        "support_removed" => ":nick_name removed support",
+        "support_added" => ":nick_name added support",
+        "news_create" => ":nick_name added a news",
+        "news_update" => ":nick_name updated a news",
+        "news_delete" => ":nick_name deleted a news",
+        "statement_create" => ":nick_name created a statement",
+        "statement_update" => ":nick_name updated a statement",
+        "statement_object" => ":nick_name objected a change to statement",
+        "thread_create" => ":nick_name created a thread",
+        "thread_update" => ":nick_name updated a thread",
+        "topic_create" => ":nick_name created a topic",
+        "topic_update" => ":nick_name updated a topic",
+        "topic_object" => ":nick_name objected a change to topic",
+        "commit_change" => ":nick_name committed a change",
+        "delegate_support" => ":nick_name delegated their support to :delegate_to",
+        "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to",
     ],
 ];

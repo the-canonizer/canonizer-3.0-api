@@ -142,6 +142,14 @@ class ValidationRules
         ]);
     }
 
+    public function getEditCaseValidationRules(): array
+    {
+        return ([
+            'record_id' => 'required',
+            'event_type' => 'required'
+        ]);
+    }
+
     public function getNewsFeedValidationRules(): array
     {
         return [

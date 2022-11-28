@@ -220,11 +220,10 @@ class SupportController extends Controller
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
-           
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
         } catch (\Throwable $e) {
-           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -346,6 +345,28 @@ class SupportController extends Controller
             {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '','');
             }
+
+             /* First check Support exists or not*/
+             $DelegateSupport = Support::checkIfDelegateSupportExists($topicNum, $nickNames, $delegataedNickNameId);
+             if($DelegateSupport){
+ 
+                 $nickName = Nickname::getNickName($delegataedNickNameId);
+                 $returnData['warning'] =  $nickName->nick_name . " is already delegating support to you, you cannot delegate your support to this user";
+                 $returnData['is_delegator'] = 0;
+                 $returnData['topic_num'] = $topicNum;
+                 $returnData['camp_num'] = $campNum;
+                 $returnData['delegated_nick_name_id'] = $nickName->id;
+                 $returnData['is_confirm'] = 1;
+                 $returnData['disable_submit'] = 1;
+                 $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
+                 $returnData['remove_camps'] = [];
+  
+                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $returnData, '');
+                 
+             }
+
+
+
 
             $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
             if($support){

@@ -56,10 +56,10 @@ class Nickname extends Model {
 
         if(isset($private) && $private != '')
         {
-            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->get();
+            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->orderBy('nick_name', 'ASC')->get();
         }else
         {
-            $nicknames = self::where('owner_code', $ownerCode)->get();
+            $nicknames = self::where('owner_code', $ownerCode)->orderBy('nick_name', 'ASC')->get();
         }
         
         return $nicknames;
@@ -146,7 +146,7 @@ class Nickname extends Model {
             $usedNickid = $mysupports->nick_name_id;
         }
         if ($usedNickid) {
-            return self::where('id', '=', $usedNickid)->get();
+            return self::where('id', '=', $usedNickid)->orderBy('nick_name', 'ASC')->get();
         } else
             return self::personNickname();
     }
@@ -241,7 +241,7 @@ class Nickname extends Model {
             $topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
             $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($livecamp->title != '') ? $livecamp->title : $livecamp->camp_name);
             $topic_id = $topic_num . "-" . $title;
-            $url = Util::getTopicCampUrlWithoutTime($topicLive->topic_num, 1, $topicLive, $livecamp, time());
+            $url = Util::getTopicCampUrlWithoutTime($topicLive->topic_num, $livecamp->camp_num, $topicLive, $livecamp, time());
             if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
                 $supports[$topic_num]['array'][$rs->support_order][] = ['camp_name' => $livecamp->camp_name, 'camp_num' => $camp_num, 'link' => $url ,'delegate_nick_name_id'=>$rs->delegate_nick_name_id];
             } else if ($camp_num == 1) {
@@ -342,7 +342,7 @@ class Nickname extends Model {
 
     public static function getUserByNickId($nick_id) {
         $nickname = self::find($nick_id);
-        return $nickname->nick_name;
+        return $nickname->nick_name ?? "";
     }
 
     
