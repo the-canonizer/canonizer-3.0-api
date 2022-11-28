@@ -36,7 +36,7 @@ class VideoController extends Controller
                     unset($resolution->resolution);
                     return $resolution;
                 });
-                unset($video->link);
+                unset($video->link, $video->extension);
                 return $video;
             });
 
