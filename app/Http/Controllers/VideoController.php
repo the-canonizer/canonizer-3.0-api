@@ -32,7 +32,7 @@ class VideoController extends Controller
 
             $videos = collect($videos)->map(function ($video) {
                 $video->resolutions = collect($video->resolutions)->map(function ($resolution) use ($video) {
-                    $resolution->link = $video->link . '_' . $resolution->resolution;
+                    $resolution->link = $video->link . '_' . $resolution->resolution . '.' . $video->extension;
                     unset($resolution->resolution);
                     return $resolution;
                 });

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Video extends Model
 {
     protected $table = 'videos';
-    protected $fillable = ['title', 'value'];
+    protected $fillable = ['title', 'value', 'extension'];
     public $timestamps = true;
 
     protected $hidden = ['pivot', 'created_at', 'updated_at'];
