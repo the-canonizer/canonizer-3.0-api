@@ -289,7 +289,7 @@ class SupportAndScoreCount
         
         foreach($nick_name_wise_support as $nickNameId=>$support_camp){
             foreach($support_camp as $support){ 
-                $supportPoint = AlgorithmService::{$algorithm}($support->nick_name_id,$support->topic_num,$support->camp_num,$asOfTime);
+                $supportPoint = Algorithm::{$algorithm}($support->nick_name_id,$support->topic_num,$support->camp_num,$asOfTime);
                 $support_total = 0; 
                 $full_support_total = 0; 
                      if($multiSupport){
