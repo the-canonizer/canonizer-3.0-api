@@ -513,7 +513,7 @@ class ValidationRules
     public function getParseStatementValidationRules(): array
     {
         return ([
-            'value' => 'required'
+            'value' => 'string'
         ]);
     }
 }

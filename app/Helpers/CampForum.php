@@ -162,7 +162,7 @@ class CampForum
      */
     public static function getDirectCampSupporter($topicid, $campnum)
     {
-        return Support::getDirectSupporter($topicid, $campnum);
+        return Support::getAllDirectSupporters($topicid, $campnum);
     }
 
     /**
