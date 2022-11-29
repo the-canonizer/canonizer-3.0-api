@@ -286,21 +286,28 @@ class UploadController extends Controller
     public function getUploadedFiles(Request $request)
     {
         $user = $request->user();
-        try{
+        //try{
             $files = Upload::where('user_id','=', $user->id)->where('folder_id' ,'=', null)->orderBy('created_at', 'desc')->get();
             $folders = FileFolder::withCount('uploads')->where('user_id', '=', $user->id)->orderBy('created_at', 'desc')->get();
             foreach($files as $val){
-                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$val->file_name;
+                $s3FileName = $val->file_name;
+                if(isset($val->file_path) && $val->file_path)
+                {
+                    $strArray = explode('/',$val->file_path);
+                    $s3FileName = end($strArray);
+                }
+                
+                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$s3FileName;
             } 
             $data = [
                 'files' => $files,
                 'folders' => $folders
             ];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
-        }catch (\Throwable $e) {
+        //}catch (\Throwable $e) {
 
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
+            //return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        //}
     }
 
     /**
