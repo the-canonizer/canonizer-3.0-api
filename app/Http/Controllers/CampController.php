@@ -1411,15 +1411,16 @@ class CampController extends Controller
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } else if ($all['event_type'] == "update") {
-               if($ifIamSingleSupporter){
+                if($ifIamSingleSupporter){
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
                     $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
                     if($before_parent_camp_num ==$all['parent_camp_num']){
                         Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
                     }
+                    $this->updateCampNotification($camp, $liveCamp, $link, $request);
                 }                
-                $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
