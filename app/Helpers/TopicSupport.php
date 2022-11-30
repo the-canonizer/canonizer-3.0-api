@@ -402,7 +402,7 @@ class TopicSupport
         $data['support_action'] = "deleted"; //default will be 'added'        
         $data['object'] = $object;       
         $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
-        
+        $data['support_link'] = util::getSupportLink($seoUrlPortion);
 
         foreach($allDirectDelegates as $promoted)
         {
