@@ -236,6 +236,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function getAllChildCamps($camp): array
     {
+        self::clearChildCampArray();
         $campArray = [];
         if ($camp) {
             $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;

@@ -200,4 +200,38 @@ class GetPushNotificationToSupporter
         }
         return $PushNotificationData;
     }
+
+     /** If delegate support */
+    public function pushNotificationToDelegatesSupporter($topicNum, $campNum, $nickNameId, $delegateNickNameId){
+        $topicFilter = ['topicNum' => $topicNum];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+
+        $topic = Camp::getAgreementTopic($topicFilter);
+        $camp  = Camp::getLiveCamp($campFilter);
+        $nicknameModel = Nickname::getNickName($nickNameId);
+        if (!empty($nicknameModel)) {
+            $nickName = $nicknameModel->nick_name;
+        }
+
+         if(isset($delegateNickNameId) && $delegateNickNameId){
+            $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);
+            $delegatedNickname  = $delegatedToNickname->nick_name;
+            $delegatedNicknameId  = $delegatedToNickname->id;
+        }
+
+        $user = Nickname::getUserByNickName($nickNameId);
+
+        $PushNotificationData =  new stdClass();
+        $PushNotificationData->topic_num = $topic->topic_num;
+        $PushNotificationData->camp_num = $camp->camp_num;
+        $PushNotificationData->notification_type = config('global.notification_type.Support');
+        $PushNotificationData->title = trans('message.notification_title.addDelegateSupportUser', ['topic_name' => $topic->topic_name]);
+        $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupportUser', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
+        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+        $PushNotificationData->fcm_token = $user->fcm_token;
+        $PushNotificationData->user_id = $user->id;
+        if (!empty($user->fcm_token) && !empty($PushNotificationData)) {
+            PushNotification::sendPushNotification($PushNotificationData);
+        }
+    }
 }
