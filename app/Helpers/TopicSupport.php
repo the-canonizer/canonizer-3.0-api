@@ -876,11 +876,34 @@ class TopicSupport
     {
         $returnData = [];
 
-        if($delegataedNickNameId){
+        if($delegataedNickNameId)
+        {
+            $nickName = Nickname::getNickName($delegataedNickNameId);
+
+            /**  case I - if try to delgate support to its own delegator supporter  */
+            $DelegateSupport = Support::checkIfDelegateSupportExists($topicNum, $nickNames, $delegataedNickNameId);
+            if($DelegateSupport)
+            {    
+                $warning =  $nickName->nick_name . " is already delegating support to you, you cannot delegate your support to this user";
+                $returnData = self::getWarningToDisableSupport($topicNum, $campNum, $nickName, $warning, $delegataedNickNameId);           
+                return $returnData;
+            }
+
+            /**  Case II - If try to delgate support to In-Active supporter, this may happen when user tru to make action at same time. */
+            $support = Support::checkIfSupportExists($topicNum, [$delegataedNickNameId],[$campNum]); 
+            if(empty($support))
+            {
+                $warning =  "You cannot delegate your support to the ". $nickName->nick_name." as the selected user is not an active supporter of this camp.";
+                $returnData = self::getWarningToDisableSupport($topicNum, $campNum, $nickName, $warning, $delegataedNickNameId);  
+                return $returnData;
+            }
+
+            /** Case III - switch support that can be submitted with warning messages*/
             $returnData = self::checkIfSupportSwitchToDirectToDelegate($topicNum, $campNum, $nickNames);
             if(!empty($returnData)){
                 return $returnData;
             }
+
         }else{
             $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
             if(!empty($returnData)){
@@ -1398,13 +1421,30 @@ class TopicSupport
             }
 
             $returnData['warning'] = "You are directly supporting one or more camps under this topic. If you continue, your direct support will be removed.";
-
             $returnData['is_delegator'] = 0;
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
             $returnData['is_confirm'] = 1;
             $returnData['remove_camps'] = $campsToemoved;
         }
+
+        return $returnData;
+    }
+
+    /**
+     * 
+     */
+    public static function getWarningToDisableSupport($topicNum, $campNum, $nickName, $warning, $delegataedNickNameId, $isDelegator = 0, $disableSubmit = 1, $isConfirm = 1, $removeCamps = [])
+    {
+        $returnData['warning'] =  $warning;
+        $returnData['is_delegator'] = $isDelegator;
+        $returnData['topic_num'] = $topicNum;
+        $returnData['camp_num'] = $campNum;
+        $returnData['delegated_nick_name_id'] = $nickName->id;
+        $returnData['is_confirm'] = $isConfirm;
+        $returnData['disable_submit'] = $disableSubmit;
+        $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
+        $returnData['remove_camps'] = $removeCamps;
 
         return $returnData;
     }
