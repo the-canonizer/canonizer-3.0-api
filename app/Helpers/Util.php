@@ -515,4 +515,9 @@ class Util
         $text = preg_replace('/[^A-Za-z0-9\-]/', '-',  $topic_name);
         return preg_replace("/\-\-+/", '-', $text);
     }
+
+    public static function getSupportLink($urlPortion)
+    {
+        return config('global.APP_URL_FRONT_END').('/support/' .$urlPortion);
+    }
 }
