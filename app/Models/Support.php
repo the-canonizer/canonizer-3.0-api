@@ -400,21 +400,23 @@ class Support extends Model
                         (SELECT
                                 a.topic_num,
                                 a.namespace_id,
-                                a.submit_time
+                                a.go_live_time
                             FROM
                                 topic a,
                                 (SELECT
                                 topic_num,
-                                MAX(submit_time) AS submit_time
+                                go_live_time
                             FROM
                                 topic
+                            WHERE 
+                                go_live_time <= UNIX_TIMESTAMP(NOW())
                             GROUP BY topic_num
                                 ) b
                             WHERE 
                             a.topic_num = b.topic_num
-                            AND a.submit_time = b.submit_time
+                            AND a.go_live_time = b.go_live_time
                             AND objector_nick_id IS NULL
-                            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                            AND a.go_live_time <= UNIX_TIMESTAMP(NOW())
                             GROUP BY topic_num,
                                 namespace_id) t3 
 
@@ -511,7 +513,7 @@ class Support extends Model
     {
         $delegators = self::getDelegatorForNicknameId($topicNum, $nicknameId);
         if(count($delegators))
-        {
+        { 
              self::where('topic_num', '=', $topicNum)
             ->where('camp_num', $campNum)
             ->whereIn('delegate_nick_name_id', [$nicknameId])
