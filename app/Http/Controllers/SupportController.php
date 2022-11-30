@@ -346,61 +346,14 @@ class SupportController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '','');
             }
 
-            
-             if(isset($delegataedNickNameId) && $delegataedNickNameId)
-             {
-                 /* First check Support exists or not*/
-                 $DelegateSupport = Support::checkIfDelegateSupportExists($topicNum, $nickNames, $delegataedNickNameId);
-                 if($DelegateSupport)
-                 {
-     
-                     $nickName = Nickname::getNickName($delegataedNickNameId);
-                     $returnData['warning'] =  $nickName->nick_name . " is already delegating support to you, you cannot delegate your support to this user";
-                     $returnData['is_delegator'] = 0;
-                     $returnData['topic_num'] = $topicNum;
-                     $returnData['camp_num'] = $campNum;
-                     $returnData['delegated_nick_name_id'] = $nickName->id;
-                     $returnData['is_confirm'] = 1;
-                     $returnData['disable_submit'] = 1;
-                     $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
-                     $returnData['remove_camps'] = [];
-     
-                     return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $returnData, '');
-                     
-                 }
- 
-                 //check if having direct direct support
-                 $support = Support::checkIfSupportExists($topicNum, [$delegataedNickNameId],[$campNum]); 
-                 if(empty($support))
-                 {
-                     $nickName = Nickname::getNickName($delegataedNickNameId);
-                     $returnData['warning'] =  $nickName->nick_name . " is not supporting this camp anymore, so you cannot delegate your support to this user.";
-                     $returnData['is_delegator'] = 0;
-                     $returnData['topic_num'] = $topicNum;
-                     $returnData['camp_num'] = $campNum;
-                     $returnData['delegated_nick_name_id'] = $nickName->id;
-                     $returnData['is_confirm'] = 1;
-                     $returnData['disable_submit'] = 1;
-                     $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
-                     $returnData['remove_camps'] = [];
-     
-                     return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $returnData, '');
-                }
- 
-            }
-
-
-
-
             $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
+            $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId);
+            
             if($support){
-
-                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId);
                 $data['support_flag'] = 1;
                 $message = trans('message.support.support_exist');
 
             }else{
-                $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId);
                 $message = trans('message.support.support_not_exist');
                 $data['support_flag'] = 0;
             }
@@ -410,7 +363,7 @@ class SupportController extends Controller
 
          } catch (\Throwable $e) {
 
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }  
      }
 
