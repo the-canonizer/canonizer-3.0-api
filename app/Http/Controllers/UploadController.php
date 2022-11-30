@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Http\Controllers;
 
@@ -436,6 +436,50 @@ class UploadController extends Controller
 
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
 
+        }catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+
+    /**
+     * @OA\Get(path="/get-global-search-uploaded-files",
+     *   tags={"upload"},
+     *   summary="get-global-search-uploaded-files",
+     *   description="This is used to get Global Search uploaded files and folder with count of files uploaded inside folder.",
+     *   operationId="getGlobalSearchUploadedFiles",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *  @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Get all files of this folder id",
+     *         @OA\Schema(
+     *              type="integer"
+     *         ) 
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getGlobalSearchUploadedFiles(Request $request)
+    {
+        $query = $request->get('query');
+        try{
+            $files = Upload::where('file_name','LIKE','%'.$query.'%')->orderBy('created_at', 'desc')->get();
+            $data = [
+                'files' => $files,
+            ];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
         }catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

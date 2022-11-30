@@ -394,7 +394,7 @@ class Util
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list;
-                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
+                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $userSub->email : env('ADMIN_EMAIL');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
