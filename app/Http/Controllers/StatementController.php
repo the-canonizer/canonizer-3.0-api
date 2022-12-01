@@ -436,6 +436,8 @@ class StatementController extends Controller
                 }
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'), null, $nickName);
                 $this->createdStatementNotification($livecamp, $link, $statement, $request);
+            } else if ($eventType == "update" && $ifIamSingleSupporter) {
+                $this->updatedStatementNotification($livecamp, $link, $statement, $request);
             } else if ($eventType == "objection") {
                 $this->objectedStatementNotification($all, $livecamp, $link, $statement, $request);
             }
@@ -515,6 +517,23 @@ class StatementController extends Controller
         ];
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
         Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
+    }
+    
+    private function updatedStatementNotification($livecamp, $link, $statement, $request)
+    {
+        $nickName = Nickname::getNickName($statement->submitter_nick_id);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => trans('message.activity_log_message.statement_update', ['nick_name' =>  $nickName->nick_name]),
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $statement->value
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
     }
 
     private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
