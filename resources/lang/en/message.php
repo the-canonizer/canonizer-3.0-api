@@ -453,20 +453,30 @@ return [
         "camp_create" => ":nick_name created a camp",
         "camp_update" => ":nick_name updated a camp",
         "camp_object" => ":nick_name objected a change to camp",
+        
         "support_removed" => ":nick_name removed support",
         "support_added" => ":nick_name added support",
+        
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
         "news_delete" => ":nick_name deleted a news",
+        
         "statement_create" => ":nick_name created a statement",
         "statement_update" => ":nick_name updated a statement",
         "statement_object" => ":nick_name objected a change to statement",
+        
         "thread_create" => ":nick_name created a thread",
         "thread_update" => ":nick_name updated a thread",
+        
+        "post_create" => ":nick_name created a post",
+        "post_update" => ":nick_name updated a post",
+        
         "topic_create" => ":nick_name created a topic",
         "topic_update" => ":nick_name updated a topic",
         "topic_object" => ":nick_name objected a change to topic",
+        
         "commit_change" => ":nick_name committed a change",
+        
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
         "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to",
     ],
