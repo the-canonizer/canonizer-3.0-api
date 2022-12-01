@@ -472,7 +472,7 @@ class TopicController extends Controller
             }
             $activityLogData = [
                 'log_type' =>  "topic/camps",
-                'activity' => trans('message.activity_log_message.commit_change', ['nick_name' =>  $nickName->nick_name]),
+                'activity' => trans('message.activity_log_message.commit_change', ['nick_name' =>  $nickName->nick_name, 'type' => $type]),
                 'url' => $link,
                 'model' => $model,
                 'topic_num' => $model->topic_num,
