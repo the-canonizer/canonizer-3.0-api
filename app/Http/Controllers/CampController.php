@@ -566,6 +566,8 @@ class CampController extends Controller
                 $supportOrder = Support::where('camp_num',$val->camp_num)->where('topic_num',$val->topic_num)->where('nick_name_id',$val->submitter_nick_id)->first();
                 $val->support_order = $supportOrder->support_order ?? null;
             }
+            $keys = array_column($result, 'camp_name');
+            array_multisort($keys, SORT_ASC, $result);
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
@@ -1528,14 +1530,15 @@ class CampController extends Controller
     private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
-        $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+        $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $liveCamp);
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $camp->topic_num . '-' . $camp->camp_name . '/' . $camp->camp_num . '/threads';
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $data['topic_link'] = config('global.APP_URL_FRONT_END') . '/' . $link;
+        $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
         $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;

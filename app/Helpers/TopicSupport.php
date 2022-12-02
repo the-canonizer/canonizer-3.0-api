@@ -301,8 +301,8 @@ class TopicSupport
        
         $subjectStatement = "has just delegated their support to";
         self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName);
-        GetPushNotificationToSupporter::pushNotificationToDelegatesSupporter($topicNum, $campNum, $nickNameId, $delegateNickNameId);
+        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
+        GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
 
        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
         {

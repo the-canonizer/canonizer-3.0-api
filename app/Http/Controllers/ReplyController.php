@@ -21,6 +21,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Jobs\ActivityLoggerJob;
 
 class ReplyController extends Controller
 {
@@ -177,6 +178,9 @@ class ReplyController extends Controller
                 // Return Url after creating post Successfully
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id, $nickName) ;
                 CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
+            
+                $this->createOrUpdatePostActivityLog($thread, $nickName, $return_url, $request);
+            
             } else {
                 $data = null;
                 $status = 400;
@@ -188,6 +192,27 @@ class ReplyController extends Controller
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
+    }
+
+    private function createOrUpdatePostActivityLog($thread, $nickName, $link, $request, $update = false)
+    {
+        $activitLogData = [
+            'log_type' =>  "posts",
+            'activity' => trans('message.activity_log_message.post_create', ['nick_name' => $nickName]),
+            'url' => $link,
+            'model' => $thread,
+            'topic_num' => $request->topic_num,
+            'camp_num' => $request->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName,
+            'description' =>  $request->body,
+        ];
+
+        if($update) {
+            $activitLogData['activity'] = trans('message.activity_log_message.post_update', ['nick_name' => $nickName]);
+        }
+
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
     }
 
     /**
@@ -521,6 +546,9 @@ class ReplyController extends Controller
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
             GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id, $nickName) ;
             CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
+
+            $this->createOrUpdatePostActivityLog($post, $nickName, $return_url, $request, true);
+
             return $this->resProvider->apiJsonResponse($status, $message, $post, null);
         } catch (Throwable $e) {
             $status = 400;
