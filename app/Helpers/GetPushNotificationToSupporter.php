@@ -15,50 +15,69 @@ use App\Models\Nickname;
 class GetPushNotificationToSupporter
 {
 
-    public function pushNotificationToSupporter($request, $topicNum, $campNum, $action = 'add', $threadId = null, $nickName = '')
+    public function pushNotificationToSupporter($request, $topicNum, $campNum, $action = 'add', $threadId = null, $nickName = '' ,$delegateNickNameId = null)
     {
+        $bcc_user = [];
+        $sub_bcc_user = [];
+        $userExist = [];
         $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
-        $directSupporterUser = [];
-        $directSupporterUserId = [];
-        $subscribers_user = [];
-        $subscribers_user_id = [];
-        foreach ($directSupporter as $supporter) {
-            $user = Nickname::getUserByNickName($supporter->nick_name_id);
-            $user_id = $user->id ?? null;
-            $directSupporterUser[] = $user;
-            $directSupporterUserId[] = $user_id;
-        }
-        if ($subscribers && count($subscribers) > 0) {
-            foreach ($subscribers as $sub) {
-                if (!in_array($sub, $directSupporterUserId, true)) {
-                    $userSub = User::find($sub);
-                    $subscribers_user[] = $userSub;
-                    $subscribers_user_id[] = $userSub->id;
-                }
-            }
-        }
-        $filtered_direct_supporter_user = array_unique($directSupporterUser);
-        $filtered_subscribers_user = array_unique($subscribers_user);
         $topic = Topic::getLiveTopic($topicNum, "");
         $filter['topicNum'] = $topicNum;
         $filter['asOf'] = "";
         $filter['campNum'] = $campNum;
         $camp = Camp::getLiveCamp($filter);
         $liveThread = Thread::find($threadId);
+        $topic_name_space_id = $topic->namespace_id;
         $PushNotificationData =  new stdClass();
         $PushNotificationData->topic_num = $topic->topic_num;
         $PushNotificationData->camp_num = $camp->camp_num;
         if($threadId){
             $PushNotificationData->thread_id = $threadId;
         }
-        if (isset($filtered_direct_supporter_user) && count($filtered_direct_supporter_user) > 0) {
+        $delegatedNickname = "";
+        if(isset($delegateNickNameId) && $delegateNickNameId){
+            $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);
+            $delegatedNickname  = $delegatedToNickname->nick_name;
+        }
 
-            foreach ($filtered_direct_supporter_user as $user) {
-                try {
+        foreach ($directSupporter as $supporter) {
+            $user = Nickname::getUserByNickName($supporter->nick_name_id);
+            $user_id = $user->id ?? null;
+            $nickNameData = Nickname::find($supporter->nick_name_id);
+            $supported_camp = $nickNameData->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
+            $supported_camp_list = $nickNameData->getSupportCampListNamesEmail($supported_camp, $topicNum, $campNum);
+            $support_list[$user_id] = $supported_camp_list;
+            $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
+            if ($ifalsoSubscriber) {
+                $support_list_data = Camp::getSubscriptionList($user_id, $topicNum, $campNum);
+                $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
+            }
+            $bcc_user[] = $user;
+            $userExist[] = $user_id;
+        }
+        if ($subscribers && count($subscribers) > 0) {
+            foreach ($subscribers as $sub) {
+                if (!in_array($sub, $userExist, true)) {
+                    $userSub = User::find($sub);
+                    $subscriptions_list = Camp::getSubscriptionList($userSub->id, $topicNum, $campNum);
+                    $subscribe_list[$userSub->id] = $subscriptions_list;
+                    $sub_bcc_user[] = $userSub;
+                }
+            }
+        }
+        $filtered_bcc_user = array_unique($bcc_user);
+        $filtered_sub_user = array_unique(array_filter($sub_bcc_user, function ($e) use ($userExist) {
+            return !in_array($e->id, $userExist);
+        }));
+
+        if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
+
+            foreach ($filtered_bcc_user as $user) {
+                try { 
                     $PushNotificationData->user_id = $user->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName, $delegatedNickname);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
@@ -69,29 +88,33 @@ class GetPushNotificationToSupporter
                         PushNotification::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
-                    echo $e->getMessage();
+                    $data = null;
+                    $status = 403;
+                    echo  $message = $e->getMessage();
                 }
             }
         }
 
-        if (isset($filtered_subscribers_user) && count($filtered_subscribers_user) > 0) {
-            foreach ($filtered_subscribers_user as $userSub) {
+        if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {          
+            $data['subscriber'] = 1;
+            foreach ($filtered_sub_user as $userSub) {
                 try {
                     $PushNotificationData->user_id = $userSub->id;
 
-                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName);
+                    $getMessageData = $this->getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName, $delegatedNickname);
 
                     $PushNotificationData->notification_type = $getMessageData->notification_type;
                     $PushNotificationData->title = $getMessageData->title;
                     $PushNotificationData->message_body = $getMessageData->message_body;
                     $PushNotificationData->link = $getMessageData->link;
-
                     $PushNotificationData->fcm_token = $userSub->fcm_token;
                     if ($userSub->id != $request->id && !empty($userSub->fcm_token) && !empty($getMessageData)) {
                         PushNotification::sendPushNotification($PushNotificationData);
                     }
                 } catch (Throwable $e) {
-                    echo $e->getMessage();
+                    $data = null;
+                    $status = 403;
+                    echo $message = $e->getMessage();
                 }
             }
         }
@@ -127,7 +150,7 @@ class GetPushNotificationToSupporter
         }
     }
 
-    public function getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName)
+    public function getMessageData($request, $topic, $camp, $liveThread, $threadId, $action, $nickName, $delegatedNickname)
     {
         $PushNotificationData =  new stdClass();
 
@@ -170,8 +193,8 @@ class GetPushNotificationToSupporter
                 break;
             case config('global.notification_type.addDelegate'):
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
-                $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['camp_name' => $camp->camp_name]);
-                $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['topic_name' => $topic->topic_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
                 break;
             case config('global.notification_type.statementCommit'):
@@ -202,7 +225,7 @@ class GetPushNotificationToSupporter
     }
 
      /** If delegate support */
-    public function pushNotificationToDelegatesSupporter($topicNum, $campNum, $nickNameId, $delegateNickNameId){
+    public function pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId){
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
 
@@ -212,11 +235,10 @@ class GetPushNotificationToSupporter
         if (!empty($nicknameModel)) {
             $nickName = $nicknameModel->nick_name;
         }
-
-         if(isset($delegateNickNameId) && $delegateNickNameId){
+        $delegatedNickname = "";
+        if(isset($delegateNickNameId) && $delegateNickNameId){
             $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);
             $delegatedNickname  = $delegatedToNickname->nick_name;
-            $delegatedNicknameId  = $delegatedToNickname->id;
         }
 
         $user = Nickname::getUserByNickName($nickNameId);

@@ -215,7 +215,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', $asOfDate)
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' group by camp_num)')
-            ->orderBy('submit_time', 'desc')->orderBy('camp_name', 'desc')->groupBy('camp_num')->get();
+            ->orderBy('camp_name', 'ASC')->groupBy('camp_num')->get();
     }
 
     public static function getParentCamp($topicNum, $campNum, $filter, $asOfDate = null)
