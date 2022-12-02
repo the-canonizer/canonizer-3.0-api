@@ -832,10 +832,10 @@ class TopicSupport
         if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
 
             foreach ($filtered_bcc_user as $user) {
-                $data['support_list'] = $support_list[$user_id];
-                if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
-                    $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
-                    $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
+                $data['support_list'] = $support_list[$user->id];
+                if (isset($supporter_and_subscriber[$user->id]) && isset($supporter_and_subscriber[$user->id]['also_subscriber']) && $supporter_and_subscriber[$user->id]['also_subscriber']) {
+                    $data['also_subscriber'] = $supporter_and_subscriber[$user->id]['also_subscriber'];
+                    $data['sub_support_list'] = $supporter_and_subscriber[$user->id]['sub_support_list'];
                 }
 
                
