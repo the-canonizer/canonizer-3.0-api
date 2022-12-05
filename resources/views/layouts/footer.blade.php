@@ -15,7 +15,7 @@
                                 </tr>
                                 </table>
                             </td>
-                            <td width="60%" align="right">
+                            {{-- <td width="60%" align="right">
                             
                                 <table class="column column-2">
                                     <tr>
@@ -31,7 +31,7 @@
                                     </tr>
                                 </table>
                             
-                            </td>
+                            </td> --}}
                         </tr>
                     </table>
                 </td>
