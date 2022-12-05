@@ -468,4 +468,17 @@ return [
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
         "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to",
     ],
+    "validation_meta_tags" => [
+        'page_name_required' => "page_name is required.",
+        'page_name_string' => "page_name should be a string.",
+        'page_name_alpha' => "page_name should be must be entirely alphabetic characters.",
+
+        'topic_num_required' => "topic_num is required.",
+        'topic_num_numeric' => "topic_num should be a numeric.",
+        'topic_num_gt' => "topic_num should be greater than :value.",
+
+        'camp_num_required' => "camp_num is required.",
+        'camp_num_numeric' => "camp_num should be a numeric.",
+        'camp_num_gt' => "camp_num should be greater than :value.",
+    ]
 ];
