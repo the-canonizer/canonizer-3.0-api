@@ -107,6 +107,7 @@ class SupportAndScoreCount
         foreach($delegatedSupports as $support){ 
             if($support->camp_num == $campNum){ 
                     $array[$support->nick_name_id]['score'] =$delegateTree[$support->nick_name_id]['score'];
+                    $array[$support->nick_name_id]['full_score'] =$delegateTree[$support->nick_name_id]['full_score'];
                     $array[$support->nick_name_id]['support_order'] = $support->support_order;
                     $array[$support->nick_name_id]['nick_name'] = $support->nick_name;
                     $array[$support->nick_name_id]['nick_name_id'] = $support->nick_name_id;
