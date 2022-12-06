@@ -24,6 +24,50 @@ class MetaTagController extends Controller
         $this->resProvider = $respProvider;
     }
 
+         /**
+     * @OA\Post(path="/meta-tagst",
+     *   tags={"MetaTag"},
+     *   summary="Get meta tags",
+     *   description="This API is used to get meta tags.",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *              @OA\Property(
+     *                  property="page_name",
+     *                  description="Page Name is required",
+     *                  required=true,
+     *                  type="string",
+     *              ), 
+     *              @OA\Keys(
+     *                  @OA\Property(
+     *                      property="topic_num",
+     *                      description="Topic Number is required",
+     *                      required=false,
+     *                      type="integer",
+     *                  ),
+     *                  @OA\Property(
+     *                      property="camp_num",
+     *                      description="Camp Number is required",
+     *                      required=false,
+     *                      type="integer",
+     *                  ),
+     *                  @OA\Property(
+     *                      property="forum_num",
+     *                      description="Forum Number is required conditionally for page name CampForumPostPage",
+     *                      required=false,
+     *                      type="integer",
+     *                  ),
+     *               ) 
+     *            )  
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
     public function getMetaTags(Request $request, Validate $validate)
     {
         try {
@@ -139,12 +183,12 @@ class MetaTagController extends Controller
 
 
                 if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', "Page not found");
+                    return $this->resProvider->apiJsonResponse(401, trans('message.error.exception'), '', "Page not found");
                 }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
