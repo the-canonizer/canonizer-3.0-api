@@ -24,7 +24,7 @@ class MetaTagController extends Controller
         $this->resProvider = $respProvider;
     }
 
-         /**
+    /**
      * @OA\Post(path="/meta-tagst",
      *   tags={"MetaTag"},
      *   summary="Get meta tags",
@@ -175,7 +175,7 @@ class MetaTagController extends Controller
                             "description" => $topic->note ?? "",
                             "author" => $submitterNick->nick_name ?? "",
                             // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => Str::of($camp->key_words)->replace(',', '|')->replace(' ', ''),
+                            "keywords" => Str::of($camp->key_words ?? '')->replace(',', '|')->replace(' ', ''),
                         ];
 
                         break;
