@@ -35,8 +35,6 @@ class ChangesInMetaTagsTable extends Migration
      */
     public function down()
     {
-        Schema::table('meta_tags', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('meta_tags');
     }
 }
