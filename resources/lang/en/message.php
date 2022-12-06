@@ -480,5 +480,9 @@ return [
         'camp_num_required' => "camp_num is required.",
         'camp_num_numeric' => "camp_num should be a numeric.",
         'camp_num_gt' => "camp_num should be greater than :value.",
+
+        'forum_num_required' => "forum_num is required.",
+        'forum_num_numeric' => "forum_num should be a numeric.",
+        'forum_num_gt' => "forum_num should be greater than :value.",
     ]
 ];

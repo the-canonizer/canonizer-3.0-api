@@ -524,11 +524,27 @@ class ValidationRules
         ];
     }
 
-    public function getMetaTagsByTopicAndCampValidationRules(): array
+    public function getMetaTagsByTopicValidationRules(): array
+    {
+        return [
+            'keys.topic_num' => 'required|numeric|gt:0',
+        ];
+    }
+
+    public function getMetaTagsByTopicCampValidationRules(): array
     {
         return [
             'keys.topic_num' => 'required|numeric|gt:0',
             'keys.camp_num' => 'required|numeric|gt:0',
+        ];
+    }
+
+    public function getMetaTagsByTopicCampForumValidationRules(): array
+    {
+        return [
+            'keys.topic_num' => 'required|numeric|gt:0',
+            'keys.camp_num' => 'required|numeric|gt:0',
+            'keys.forum_num' => 'required|numeric|gt:0',
         ];
     }
 }
