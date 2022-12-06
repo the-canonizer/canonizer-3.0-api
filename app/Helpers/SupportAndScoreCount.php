@@ -28,7 +28,7 @@ class SupportAndScoreCount
         }else{
             $score_tree = $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"];
         }
-
+        
         $supports = Support::where('topic_num', '=', $topicNum)
                     ->join("nick_name","nick_name.id", "=", "support.nick_name_id")
                     ->where('delegate_nick_name_id', 0)
@@ -228,9 +228,9 @@ class SupportAndScoreCount
             foreach($nick_name_support_tree as $nickNameId=>$scoreData){
                 ksort($scoreData);
                 $index = 0;
+                $multiSupport =  count($scoreData) > 1 ? 1 : 0;
                 foreach($scoreData as $support_order=>$camp_score){
                     $index = $index +1;
-                    $multiSupport =  count($camp_score) > 1 ? 1 : 0;
                     foreach($camp_score as $campNum=>$score){
                         if($support_order > 1 && $index == count($scoreData)  && $is_add_reminder_back_flag){
                             if(array_key_exists($nickNameId,$nick_name_support_tree) && array_key_exists(1,$nick_name_support_tree[$nickNameId]) && count(array_keys($nick_name_support_tree[$nickNameId][1])) > 0){
@@ -295,6 +295,7 @@ class SupportAndScoreCount
                 $full_support_total = 0; 
                      if($multiSupport){
                          $support_total = $support_total + round($supportPoint * 1 / (2 ** ($support->support_order)), 3);
+                         
                      }else{
                          $support_total = $support_total + $supportPoint;
                      }
@@ -308,7 +309,7 @@ class SupportAndScoreCount
              foreach($nick_name_support_tree as $nickNameId=>$scoreData){
                  ksort($scoreData);
                  $index = 0;
-                 $multiSupport =  count($scoreData) > 1 ? 1 : 0;
+                 $multiSupport =  count($scoreData) > 1 ? 1 : 0;                 
                  foreach($scoreData as $support_order=>$camp_score){
                      $index = $index +1;
                     foreach($camp_score as $campNum=>$score){
