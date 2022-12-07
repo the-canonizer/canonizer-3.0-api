@@ -582,4 +582,25 @@ class ValidationMessages
             'event_type.required' => trans('message.validation_edit.event_type_required')
         ];
     }
+
+    public function getMetaTagsValidationMessages(): array
+    {
+        return [
+            'page_name.required' => trans('message.validation_meta_tags.page_name_required'),
+            'page_name.string' => trans('message.validation_meta_tags.page_name_string'),
+            'page_name.alpha' => trans('message.validation_meta_tags.page_name_alpha'),
+
+            'keys.topic_num.required' => trans('message.validation_meta_tags.topic_num_required'),
+            'keys.topic_num.numeric' => trans('message.validation_meta_tags.topic_num_numeric'),
+            'keys.topic_num.gt' => trans('message.validation_meta_tags.topic_num_gt'),
+            
+            'keys.camp_num.required' => trans('message.validation_meta_tags.camp_num_required'),
+            'keys.camp_num.numeric' => trans('message.validation_meta_tags.camp_num_numeric'),
+            'keys.camp_num.gt' => trans('message.validation_meta_tags.camp_num_gt'),
+            
+            'keys.forum_num.required' => trans('message.validation_meta_tags.forum_num_required'),
+            'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
+            'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
+        ];
+    }
 }
