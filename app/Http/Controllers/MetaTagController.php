@@ -103,10 +103,9 @@ class MetaTagController extends Controller
                         }
 
                         $topic_num = $request->keys['topic_num'];
-                        $camp_num = $request->keys['camp_num'];
 
-                        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')->find($topic_num);
-                        $submitterNick = (new Nickname())->select('nick_name')->find($topic->submitter_nick_id);
+                        $topic = $this->getTopicById($topic_num);
+                        $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
@@ -129,18 +128,13 @@ class MetaTagController extends Controller
                         $camp_num = $request->keys['camp_num'];
                         $forum_num = $request->keys['forum_num'];
 
-                        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')->find($topic_num);
+                        $topic = $this->getTopicById($topic_num);
 
-                        $camp = (new Camp())->select('id', 'key_words')->where([
-                            'topic_num' => $topic_num,
-                            'camp_num' => $camp_num,
-                            'objector_nick_id' => null
-                        ])->orderBy('submit_time', 'desc')->first();
+                        $camp = $this->getCampById($topic_num, $camp_num);
 
-                        $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')
-                            ->find($forum_num);
+                        $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
 
-                        $submitterNick = (new Nickname())->select('nick_name')->find($forum_num->user_id);
+                        $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
@@ -161,13 +155,9 @@ class MetaTagController extends Controller
                         $topic_num = $request->keys['topic_num'];
                         $camp_num = $request->keys['camp_num'];
 
-                        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')->find($topic_num);
-                        $submitterNick = (new Nickname())->select('nick_name')->find($topic->submitter_nick_id);
-                        $camp = (new Camp())->select('key_words')->where([
-                            'topic_num' => $topic_num,
-                            'camp_num' => $camp_num,
-                            'objector_nick_id' => null
-                        ])->orderBy('submit_time', 'desc')->first();
+                        $topic = $this->getTopicById($topic_num);
+                        $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
+                        $camp = $this->getCampById($topic_num, $camp_num);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
@@ -181,7 +171,6 @@ class MetaTagController extends Controller
                         break;
                 }
 
-
                 if (!$metaTag) {
                     return $this->resProvider->apiJsonResponse(401, trans('message.error.exception'), '', "Page not found");
                 }
@@ -190,5 +179,26 @@ class MetaTagController extends Controller
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
+
+    private function getTopicById($topic_num)
+    {
+        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')->find($topic_num);
+
+        return $topic;
+    }
+
+    private function getCampById($topic_num, $camp_num)
+    {
+        $camp = (new Camp())->select('id', 'key_words')->where(['topic_num' => $topic_num, 'camp_num' => $camp_num, 'objector_nick_id' => null])->orderBy('submit_time', 'desc')->first();
+
+        return $camp;
+    }
+
+    private function getSubmitterById($submitter_nick_id)
+    {
+        $submitterNick = (new Nickname())->select('nick_name')->find($submitter_nick_id);
+
+        return $submitterNick;
     }
 }
