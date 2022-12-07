@@ -17,9 +17,10 @@ class CreateMetaTagsTable extends Migration
             Schema::create('meta_tags', function (Blueprint $table) {
                 $table->id();
                 $table->string('page_name')->nullable();
+                $table->boolean('is_static')->default(0);
                 $table->string('title')->nullable();
                 $table->string('description')->nullable();
-                $table->text('route')->nullable();
+                $table->string('submitter_nick_id')->nullable();
                 $table->string('image_url')->nullable();
                 $table->json('keywords')->nullable();
                 $table->timestamps();
