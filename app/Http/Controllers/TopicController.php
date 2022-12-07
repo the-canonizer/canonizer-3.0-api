@@ -856,6 +856,7 @@ class TopicController extends Controller
         $link = 'topic/history/' . $topic->topic_num . '-' .  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $liveTopic, 1);
+        $data['history_link'] = config('global.APP_URL_FRONT_END') .'/'. $link;
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
         $data['object'] = $liveTopic->topic_name;
@@ -880,6 +881,7 @@ class TopicController extends Controller
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, 1, $all['submitter'],$all['nick_name'],config('global.notification_type.objectTopic'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

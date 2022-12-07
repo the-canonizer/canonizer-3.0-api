@@ -416,6 +416,9 @@ return [
         "commitTopicChange" => "Proposed a change to topic - :topic_name.",
         "commitCampChange" => "Proposed a change to camp - :camp_name.",
         "commitStatementChange" => "Proposed a change to statement of camp - :camp_name under topic - :topic_name",
+        "objectCamp" => ":nick_name has objected to your proposed change to camp",
+        "objectTopic" => ":nick_name has objected to your proposed change to topic",
+        "objectStatement" => ":nick_name has objected to your proposed change to statement",
     ],
     'notification_message' => [
         "fcm_token_required" => "Fcm Token is required.",
@@ -434,6 +437,9 @@ return [
         "commitCampChange" => ":nick_name has just proposed a change to - :camp_name camp.",
         "commitStatementChange" => ":nick_name has just proposed a change to statement of - :camp_name camp.",
         "commitTopicChange" => ":nick_name has just proposed a change to - :topic_name topic.",
+        "objectCamp" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name)",
+        "objectTopic" => ":nick_name has objected to your proposed change submitted for topic (:topic_name)",
+        "objectStatement" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name) statement",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
