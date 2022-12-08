@@ -8,10 +8,13 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\Validate;
 use App\Helpers\{ResourceInterface, ResponseInterface};
 use App\Http\Request\{ValidationRules, ValidationMessages};
+use App\Library\wiki_parser\wikiParser;
 use App\Models\Camp;
 use App\Models\Nickname;
+use App\Models\Statement;
 use App\Models\Thread;
 use App\Models\Topic;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class MetaTagController extends Controller
@@ -95,29 +98,7 @@ class MetaTagController extends Controller
             } else {
 
                 switch ($page_name) {
-
-                    case "TopicHistoryPage":
-                        $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
-                        if ($validationErrors) {
-                            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-                        }
-
-                        $topic_num = $request->keys['topic_num'];
-
-                        $topic = $this->getTopicById($topic_num);
-                        $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
-
-                        $responseArr = [
-                            "page_name" => $page_name ?? "",
-                            "title" => $topic->topic_name ?? "",
-                            "description" => $topic->note ?? "",
-                            "author" => $submitterNick->nick_name ?? "",
-                            // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => "",
-                        ];
-
-                        break;
-
+                    
                     case "CampForumPostPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
@@ -156,13 +137,14 @@ class MetaTagController extends Controller
                         $camp_num = $request->keys['camp_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                        $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
                         $camp = $this->getCampById($topic_num, $camp_num);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
                             "title" => $topic->topic_name ?? "",
-                            "description" => $topic->note ?? "",
+                            "description" => $statement,
                             "author" => $submitterNick->nick_name ?? "",
                             // "image_url" => $metaTag->image_url ?? "",
                             "keywords" => Str::of($camp->key_words ?? '')->replace(',', '|')->replace(' ', ''),
@@ -183,16 +165,49 @@ class MetaTagController extends Controller
 
     private function getTopicById($topic_num)
     {
-        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')->find($topic_num);
+        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')
+            ->where([
+                'topic_num' => $topic_num,
+                'objector_nick_id' => null,
+                'grace_period' => '0'
+            ])->where('go_live_time', '<=', Carbon::now()->timestamp)
+            ->orderBy('submit_time', 'desc')->first();
 
         return $topic;
     }
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'key_words')->where(['topic_num' => $topic_num, 'camp_num' => $camp_num, 'objector_nick_id' => null])->orderBy('submit_time', 'desc')->first();
+        $camp = (new Camp())->select('id', 'key_words')
+            ->where([
+                'topic_num' => $topic_num,
+                'camp_num' => $camp_num,
+                'objector_nick_id' => null,
+                'grace_period' => '0'
+            ])
+            ->where('go_live_time', '<=', Carbon::now()->timestamp)
+            ->orderBy('submit_time', 'desc')->first();
+
 
         return $camp;
+    }
+
+    private function getCampStatementById($topic_num, $camp_num)
+    {
+        $campStatement = (new Statement())->select('id', 'value')
+            ->where([
+                'topic_num' => $topic_num,
+                'camp_num' => $camp_num,
+                'objector_nick_id' => null,
+                'grace_period' => '0'
+            ])->where('go_live_time', '<=', Carbon::now()->timestamp)
+            ->orderBy('submit_time', 'desc')->first();
+
+        $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
+        $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
+        $campStatement = Str::of($campStatement)->trim()->limit(200);
+
+        return $campStatement;
     }
 
     private function getSubmitterById($submitter_nick_id)
