@@ -46,7 +46,7 @@ class ReverseS3PathToFilePath extends Command
         if ($statementRecords) {
             foreach ($statementRecords as $val) {
                 $val->value = Str::replace(env('AWS_URL'), env('SHORT_CODE_BASE_PATH'), $val->value);
-                $val->value = Str::replace(env('AWS_URL'), env('SHORT_CODE_BASE_PATH'), $val->note);
+                $val->note = Str::replace(env('AWS_URL'), env('SHORT_CODE_BASE_PATH'), $val->note);
                 $val->save();
                 $updateRecored++;
             }
