@@ -56,6 +56,7 @@ class CanonizerService implements ShouldQueue, Uniqueable
 
         if(!empty($this->canonizerData['campChangeID'])) {
             Util::parentCampChangedBasedOnCampChangeId($this->canonizerData['campChangeID']);
+            sleep(1);
         }
         
         $requestBody = [
