@@ -472,6 +472,11 @@ class Util
             $all['topic_num'] = $topic_num;
             $all['old_parent_camp_num']= -1;//$parent_camp_num;
             $this->checkParentCampChanged($all, $in_review_status, $liveCamp);
+            $topic = $camp->topic;
+            // Dispatch Job
+            if(isset($topic)) {
+                Util::dispatchJob($topic, $camp->camp_num, 1);
+            }
         }
         return;
     }
