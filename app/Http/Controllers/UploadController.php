@@ -473,9 +473,10 @@ class UploadController extends Controller
      */
     public function getGlobalSearchUploadedFiles(Request $request)
     {
+        $user = $request->user();
         $query = $request->get('query');
         try{
-            $files = Upload::where('file_name','LIKE','%'.$query.'%')->orderBy('created_at', 'desc')->get();
+            $files = Upload::where('file_name','LIKE','%'.$query.'%')->where('user_id',$user->id)->orderBy('created_at', 'desc')->get();
             $data = [
                 'files' => $files,
             ];
