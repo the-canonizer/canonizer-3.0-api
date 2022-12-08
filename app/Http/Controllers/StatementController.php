@@ -541,7 +541,8 @@ class StatementController extends Controller
         $user = Nickname::getUserByNickName($all['submitter']);
         $nickName = Nickname::getNickName($all['nick_name']);
         $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
-        $data['topic_link'] = Util::getTopicCampUrl($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
+        $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
+        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/camp/history/' . $statement->topic_num . '/' . $statement->camp_num;
         $data['type'] = "Camp";
         $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
         $data['object_type'] = "statement";
@@ -565,6 +566,7 @@ class StatementController extends Controller
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

@@ -1535,6 +1535,7 @@ class CampController extends Controller
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $camp->topic_num . '-' . $camp->camp_name . '/' . $camp->camp_num . '/threads';
+        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
@@ -1557,6 +1558,7 @@ class CampController extends Controller
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, $camp->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectCamp'));
         } catch (\Swift_TransportException $e) {
             throw new \Swift_TransportException($e);
         }

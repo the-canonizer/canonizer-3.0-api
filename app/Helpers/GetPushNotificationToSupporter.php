@@ -256,4 +256,50 @@ class GetPushNotificationToSupporter
             PushNotification::sendPushNotification($PushNotificationData);
         }
     }
+
+    public function pushNotificationOnObject($topicNum, $campNum, $submitter, $nickNameId,$type){
+        $topicFilter = ['topicNum' => $topicNum];
+        $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+
+        $topic = Camp::getAgreementTopic($topicFilter);
+        $camp  = Camp::getLiveCamp($campFilter);
+        $nicknameModel = Nickname::getNickName($nickNameId);
+        if (!empty($nicknameModel)) {
+            $nickName = $nicknameModel->nick_name;
+        }
+        $user = Nickname::getUserByNickName($submitter);
+        $PushNotificationData =  new stdClass();
+        $PushNotificationData->topic_num = $topic->topic_num;
+        $PushNotificationData->camp_num = $camp->camp_num;
+        switch ($type) {
+            case config('global.notification_type.objectCamp'):
+                $PushNotificationData->notification_type = config('global.notification_type.objectCamp');
+                $PushNotificationData->title = trans('message.notification_title.objectCamp', ['nick_name' => $nickName]);
+                $PushNotificationData->message_body = trans('message.notification_message.objectCamp', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+            break;
+            case config('global.notification_type.objectTopic'):
+                $PushNotificationData->notification_type = config('global.notification_type.objectTopic');
+                $PushNotificationData->title = trans('message.notification_title.objectTopic', ['nick_name' => $nickName]);
+                $PushNotificationData->message_body = trans('message.notification_message.objectTopic', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name);
+            break;
+            case config('global.notification_type.objectStatement'):
+                $PushNotificationData->notification_type = config('global.notification_type.objectStatement');
+                $PushNotificationData->title = trans('message.notification_title.objectStatement', ['nick_name' => $nickName]);
+                $PushNotificationData->message_body = trans('message.notification_message.objectStatement', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+            break;
+            default:
+                $PushNotificationData->notification_type = config('global.notification_type.objectTopic');
+                $PushNotificationData->title = trans('message.notification_title.objectTopic', ['nick_name' => $nickName]);
+                $PushNotificationData->message_body = trans('message.notification_message.objectTopic', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name);
+        }
+        $PushNotificationData->fcm_token = $user->fcm_token;
+        $PushNotificationData->user_id = $user->id;
+        if (!empty($user->fcm_token) && !empty($PushNotificationData)) {
+            PushNotification::sendPushNotification($PushNotificationData);
+        }
+    }
 }
