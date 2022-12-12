@@ -219,7 +219,7 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
                 }
 
-                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                  GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
              }
 
@@ -1195,8 +1195,9 @@ class TopicSupport
 
                 if(!empty($delegateNickNameId)){
                     $delegatedTo = Nickname::getNickName($delegateNickNameId);
-                    trans('message.activity_log_message.remove_delegated_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name]);
-                    $activity = "Delegated support removed from " . $delegatedTo->nick_name . " under topic - " . $topicModel->title . "/" . $campModel->camp_name; 
+                    $topic = $topicModel->title . "/" . $campModel->camp_name;
+                    $activity = trans('message.activity_log_message.remove_delegated_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name, 'topic_name' => $topic]);
+                    //$activity = "Delegated support removed from " . $delegatedTo->nick_name . " under topic - " . $topicModel->title . "/" . $campModel->camp_name; 
                 }
 
                 self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
