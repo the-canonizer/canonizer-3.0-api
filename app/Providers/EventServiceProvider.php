@@ -27,6 +27,8 @@ use App\Events\SupportAddedMailEvent;
 use App\Listeners\SupportAddedMailListener;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
+use App\Events\CampForumEvent;
+use App\Listeners\CampForumListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -72,6 +74,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         NotifyDelegatedAndDelegatorMailEvent::class => [
             NotifyDelegatedAndDelegatorMailListener::class,
+        ],
+        CampForumEvent::class => [
+            CampForumListener::class,
         ],
     ];
 }

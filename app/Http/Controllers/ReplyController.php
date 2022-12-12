@@ -13,15 +13,17 @@ use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
+use App\Events\CampForumEvent;
 use App\Http\Request\Validate;
+use App\Jobs\ActivityLoggerJob;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
-use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
-use App\Jobs\ActivityLoggerJob;
 
 class ReplyController extends Controller
 {
@@ -177,8 +179,8 @@ class ReplyController extends Controller
                 $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
                 // Return Url after creating post Successfully
                 GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id, $nickName) ;
-                CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "");
-            
+                $action = config('global.notification_type.Post');
+                Event::dispatch(new CampForumEvent($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name,$request->body, $request->thread_id, $action));
                 $this->createOrUpdatePostActivityLog($thread, $nickName, $return_url, $request);
             
             } else {
