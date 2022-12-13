@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Facades\CampForum;
 use Illuminate\Bus\Queueable;
+use App\Facades\CampForumThread;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +39,7 @@ class CampForumListener implements ShouldQueue
         $thread_id = $event->thread_id;
         $action = $event->action;
         if ($action == config('global.notification_type.Thread')) {
-            CampForum::sendEmailToSupportersForumThread($topic_num, $camp_num, $return_url, $title, $nick_name, $topic_name);
+            CampForumThread::sendEmailToSupporters($topic_num, $camp_num, $return_url, $title, $nick_name, $topic_name);
         } elseif ($action == config('global.notification_type.Post')) {
             CampForum::sendEmailToSupportersForumPost($topic_num, $camp_num, $return_url, $body, $thread_id, $nick_name, $topic_name, "");
         }
