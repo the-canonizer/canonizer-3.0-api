@@ -171,6 +171,7 @@ class TopicSupport
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
             self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+            
         }
 
         return;
@@ -699,6 +700,10 @@ class TopicSupport
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     if($topicNum == config('global.mind_expert_topic_num')) {
                         Util::dispatchJob($topic, $order['camp_num'], 1);
+                    }
+
+                    if($topicNum != config('global.mind_expert_topic_num')) {
+                        Util::dispatchJob($topic, 1, 1);
                     }
                 }
             DB::commit();
