@@ -236,20 +236,27 @@ class GetPushNotificationToSupporter
             $nickName = $nicknameModel->nick_name;
         }
         $delegatedNickname = "";
-        if(isset($delegateNickNameId) && $delegateNickNameId){
-            $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);
-            $delegatedNickname  = $delegatedToNickname->nick_name;
-        }
-
-        $user = Nickname::getUserByNickName($nickNameId);
-
         $PushNotificationData =  new stdClass();
         $PushNotificationData->topic_num = $topic->topic_num;
         $PushNotificationData->camp_num = $camp->camp_num;
         $PushNotificationData->notification_type = config('global.notification_type.Support');
+        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+        if(isset($delegateNickNameId) && $delegateNickNameId){
+            $delegatedUser = Nickname::getUserByNickName($delegateNickNameId);
+            $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);
+            $delegatedNickname  = $delegatedToNickname->nick_name;
+            $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['topic_name' => $topic->topic_name]);
+            $PushNotificationData->message_body = trans('message.notification_message.addDelegateMessage', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
+            $PushNotificationData->fcm_token = $delegatedUser->fcm_token;
+            $PushNotificationData->user_id = $delegatedUser->id;
+            if (!empty($delegatedUser->fcm_token) && !empty($PushNotificationData)) {
+                PushNotification::sendPushNotification($PushNotificationData);
+            }
+        }
+
+        $user = Nickname::getUserByNickName($nickNameId);
         $PushNotificationData->title = trans('message.notification_title.addDelegateSupportUser', ['topic_name' => $topic->topic_name]);
         $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupportUser', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
-        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
         $PushNotificationData->fcm_token = $user->fcm_token;
         $PushNotificationData->user_id = $user->id;
         if (!empty($user->fcm_token) && !empty($PushNotificationData)) {
