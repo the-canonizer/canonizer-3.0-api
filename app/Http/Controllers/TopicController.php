@@ -848,11 +848,7 @@ class TopicController extends Controller
             Util::dispatchJob($topic, 1, 1);
         }
         $user = Nickname::getUserByNickName($all['submitter']);
-        $liveTopic = Topic::select('topic.*')
-            ->where('topic.topic_num', $topic->topic_num)
-            ->where('topic.objector_nick_id', "=", null)
-            ->latest('topic.submit_time')
-            ->first();
+        $liveTopic = Topic::getLiveTopic($topic->topic_num, 'default');
         $link = 'topic/history/' . $topic->topic_num . '-' .  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $liveTopic, 1);
