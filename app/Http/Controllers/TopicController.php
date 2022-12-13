@@ -332,15 +332,16 @@ class TopicController extends Controller
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
             }
             $topic->namespace_name = $namespaceLabel;
-            $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
-            $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
-            $topicRecord = $topicRecord[0];
             $topic->topicSubscriptionId = "";
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
+            $topicRecord[] = $topic;
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
+            $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
+            $topicRecord = $topicRecord[0];
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
