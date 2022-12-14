@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Helpers\Aws;
 use App\Helpers\Util;
+use App\Helpers\CampForum;
 use App\Helpers\PushNotification;
 use Illuminate\Support\ServiceProvider;
 use App\Helpers\GetPushNotificationToSupporter;

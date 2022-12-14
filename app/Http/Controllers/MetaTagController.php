@@ -154,7 +154,7 @@ class MetaTagController extends Controller
                 }
 
                 if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(401, trans('message.error.exception'), '', "Page not found");
+                    return $this->resProvider->apiJsonResponse(200, trans('message.error.record_not_found'), '', '');
                 }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
