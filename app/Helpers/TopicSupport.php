@@ -171,6 +171,16 @@ class TopicSupport
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
             self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            foreach($orderUpdate as $order) {
+                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
+                } else {
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
+                }
+            }
             
         }
 
@@ -685,27 +695,16 @@ class TopicSupport
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             
             DB::beginTransaction();
-                // do all your updates here
-                foreach($orders as $order)
-                {
-                    
-                    DB::table('support')
-                    ->where('topic_num', '=', $topicNum)
-                    ->where('camp_num', '=', $order['camp_num'])
-                    ->whereIn('nick_name_id', $allNickNames)
-                    ->update(['support_order' => $order['order']  // update your field(s) here
-                        ]);
-                    
-                    /* To update the Mongo Tree while adding support */
-                    /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                    if($topicNum == config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, $order['camp_num'], 1);
-                    }
-
-                    if($topicNum != config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, 1, 1);
-                    }
-                }
+            // do all your updates here
+            foreach($orders as $order)
+            {                    
+                DB::table('support')
+                ->where('topic_num', '=', $topicNum)
+                ->where('camp_num', '=', $order['camp_num'])
+                ->whereIn('nick_name_id', $allNickNames)
+                ->update(['support_order' => $order['order']  // update your field(s) here
+                    ]);
+            }
             DB::commit();
 
             //get delegates and re-order
