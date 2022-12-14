@@ -43,7 +43,7 @@
                             <td verticle-align="middle" style="padding-top:30px;  text-align: center;   padding-bottom: 20px;"> 
                                 <a href="{{env('APP_URL_FRONT_END')}}/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
                                 <a href="{{env('APP_URL_FRONT_END')}}/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
-                                <a href="{{env('APP_URL_FRONT_END')}}/blog/" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
+                                <a href="{{env('BLOG_URL')}}" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
                                 <a href="{{env('APP_URL_FRONT_END')}}/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
                             </td>
                         </tr>

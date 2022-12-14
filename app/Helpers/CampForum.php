@@ -12,6 +12,7 @@ use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
 use App\Events\CampForumPostMailEvent;
 use App\Events\CampForumThreadMailEvent;
+use Illuminate\Support\Facades\Log;
 
 class CampForum
 {
@@ -25,8 +26,6 @@ class CampForum
     public static function sendEmailToSupportersForumThread($topicid, $campnum, $link, $thread_title, $nick_id, $topic_name_encoded)
     {
         $user='';
-        $bcc_email = [];
-        $subscriber_bcc_email = [];
         $bcc_user = [];
         $sub_bcc_user = [];
         $userExist = [];
@@ -35,22 +34,20 @@ class CampForum
         $filter['asOf'] = '';
         $filter['campNum'] = $campnum;
         $camp = CampForum::getForumLiveCamp($filter);
+        $topic = Topic::getLiveTopic($topicid, "");
+        $topic_name = $topic->topic_name;
+        $camp_name = $camp->camp_name;
         $subCampIds = CampForum::getForumAllChildCamps($camp);
-        $topic_name = CampForum::getTopicName($topicid);
-
-        $data['camp_name'] = CampForum::getCampName($topicid, $campnum);
-
+        $data['camp_name'] = $camp_name;
         $data['nick_name'] = CampForum::getForumNickName($nick_id);
-
         $data['subject'] = $topic_name . " / " . $data['camp_name'] . " / " . $thread_title .
             " created";
-        $data['namespace_id'] = CampForum::getNamespaceId($topicid);
+        $data['namespace_id'] = $topic->namespace_id;
         $data['nick_name_id'] = $nick_id;
-
         $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $data['camp_name']);
         $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
-
         $data['thread_title'] = $thread_title;
+        $topic_name_space_id = isset($topic) ? $topic->namespace_id : 1;
 
         foreach ($subCampIds as $camp_id) {
             $directSupporter = CampForum::getDirectCampSupporter($topicid, $camp_id);
@@ -59,8 +56,6 @@ class CampForum
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
                 $user_id = $user->id ?? null;
-                $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
-                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
                 $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
                 $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicid, $campnum);
@@ -235,10 +230,7 @@ class CampForum
 
     public static function sendEmailToSupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id)
     {
-
         $user='';
-        $bcc_email = [];
-        $subscriber_bcc_email = [];
         $userExist = [];
         $bcc_user = [];
         $supporter_and_subscriber = [];
@@ -251,10 +243,10 @@ class CampForum
         $filter['asOf'] = '';
         $filter['campNum'] = $campnum;
         $camp = CampForum::getForumLiveCamp($filter);
+        $topic = Topic::getLiveTopic($topicid, "");
         $subCampIds = CampForum::getForumAllChildCamps($camp);
-
-        $topic_name = CampForum::getTopicName($topicid);
-        $camp_name = CampForum::getCampName($topicid, $campnum);
+        $topic_name = $topic->topic_name;
+        $camp_name = $camp->camp_name;
         $post_msg = " submitted.";
         $data['post_type'] = " has made";
         if ($reply_id != "") {
@@ -265,21 +257,20 @@ class CampForum
         $data['camp_name'] = $camp_name;
         $data['thread'] = Thread::where('id', $threadId)->latest()->get();
         $data['subject'] = $topic_name . " / " . $camp_name . " / " . $data['thread'][0]->title . " post " . $post_msg;
-        $data['namespace_id'] = CampForum::getNamespaceId($topicid);
+        $data['namespace_id'] = $topic->namespace_id;
         $data['nick_name_id'] = $nick_id;
         $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
 
         $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $camp_name);
         $data['nick_name'] = CampForum::getForumNickName($nick_id);
+        $topic_name_space_id = isset($topic) ? $topic->namespace_id : 1;
         foreach ($subCampIds as $camp_id) {
+
             $directSupporter = CampForum::getDirectCampSupporter($topicid, $camp_id);
             $subscribers = Camp::getCampSubscribers($topicid, $camp_id);
             foreach ($directSupporter as $supporter) {
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
                 $user_id = $user->id ?? null;
-                $user_id = $user->id ?? null;
-                $topic = Topic::where('topic_num', '=', $topicid)->latest('submit_time')->get();
-                $topic_name_space_id = isset($topic[0]) ? $topic[0]->namespace_id : 1;
                 $nickName = Nickname::find($supporter->nick_name_id);
                 $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
                 $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicid, $campnum);

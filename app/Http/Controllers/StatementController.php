@@ -543,7 +543,7 @@ class StatementController extends Controller
         $nickName = Nickname::getNickName($all['nick_name']);
         $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
-        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/camp/history/' . $statement->topic_num . '/' . $statement->camp_num;
+        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
         $data['type'] = "Camp";
         $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
         $data['object_type'] = "statement";

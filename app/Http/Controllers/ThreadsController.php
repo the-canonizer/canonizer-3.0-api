@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use stdClass;
 use Throwable;
 use App\Models\Camp;
+use Illuminate\Support\Facades\Event;
 use App\Facades\Util;
 use App\Models\Reply;
 use App\Models\Topic;
@@ -12,15 +13,16 @@ use App\Models\Thread;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
+use App\Events\CampForumEvent;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\ValidationMessages;
 use phpDocumentor\Reflection\Types\Nullable;
-use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
 
 class ThreadsController extends Controller
@@ -185,7 +187,8 @@ class ThreadsController extends Controller
 
                 // Return Url after creating thread Successfully
                 $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $data->id;
-                CampForum::sendEmailToSupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name);
+                $action = config('global.notification_type.Thread');
+                Event::dispatch(new CampForumEvent($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name, null, null, $action));
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => trans('message.activity_log_message.thread_create', ['nick_name' =>  $nickName]),
