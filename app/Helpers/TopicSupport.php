@@ -165,6 +165,10 @@ class TopicSupport
                 GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
+            /* To update the Mongo Tree while removing at add support */
+            if($topicNum != config('global.mind_expert_topic_num')) {
+                Util::dispatchJob($topic, 1, 1);
+            }
              //log activity
              self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
         }
@@ -214,10 +218,7 @@ class TopicSupport
                  $campModel  = self::getLiveCamp($campFilter);
 
                 /* To update the Mongo Tree while removing at add support */
-                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                if($topicNum == config('global.mind_expert_topic_num')) {
-                    Util::dispatchJob($topic, $camp, 1);
-                }
+                Util::dispatchJob($topic, $camp, 1);
 
                  self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                  GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
@@ -246,22 +247,15 @@ class TopicSupport
             if(count($allDelegates)) { 
                 self::insertDelegateSupport($allDelegates, $supportToAdd);
             }
-            
-             
+        
+            /* To update the Mongo Tree while adding support */
+            Util::dispatchJob($topic, $campNum, 1);
+
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
            GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
-           
-           /* To update the Mongo Tree while adding support */
-           Util::dispatchJob($topic, $campNum, 1);
-         }
-
-        /* To update the Mongo Tree while adding support */
-        /* Execute job here only when topicnumber != 81 (because there are multiple camps here) */
-        if($topicNum != config('global.mind_expert_topic_num')) {
-            Util::dispatchJob($topic, 1, 1);
         }
     }
 
