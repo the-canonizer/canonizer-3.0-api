@@ -50,6 +50,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
     $router->get('/videos', 'VideoController@getVideos');
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
+    $router->get('/thread/{id}','ThreadsController@getThreadById');
 
     //Route Group to access api with client token
     $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
@@ -124,7 +125,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-topic','TopicController@manageTopic');
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
-        $router->get('/thread/{id}','ThreadsController@getThreadById');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
