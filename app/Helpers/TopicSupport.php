@@ -148,8 +148,9 @@ class TopicSupport
             }
             $topicFilter = ['topicNum' => $topicNum];
             $topicModel = Camp::getAgreementTopic($topicFilter);
-    
-            foreach($removeCamps as $camp)
+            $removeArrayCount = count($removeCamps);
+
+            foreach($removeCamps as $key => $camp)
             {
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                 $campModel  = self::getLiveCamp($campFilter);
@@ -160,6 +161,11 @@ class TopicSupport
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 if($topicNum == config('global.mind_expert_topic_num')) {
                     Util::dispatchJob($topic, $camp, 1);
+                } else {
+                    // Execute job only one time at last iteration of loop.
+                    if ($key ==  $removeArrayCount - 1 ) {
+                        Util::dispatchJob($topic, $camp, 1);
+                    }
                 }
                 
                 GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
@@ -218,8 +224,9 @@ class TopicSupport
 
              $topicFilter = ['topicNum' => $topicNum];
              $topicModel = Camp::getAgreementTopic($topicFilter);
-     
-             foreach($removeCamps as $camp) {     
+             $removeArrayCount = count($removeCamps);
+
+             foreach($removeCamps as $key => $camp) {     
                  $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                  $campModel  = self::getLiveCamp($campFilter);
 
@@ -227,6 +234,11 @@ class TopicSupport
                 /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                 if($topicNum == config('global.mind_expert_topic_num')) {
                     Util::dispatchJob($topic, $camp, 1);
+                } else {
+                    // Execute job only one time at last iteration of loop.
+                    if ($key ==  $removeArrayCount - 1 ) {
+                        Util::dispatchJob($topic, $camp, 1);
+                    }
                 }
 
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
@@ -256,22 +268,15 @@ class TopicSupport
             if(count($allDelegates)) { 
                 self::insertDelegateSupport($allDelegates, $supportToAdd);
             }
-            
-             
+        
+            /* To update the Mongo Tree while adding support */
+            Util::dispatchJob($topic, $campNum, 1);
+
            $subjectStatement = "has added their support to"; 
            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
            GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
-           
-           /* To update the Mongo Tree while adding support */
-           Util::dispatchJob($topic, $campNum, 1);
-         }
-
-        /* To update the Mongo Tree while adding support */
-        /* Execute job here only when topicnumber != 81 (because there are multiple camps here) */
-        if($topicNum != config('global.mind_expert_topic_num')) {
-            Util::dispatchJob($topic, 1, 1);
         }
     }
 
