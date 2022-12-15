@@ -111,8 +111,6 @@ class MetaTagController extends Controller
 
                         $topic = $this->getTopicById($topic_num);
 
-                        $camp = $this->getCampById($topic_num, $camp_num);
-
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
@@ -122,8 +120,6 @@ class MetaTagController extends Controller
                             "title" => $forum_num->title ?? "",
                             "description" => $forum_num->body ?? "",
                             "author" => $submitterNick->nick_name ?? "",
-                            // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => Str::of($camp->key_words)->replace(',', '|')->replace(' ', ''),
                         ];
                         break;
 
@@ -139,22 +135,19 @@ class MetaTagController extends Controller
                         $topic = $this->getTopicById($topic_num);
                         $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
-                        $camp = $this->getCampById($topic_num, $camp_num);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
                             "title" => $topic->topic_name ?? "",
                             "description" => $statement,
                             "author" => $submitterNick->nick_name ?? "",
-                            // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => Str::of($camp->key_words ?? '')->replace(',', '|')->replace(' ', ''),
                         ];
 
                         break;
                 }
 
                 if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(200, trans('message.error.record_not_found'), '', '');
+                    return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
                 }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
