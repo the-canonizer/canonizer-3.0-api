@@ -81,7 +81,7 @@ class MetaTagController extends Controller
 
             $page_name = (string)Str::of($request->post('page_name'))->trim();
 
-            $metaTag = (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'image_url', 'keywords', 'is_static')
+            $metaTag = (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'is_static')
                 ->where([
                     'page_name' => $page_name,
                 ])->first();
@@ -90,16 +90,15 @@ class MetaTagController extends Controller
 
                 unset($metaTag->is_static);
                 unset($metaTag->id);
-                unset($metaTag->image_url);
+
                 $metaTag->author = "";
-                $metaTag->keywords = implode('|', (array)$metaTag->keywords);
 
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $metaTag, '');
             } else {
 
                 switch ($page_name) {
                     
-                    case "CampForumPostPage":
+                    case "CampForumPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
                             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);

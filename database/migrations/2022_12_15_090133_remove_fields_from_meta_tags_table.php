@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class RemoveKeywordsFromMetaTagsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +15,7 @@ class RemoveKeywordsFromMetaTagsTable extends Migration
     {
         if (Schema::hasColumn('meta_tags', 'keywords')) {
             Schema::table('meta_tags', function (Blueprint $table) {
-                $table->dropColumn(['keywords']);
+                $table->dropColumn(['image_url', 'keywords']);
             });
         }
     }
@@ -29,8 +29,9 @@ class RemoveKeywordsFromMetaTagsTable extends Migration
     {
         if (!Schema::hasColumn('meta_tags', 'keywords')) {
             Schema::table('meta_tags', function (Blueprint $table) {
+                $table->string('image_url')->nullable();
                 $table->json('keywords')->nullable();
             });
         }
     }
-}
+};
