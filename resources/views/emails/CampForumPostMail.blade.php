@@ -16,8 +16,9 @@
         <td>
             <table width="100%" style=" background:#fff; padding:0px 30px;" cellpadding="0">
                 <tr>
-                    <td style="padding:30px 0px 20px; font-weight:600;">Hello {{ $user->first_name }}
-                        {{ $user->last_name }}, </td>
+                    <td style="padding:30px 0px 20px; font-weight:600;">
+                            Hello @if (!empty($user->first_name)){{ $user->first_name }} @endif
+                        @if (!empty($user->last_name)){{ $user->last_name }}@endif,</td>
                 </tr>
                 <tr>
                     <td style="padding:10px 0px 10px;">

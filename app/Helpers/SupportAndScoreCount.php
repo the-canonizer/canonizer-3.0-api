@@ -23,10 +23,10 @@ class SupportAndScoreCount
         if(!Arr::exists($this->sessionTempArray, "score_tree_{$topicNum}_{$algorithm}"))
         {
             $score_tree = $this->getCampAndNickNameWiseSupportTree($algorithm, $topicNum, $asOfTime);
-            $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"] = $score_tree;
-        
+            $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"] = $score_tree;        
         }else{
             $score_tree = $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"];
+            
         }
         
         $supports = Support::where('topic_num', '=', $topicNum)

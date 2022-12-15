@@ -431,6 +431,7 @@ return [
         "addSupport" => ":nick_name has just added support to the Camp - :camp_name",
         "removeSupport" => ":nick_name  has just removed support from the Camp - :camp_name",
         "addDelegateSupport" => ":nick_name has just added delegate support to :delegate_nick_name in this topic - :topic_name",
+        "addDelegateMessage" => ":nick_name has just added delegate support to you in this topic - :topic_name",
         "addDelegateSupportUser" => "You have delegated your support to :delegate_nick_name in this topic - :topic_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
         "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
@@ -482,7 +483,7 @@ return [
         "topic_object" => ":nick_name objected a change to topic",
         "commit_change" => ":nick_name committed a change in the :type",
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
-        "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to",
+        "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to in this topic: :topic_name",
     ],
     "validation_meta_tags" => [
         'page_name_required' => "page_name is required.",
