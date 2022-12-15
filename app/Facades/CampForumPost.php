@@ -4,10 +4,10 @@ namespace App\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class CampForum extends Facade
+class CampForumPost extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return 'campForum';
+        return 'CampForumPost';
     }
 }

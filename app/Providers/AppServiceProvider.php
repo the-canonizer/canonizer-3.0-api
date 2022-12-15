@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Helpers\Aws;
 use App\Helpers\Util;
-use App\Helpers\CampForum;
+use App\Helpers\CampForumPost;
 use App\Helpers\CampForumThread;
 use App\Helpers\PushNotification;
 use Illuminate\Support\ServiceProvider;
@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
         //
         $this->app->bind('util', Util::class);
         $this->app->bind('aws', AWS::class);
-        $this->app->bind('campForum', CampForum::class);
+        $this->app->bind('CampForumPost', CampForumPost::class);
         $this->app->bind('topicSupport', TopicSupport::class);
         $this->app->bind('PushNotification', PushNotification::class);
         $this->app->bind('GetPushNotificationToSupporter', GetPushNotificationToSupporter::class);

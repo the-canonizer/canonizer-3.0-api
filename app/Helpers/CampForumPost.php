@@ -10,49 +10,64 @@ use App\Models\Thread;
 use App\Models\Support;
 use App\Models\Nickname;
 use Illuminate\Support\Facades\Event;
-use App\Events\CampForumThreadMailEvent;
+use App\Events\CampForumPostMailEvent;
 use Illuminate\Support\Facades\Log;
 
-class CampForumThread
+class CampForumPost
 {
 
     /**
      * [sendEmailToSupporters description]
-     * @param  [type] $topicid [description]
-     * @param  [type] $campnum [description]
-     * @return [type]          [description]
+     * @param  [type] $topicid  [description]
+     * @param  [type] $campnum  [description]
+     * @param  [type] $link     [description]
+     * @param  [type] $post     [description]
+     * @param  [type] $threadId [description]
+     * @param  [type] $nick_id  [description]
+     * @return [type]           [description]
      */
-    public static function sendEmailToSupportersForumThread($topicid, $campnum, $link, $thread_title, $nick_id, $topic_name_encoded)
+
+    public static function sendEmailToSupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id)
     {
         try {
             $user = '';
-            $bcc_user = [];
-            $sub_bcc_user = [];
             $userExist = [];
+            $bcc_user = [];
+            $supporter_and_subscriber = [];
+            $sub_bcc_user = [];
+            $support_list = [];
+            $subscribe_list = [];
+
             $filter = [];
             $filter['topicNum'] = $topicid;
             $filter['asOf'] = '';
             $filter['campNum'] = $campnum;
-            $camp = CampForumThread::getForumLiveCamp($filter);
+            $camp = CampForumPost::getForumLiveCamp($filter);
             $topic = Topic::getLiveTopic($topicid, "");
             $topic_name = $topic->topic_name;
             $camp_name = $camp->camp_name;
-            $subCampIds = CampForumThread::getForumAllChildCamps($camp);
+            $post_msg = " submitted.";
+            $data['post_type'] = " has made";
+            if ($reply_id != "") {
+                $post_msg = " updated.";
+                $data['post_type'] = " has updated";
+            }
+            $data['post'] = $post;
             $data['camp_name'] = $camp_name;
-            $data['nick_name'] = CampForumThread::getForumNickName($nick_id);
-            $data['subject'] = $topic_name . " / " . $data['camp_name'] . " / " . $thread_title .
-                " created";
+            $data['thread'] = Thread::where('id', $threadId)->latest()->get();
+            $data['subject'] = $topic_name . " / " . $camp_name . " / " . $data['thread'][0]->title . " post " . $post_msg;
             $data['namespace_id'] = $topic->namespace_id;
             $data['nick_name_id'] = $nick_id;
-            $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $data['camp_name']);
             $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
-            $data['thread_title'] = $thread_title;
+
+            $data['camp_url'] = Camp::campLink($topicid, $campnum, $topic_name, $camp_name);
+            $data['nick_name'] = CampForumPost::getForumNickName($nick_id);
             $topic_name_space_id = isset($topic) ? $topic->namespace_id : 1;
 
-            $directSupporter = CampForumThread::getDirectCampSupporter($topicid, $campnum);
+            $directSupporter = CampForumPost::getDirectCampSupporter($topicid, $campnum);
             $subscribers = Camp::getCampSubscribers($topicid, $campnum);
             foreach ($directSupporter as $supporter) {
-                $user = CampForumThread::getUserFromNickId($supporter->nick_name_id);
+                $user = CampForumPost::getUserFromNickId($supporter->nick_name_id);
                 $user_id = $user->id ?? null;
                 $nickName = Nickname::find($supporter->nick_name_id);
                 $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
@@ -63,8 +78,8 @@ class CampForumThread
                     $support_list_data = Camp::getSubscriptionList($user_id, $topicid, $campnum);
                     $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
                 }
-                $bcc_user[] = $user;
                 $userExist[] = $user_id;
+                $bcc_user[] = $user;
             }
             if ($subscribers && count($subscribers) > 0) {
                 foreach ($subscribers as $sub) {
@@ -81,20 +96,18 @@ class CampForumThread
                 return !in_array($e->id, $userExist);
             }));
 
-            // Log::info("suppoter:".json_encode($filtered_bcc_user));
-
             if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
-
                 foreach ($filtered_bcc_user as $user) {
                     $data['support_list'] = $support_list[$user_id];
                     if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
                         $data['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
                         $data['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                     }
+
                     try {
-                        Event::dispatch(new CampForumThreadMailEvent($user->email ?? null, $user, $link, $data));
+                        Event::dispatch(new CampForumPostMailEvent($user->email ?? null, $user, $link, $data));
                     } catch (Throwable $e) {
-                        Log::error("Catch error support CampForumThreadMail: " . $e->getMessage());
+                        Log::error("Catch error support CampForumPostMail: " . $e->getMessage());
                     }
                 }
             }
@@ -104,15 +117,14 @@ class CampForumThread
                 foreach ($filtered_sub_user as $userSub) {
                     $data['support_list'] = $subscribe_list[$userSub->id];
                     try {
-                        Event::dispatch(new CampForumThreadMailEvent($userSub->email ?? null, $userSub, $link, $data));
+                        Event::dispatch(new CampForumPostMailEvent($userSub->email, $user, $link, $data));
                     } catch (Throwable $e) {
-                        Log::error("Catch error subscriber CampForumThreadMail: " . $e->getMessage());
+                        Log::error("Catch error subscriber CampForumPostMail: " . $e->getMessage());
                     }
                 }
             }
-            return;
         } catch (Throwable $e) {
-            Log::error("Catch error sendEmailToSupportersForumThread: " . $e->getMessage());
+            Log::error("Catch error sendEmailToSupportersForumPost: " . $e->getMessage());
         }
     }
 
@@ -214,5 +226,4 @@ class CampForumThread
             ->where('go_live_time', '<=', time())
             ->latest('submit_time')->first()->namespace_id;
     }
-
 }

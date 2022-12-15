@@ -2,9 +2,11 @@
 
 namespace App\Listeners;
 
-use App\Facades\CampForum;
+use Throwable;
 use Illuminate\Bus\Queueable;
+use App\Facades\CampForumPost;
 use App\Facades\CampForumThread;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,10 +40,19 @@ class CampForumListener implements ShouldQueue
         $body = $event->body;
         $thread_id = $event->thread_id;
         $action = $event->action;
-        if ($action == config('global.notification_type.Thread')) {
-            CampForumThread::sendEmailToSupporters($topic_num, $camp_num, $return_url, $title, $nick_name, $topic_name);
-        } elseif ($action == config('global.notification_type.Post')) {
-            CampForum::sendEmailToSupportersForumPost($topic_num, $camp_num, $return_url, $body, $thread_id, $nick_name, $topic_name, "");
+
+        try {
+            // Log::info("Call CampForumListener");
+            switch ($action) {
+                case config('global.notification_type.Thread'):
+                    CampForumThread::sendEmailToSupportersForumThread($topic_num, $camp_num, $return_url, $title, $nick_name, $topic_name);
+                    break;
+                case config('global.notification_type.Post'):
+                    CampForumPost::sendEmailToSupportersForumPost($topic_num, $camp_num, $return_url, $body, $thread_id, $nick_name, $topic_name, "");
+                    break;
+            }
+        } catch (Throwable $e) {
+            Log::error("Catch error in CampForumListener: " . $e->getMessage());
         }
     }
 }
