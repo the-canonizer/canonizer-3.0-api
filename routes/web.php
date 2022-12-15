@@ -52,7 +52,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
 
     //Route Group to access api with client token
-    $router->group(['middleware' => 'Xss',['client', 'Xss']], function() use ($router) {
+    $router->group(['middleware' => ['Xss']], function() use ($router) {
         $router->post('/register','UserController@createUser');
         $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
         $router->post('/post-verify-otp','UserController@postVerifyOtp');
@@ -67,6 +67,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('post/list/{id}','ReplyController@postList');
         $router->post('/user/post-verify-email','UserController@postVerifyEmail');
         $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
+        $router->get('/thread/{id}','ThreadsController@getThreadById');
     });
 
     //Route Group to access api with user access token
@@ -124,7 +125,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-topic','TopicController@manageTopic');
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
-        $router->get('/thread/{id}','ThreadsController@getThreadById');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
