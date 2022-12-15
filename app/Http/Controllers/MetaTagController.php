@@ -81,7 +81,7 @@ class MetaTagController extends Controller
 
             $page_name = (string)Str::of($request->post('page_name'))->trim();
 
-            $metaTag = (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'image_url', 'keywords', 'is_static')
+            $metaTag = (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'is_static')
                 ->where([
                     'page_name' => $page_name,
                 ])->first();
@@ -90,16 +90,15 @@ class MetaTagController extends Controller
 
                 unset($metaTag->is_static);
                 unset($metaTag->id);
-                unset($metaTag->image_url);
+
                 $metaTag->author = "";
-                $metaTag->keywords = implode('|', (array)$metaTag->keywords);
 
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $metaTag, '');
             } else {
 
                 switch ($page_name) {
                     
-                    case "CampForumPostPage":
+                    case "CampForumPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
                             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -111,8 +110,6 @@ class MetaTagController extends Controller
 
                         $topic = $this->getTopicById($topic_num);
 
-                        $camp = $this->getCampById($topic_num, $camp_num);
-
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
@@ -122,8 +119,6 @@ class MetaTagController extends Controller
                             "title" => $forum_num->title ?? "",
                             "description" => $forum_num->body ?? "",
                             "author" => $submitterNick->nick_name ?? "",
-                            // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => Str::of($camp->key_words)->replace(',', '|')->replace(' ', ''),
                         ];
                         break;
 
@@ -139,22 +134,19 @@ class MetaTagController extends Controller
                         $topic = $this->getTopicById($topic_num);
                         $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
-                        $camp = $this->getCampById($topic_num, $camp_num);
 
                         $responseArr = [
                             "page_name" => $page_name ?? "",
                             "title" => $topic->topic_name ?? "",
                             "description" => $statement,
                             "author" => $submitterNick->nick_name ?? "",
-                            // "image_url" => $metaTag->image_url ?? "",
-                            "keywords" => Str::of($camp->key_words ?? '')->replace(',', '|')->replace(' ', ''),
                         ];
 
                         break;
                 }
 
                 if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(200, trans('message.error.record_not_found'), '', '');
+                    return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
                 }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
