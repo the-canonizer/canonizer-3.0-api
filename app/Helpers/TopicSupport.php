@@ -171,6 +171,16 @@ class TopicSupport
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
             self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            foreach($orderUpdate as $order) {
+                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
+                }
+            }
+            Util::dispatchJob($topic, 1, 1);
+            
         }
 
         return;
@@ -219,7 +229,7 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
                 }
 
-                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                  GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
              }
 
@@ -684,23 +694,16 @@ class TopicSupport
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             
             DB::beginTransaction();
-                // do all your updates here
-                foreach($orders as $order)
-                {
-                    
-                    DB::table('support')
-                    ->where('topic_num', '=', $topicNum)
-                    ->where('camp_num', '=', $order['camp_num'])
-                    ->whereIn('nick_name_id', $allNickNames)
-                    ->update(['support_order' => $order['order']  // update your field(s) here
-                        ]);
-                    
-                    /* To update the Mongo Tree while adding support */
-                    /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                    if($topicNum == config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, $order['camp_num'], 1);
-                    }
-                }
+            // do all your updates here
+            foreach($orders as $order)
+            {                    
+                DB::table('support')
+                ->where('topic_num', '=', $topicNum)
+                ->where('camp_num', '=', $order['camp_num'])
+                ->whereIn('nick_name_id', $allNickNames)
+                ->update(['support_order' => $order['order']  // update your field(s) here
+                    ]);
+            }
             DB::commit();
 
             //get delegates and re-order
@@ -1195,8 +1198,9 @@ class TopicSupport
 
                 if(!empty($delegateNickNameId)){
                     $delegatedTo = Nickname::getNickName($delegateNickNameId);
-                    trans('message.activity_log_message.remove_delegated_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name]);
-                    $activity = "Delegated support removed from " . $delegatedTo->nick_name . " under topic - " . $topicModel->title . "/" . $campModel->camp_name; 
+                    $topic = $topicModel->title . "/" . $campModel->camp_name;
+                    $activity = trans('message.activity_log_message.remove_delegated_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name, 'topic_name' => $topic]);
+                    //$activity = "Delegated support removed from " . $delegatedTo->nick_name . " under topic - " . $topicModel->title . "/" . $campModel->camp_name; 
                 }
 
                 self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
