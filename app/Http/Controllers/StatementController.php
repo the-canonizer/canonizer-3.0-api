@@ -453,7 +453,7 @@ class StatementController extends Controller
         $goLiveTime = time();
         $statement = new Statement();
         $statement->value = $all['statement'] ?? "";
-        $statement->parsed_value = $statement->value;
+        $statement->parsed_value = $all['statement'] ?? "";
         $statement->topic_num = $all['topic_num'];
         $statement->camp_num = $all['camp_num'];
         $statement->note = $all['note'] ?? "";
