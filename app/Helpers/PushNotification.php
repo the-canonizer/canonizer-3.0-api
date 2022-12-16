@@ -12,6 +12,9 @@ class PushNotification
     {
 
         $saveNotificationData = self::savePushNotification($request);
+        if (empty($request->fcm_token)) {
+            return true;
+        }
         $url = env('FCM_URL');
         $serverKey = env('FCM_SERVER_KEY');
         $fcmToken[] = $request->fcm_token;
