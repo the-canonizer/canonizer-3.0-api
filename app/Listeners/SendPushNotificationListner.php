@@ -4,9 +4,10 @@ namespace App\Listeners;
 
 use App\Facades\PushNotification;
 use App\Events\SendPushNotificationEvent;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use stdClass;
 
-class SendPushNotificationListner
+class SendPushNotificationListner implements ShouldQueue
 {
     /**
      * Create the event listener.
