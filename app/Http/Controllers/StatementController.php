@@ -875,7 +875,7 @@ class StatementController extends Controller
         }
         try {
             $WikiParser = new wikiParser;
-            $parsedValue = $WikiParser->parse($request->value);
+            $parsedValue =$request->value;// $WikiParser->parse($request->value);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $parsedValue, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
