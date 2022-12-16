@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use App\Events\CampForumPostMailEvent;
 use App\Events\CampForumThreadMailEvent;
 use App\Events\SendPushNotificationEvent;
+use App\Facades\Util;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class NotifySupportersListner implements ShouldQueue
@@ -44,6 +45,8 @@ class NotifySupportersListner implements ShouldQueue
     public function handle(NotifySupportersEvent $event)
     {
         //
+        Util::logMessage('-------------------- Notify Listner Started --------------------------');
+        Util::logMessage('start time ==> '. time());
         $camp = $event->camp;
         $type = $event->type;
         $data = $event->data;
@@ -128,10 +131,13 @@ class NotifySupportersListner implements ShouldQueue
                 }
             }
         }
+        Util::logMessage('end time ==> '. time());
+        Util::logMessage('-------------------- Notify Listner Ended --------------------------');
     }
 
     private function dispatchEmail($email, $user, $data, $type, $link)
     {
+        Util::logMessage('dispatching email ==> '. $email);
         switch ($type) {
             case config('global.notification_type.Thread'):
                 Event::dispatch(new CampForumThreadMailEvent($email, $user, $link, $data));
@@ -140,11 +146,15 @@ class NotifySupportersListner implements ShouldQueue
                 Event::dispatch(new CampForumPostMailEvent($email, $user, $link, $data));
                 break;
         }
+        Util::logMessage('dispatched');
         return;
     }
 
     private function sendPushNotification($user, $data)
     {
+        Util::logMessage('dispatching notification ==> '. $user->id);
         Event::dispatch(new SendPushNotificationEvent($user, $data));
+        Util::logMessage('dispatched');
+        return;
     }
 }
