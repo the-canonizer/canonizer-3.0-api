@@ -15,6 +15,7 @@ use App\Events\NotifySupportersEvent;
 use Illuminate\Support\Facades\Event;
 use App\Events\CampForumPostMailEvent;
 use App\Events\CampForumThreadMailEvent;
+use App\Events\SendPushNotificationEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class NotifySupportersListner implements ShouldQueue
@@ -109,8 +110,8 @@ class NotifySupportersListner implements ShouldQueue
                         $this->sendPushNotification($user, $data['push_notification']);
                         break;
                     case config('global.notify.both'):
-                        $this->dispatchEmail($user->email ?? null, $user, $data['email'], $type, $link);
                         $this->sendPushNotification($user, $data['push_notification']);
+                        $this->dispatchEmail($user->email ?? null, $user, $data['email'], $type, $link);
                         break;
                 }
             }
@@ -144,20 +145,6 @@ class NotifySupportersListner implements ShouldQueue
 
     private function sendPushNotification($user, $data)
     {
-        $PushNotificationData =  new stdClass();
-        $PushNotificationData->topic_num = $data['topic_num'];
-        $PushNotificationData->camp_num = $data['camp_num'];
-        if(!empty($data['thread_id'])){
-            $PushNotificationData->thread_id = $data['thread_id'];
-        }
-        $PushNotificationData->user_id = $user->id;
-        $PushNotificationData->notification_type = $data['notification_type'];
-        $PushNotificationData->title = $data['title'];
-        $PushNotificationData->message_body = $data['message_body'];
-        $PushNotificationData->link = $data['link'];
-        $PushNotificationData->fcm_token = $user->fcm_token;
-        if (!empty($user) && !empty($data)) {
-            PushNotification::sendPushNotification($PushNotificationData);
-        }
+        Event::dispatch(new SendPushNotificationEvent($user, $data));
     }
 }
