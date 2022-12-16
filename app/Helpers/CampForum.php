@@ -398,7 +398,7 @@ class CampForum
      * @return [type]           [description]
      */
 
-    public static function notifySupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id, $nickName,  $channel = 0)
+    public static function notifySupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id, $nickName, $notificationType,  $channel = 0)
     {
         $filter = [];
         $filter['topicNum'] = $topicid;
@@ -421,7 +421,7 @@ class CampForum
         ];
 
         $liveThread = !empty($threadId) ? Thread::find($threadId) : null;
-        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, config('global.notification_type.Post'), $nickName, null);
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, $notificationType, $nickName, null);
         
         $notificationData['email'] = [
             "post_type" => $post_type,
