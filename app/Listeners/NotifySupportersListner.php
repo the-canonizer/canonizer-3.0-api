@@ -46,7 +46,7 @@ class NotifySupportersListner implements ShouldQueue
     {
         //
         Util::logMessage('-------------------- Notify Listner Started --------------------------');
-        Util::logMessage('start time ==> '. time());
+        Util::logMessage('start time ==> '. date("Y-m-d h:i:s", time()));
         $camp = $event->camp;
         $type = $event->type;
         $data = $event->data;
@@ -131,7 +131,7 @@ class NotifySupportersListner implements ShouldQueue
                 }
             }
         }
-        Util::logMessage('end time ==> '. time());
+        Util::logMessage('end time ==> '. date("Y-m-d h:i:s", time()));
         Util::logMessage('-------------------- Notify Listner Ended --------------------------');
     }
 
