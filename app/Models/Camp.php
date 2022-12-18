@@ -13,6 +13,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Models\CampSubscription;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -238,25 +239,38 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         self::clearChildCampArray();
         $campArray = [];
-        if ($camp) {
-            $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
-            $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
-            if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$chilcampArray)) {
-                return [];
-            }
-            Camp::$chilcampArray[] = $key;
-            Camp::$chilcampArray[] = $key1;
-            $campArray[] = $camp->camp_num;
-            $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->where('go_live_time', '<=', time())->groupBy('camp_num')->latest('submit_time')->get();
-            foreach ($childCamps as $child) {
-                $latestParent = Camp::where('topic_num', $child->topic_num)
-                    ->where('camp_num', $child->camp_num)->where('go_live_time', '<=', time())->latest('submit_time')->first();
-                if ($latestParent->parent_camp_num == $camp->camp_num) {
-                    $campArray = array_merge($campArray, self::getAllChildCamps($child));
+        try {
+            if ($camp) {
+                $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
+                $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
+                if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$chilcampArray)) {
+                    return [];
+                }
+                Camp::$chilcampArray[] = $key;
+                Camp::$chilcampArray[] = $key1;
+                $campArray[] = $camp->camp_num;
+                $childCamps = Camp::where('topic_num', $camp->topic_num)
+                    ->where('parent_camp_num', $camp->camp_num)
+                    ->where('go_live_time', '<=', time())
+                    ->groupBy('camp_num')
+                    ->latest('submit_time')
+                    ->get();
+                foreach ($childCamps as $child) {
+                    $latestParent = Camp::where('topic_num', $child->topic_num)
+                        ->where('camp_num', $child->camp_num)
+                        ->where('go_live_time', '<=', time())
+                        ->latest('submit_time')
+                        ->first();
+                    
+                    if ($latestParent->parent_camp_num == $camp->camp_num) {
+                        $campArray = array_merge($campArray, self::getAllChildCamps($child));
+                    }
                 }
             }
+        } catch (Exception $e) {
+            Util::logMessage("Error :: getAllChildCamps :: ".$e->getMessage());
         }
-
+       
         return $campArray;
     }
 
@@ -361,32 +375,38 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $filter['campNum'] = $camp_num;
         $oneCamp = self::getLiveCamp($filter);
         self::clearChildCampArray();
-        $childCamps = array_unique(self::getAllChildCamps($oneCamp));
+        try {
+            $childCamps = array_unique(self::getAllChildCamps($oneCamp));
 
-        $subscriptions = CampSubscription::where('user_id', '=', $userid)->where('topic_num', '=', $topic_num)->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
-        if (isset($subscriptions) && count($subscriptions) > 0) {
-            foreach ($subscriptions as $subs) {
-                if ($camp_num != 1) {
-                    if (!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0) {
-                        continue;
+            $subscriptions = CampSubscription::where('user_id', '=', $userid)->where('topic_num', '=', $topic_num)->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
+            if (isset($subscriptions) && count($subscriptions) > 0) {
+                foreach ($subscriptions as $subs) {
+                    if ($camp_num != 1) {
+                        if (!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0) {
+                            continue;
+                        }
                     }
-                }
-                $filter['topicNum'] = $subs->topic_num;
-                $filter['asOf'] = '';
-                $filter['campNum'] = $subs->camp_num;
-                $liveCamp = self::getLiveCamp($filter);
-                $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
-                if ($subs->camp_num == 0) {
-                    $link = Util::getTopicCampUrlWithoutTime($topic_num, 1, $topicLive, $liveCamp);
-                    if (!empty($topicLive)) {
-                        $list[] = '<a href="' . $link . '">' . $topicLive->topic_name . '</a>';
+                    $filter['topicNum'] = $subs->topic_num;
+                    $filter['asOf'] = '';
+                    $filter['campNum'] = $subs->camp_num;
+                    $liveCamp = self::getLiveCamp($filter);
+                    $topicLive = Topic::getLiveTopic($subs->topic_num, ['nofilter' => true]);
+                    if ($subs->camp_num == 0) {
+                        $link = Util::getTopicCampUrlWithoutTime($topic_num, 1, $topicLive, $liveCamp);
+                        if (!empty($topicLive)) {
+                            $list[] = '<a href="' . $link . '">' . $topicLive->topic_name . '</a>';
+                        }
+                    } else {
+                        $link = Util::getTopicCampUrlWithoutTime($topic_num, $subs->camp_num, $topicLive, $liveCamp);
+                        $list[] = '<a href="' . $link . '">' . $liveCamp->camp_name . '</a>';
                     }
-                } else {
-                    $link = Util::getTopicCampUrlWithoutTime($topic_num, $subs->camp_num, $topicLive, $liveCamp);
-                    $list[] = '<a href="' . $link . '">' . $liveCamp->camp_name . '</a>';
                 }
             }
+        } catch(Exception $e) {
+            Util::logMessage("Error:: getSubscriptionList :: ". $e->getMessage());
+            $list = [];
         }
+        
         return $list;
     }
 
