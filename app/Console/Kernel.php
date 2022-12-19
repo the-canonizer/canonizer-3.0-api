@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateS3FilePathInStatementTable',
         'App\Console\Commands\UpdateS3FilePathInUploadTable',
         'App\Console\Commands\ReverseS3PathToFilePath',
+        'App\Console\Commands\UpdateParseStatement',
     ];
 
     /**

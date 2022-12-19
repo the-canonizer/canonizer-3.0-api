@@ -96,7 +96,7 @@ class StatementController extends Controller
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $WikiParser = new wikiParser;
-                $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
+                $campStatement->parsed_value = $campStatement->parsed_value;// $WikiParser->parse($campStatement->value);
                 $campStatement->submitter_nick_name = $campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
@@ -274,7 +274,7 @@ class StatementController extends Controller
                 $parentCamp = Camp::campNameWithAncestors($camp, $filter);
                 $nickName = Nickname::topicNicknameUsed($statement->topic_num);
                 $WikiParser = new wikiParser;
-                $statement->parsed_value = $WikiParser->parse($statement->value);
+                $statement->parsed_value =$statement->parsed_value;// $WikiParser->parse($statement->value);
                 $data = new stdClass();
                 $data->statement = $statement;
                 $data->topic = $topic;
@@ -453,6 +453,7 @@ class StatementController extends Controller
         $goLiveTime = time();
         $statement = new Statement();
         $statement->value = $all['statement'] ?? "";
+        $statement->parsed_value = $all['statement'] ?? "";
         $statement->topic_num = $all['topic_num'];
         $statement->camp_num = $all['camp_num'];
         $statement->note = $all['note'] ?? "";
@@ -648,7 +649,7 @@ class StatementController extends Controller
                             'go_live_time' => ($val->go_live_time),
                             'submit_time' => ($val->submit_time),
                             'object_time' => ($val->object_time),
-                            'parsed_value' => $WikiParser->parse($val->value),
+                            'parsed_value' => $val->parsed_value, //$WikiParser->parse($val->value),
                             'value' => $val->value,
                             'topic_num' => $val->topic_num,
                             'camp_num' => $val->camp_num,
@@ -681,7 +682,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
                     $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
                     $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
-                    $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
+                    $statement['liveStatement']['parsed_value'] =$liveStatement->parsed_value; //$WikiParser->parse($liveStatement->value);
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
                     switch ($liveStatement) {
@@ -861,7 +862,7 @@ class StatementController extends Controller
      *               )
      *          )
      *      )
-     *   ),
+     *   ), 
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
@@ -874,10 +875,11 @@ class StatementController extends Controller
         }
         try {
             $WikiParser = new wikiParser;
-            $parsedValue = $WikiParser->parse($request->value);
+            $parsedValue =$request->value;// $WikiParser->parse($request->value);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $parsedValue, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
 }
