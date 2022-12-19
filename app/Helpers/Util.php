@@ -525,4 +525,18 @@ class Util
     {
         return config('global.APP_URL_FRONT_END').('/support/' .$urlPortion);
     }
+
+    public function logMessage($message, $type = 'access')
+    {
+        if (env('APP_DEBUG') == true) {
+            switch ($type) {
+                case 'access' :
+                    Log::info($message);
+                    break;
+                case 'error' :
+                    Log::error($message);
+                    break;
+            }
+        }
+    }
 }

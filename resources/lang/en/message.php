@@ -483,7 +483,7 @@ return [
         "topic_object" => ":nick_name objected a change to topic",
         "commit_change" => ":nick_name committed a change in the :type",
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
-        "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to in this topic: :topic_name",
+        "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to.",
     ],
     "validation_meta_tags" => [
         'page_name_required' => "page_name is required.",
