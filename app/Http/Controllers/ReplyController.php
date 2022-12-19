@@ -177,10 +177,7 @@ class ReplyController extends Controller
                 $status = 200;
                 $message = trans('message.post.create_success');
                 $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
-                // Return Url after creating post Successfully
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, config('global.notification_type.Post'), $request->thread_id, $nickName) ;
-                $action = config('global.notification_type.Post');
-                Event::dispatch(new CampForumEvent($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name,$request->body, $request->thread_id, $action));
+                CampForum::notifySupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "", $nickName, config('global.notification_type.Post'), config('global.notify.both'));
                 $this->createOrUpdatePostActivityLog($thread, $nickName, $return_url, $request);
             
             } else {
@@ -546,8 +543,7 @@ class ReplyController extends Controller
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
             $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
-            GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(),$request->topic_num, $request->camp_num, 'updatePost', $request->thread_id, $nickName) ;
-            CampForum::sendEmailToSupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id);
+            CampForum::notifySupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id, $nickName, 'updatePost', config('global.notify.both'));
 
             $this->createOrUpdatePostActivityLog($post, $nickName, $return_url, $request, true);
 

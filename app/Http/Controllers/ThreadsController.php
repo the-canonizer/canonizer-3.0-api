@@ -187,8 +187,9 @@ class ThreadsController extends Controller
 
                 // Return Url after creating thread Successfully
                 $return_url =  config('global.APP_URL_FRONT_END') . '/forum/' . $request->topic_num . '-' .  Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num . '-' . Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $data->id;
-                $action = config('global.notification_type.Thread');
-                Event::dispatch(new CampForumEvent($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name, null, null, $action));
+                // $action = config('global.notification_type.Thread');
+                // Event::dispatch(new CampForumEvent($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name, null, null, $action));
+                CampForum::notifySupportersForumThread($request->topic_num, $request->camp_num, $return_url, $request->title, $request->nick_name, $request->topic_name, $thread->id, $nickName, config('global.notify.both'));
                 $activitLogData = [
                     'log_type' =>  "threads",
                     'activity' => trans('message.activity_log_message.thread_create', ['nick_name' =>  $nickName]),
@@ -201,7 +202,7 @@ class ThreadsController extends Controller
                     'description' => $request->title
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id, $nickName);
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id, $nickName);
             } else {
                 $data = null;
                 $status = 400;

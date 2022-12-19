@@ -9,10 +9,13 @@ use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Support;
 use App\Models\Nickname;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Events\NotifySupportersEvent;
 use Illuminate\Support\Facades\Event;
 use App\Events\CampForumPostMailEvent;
 use App\Events\CampForumThreadMailEvent;
-use Illuminate\Support\Facades\Log;
+use App\Facades\GetPushNotificationToSupporter;
 
 class CampForum
 {
@@ -116,6 +119,58 @@ class CampForum
             }
         }
         return;
+    }
+
+    /**
+     * [notifySupportersForumThread description]
+     * @param  [type] $topicid [description]
+     * @param  [type] $campnum [description]
+     * @return [type]          [description]
+     */
+    public static function notifySupportersForumThread($topicid, $campnum, $link, $thread_title, $nick_id, $topic_name_encoded, $threadId = null, $nickName,  $channel = 0)
+    {
+        $filter = [];
+        $filter['topicNum'] = $topicid;
+        $filter['asOf'] = '';
+        $filter['campNum'] = $campnum;
+        $camp = CampForum::getForumLiveCamp($filter);
+        $topic = Topic::getLiveTopic($topicid, "");
+        $topic_name = $topic->topic_name;
+        $camp_name = $camp->camp_name;
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+
+        $liveThread = !empty($threadId) ? Thread::find($threadId) : null;
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, config('global.notification_type.Thread'), $nickName, null);
+
+
+        $notificationData['email'] = [
+            "camp_name" => $camp_name,
+            "nick_name" => CampForum::getForumNickName($nick_id),
+            "subject"   => $topic_name . " / " . $camp_name . " / " . $thread_title . " created",
+            "namespace_id" => $topic->namespace_id,
+            "nick_name_id" => $nick_id,
+            "camp_url" => Camp::campLink($topicid, $campnum, $topic_name, $camp_name),
+            "nickname_url" => Nickname::getNickNameLink($nick_id, $topic->namespace_id, $topicid, $campnum),
+            "thread_title" => $thread_title
+        ];
+
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $camp->topic_num,
+                "camp_num" => $camp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
+        }
+        
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, config('global.notification_type.Thread'), $link, $channel));
+        return true;
     }
 
     /**
@@ -330,6 +385,71 @@ class CampForum
                 }
             }
         }
+    }
+
+    /**
+     * [notifySupportersForumPost description]
+     * @param  [type] $topicid  [description]
+     * @param  [type] $campnum  [description]
+     * @param  [type] $link     [description]
+     * @param  [type] $post     [description]
+     * @param  [type] $threadId [description]
+     * @param  [type] $nick_id  [description]
+     * @return [type]           [description]
+     */
+
+    public static function notifySupportersForumPost($topicid, $campnum, $link, $post, $threadId, $nick_id, $topic_name_encoded, $reply_id, $nickName, $notificationType,  $channel = 0)
+    {
+        $filter = [];
+        $filter['topicNum'] = $topicid;
+        $filter['asOf'] = '';
+        $filter['campNum'] = $campnum;
+        $camp = CampForum::getForumLiveCamp($filter);
+        $topic = Topic::getLiveTopic($topicid, "");
+        $topic_name = $topic->topic_name;
+        $camp_name = $camp->camp_name;
+        $post_msg = " submitted.";
+
+        $post_type = " has made";
+        if ($reply_id != "") {
+            $post_msg = " updated.";
+            $post_type = " has updated";
+        }
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+
+        $liveThread = !empty($threadId) ? Thread::find($threadId) : null;
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, $notificationType, $nickName, null);
+        
+        $notificationData['email'] = [
+            "post_type" => $post_type,
+            "post" => $post,
+            "camp_name"   =>  $camp_name,
+            "thread" => Thread::where('id', $threadId)->latest()->get(),
+            "subject" => $topic_name . " / " . $camp_name . " / " . $liveThread->title . " post " . $post_msg,
+            "namespace_id" => $topic->namespace_id,
+            "nick_name_id" => $nick_id,
+            "nickname_url" => Nickname::getNickNameLink($nick_id, $topic->namespace_id, $topicid, $campnum),
+            "camp_url" => Camp::campLink($topicid, $campnum, $topic_name, $camp_name),
+            "nick_name" => CampForum::getForumNickName($nick_id)
+        ];
+
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $camp->topic_num,
+                "camp_num" => $camp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
+        }
+        
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, config('global.notification_type.Post'), $link, $channel));
+        return true;
     }
 
 }
