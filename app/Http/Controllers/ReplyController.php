@@ -542,7 +542,7 @@ class ReplyController extends Controller
             }
             $message = trans('message.post.update_success');
             // Return Url after creating post Successfully
-            $return_url = 'forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
+            $return_url = config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
             CampForum::notifySupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, $id, $nickName, 'updatePost', config('global.notify.both'));
 
             $this->createOrUpdatePostActivityLog($post, $nickName, $return_url, $request, true);
