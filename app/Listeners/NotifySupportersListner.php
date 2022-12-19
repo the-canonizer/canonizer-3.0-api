@@ -22,6 +22,7 @@ use Exception;
 
 class NotifySupportersListner implements ShouldQueue
 {
+    public $timeout = 300;
     /**
      * Create the event listener.
      *
@@ -29,7 +30,7 @@ class NotifySupportersListner implements ShouldQueue
      */
     public function __construct()
     {
-        //
+        
     }
 
     public function viaQueue()
