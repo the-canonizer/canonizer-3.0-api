@@ -539,4 +539,12 @@ class Util
             }
         }
     }
+
+    public function linkForEmail($string): string
+    {
+        if (empty(env('EMAIL_DOMAIN_URL'))) {
+            return $string;
+        }
+        return str_replace(env('APP_URL_FRONT_END'), env('EMAIL_DOMAIN_URL'), $string);
+    }
 }

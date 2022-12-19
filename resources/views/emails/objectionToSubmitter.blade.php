@@ -22,15 +22,15 @@
                 <tr>
                     <td style="padding-top: 10px;  font-weight:400;">
                         <p><a target="_blank"
-                                href="<?=  config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
-                            has objected to your <a href="{{ $data['history_link'] }}" target='_balnk'>proposed
+                                href="<?=  \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&namespace=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
+                            has objected to your <a href="{{ \App\Facades\Util::linkForEmail($data['history_link']) }}" target='_balnk'>proposed
                                 change</a> submitted for {{ $data['type'] }} (<a
-                                href="{{ $data['topic_link'] }}">{{ $data['object'] }}</a>) {{ $data['object_type'] }} </p>
+                                href="{{ \App\Facades\Util::linkForEmail($data['topic_link']) }}">{{ $data['object'] }}</a>) {{ $data['object_type'] }} </p>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding-top:10px; padding-bottom: 10px; font-weight:300; font-size:17px; color:#497BDF;">
-                        @component('mail::button', ['url' => $data['help_link'] ])
+                        @component('mail::button', ['url' =>  \App\Facades\Util::linkForEmail($data['help_link']) ])
                             See this link for options you can take when there are objections
                         @endcomponent
                     </td>
