@@ -49,14 +49,14 @@ class ReverseS3PathToFilePath extends Command
             $updateRecored = 0;
 
             if ($statementRecords) {
-                foreach ($statementRecords as $val) {
-                    if (!empty($val->value)) {
-                        $val->value = Str::replace($textToBeSearched, $textReplacedWith, $val->value);
+                foreach ($statementRecords as $statementRecord) {
+                    if (!empty($statementRecord->value)) {
+                        $statementRecord->value = Str::replace($textToBeSearched, $textReplacedWith, $statementRecord->value);
                     }
-                    if (!empty($val->note)) {
-                        $val->note = Str::replace($textToBeSearched, $textReplacedWith, $val->note);
+                    if (!empty($statementRecord->note)) {
+                        $statementRecord->note = Str::replace($textToBeSearched, $textReplacedWith, $statementRecord->note);
                     }
-                    $val->save();
+                    $statementRecord->save();
                     $updateRecored++;
                 }
             }
