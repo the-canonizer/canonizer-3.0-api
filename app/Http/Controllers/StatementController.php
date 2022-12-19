@@ -862,7 +862,7 @@ class StatementController extends Controller
      *               )
      *          )
      *      )
-     *   ),
+     *   ), 
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
