@@ -40,18 +40,30 @@ class ReverseS3PathToFilePath extends Command
      */
     public function handle()
     {
-        $statementRecords = Statement::where('value', 'like', '%'.env('AWS_URL').'%')
-            ->get();
-        $updateRecored = 0;
-        if ($statementRecords) {
-            foreach ($statementRecords as $val) {
-                $val->value = Str::replace(env('AWS_URL'), env('SHORT_CODE_BASE_PATH'), $val->value);
-                $val->value = Str::replace(env('AWS_URL'), env('SHORT_CODE_BASE_PATH'), $val->note);
-                $val->save();
-                $updateRecored++;
+        $textReplacedWith = env('SHORT_CODE_BASE_PATH');
+        $textToBeSearched = env('AWS_URL');
+
+        if (!empty($textToBeSearched) && !empty($textReplacedWith)) {
+            $statementRecords = Statement::where('value', 'like', '%' . $textToBeSearched . '%')
+                ->get();
+            $updateRecored = 0;
+
+            if ($statementRecords) {
+                foreach ($statementRecords as $val) {
+                    if (!empty($val->value)) {
+                        $val->value = Str::replace($textToBeSearched, $textReplacedWith, $val->value);
+                    }
+                    if (!empty($val->note)) {
+                        $val->note = Str::replace($textToBeSearched, $textReplacedWith, $val->note);
+                    }
+                    $val->save();
+                    $updateRecored++;
+                }
             }
+            echo "Total record found for update: " . $statementRecords->count() . "\r\n";
+            echo "Updated record: " . $updateRecored . "\r\n";
+        } else {
+            echo "ENV variables are blank please check once.";
         }
-        echo "Total record found for update: " . $statementRecords->count() . "\r\n";
-        echo "Updated record: " . $updateRecored . "\r\n";
     }
 }
