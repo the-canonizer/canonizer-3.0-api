@@ -21,14 +21,14 @@
                     <td style="padding:10px 0px 10px;">
                         <p>
                             <a target="_blank"
-                                href="<?= config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&namespace=' . $data['namespace_id'] ?>">{{ $data['nick_name'] }}</a>
+                                href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&namespace=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
-                                href="{{ $link }}">{{ $data['object'] }} </a>
+                                href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a>
                             @if (empty($data['is_live']) || $data['is_live'] != 1)
                                 which you currently
                                 {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
                                 If no supporters of this {{ $data['type'] }}
-                                <a href="{{ $link }}">{{ $data['object'] }} </a> object to this change,
+                                <a href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a> object to this change,
                                 it will go live in one day / 24 hours
                                 <br>
                             @endif
@@ -42,10 +42,10 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are subscribed to {!! $support !!}</li>
+                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                         @endforeach
                                     @else
-                                        <li>You are subscribed to <a href="{{ config('global.APP_URL_FRONT_END') . '/' . $data['camp_url'] }}">
+                                        <li>You are subscribed to <a href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
                                                 {{ $data['camp_name'] }} </a></li>
                                     @endif
 
@@ -55,11 +55,11 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are directly supporting {!! $support !!}</li>
+                                            <li>You are directly supporting {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                         @endforeach
                                     @else
                                         <li>You are directly supporting <a
-                                                href="{{ config('global.APP_URL_FRONT_END') . '/' . $data['camp_url'] }}">
+                                                href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
                                                 {{ $data['camp_name'] }} </a></li>
                                     @endif
 
@@ -68,7 +68,7 @@
                                         isset($data['sub_support_list']) &&
                                         count($data['sub_support_list']) > 0)
                                         @foreach ($data['sub_support_list'] as $support)
-                                            <li>You are subscribed to {!! $support !!}</li>
+                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                         @endforeach
                                     @endif
 

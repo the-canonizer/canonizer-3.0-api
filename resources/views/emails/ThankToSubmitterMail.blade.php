@@ -29,7 +29,7 @@
                 </tr>
                 <tr>
                     <td style="padding-top:10px; padding-bottom: 60px; font-weight:400; font-size:20px; color:#497BDF;">
-                        @component('mail::button', ['url' => $data->link])
+                        @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->link)])
                             Click Here To View
                         @endcomponent
                     </td>
@@ -43,7 +43,7 @@
     </tr>
     <tr>
         <td style="padding-top:10px; font-weight:400; padding-bottom: 20px; ">
-            @component('mail::button', ['url' => $data->historylink])
+            @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->historylink)])
                 Click Here To View History
             @endcomponent
         </td>

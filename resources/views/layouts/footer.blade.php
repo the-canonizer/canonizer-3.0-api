@@ -10,7 +10,7 @@
                                 <table class="column" >
                                 <tr>
                                     <td style="padding:0 30px 0px;"> 
-                                        <a href="{{env('APP_URL_FRONT_END')}}" target="_blank"><img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo"></a>
+                                        <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}" target="_blank"><img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo"></a>
                                     </td>
                                 </tr>
                                 </table>
@@ -41,10 +41,10 @@
                     <table width="100%">
                         <tr>
                             <td verticle-align="middle" style="padding-top:30px;  text-align: center;   padding-bottom: 20px;"> 
-                                <a href="{{env('APP_URL_FRONT_END')}}/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
-                                <a href="{{env('APP_URL_FRONT_END')}}/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
+                                <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}/topic/132-Help/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Help </a>
+                                <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}/files/2012_amplifying_final.pdf" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> White Paper </a>
                                 <a href="{{env('BLOG_URL')}}" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Blog </a>
-                                <a href="{{env('APP_URL_FRONT_END')}}/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
+                                <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}/topic/6-Canonizer-Jobs/1-Agreement" target="_blank" style="color:#20395A; text-decoration: none; padding-left:10px; font-size:14px;"> Jobs </a>
                             </td>
                         </tr>
                     </table>
@@ -66,9 +66,9 @@
                 <table width="100%">
                     <tr>
                         <td style="padding:20px 0px 20px; font-size:12px;" align="center">
-                            <a href="{{config('global.APP_URL_FRONT_END') . '/privacy-policy'}}"  target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Privacy Policy</a>
+                            <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/privacy-policy')}}"  target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Privacy Policy</a>
                             <p style="border-right:solid 1px #BDC1C8;display: inline-block; font-size:12px; border-left:solid 1px #BDC1C8; padding:0px 10px; color: #76787c;"> Patent: US 8,160,970 B2</p>
-                            <a href="{{config('global.APP_URL_FRONT_END') . '/terms-and-services'}}" target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Terms & Services</a>
+                            <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/terms-and-services')}}" target="_blank" style="padding-right: 10px;color:#20395A; text-decoration:none;">Terms & Services</a>
                         </td>
                     </tr>
                 </table>

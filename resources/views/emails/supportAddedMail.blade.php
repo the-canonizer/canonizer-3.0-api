@@ -23,16 +23,16 @@
                 <tr>
                     <?php if(isset($data['delegated_nick_name_id']) && $data['delegated_nick_name_id'] ){ ?>
                         <td style="padding-top: 0px;  font-weight:400;">
-                            <p> <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                has just delegated their support to <a target="_blank" href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['topic_link'] }}"><b>{{ $data['object']}}</b></a></b>
+                            <p> <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                has just delegated their support to <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['delegated_nick_name_link']) }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ \App\Facades\Util::linkForEmail($data['topic_link']) }}"><b>{{ $data['object']}}</b></a></b>
                                 
                             </p>
                         </td>
                     <?php }else{  ?>
                         <td style="padding-top: 0px;  font-weight:400;">
                             <p> <a target="_blank"
-                                    href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                has added their support to this camp: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['object'] }}</a></b>
+                                    href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b>
                                 
                             </p>
                         </td>
@@ -47,10 +47,10 @@
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                     @foreach ($data['support_list'] as $support)
-                                        <li>You are subscribed to {!! $support !!}</li>
+                                        <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                     @endforeach
                                 @else
-                                    <li>You are subscribed to <a href="{{ $data['camp_link'] }}">
+                                    <li>You are subscribed to <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
                                             {{ $data['camp_name'] }} </a></li>
                                 @endif
                             </ul>
@@ -60,16 +60,16 @@
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                     @foreach ($data['support_list'] as $support)
-                                        <li>You are directly supporting {!! $support !!}</li>
+                                        <li>You are directly supporting {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                     @endforeach
                                 @else
-                                    <li>You are directly supporting <a href="{{ $data['camp_link'] }}">
+                                    <li>You are directly supporting <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
                                             {{ $data['camp_name'] }} </a></li>
                                 @endif
 
                                 @if (isset($data['also_subscriber']) && $data['also_subscriber'] == 1 && isset($data['sub_support_list']) && count($data['sub_support_list']) > 0)
                                     @foreach ($data['sub_support_list'] as $support)
-                                        <li>You are subscribed to {!! $support !!}</li>
+                                        <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
                                     @endforeach
                                 @endif
                             </ul>
