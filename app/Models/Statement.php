@@ -152,7 +152,7 @@ class Statement extends Model
                     continue;
                 } else {
                     $WikiParser = new wikiParser;
-                    $val->parsed_value = $val->value;// $WikiParser->parse($val->value);
+                    $val->parsed_value = $val->parsed_value;// $WikiParser->parse($val->value);
                     array_push($statementHistory, $val);
                 }
             }
