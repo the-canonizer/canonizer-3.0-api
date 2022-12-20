@@ -118,7 +118,8 @@ class NotifySupportersListner implements ShouldQueue
                 foreach ($filtered_bcc_user as $user) {
                     $user_id = $user->id;
                     $data['email']['support_list'] = $support_list[$user_id];
-
+                    $data['email']['also_subscriber'] = 0;
+                    $data['email']['sub_support_list'] = [];
                     if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
                         $data['email']['also_subscriber'] = $supporter_and_subscriber[$user_id]['also_subscriber'];
                         $data['email']['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
