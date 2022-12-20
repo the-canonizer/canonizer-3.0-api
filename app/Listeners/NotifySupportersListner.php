@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use stdClass;
+use Exception;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
@@ -18,7 +19,6 @@ use App\Events\CampForumThreadMailEvent;
 use App\Events\SendPushNotificationEvent;
 use App\Facades\Util;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Exception;
 
 class NotifySupportersListner implements ShouldQueue
 {
@@ -116,6 +116,7 @@ class NotifySupportersListner implements ShouldQueue
 
             if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
                 foreach ($filtered_bcc_user as $user) {
+                    $user_id = $user->id;
                     $data['email']['support_list'] = $support_list[$user_id];
 
                     if (isset($supporter_and_subscriber[$user_id]) && isset($supporter_and_subscriber[$user_id]['also_subscriber']) && $supporter_and_subscriber[$user_id]['also_subscriber']) {
@@ -146,6 +147,13 @@ class NotifySupportersListner implements ShouldQueue
                     switch ($channel) {
                         case config('global.notify.email'):
                             $this->dispatchEmail($userSub->email ?? null, $user, $data['email'], $type, $link);
+                            break;
+                        case config('global.notify.push_notification'):
+                            $this->dispatchPushNotification($userSub, $data['push_notification']);
+                            break;
+                        case config('global.notify.both'):
+                            $this->dispatchEmail($userSub->email ?? null, $user, $data['email'], $type, $link);
+                            $this->dispatchPushNotification($userSub, $data['push_notification']);
                             break;
                     }
                 }

@@ -25,21 +25,21 @@
                         <?php if($data['action'] == "remove") { ?>
                             <p>
                                 <?php if(isset($data['notify_delegated_user']) && $data['notify_delegated_user']){ ?>
-                                    <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                        has removed their delegated support from you in this topic: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['topic_name'] }}</a></b>
+                                    <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                        has removed their delegated support from you in this topic: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['topic_name'] }}</a></b>
                                 <?php } else{ ?>
                                     You have removed your delegated support from <a target="_blank"
-                                    href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['topic_name']}}</b></a>
+                                    href="{{ \App\Facades\Util::linkForEmail($data['delegated_nick_name_link']) }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}"><b>{{ $data['topic_name']}}</b></a>
                                 <?php } ?>
                             </p>
                         <?php }else{ ?>
                             <p>
                                 <?php if(isset($data['notify_delegated_user']) && $data['notify_delegated_user']){ ?>
-                                    <a target="_blank" href="{{ $data['nick_name_link'] }}">{{ $data['nick_name']}}</a>
-                                        has delegated their support to you in this topic: <a target="_blank" href="{{ $data['camp_link'] }}">{{ $data['topic_name'] }}</a></b>
+                                    <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                        has delegated their support to you in this topic: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['topic_name'] }}</a></b>
                                 <?php } else{ ?>
                                     You have delegated your support to <a target="_blank"
-                                    href="{{ $data['delegated_nick_name_link'] }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ $data['camp_link'] }}"><b>{{ $data['topic_name']}}</b></a>
+                                    href="{{ \App\Facades\Util::linkForEmail($data['delegated_nick_name_link']) }}">{{ $data['delegated_nick_name']}}</a> in this topic: <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}"><b>{{ $data['topic_name']}}</b></a>
                                 <?php } ?>
                             </p>
                         <?php } ?>

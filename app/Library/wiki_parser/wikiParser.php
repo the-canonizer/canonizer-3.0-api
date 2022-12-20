@@ -202,14 +202,14 @@ class wikiParser
         
         //modify youtube and vimeo link
         $regExpForPlainLinks = "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?~";
-        $m = preg_match_all($regExpForPlainLinks, $wiki_text, $match);
+        $m = preg_match_all($regExpForPlainLinks, $wiki_text, $match); 
 		if ($m) {
 			$links = array_unique($match[0]);
 			foreach($links as $link) {
-                $regexToreplace = "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|". preg_quote($link) ."~";
+                $regexToreplace ="~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|(https|http)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?~";/* "~(<a.*?a>|<img.*?>|<iframe.*?iframe>)(*SKIP)(*F)|". preg_quote($link) ."~";*/
 				$link = trim(strip_tags($link));
-                $modifyYouTubeOrVimeo = $this->modifyYouTubeVimeoLink($link);
-                $wiki_text = preg_replace($regexToreplace, $modifyYouTubeOrVimeo, $wiki_text);
+                $modifyYouTubeOrVimeo =$this->modifyYouTubeVimeoLink($link);
+                $wiki_text = preg_replace($regexToreplace, '<a href="'.$modifyYouTubeOrVimeo.'">'.$modifyYouTubeOrVimeo.'</a>', $wiki_text);
 			}
 		}
        
