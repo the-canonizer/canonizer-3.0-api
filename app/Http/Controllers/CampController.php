@@ -567,7 +567,8 @@ class CampController extends Controller
                 $val->support_order = $supportOrder->support_order ?? null;
             }
             $keys = array_column($result, 'camp_name');
-            array_multisort($keys, SORT_ASC, $result);
+            array_multisort($keys, SORT_ASC,SORT_NATURAL|SORT_FLAG_CASE, $result);
+
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');
