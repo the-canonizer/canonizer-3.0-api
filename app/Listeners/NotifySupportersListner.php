@@ -147,13 +147,13 @@ class NotifySupportersListner implements ShouldQueue
                     
                     switch ($channel) {
                         case config('global.notify.email'):
-                            $this->dispatchEmail($userSub->email ?? null, $user, $data['email'], $type, $link);
+                            $this->dispatchEmail($userSub->email ?? null, $userSub, $data['email'], $type, $link);
                             break;
                         case config('global.notify.push_notification'):
                             $this->dispatchPushNotification($userSub, $data['push_notification']);
                             break;
                         case config('global.notify.both'):
-                            $this->dispatchEmail($userSub->email ?? null, $user, $data['email'], $type, $link);
+                            $this->dispatchEmail($userSub->email ?? null, $userSub, $data['email'], $type, $link);
                             $this->dispatchPushNotification($userSub, $data['push_notification']);
                             break;
                     }
