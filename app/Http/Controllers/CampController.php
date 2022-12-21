@@ -155,8 +155,8 @@ class CampController extends Controller
                 
         try {
 
-            $liveCamps = Camp::getAllLiveCampsInTopic($request->topic_num);
-            $nonLiveCamps = Camp::getAllNonLiveCampsInTopic($request->topic_num);
+            $liveCamps = Camp::checkAllLiveCampsInTopic($request->topic_num);
+            $nonLiveCamps = Camp::checkAllNonLiveCampsInTopic($request->topic_num);
             $camp_existsLive = 0;
             $camp_existsNL = 0;
 
