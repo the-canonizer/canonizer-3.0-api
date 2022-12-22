@@ -451,8 +451,9 @@ class StatementController extends Controller
     private function createOrUpdateStatement($all)
     {
         $goLiveTime = time();
+
         $statement = new Statement();
-        $statement->value = $all['statement'] ?? "";
+        $statement->value = $WikiParser->parse($all['statement']) ?? "";//$all['statement'] ?? "";
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->topic_num = $all['topic_num'];
         $statement->camp_num = $all['camp_num'];
@@ -881,5 +882,6 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+   
 
 }
