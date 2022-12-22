@@ -155,8 +155,8 @@ class CampController extends Controller
                 
         try {
 
-            $liveCamps = Camp::getAllLiveCampsInTopic($request->topic_num);
-            $nonLiveCamps = Camp::getAllNonLiveCampsInTopic($request->topic_num);
+            $liveCamps = Camp::checkAllLiveCampsInTopic($request->topic_num);
+            $nonLiveCamps = Camp::checkAllNonLiveCampsInTopic($request->topic_num);
             $camp_existsLive = 0;
             $camp_existsNL = 0;
 
@@ -567,7 +567,8 @@ class CampController extends Controller
                 $val->support_order = $supportOrder->support_order ?? null;
             }
             $keys = array_column($result, 'camp_name');
-            array_multisort($keys, SORT_ASC, $result);
+            array_multisort($keys, SORT_ASC,SORT_NATURAL|SORT_FLAG_CASE, $result);
+
             if (empty($result)) {
                 $status = 200;
                 $message = trans('message.error.record_not_found');

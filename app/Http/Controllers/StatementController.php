@@ -426,7 +426,7 @@ class StatementController extends Controller
 
             $statement->save();
             $livecamp = Camp::getLiveCamp($filters);
-            $link = '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             
             if ($eventType == "create" && $statement->grace_period == 0) {
                 $nickName = '';
