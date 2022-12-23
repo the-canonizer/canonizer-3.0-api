@@ -338,6 +338,17 @@ class UploadController extends Controller
             }
 
             $files = Upload::where('folder_id', '=' ,$id)->orderBy('created_at','DESC')->get();
+            foreach($files as $val){
+                $s3FileName = $val->file_name;
+                if(isset($val->file_path) && $val->file_path)
+                {
+                    $strArray = explode('/',$val->file_path);
+                    $s3FileName = end($strArray);
+                }
+                
+                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$s3FileName;
+            } 
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $files, null);
 
         }catch (\Throwable $e) {
