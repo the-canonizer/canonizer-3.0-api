@@ -196,7 +196,7 @@ class ReplyController extends Controller
     private function createOrUpdatePostActivityLog($thread, $nickName, $link, $request, $update = false)
     {
         $activitLogData = [
-            'log_type' =>  "posts",
+            'log_type' =>  "threads",
             'activity' => trans('message.activity_log_message.post_create', ['nick_name' => $nickName]),
             'url' => $link,
             'model' => $thread,
