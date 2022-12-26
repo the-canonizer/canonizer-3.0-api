@@ -147,7 +147,10 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             if(isset($attributes[$flag]) && !$attributes[$flag]) $this->private_fields[] = $f;
         }
 
-        if(!empty($this->private_fields)) $this->private_flags = implode(",", $this->private_fields);
+        if(!empty($this->private_fields)) 
+            $this->private_flags = implode(",", $this->private_fields); 
+        else 
+            $this->private_flags = NULL;
 
         return $this->save();
     }
