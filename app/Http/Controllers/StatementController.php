@@ -388,6 +388,14 @@ class StatementController extends Controller
             $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            
+            if($eventType == 'objection') {
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
+                if(!$checkUserDirectSupportExists){
+                    $message = trans('message.support.not_authorized_for_objection');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
+            }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
                 $statement = self::createOrUpdateStatement($all);
                 $message = trans('message.success.statement_create');
