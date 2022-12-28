@@ -91,9 +91,8 @@ class TopicSupport
             $supportRemovedFrom = Support::getActiveSupporInTopicWithAllNicknames($topicNum, [$delegateNickNameId]);
             $notifyDelegatedUser = false;  
             
-            if(empty($removeCamps))
-            {
-               array_push($removeCamps, $supportRemovedFrom[0]->camp_num);
+            if(count($supportRemovedFrom) && empty($removeCamps)){
+                array_push($removeCamps, $supportRemovedFrom[0]->camp_num);
             }
             
             if(isset($supportRemovedFrom[0]->delegate_nick_name_id) && $supportRemovedFrom[0]->delegate_nick_name_id)  // if  user is a delegated supporter itself, then notify
