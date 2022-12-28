@@ -382,7 +382,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             if (isset($subscriptions) && count($subscriptions) > 0) {
                 foreach ($subscriptions as $subs) {
                     if ($camp_num != 1) {
-                        if (!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0) {
+                        if (!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0) {  // && $subs->camp_num != 0 - removed
                             continue;
                         }
                     }
