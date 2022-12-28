@@ -374,15 +374,32 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $filter['asOf'] = '';
         $filter['campNum'] = $camp_num;
         $oneCamp = self::getLiveCamp($filter);
-        self::clearChildCampArray();
         try {
-            $childCamps = array_unique(self::getAllChildCamps($oneCamp));
 
+            self::clearChildCampArray();
+            $childCamps = array_unique(self::getAllChildCamps($oneCamp));
+            // #1291 notify parent camps subscribers
+            $parentCamps = array_unique(self::getAllParent($oneCamp));
+            $camps = array_unique(array_merge($childCamps, $parentCamps));
+
+
+
+
+
+
+
+
+
+
+
+           // $childCamps = array_unique(self::getAllChildCamps($oneCamp));
+           // $parentCamps = array_unique(self::getAllParent($onecamp));
+           // $camps = array_unique(array_merge($childCamps, $parentCamps));
             $subscriptions = CampSubscription::where('user_id', '=', $userid)->where('topic_num', '=', $topic_num)->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->get();
             if (isset($subscriptions) && count($subscriptions) > 0) {
                 foreach ($subscriptions as $subs) {
                     if ($camp_num != 1) {
-                        if (!in_array($subs->camp_num, $childCamps) && $subs->camp_num != 0) {  // && $subs->camp_num != 0 - removed
+                        if (!in_array($subs->camp_num, $camps) && $subs->camp_num != 0) {  // && $subs->camp_num != 0 - removed
                             continue;
                         }
                     }
