@@ -253,7 +253,20 @@ class TopicSupport
  
         if(isset($orderUpdate) && !empty($orderUpdate)){
              self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
-         }
+
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            foreach($orderUpdate as $key => $order) {
+                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
+                } else {
+                    // Execute job only one time at first iteration of loop.
+                    if ($key ==  0) {
+                        Util::dispatchJob($topic, $order['camp_num'], 1);
+                    }
+                }
+            }
+        }
 
          $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
