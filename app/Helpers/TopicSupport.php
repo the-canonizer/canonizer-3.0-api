@@ -798,6 +798,7 @@ class TopicSupport
         $data['camp_num']   = $camp->camp_num;
         $data['topic_link'] = $topicLink;
         $data['camp_link']  = $campLink;   
+        $data['camp_url']   = $campLink;
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
@@ -818,82 +819,7 @@ class TopicSupport
         $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
 
-        $i = 0;
-        foreach ($directSupporter as $supporter) {
-            $user = Nickname::getUserByNickName($supporter->nick_name_id);
-            $user_id = $user->id ?? null;
-            $nickName = Nickname::find($supporter->nick_name_id);
-            $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
-            $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicNum, $campNum);
-            $support_list[$user_id] = $supported_camp_list;
-            $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
-            if ($ifalsoSubscriber) {
-                $support_list_data = Camp::getSubscriptionList($user_id, $topicNum, $campNum);
-                $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
-            }
-            $bcc_user[] = $user;
-            $userExist[] = $user_id;
-        }
-        if ($subscribers && count($subscribers) > 0) {
-            foreach ($subscribers as $sub) {
-                if (!in_array($sub, $userExist, true)) {
-                    $userSub = User::find($sub);
-                    $subscriptions_list = Camp::getSubscriptionList($userSub->id, $topicNum, $campNum);
-                    $subscribe_list[$userSub->id] = $subscriptions_list;
-                    $sub_bcc_user[] = $userSub;
-                }
-            }
-        }
-        $filtered_bcc_user = array_unique($bcc_user);
-        $filtered_sub_user = array_unique(array_filter($sub_bcc_user, function ($e) use ($userExist) {
-            return !in_array($e->id, $userExist);
-        }));
-
-        if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
-
-            foreach ($filtered_bcc_user as $user) {
-                $data['support_list'] = $support_list[$user->id];
-                if (isset($supporter_and_subscriber[$user->id]) && isset($supporter_and_subscriber[$user->id]['also_subscriber']) && $supporter_and_subscriber[$user->id]['also_subscriber']) {
-                    $data['also_subscriber'] = $supporter_and_subscriber[$user->id]['also_subscriber'];
-                    $data['sub_support_list'] = $supporter_and_subscriber[$user->id]['sub_support_list'];
-                } else {
-                    $data['also_subscriber'] = 0;
-                    $data['sub_support_list'] = [];
-                }
-
-               
-                try { 
-                    if($action == 'add'){
-                        Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
-                    }else{
-                        Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
-                    }
-                    
-                } catch (Throwable $e) {
-                    $data = null;
-                    $status = 403;
-                    echo  $message = $e->getMessage();
-                }
-            }
-        }
-
-        if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {          
-            $data['subscriber'] = 1;
-            foreach ($filtered_sub_user as $userSub) {
-                $data['support_list'] = $subscribe_list[$userSub->id];
-                try {
-                    if($action == 'add'){
-                        Event::dispatch(new SupportAddedMailEvent($userSub->email ?? null, $userSub, $data));
-                    }else{
-                        Event::dispatch(new SupportRemovedMailEvent($userSub->email ?? null, $userSub, $data));
-                    }
-                } catch (Throwable $e) {
-                    $data = null;
-                    $status = 403;
-                    echo $message = $e->getMessage();
-                }
-            }
-        }
+        Util::mailSubscribersAndSupporters($directSupporter, $subscribers, '', $data, $action);
         return;
     }
 
