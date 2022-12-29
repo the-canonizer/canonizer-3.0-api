@@ -413,7 +413,7 @@ return [
         "addDelegateSupport" => "Delegate Support Added to topic - :topic_name",
         "addDelegateSupportUser" => "Delegate Your Support to topic - :topic_name",
         "promotedDelegate" => "You have been Promoted to Your delegate's place. in camp - :camp_name under topic - :topic_name",
-        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name uner topic - :topic_name.",
+        "promotedDirect" => "You have been promoted as direct supporter in camp - :camp_name under topic - :topic_name.",
         "commitTopicChange" => "Proposed a change to topic - :topic_name.",
         "commitCampChange" => "Proposed a change to camp - :camp_name.",
         "commitStatementChange" => "Proposed a change to statement of camp - :camp_name under topic - :topic_name",
