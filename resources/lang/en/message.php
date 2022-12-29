@@ -305,7 +305,8 @@ return [
         'support_exist' => 'This camp is already supported',
         'support_not_exist' => "This camp doesn't have your support",
         'update_support' => 'Support updated successfully.',
-        'remove_direct_support' => 'Support removed successfully.'
+        'remove_direct_support' => 'Support removed successfully.',
+        'not_authorized_for_objection' => 'You are not authorized to make objection on this statement, as you are not supporter to this camp.'
 
     ],
     'support_validation' => [

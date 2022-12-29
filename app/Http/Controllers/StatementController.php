@@ -96,7 +96,7 @@ class StatementController extends Controller
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $WikiParser = new wikiParser;
-                $campStatement->parsed_value = $campStatement->parsed_value;// $WikiParser->parse($campStatement->value);
+                $campStatement->parsed_value = $WikiParser->parse($campStatement->value);
                 $campStatement->submitter_nick_name = $campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
@@ -274,7 +274,7 @@ class StatementController extends Controller
                 $parentCamp = Camp::campNameWithAncestors($camp, $filter);
                 $nickName = Nickname::topicNicknameUsed($statement->topic_num);
                 $WikiParser = new wikiParser;
-                $statement->parsed_value =$statement->parsed_value;// $WikiParser->parse($statement->value);
+                $statement->parsed_value = $WikiParser->parse($statement->value);
                 $data = new stdClass();
                 $data->statement = $statement;
                 $data->topic = $topic;
@@ -388,6 +388,14 @@ class StatementController extends Controller
             $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            
+            if($eventType == 'objection') {
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
+                if(!$checkUserDirectSupportExists){
+                    $message = trans('message.support.not_authorized_for_objection');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
+            }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
                 $statement = self::createOrUpdateStatement($all);
                 $message = trans('message.success.statement_create');
@@ -650,7 +658,7 @@ class StatementController extends Controller
                             'go_live_time' => ($val->go_live_time),
                             'submit_time' => ($val->submit_time),
                             'object_time' => ($val->object_time),
-                            'parsed_value' => $val->parsed_value, //$WikiParser->parse($val->value),
+                            'parsed_value' => $WikiParser->parse($val->value),
                             'value' => $val->value,
                             'topic_num' => $val->topic_num,
                             'camp_num' => $val->camp_num,
@@ -683,7 +691,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
                     $statement['liveStatement']['submit_time'] = ($liveStatement->submit_time);
                     $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
-                    $statement['liveStatement']['parsed_value'] =$liveStatement->parsed_value; //$WikiParser->parse($liveStatement->value);
+                    $statement['liveStatement']['parsed_value'] = $WikiParser->parse($liveStatement->value);
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
                     switch ($liveStatement) {
@@ -876,7 +884,7 @@ class StatementController extends Controller
         }
         try {
             $WikiParser = new wikiParser;
-            $parsedValue =$request->value;// $WikiParser->parse($request->value);
+            $parsedValue = $WikiParser->parse($request->value);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $parsedValue, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

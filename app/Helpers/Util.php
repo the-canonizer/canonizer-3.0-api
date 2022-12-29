@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Events\SupportAddedMailEvent;
+use Illuminate\Support\Facades\Event;
+use App\Events\SupportRemovedMailEvent;
 use App\Models\Namespaces;
 use App\Models\User;
 use Throwable;
@@ -358,7 +361,7 @@ class Util
         }
     }
 
-    public static function mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject)
+    public static function mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject, $action='')
     {
         $alreadyMailed = [];
         if (!empty($directSupporter)) {
@@ -380,7 +383,13 @@ class Util
                 }
                 $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 try {
-                    dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    if($action == 'add'){
+                        Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $supportData));
+                    }else if($action=='remove'){
+                        Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $supportData));
+                    }else{
+                        dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    }
                 } catch (Throwable $e) {
                     echo  $e->getMessage();
                 }
@@ -399,7 +408,13 @@ class Util
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
                     try {
-                        dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                        if($action == 'add'){
+                            Event::dispatch(new SupportAddedMailEvent($userSub->email ?? null, $userSub, $subscriberData));
+                        }else if($action =='remove'){
+                            Event::dispatch(new SupportRemovedMailEvent($userSub->email ?? null, $userSub, $subscriberData));
+                        }else{
+                            dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                        }
                     } catch (Throwable $e) {
                         echo  $e->getMessage();
                     }
