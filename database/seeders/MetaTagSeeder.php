@@ -116,6 +116,15 @@ class MetaTagSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
+                'page_name' => 'CampForumListPage',
+                'title' => '[Camp Name] | Forum | Canonizer',
+                'is_static' => 0,
+                'description' => 'Post your ideas and reply to threads in our community-based support forums.',
+                'submitter_nick_id' => null,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+            [
                 'page_name' => 'CampForumCreatePage',
                 'title' => 'Create New Thread | Canonizer',
                 'is_static' => 1,
