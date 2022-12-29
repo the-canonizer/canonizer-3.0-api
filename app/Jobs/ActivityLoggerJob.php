@@ -8,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Models\Camp;
 use App\Models\ActivityUser;
+use App\Facades\Util;
 
 class ActivityLoggerJob implements ShouldQueue
 {
@@ -30,6 +31,8 @@ class ActivityLoggerJob implements ShouldQueue
      */
     public function handle()
     {
+        
+        $this->data['url'] = Util::makeActivityRelativeURL($this->data['url']);
         $activityLog = activity($this->data['log_type'])
             ->performedOn($this->data['model'])
             ->causedBy($this->data['user'])
