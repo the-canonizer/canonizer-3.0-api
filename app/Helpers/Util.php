@@ -562,4 +562,22 @@ class Util
         }
         return str_replace(env('APP_URL_FRONT_END'), env('EMAIL_DOMAIN_URL'), $string);
     }
+
+    /**
+     * @param $link
+     * @return string
+     */
+    public static function makeActivityRelativeURL($link):string 
+    {
+        $activityLink = parse_url($link);
+        $relativePath = '';
+        if(!empty($activityLink["path"])) {
+            $relativePath = $activityLink["path"];
+
+            if (isset($activityLink['query']) && !empty($activityLink['query'])) {
+                $relativePath .= '?' . $activityLink['query'];
+            }
+        }
+        return $relativePath;
+    }
 }
