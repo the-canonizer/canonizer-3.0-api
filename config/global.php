@@ -25,6 +25,7 @@ return [
         "objectCamp" => "camp-object",
         "objectTopic" => "topic-object",
         "objectStatement" => "statement-object",
+        "manageCamp" => "manage-camp",
     ],
     'emoji_unicodes' => array( '1F600','1F603','1F604','1F601','1F606','1F605','1F923','1F602','1F642','1F643'),
     'notify' => [

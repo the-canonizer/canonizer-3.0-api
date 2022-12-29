@@ -19,13 +19,14 @@ use App\Models\CampSubscription;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use App\Events\NotifySupportersEvent;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
 
 class CampController extends Controller
@@ -1498,7 +1499,7 @@ class CampController extends Controller
 
     private function updateCampNotification($camp, $liveCamp, $link, $request)
     {
-        $link = 'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $link = config('global.APP_URL_FRONT_END') .'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['type'] = "camp";
         $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
         $data['link'] = $link;
@@ -1512,7 +1513,14 @@ class CampController extends Controller
         $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+        $notificationData['email'] = $data;
+        Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, config('global.notification_type.manageCamp'), $link, config('global.notify.email')));
+
+        // $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
         $activityLogData = [
             'log_type' =>  "topic/camps",
             'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
@@ -1525,7 +1533,7 @@ class CampController extends Controller
             'description' => $camp->camp_name
         ];
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-        Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
+        // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
     private function objectCampNotification($camp, $all, $link, $liveCamp, $request)

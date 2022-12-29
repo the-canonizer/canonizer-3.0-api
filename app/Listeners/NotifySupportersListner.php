@@ -7,6 +7,7 @@ use Exception;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
 use App\Models\Nickname;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Event;
 use App\Events\CampForumPostMailEvent;
 use App\Events\CampForumThreadMailEvent;
 use App\Events\SendPushNotificationEvent;
-use App\Facades\Util;
+use App\Jobs\PurposedToSupportersMailJob;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class NotifySupportersListner implements ShouldQueue
@@ -177,6 +178,10 @@ class NotifySupportersListner implements ShouldQueue
                 break;
             case config('global.notification_type.Post'):
                 Event::dispatch(new CampForumPostMailEvent($email, $user, $link, $data));
+                break;
+            case config('global.notification_type.manageCamp') || config('global.notification_type.Statement'):
+                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
+                dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
                 break;
         }
         Util::logMessage('dispatched');
