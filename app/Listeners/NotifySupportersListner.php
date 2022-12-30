@@ -179,7 +179,11 @@ class NotifySupportersListner implements ShouldQueue
             case config('global.notification_type.Post'):
                 Event::dispatch(new CampForumPostMailEvent($email, $user, $link, $data));
                 break;
-            case config('global.notification_type.manageCamp') || config('global.notification_type.Statement'):
+            case config('global.notification_type.manageCamp') 
+            || config('global.notification_type.Statement')
+            || config('global.notification_type.statementCommit')
+            || config('global.notification_type.campCommit')
+            || config('global.notification_type.topicCommit'):
                 $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
                 break;
