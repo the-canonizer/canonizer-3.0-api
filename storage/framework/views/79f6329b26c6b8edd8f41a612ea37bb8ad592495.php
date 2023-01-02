@@ -85,4 +85,4 @@
             padding-top: 15px;
         }
     }
-</style>
+</style><?php /**PATH /var/www/html/canonizer-3.0-api/resources/views/layouts/head.blade.php ENDPATH**/ ?>
