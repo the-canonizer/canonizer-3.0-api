@@ -6,17 +6,19 @@ use DB;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
+use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
 use App\Models\Nickname;
 use App\Jobs\ActivityLoggerJob;
+use Illuminate\Support\Facades\Auth;
+use App\Events\NotifySupportersEvent;
 use App\Events\SupportAddedMailEvent;
 use Illuminate\Support\Facades\Event;
 use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
-use App\Facades\Util;
 
 
 class TopicSupport
@@ -273,8 +275,7 @@ class TopicSupport
             Util::dispatchJob($topic, $campNum, 1);
 
            $subjectStatement = "has added their support to"; 
-           self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
+           self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addSupport'));
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
         }
@@ -315,8 +316,7 @@ class TopicSupport
         self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
        
         $subjectStatement = "has just delegated their support to";
-        self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
+        self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId);
         GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
 
        if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
@@ -746,7 +746,7 @@ class TopicSupport
             $subjectStatement = "has removed their support from";
         }
        
-        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, 'remove', $delegateNickNameId);
+        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
         return;
     }
 
@@ -758,24 +758,15 @@ class TopicSupport
      */
     public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='')
     {
-        $bcc_email = [];
-        $subscriber_bcc_email = [];
-        $bcc_user = [];
-        $sub_bcc_user = [];
-        $userExist = [];
-
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
-
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
-
         $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." / ".$camp->camp_name;
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
-
         $data['object']     = $object;
         $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $object. ".";
         $data['topic']      = $topic;
@@ -792,97 +783,36 @@ class TopicSupport
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
         $data['support_action'] = $action; //default will be 'added'       
-        $topic_name_space_id = $data['namespace_id'];
-        
-        /** If delegate support */
-        if(isset($delegatedNickNameId) && $delegatedNickNameId){
-            $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
-            $data['delegated_nick_name'] = $delegatedToNickname->nick_name;
-            $data['delegated_nick_name_id'] = $delegatedToNickname->id;
-            $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
-            $data['subject']  = $nickname->nick_name . " ". $subjectStatement . " " . $delegatedToNickname->nick_name. ".";
-        }        
-        
-        $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
-        $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
 
-        $i = 0;
-        foreach ($directSupporter as $supporter) {
-            $user = Nickname::getUserByNickName($supporter->nick_name_id);
-            $user_id = $user->id ?? null;
-            $nickName = Nickname::find($supporter->nick_name_id);
-            $supported_camp = $nickName->getSupportCampList($topic_name_space_id, ['nofilter' => true]);
-            $supported_camp_list = $nickName->getSupportCampListNamesEmail($supported_camp, $topicNum, $campNum);
-            $support_list[$user_id] = $supported_camp_list;
-            $ifalsoSubscriber = Camp::checkifSubscriber($subscribers, $user);
-            if ($ifalsoSubscriber) {
-                $support_list_data = Camp::getSubscriptionList($user_id, $topicNum, $campNum);
-                $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
-            }
-            $bcc_user[] = $user;
-            $userExist[] = $user_id;
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+
+        $liveThread = null;
+        $threadId = null;
+        $link = null;
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, $action, $nickname->nick_name, null);
+
+        $notificationData['email'] = $data;
+
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $camp->topic_num,
+                "camp_num" => $camp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
         }
-        if ($subscribers && count($subscribers) > 0) {
-            foreach ($subscribers as $sub) {
-                if (!in_array($sub, $userExist, true)) {
-                    $userSub = User::find($sub);
-                    $subscriptions_list = Camp::getSubscriptionList($userSub->id, $topicNum, $campNum);
-                    $subscribe_list[$userSub->id] = $subscriptions_list;
-                    $sub_bcc_user[] = $userSub;
-                }
-            }
+        $channel = config('global.notify.both');
+        if($action == config('global.notification_type.removeSupport')){
+            $channel = config('global.notify.email');
         }
-        $filtered_bcc_user = array_unique($bcc_user);
-        $filtered_sub_user = array_unique(array_filter($sub_bcc_user, function ($e) use ($userExist) {
-            return !in_array($e->id, $userExist);
-        }));
-
-        if (isset($filtered_bcc_user) && count($filtered_bcc_user) > 0) {
-
-            foreach ($filtered_bcc_user as $user) {
-                $data['support_list'] = $support_list[$user->id];
-                if (isset($supporter_and_subscriber[$user->id]) && isset($supporter_and_subscriber[$user->id]['also_subscriber']) && $supporter_and_subscriber[$user->id]['also_subscriber']) {
-                    $data['also_subscriber'] = $supporter_and_subscriber[$user->id]['also_subscriber'];
-                    $data['sub_support_list'] = $supporter_and_subscriber[$user->id]['sub_support_list'];
-                } else {
-                    $data['also_subscriber'] = 0;
-                    $data['sub_support_list'] = [];
-                }
-
-               
-                try { 
-                    if($action == 'add'){
-                        Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
-                    }else{
-                        Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $data));
-                    }
-                    
-                } catch (Throwable $e) {
-                    $data = null;
-                    $status = 403;
-                    echo  $message = $e->getMessage();
-                }
-            }
-        }
-
-        if (isset($filtered_sub_user) && count($filtered_sub_user) > 0) {          
-            $data['subscriber'] = 1;
-            foreach ($filtered_sub_user as $userSub) {
-                $data['support_list'] = $subscribe_list[$userSub->id];
-                try {
-                    if($action == 'add'){
-                        Event::dispatch(new SupportAddedMailEvent($userSub->email ?? null, $userSub, $data));
-                    }else{
-                        Event::dispatch(new SupportRemovedMailEvent($userSub->email ?? null, $userSub, $data));
-                    }
-                } catch (Throwable $e) {
-                    $data = null;
-                    $status = 403;
-                    echo $message = $e->getMessage();
-                }
-            }
-        }
-        return;
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
+        return true;
     }
 
     /** 

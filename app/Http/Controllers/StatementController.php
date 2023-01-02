@@ -600,7 +600,7 @@ class StatementController extends Controller
         ];
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
