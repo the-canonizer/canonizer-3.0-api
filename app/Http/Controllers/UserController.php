@@ -1205,7 +1205,8 @@ class UserController extends Controller
                         'first_name'    => $splitName[0],
                         'last_name'     => $splitName[1],
                         'email'         => $providerEmail,
-                        'status'        => 1
+                        'status'        => 1,
+                        'is_active'     => 1
                     ]);
                     $nickname = $user->first_name . '-' . $user->last_name;
                     $this->createNickname($user->id, $nickname);
@@ -1910,9 +1911,10 @@ class UserController extends Controller
                 if (empty($user)) {
                     $user = User::create([
                         'first_name'    => $socialEmailVerify->first_name,
-                        'last_name'    => $socialEmailVerify->last_name,
+                        'last_name'     => $socialEmailVerify->last_name,
                         'email'         => $socialEmailVerify->email,
-                        'status'        => 1
+                        'status'        => 1,
+                        'is_active'     => 1
                     ]);
                     $nickname = $user->first_name . '-' . $user->last_name;
                     $this->createNickname($user->id, $nickname);

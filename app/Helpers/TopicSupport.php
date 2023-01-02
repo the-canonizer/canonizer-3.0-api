@@ -93,9 +93,8 @@ class TopicSupport
             $supportRemovedFrom = Support::getActiveSupporInTopicWithAllNicknames($topicNum, [$delegateNickNameId]);
             $notifyDelegatedUser = false;  
             
-            if(empty($removeCamps))
-            {
-               array_push($removeCamps, $supportRemovedFrom[0]->camp_num);
+            if(count($supportRemovedFrom) && empty($removeCamps)){
+                array_push($removeCamps, $supportRemovedFrom[0]->camp_num);
             }
             
             if(isset($supportRemovedFrom[0]->delegate_nick_name_id) && $supportRemovedFrom[0]->delegate_nick_name_id)  // if  user is a delegated supporter itself, then notify
@@ -255,7 +254,20 @@ class TopicSupport
  
         if(isset($orderUpdate) && !empty($orderUpdate)){
              self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
-         }
+
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            foreach($orderUpdate as $key => $order) {
+                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
+                if($topicNum == config('global.mind_expert_topic_num')) {
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
+                } else {
+                    // Execute job only one time at first iteration of loop.
+                    if ($key ==  0) {
+                        Util::dispatchJob($topic, $order['camp_num'], 1);
+                    }
+                }
+            }
+        }
 
          $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
@@ -777,6 +789,7 @@ class TopicSupport
         $data['camp_num']   = $camp->camp_num;
         $data['topic_link'] = $topicLink;
         $data['camp_link']  = $campLink;   
+        $data['camp_url']   = $campLink;
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
