@@ -1399,6 +1399,11 @@ class CampController extends Controller
                 }
             }
             if ($all['event_type'] == "objection") {
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
+                if(!$checkUserDirectSupportExists){
+                    $message = trans('message.support.not_authorized_for_objection_camp');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
                 $camp = $this->objectCamp($all);
             } elseif ($all['event_type'] == "edit") {
                 $camp = $this->editCamp($all);
