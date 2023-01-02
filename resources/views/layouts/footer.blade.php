@@ -1,6 +1,7 @@
 <tr>
     <td>
-        <table width="100%" align="center"  style=" background:#EAEDF2; border-radius: 0px 0px  15px 15px;">
+        <table width="100%" align="center"  style=" background:#EAEDF2; border-radius: 0px 0px  15px 15px;   ">
+
             <tr>
                 <td style="padding:30px 0 0px;">
                     <table width="100%">
@@ -9,9 +10,7 @@
                                 <table class="column" >
                                 <tr>
                                     <td style="padding:0 30px 0px;"> 
-                                        <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}" target="_blank">
-                                            <img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo" />
-                                        </a>
+                                        <a href="{{\App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END'))}}" target="_blank"><img src="{{URL::asset('assets/images/logo-grey.png') }}" width="137" title="logo"></a>
                                     </td>
                                 </tr>
                                 </table>
@@ -31,6 +30,7 @@
                                         <td width="30">&nbsp;</td>
                                     </tr>
                                 </table>
+                            
                             </td> --}}
                         </tr>
                     </table>
@@ -74,6 +74,7 @@
                 </table>
                 </td>
             </tr>
+
         </table>
     </td>
 </tr>

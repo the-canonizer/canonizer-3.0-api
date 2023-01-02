@@ -6,9 +6,7 @@
     <td>
         <table width="100%">
             <tr>
-                <td style="text-align:center; padding:30px 0px;">
-					<img src="{{URL::asset('assets/images/OTP-img.png') }}" alt="otp" />
-				</td>
+                <td style="text-align:center; padding:30px 0px;"><img src="{{URL::asset('assets/images/OTP-img.png') }}"></td>
             </tr>
         </table>
     </td>            
@@ -26,12 +24,12 @@
 				</td>
 			</tr>
 			<tr>
-				<td style="padding-top: 30px; font-weight:400;">Here is a link to a help index page:
+				<td style="padding-top: 60px;  font-weight:400;">Here is a link to a help index page:
 				</td>
 			</tr>
 			<tr>
 				<td
-					style="padding-top:20px; padding-bottom: 20px; font-weight:400; font-size:30px; color:#497BDF;">
+					style="padding-top:10px; padding-bottom: 60px; font-weight:400; font-size:30px; color:#497BDF;">
 					<a href="{{ $link_index_page }}"><button> Click here</button></a></td>
 			</tr>
 			<tr>
