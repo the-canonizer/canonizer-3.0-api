@@ -97,7 +97,7 @@ class MetaTagController extends Controller
             } else {
 
                 switch ($page_name) {
-                    
+
                     case "CampForumPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
@@ -116,7 +116,7 @@ class MetaTagController extends Controller
 
                         $title = $camp->title ?? "";
                         $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
-                        
+
                         $responseArr = [
                             "page_name" => $page_name ?? "",
                             "title" => $title,
@@ -142,15 +142,19 @@ class MetaTagController extends Controller
                         $title = '';
                         switch ($page_name) {
                             case 'TopicDetailsPage':
+                                $title = $topic->topic_name ?? "";
+                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->title;
+                                break;
+
                             case 'TopicHistoryPage':
                                 $title = $topic->topic_name ?? "";
-                                break; 
-                                
+                                break;
+
                             case 'CampHistoryPage':
                             case 'CampForumListPage':
                                 $title = $camp->title ?? "";
                                 break;
-                            
+
                             default:
                                 # code...
                                 break;
