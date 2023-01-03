@@ -36,7 +36,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'TopicDetailsPage',
-                'title' => '[Topic/Camp Name] | Canonizer',
+                'title' => 'Canonizer',
                 'is_static' => 0,
                 'description' => '[Topic Description] limited to 160 characters.',
                 'submitter_nick_id' => null,
@@ -45,7 +45,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'TopicHistoryPage',
-                'title' => '[Topic Name] | History | Canonizer',
+                'title' => 'History | Canonizer',
                 'is_static' => 0,
                 'description' => '[Topic Description] limited to 160 characters.',
                 'submitter_nick_id' => null,
@@ -54,7 +54,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'CampHistoryPage',
-                'title' => '[Camp Name] | History | Canonizer',
+                'title' => 'History | Canonizer',
                 'is_static' => 0,
                 'description' => '[Camp Description] limited to 160 characters.',
                 'submitter_nick_id' => null,
@@ -108,7 +108,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'CampForumPage',
-                'title' => '[Camp Name] | Forum | Canonizer',
+                'title' => 'Forum | Canonizer',
                 'is_static' => 0,
                 'description' => 'Post your ideas and reply to threads in our community-based support forums.',
                 'submitter_nick_id' => null,
@@ -117,7 +117,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'CampForumListPage',
-                'title' => '[Camp Name] | Forum | Canonizer',
+                'title' => 'Forum | Canonizer',
                 'is_static' => 0,
                 'description' => 'Post your ideas and reply to threads in our community-based support forums.',
                 'submitter_nick_id' => null,

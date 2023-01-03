@@ -788,6 +788,7 @@ class TopicController extends Controller
         $current_time = time();
         try {
             $nickNameIds = Nickname::getNicknamesIdsByUserId($request->user()->id);
+            $nickNames = Nickname::personNicknameArray();
             if (!in_array($request->nick_name, $nickNameIds)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
             }
@@ -796,6 +797,11 @@ class TopicController extends Controller
             }
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
+                if(!$checkUserDirectSupportExists){
+                    $message = trans('message.support.not_authorized_for_objection_topic');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
                 $topic = Topic::where('id', $all['topic_id'])->first();
                 $topic->objector_nick_id = $all['nick_name'];
                 $topic->object_reason = $all['objection_reason'];
@@ -832,7 +838,6 @@ class TopicController extends Controller
                 $message = trans('message.success.topic_update');
             }
 
-            $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], 0, $nickNames);
 
             if (!$ifIamSingleSupporter) {

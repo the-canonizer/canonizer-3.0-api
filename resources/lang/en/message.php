@@ -306,7 +306,11 @@ return [
         'support_not_exist' => "This camp doesn't have your support",
         'update_support' => 'Support updated successfully.',
         'remove_direct_support' => 'Support removed successfully.',
-        'not_authorized_for_objection' => 'You are not authorized to make objection on this statement, as you are not supporter to this camp.'
+        'not_authorized_for_objection' => 'You are not authorized to object to this statement because you do not support this camp.',
+        'not_authorized_for_objection_topic' => 'You are not authorized to object to this topic because you do not support this camp.',
+        'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.'
+
+
 
     ],
     'support_validation' => [
