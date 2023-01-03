@@ -815,6 +815,7 @@ class UserController extends Controller
                     $link_index_page = config('global.APP_URL_FRONT_END') .'/topic/132-Help/1-Agreement';
                     Event::dispatch(new WelcomeMailEvent($user,$link_index_page));
                 }
+                $user->is_admin = ($user->type == 'admin') ? true : false;
                 $data = [
                     "auth" => $generateToken->data,
                     "user" => new UserResource($user),
@@ -1221,7 +1222,7 @@ class UserController extends Controller
                 $message = trans('message.error.in_active_message');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-
+            $user->is_admin = ($user->type == 'admin') ? true : false;
             $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
                 'grant_type' => 'password',
@@ -1923,6 +1924,7 @@ class UserController extends Controller
             } else {
                 $user = User::find($social_user->user_id);
             }
+            $user->is_admin = ($user->type == 'admin') ? true : false;
 
             $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
