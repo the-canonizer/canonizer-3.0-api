@@ -15,6 +15,7 @@ use App\Models\Statement;
 use App\Models\Thread;
 use App\Models\Topic;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Str;
 
 class MetaTagController extends Controller
@@ -109,12 +110,17 @@ class MetaTagController extends Controller
                         $forum_num = $request->keys['forum_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                        
                         $camp = $this->getCampById($topic_num, $camp_num);
+                        if (is_null($camp)) {
+                            throw new Exception(trans('message.error.record_not_found'));
+                        }
+                        
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
-                        $title = $camp->title ?? "";
+                        $title = $camp->camp_name ?? "";
                         $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
 
                         $responseArr = [
@@ -135,7 +141,12 @@ class MetaTagController extends Controller
                         $camp_num = $request->keys['camp_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                         
                         $camp = $this->getCampById($topic_num, $camp_num);
+                        if (is_null($camp)) {
+                            throw new Exception(trans('message.error.record_not_found'), 404);
+                        }
+
                         $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
 
@@ -143,7 +154,7 @@ class MetaTagController extends Controller
                         switch ($page_name) {
                             case 'TopicDetailsPage':
                                 $title = $topic->topic_name ?? "";
-                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->title;
+                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
                                 break;
 
                             case 'TopicHistoryPage':
@@ -152,7 +163,7 @@ class MetaTagController extends Controller
 
                             case 'CampHistoryPage':
                             case 'CampForumListPage':
-                                $title = $camp->title ?? "";
+                                $title = $camp->camp_name ?? "";
                                 break;
 
                             default:
@@ -197,7 +208,7 @@ class MetaTagController extends Controller
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'title')
+        $camp = (new Camp())->select('id', 'camp_name')
             ->where([
                 'topic_num' => $topic_num,
                 'camp_num' => $camp_num,
