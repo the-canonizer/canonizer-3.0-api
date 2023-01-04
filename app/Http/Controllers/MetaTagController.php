@@ -114,7 +114,7 @@ class MetaTagController extends Controller
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
-                        $title = $camp->title ?? "";
+                        $title = $camp->camp_name ?? "";
                         $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
 
                         $responseArr = [
@@ -143,7 +143,7 @@ class MetaTagController extends Controller
                         switch ($page_name) {
                             case 'TopicDetailsPage':
                                 $title = $topic->topic_name ?? "";
-                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->title;
+                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
                                 break;
 
                             case 'TopicHistoryPage':
@@ -152,7 +152,7 @@ class MetaTagController extends Controller
 
                             case 'CampHistoryPage':
                             case 'CampForumListPage':
-                                $title = $camp->title ?? "";
+                                $title = $camp->camp_name ?? "";
                                 break;
 
                             default:
@@ -197,7 +197,7 @@ class MetaTagController extends Controller
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'title')
+        $camp = (new Camp())->select('id', 'camp_name')
             ->where([
                 'topic_num' => $topic_num,
                 'camp_num' => $camp_num,
