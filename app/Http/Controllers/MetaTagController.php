@@ -86,6 +86,9 @@ class MetaTagController extends Controller
                 ->where([
                     'page_name' => $page_name,
                 ])->first();
+            if (!$metaTag) {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+            }
 
             if ($metaTag && $metaTag->is_static == 1) {
 
@@ -118,12 +121,12 @@ class MetaTagController extends Controller
                         if (is_null($camp)) {
                             throw new Exception(trans('message.error.camp_not_found'), 404);
                         }
-                        
+
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
                         if (is_null($forum_num)) {
                             throw new Exception(trans('message.error.forum_not_found'), 404);
                         }
-                        
+
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
                         $title = $camp->camp_name ?? "";
@@ -192,9 +195,6 @@ class MetaTagController extends Controller
                         break;
                 }
 
-                if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
-                }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
         } catch (\Throwable $e) {
