@@ -99,6 +99,13 @@ class TopicSupport
             {
                 $notifyDelegatedUser = true;
             }
+
+            /* To update the Mongo Tree while remove all support */
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            if(count($removeCamps)) {
+                Util::dispatchJob($topic, $removeCamps[0], 1);
+            }
+
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
@@ -109,14 +116,6 @@ class TopicSupport
                 //push notification to promoted delegates
                 self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
 
-            }
-
-            /* To update the Mongo Tree while deleting delegate support */
-            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-            if(!empty($campNum)) {
-                Util::dispatchJob($topic, $campNum, 1);
-            } else {
-                Util::dispatchJob($topic, 1, 1);
             }
 
             //log remove support activity
@@ -249,23 +248,6 @@ class TopicSupport
 
 
          }
- 
-        if(isset($orderUpdate) && !empty($orderUpdate)){
-             self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
-
-            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-            foreach($orderUpdate as $key => $order) {
-                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
-                if($topicNum == config('global.mind_expert_topic_num')) {
-                    Util::dispatchJob($topic, $order['camp_num'], 1);
-                } else {
-                    // Execute job only one time at first iteration of loop.
-                    if ($key ==  0) {
-                        Util::dispatchJob($topic, $order['camp_num'], 1);
-                    }
-                }
-            }
-        }
 
          $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
@@ -290,6 +272,25 @@ class TopicSupport
            //log activity
            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
         }
+
+
+ 
+        if(isset($orderUpdate) && !empty($orderUpdate)){
+            self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+
+           $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+           foreach($orderUpdate as $key => $order) {
+               // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
+               if($topicNum == config('global.mind_expert_topic_num')) {
+                   Util::dispatchJob($topic, $order['camp_num'], 1);
+               } else {
+                   // Execute job only one time at first iteration of loop.
+                   if ($key ==  0) {
+                       Util::dispatchJob($topic, $order['camp_num'], 1);
+                   }
+               }
+           }
+       }
     }
 
 

@@ -97,7 +97,7 @@ class MetaTagController extends Controller
             } else {
 
                 switch ($page_name) {
-                    
+
                     case "CampForumPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
@@ -109,14 +109,17 @@ class MetaTagController extends Controller
                         $forum_num = $request->keys['forum_num'];
 
                         $topic = $this->getTopicById($topic_num);
-
+                        $camp = $this->getCampById($topic_num, $camp_num);
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
+                        $title = $camp->camp_name ?? "";
+                        $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
+
                         $responseArr = [
                             "page_name" => $page_name ?? "",
-                            "title" => $forum_num->title ?? "",
+                            "title" => $title,
                             "description" => $forum_num->body ?? "",
                             "author" => $submitterNick->nick_name ?? "",
                         ];
@@ -132,12 +135,36 @@ class MetaTagController extends Controller
                         $camp_num = $request->keys['camp_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                        $camp = $this->getCampById($topic_num, $camp_num);
                         $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
 
+                        $title = '';
+                        switch ($page_name) {
+                            case 'TopicDetailsPage':
+                                $title = $topic->topic_name ?? "";
+                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
+                                break;
+
+                            case 'TopicHistoryPage':
+                                $title = $topic->topic_name ?? "";
+                                break;
+
+                            case 'CampHistoryPage':
+                            case 'CampForumListPage':
+                                $title = $camp->camp_name ?? "";
+                                break;
+
+                            default:
+                                # code...
+                                break;
+                        }
+
+                        $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
+
                         $responseArr = [
                             "page_name" => $page_name ?? "",
-                            "title" => $topic->topic_name ?? "",
+                            "title" => $title,
                             "description" => $statement,
                             "author" => $submitterNick->nick_name ?? "",
                         ];
@@ -170,7 +197,7 @@ class MetaTagController extends Controller
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'key_words')
+        $camp = (new Camp())->select('id', 'camp_name')
             ->where([
                 'topic_num' => $topic_num,
                 'camp_num' => $camp_num,
@@ -197,7 +224,7 @@ class MetaTagController extends Controller
 
         $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
         $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
-        $campStatement = Str::of($campStatement)->trim()->limit(200);
+        $campStatement = Str::of($campStatement)->trim()->limit(160);
 
         return $campStatement;
     }
