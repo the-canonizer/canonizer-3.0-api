@@ -189,7 +189,7 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'Support',
-                'title' => 'Manage Supported Camps | Canonizer',
+                'title' => 'List of Supported Camps | Canonizer',
                 'is_static' => 1,
                 'description' => 'Check all the Supported Camps under an existing topic. You can also support different camps as and when required.',
                 'submitter_nick_id' => null,
