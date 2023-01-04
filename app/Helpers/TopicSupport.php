@@ -101,6 +101,13 @@ class TopicSupport
             {
                 $notifyDelegatedUser = true;
             }
+
+            /* To update the Mongo Tree while remove all support */
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            if(count($removeCamps)) {
+                Util::dispatchJob($topic, $removeCamps[0], 1);
+            }
+
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
@@ -111,14 +118,6 @@ class TopicSupport
                 //push notification to promoted delegates
                 self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
 
-            }
-
-            /* To update the Mongo Tree while deleting delegate support */
-            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-            if(!empty($campNum)) {
-                Util::dispatchJob($topic, $campNum, 1);
-            } else {
-                Util::dispatchJob($topic, 1, 1);
             }
 
             //log remove support activity

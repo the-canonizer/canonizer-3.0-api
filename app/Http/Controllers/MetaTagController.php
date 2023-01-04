@@ -97,7 +97,7 @@ class MetaTagController extends Controller
             } else {
 
                 switch ($page_name) {
-                    
+
                     case "CampForumPage":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
@@ -114,9 +114,9 @@ class MetaTagController extends Controller
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
-                        $title = $camp->title ?? "";
+                        $title = $camp->camp_name ?? "";
                         $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
-                        
+
                         $responseArr = [
                             "page_name" => $page_name ?? "",
                             "title" => $title,
@@ -142,15 +142,19 @@ class MetaTagController extends Controller
                         $title = '';
                         switch ($page_name) {
                             case 'TopicDetailsPage':
+                                $title = $topic->topic_name ?? "";
+                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
+                                break;
+
                             case 'TopicHistoryPage':
                                 $title = $topic->topic_name ?? "";
-                                break; 
-                                
+                                break;
+
                             case 'CampHistoryPage':
                             case 'CampForumListPage':
-                                $title = $camp->title ?? "";
+                                $title = $camp->camp_name ?? "";
                                 break;
-                            
+
                             default:
                                 # code...
                                 break;
@@ -193,7 +197,7 @@ class MetaTagController extends Controller
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'title')
+        $camp = (new Camp())->select('id', 'camp_name')
             ->where([
                 'topic_num' => $topic_num,
                 'camp_num' => $camp_num,
