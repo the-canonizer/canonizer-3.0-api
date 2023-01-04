@@ -64,7 +64,7 @@ class MetaTagSeeder extends Seeder
             [
                 'page_name' => 'StatementHistoryPage',
                 'title' => 'Statement History | Canonizer',
-                'is_static' => 0,
+                'is_static' => 1,
                 'description' => 'Statement history feature provides an archive of all statements in a particular camp/topic.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
