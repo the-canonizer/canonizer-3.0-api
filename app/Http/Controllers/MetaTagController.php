@@ -15,6 +15,7 @@ use App\Models\Statement;
 use App\Models\Thread;
 use App\Models\Topic;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Str;
 
 class MetaTagController extends Controller
@@ -85,6 +86,9 @@ class MetaTagController extends Controller
                 ->where([
                     'page_name' => $page_name,
                 ])->first();
+            if (!$metaTag) {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+            }
 
             if ($metaTag && $metaTag->is_static == 1) {
 
@@ -109,8 +113,19 @@ class MetaTagController extends Controller
                         $forum_num = $request->keys['forum_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                        if (is_null($topic)) {
+                            throw new Exception(trans('message.error.topic_not_found'), 404);
+                        }
+
                         $camp = $this->getCampById($topic_num, $camp_num);
+                        if (is_null($camp)) {
+                            throw new Exception(trans('message.error.camp_not_found'), 404);
+                        }
+
                         $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
+                        if (is_null($forum_num)) {
+                            throw new Exception(trans('message.error.forum_not_found'), 404);
+                        }
 
                         $submitterNick = $this->getSubmitterById($forum_num->user_id);
 
@@ -135,7 +150,15 @@ class MetaTagController extends Controller
                         $camp_num = $request->keys['camp_num'];
 
                         $topic = $this->getTopicById($topic_num);
+                        if (is_null($topic)) {
+                            throw new Exception(trans('message.error.topic_not_found'), 404);
+                        }
+
                         $camp = $this->getCampById($topic_num, $camp_num);
+                        if (is_null($camp)) {
+                            throw new Exception(trans('message.error.camp_not_found'), 404);
+                        }
+
                         $statement = $this->getCampStatementById($topic_num, $camp_num);
                         $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
 
@@ -172,13 +195,10 @@ class MetaTagController extends Controller
                         break;
                 }
 
-                if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
-                }
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
