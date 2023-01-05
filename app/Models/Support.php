@@ -339,9 +339,11 @@ class Support extends Model
     {
 
         $support = self::where('topic_num', '=', $topicNum)
-        ->whereIn('nick_name_id', $nickNameId)
-        ->whereIn('camp_num', $camps)
-        ->where('end', '=', '0')->count();
+        ->whereIn('nick_name_id', $nickNameId);
+        if(!empty($camps)){
+            $support = $support->whereIn('camp_num', $camps);
+        }
+        $support = $support->where('end', '=', '0')->count();
         
         return $support;
     }
