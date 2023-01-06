@@ -182,21 +182,9 @@ class NotifySupportersListner implements ShouldQueue
                 Event::dispatch(new CampForumPostMailEvent($email, $user, $link, $data));
                 break;
             case config('global.notification_type.manageCamp'):
-                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
-                dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-                break;
             case config('global.notification_type.Statement'):
-                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
-                dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-                break;
             case config('global.notification_type.statementCommit'):
-                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
-                dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-                break;
-            case  config('global.notification_type.campCommit'):
-                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
-                dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-                break;
+            case config('global.notification_type.campCommit'):
             case config('global.notification_type.topicCommit'):
                 $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 dispatch(new PurposedToSupportersMailJob($user, $link, $data, $receiver))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
