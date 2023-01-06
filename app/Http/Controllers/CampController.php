@@ -1400,7 +1400,7 @@ class CampController extends Controller
                 }
             }
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 if(!$checkUserDirectSupportExists){
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');

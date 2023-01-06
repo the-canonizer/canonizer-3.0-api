@@ -106,6 +106,8 @@ class TopicSupport
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             if(count($removeCamps)) {
                 Util::dispatchJob($topic, $removeCamps[0], 1);
+            } else {
+                Util::dispatchJob($topic, 1, 1);
             }
 
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
