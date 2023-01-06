@@ -55,7 +55,7 @@
                 <table width="100%">
                     <tr>
                         <td style="padding-top:20px; text-align: center; border-top:solid 1px #BDC1C8; font-size:12px; color: #76787c;">
-                            Copyright owned by the volunteers contributing to the system and its contents (2006 - 2022)
+                            Copyright owned by the volunteers contributing to the system and its contents (2006 - {{date('Y')}})
                         </td>
                     </tr>
                 </table>
