@@ -42,6 +42,14 @@ class VideoSeeder extends Seeder
             ],
             [
                 'id' => 4,
+                'title' => 'The world in you head',
+                'link' => 'The_world_in_you_head',
+                'extension' => 'mp4',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'id' => 5,
                 'title' => 'Computational Binding',
                 'link' => 'computational_binding',
                 'extension' => 'mp4',
@@ -49,7 +57,7 @@ class VideoSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'id' => 5,
+                'id' => 6,
                 'title' => 'Cognitive Knowledge',
                 'link' => 'cognitive_knowledge',
                 'extension' => 'mp4',
@@ -57,7 +65,7 @@ class VideoSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'id' => 6,
+                'id' => 7,
                 'title' => 'Simulation Hypothesis',
                 'link' => 'simulation_hypothesis',
                 'extension' => 'mp4',
@@ -65,7 +73,7 @@ class VideoSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'id' => 7,
+                'id' => 8,
                 'title' => 'Representational Qualia Theory Consensus',
                 'link' => 'representational_qualia_consensus',
                 'extension' => 'mp4',
@@ -73,7 +81,7 @@ class VideoSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'id' => 8,
+                'id' => 9,
                 'title' => 'Conclusion',
                 'link' => 'conclusion',
                 'extension' => 'mp4',
