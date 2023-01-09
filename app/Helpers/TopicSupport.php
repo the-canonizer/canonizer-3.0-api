@@ -139,7 +139,19 @@ class TopicSupport
 
         if(!empty($removeCamps)){
 
-            self::removeSupport($topicNum,$removeCamps,$allNickNames);
+            try
+            {
+                DB::beginTransaction();
+                self::removeSupport($topicNum,$removeCamps,$allNickNames);
+                DB::commit();
+
+            }catch (Throwable $e) 
+            {
+                DB::rollback();
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
+            }
 
             $nicknameModel = Nickname::getNickName($nickNameId);
             $nickName = '';
@@ -153,8 +165,7 @@ class TopicSupport
             foreach($removeCamps as $key => $camp)
             {
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
-                $campModel  = self::getLiveCamp($campFilter);
-                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel); 
+                $campModel  = self::getLiveCamp($campFilter); 
 
                 /* To update the Mongo Tree while removing support */
                 /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
@@ -167,7 +178,9 @@ class TopicSupport
                         Util::dispatchJob($topic, $camp, 1);
                     }
                 }
+
                 
+                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                 GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
@@ -216,83 +229,118 @@ class TopicSupport
             $nickName = $nicknameModel->nick_name;
         }
 
-         if(!empty($removeCamps)){
+        if(!empty($removeCamps)){
 
-             // before removing get delegation support
-             self::removeSupport($topicNum,$removeCamps,$allNickNames);
-             Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
+            try
+            {
+                DB::beginTransaction();
 
-             $topicFilter = ['topicNum' => $topicNum];
-             $topicModel = Camp::getAgreementTopic($topicFilter);
-             $removeArrayCount = count($removeCamps);
+                self::removeSupport($topicNum,$removeCamps,$allNickNames);
+                Support::reOrderSupport($topicNum, $allNickNames); //after removal reorder support
+                
+                DB::commit();
 
-             foreach($removeCamps as $key => $camp) {     
-                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
-                 $campModel  = self::getLiveCamp($campFilter);
+                $topicFilter = ['topicNum' => $topicNum];
+                $topicModel = Camp::getAgreementTopic($topicFilter);
+                $removeArrayCount = count($removeCamps);
 
-                /* To update the Mongo Tree while removing at add support */
-                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                if($topicNum == config('global.mind_expert_topic_num')) {
-                    Util::dispatchJob($topic, $camp, 1);
-                } else {
-                    // Execute job only one time at last iteration of loop.
-                    if ($key ==  $removeArrayCount - 1 ) {
+                foreach($removeCamps as $key => $camp) {     
+                    $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
+                    $campModel  = self::getLiveCamp($campFilter);
+
+                    /* To update the Mongo Tree while removing at add support */
+                    /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
+                    if($topicNum == config('global.mind_expert_topic_num')) {
                         Util::dispatchJob($topic, $camp, 1);
+                    } else {
+                        // Execute job only one time at last iteration of loop.
+                        if ($key ==  $removeArrayCount - 1 ) {
+                            Util::dispatchJob($topic, $camp, 1);
+                        }
                     }
+
+                    self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                    GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
-
-                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                 GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
-             }
-
-             //log activity
-             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
-
-
-         }
+                //log activity
+                self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
+                
+            }catch (Throwable $e) 
+            {
+                DB::rollback();
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
+            }
+        }
 
          $supportToAdd = [];
          if(isset($addCamp) && !empty($addCamp)){
-            $campNum = $addCamp['camp_num'];
-            $supportOrder = $addCamp['support_order'];
+            try
+            {
+                DB::beginTransaction();
+                $campNum = $addCamp['camp_num'];
+                $supportOrder = $addCamp['support_order'];
 
-            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
-            $campModel  = self::getLiveCamp($campFilter);
+                $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+                $campModel  = self::getLiveCamp($campFilter);
 
-            $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
-            array_push($supportToAdd, $support);
-            if(count($allDelegates)) { 
-                self::insertDelegateSupport($allDelegates, $supportToAdd);
-            }
-        
-            /* To update the Mongo Tree while adding support */
-            Util::dispatchJob($topic, $campNum, 1);
+                $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId);
+                array_push($supportToAdd, $support);
+                if(count($allDelegates)) { 
+                    self::insertDelegateSupport($allDelegates, $supportToAdd);
+                }
 
-           $subjectStatement = "has added their support to"; 
-           self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-           GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
-           //log activity
-           self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
+                DB::commit();
+                /* To update the Mongo Tree while adding support */
+                Util::dispatchJob($topic, $campNum, 1);
+
+                $subjectStatement = "has added their support to"; 
+                self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
+                GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
+                //log activity
+                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
+
+            }catch (Throwable $e) 
+            {
+                DB::rollback();
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
+            }            
         }
 
 
  
         if(isset($orderUpdate) && !empty($orderUpdate)){
-            self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+            try
+            {
+                DB::beginTransaction();
+                self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
 
-           $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-           foreach($orderUpdate as $key => $order) {
-               // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
-               if($topicNum == config('global.mind_expert_topic_num')) {
-                   Util::dispatchJob($topic, $order['camp_num'], 1);
-               } else {
-                   // Execute job only one time at first iteration of loop.
-                   if ($key ==  0) {
-                       Util::dispatchJob($topic, $order['camp_num'], 1);
-                   }
-               }
-           }
-       }
+                DB::commit();
+
+                $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+                foreach($orderUpdate as $key => $order) {
+                    // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
+                    if($topicNum == config('global.mind_expert_topic_num')) {
+                        Util::dispatchJob($topic, $order['camp_num'], 1);
+                    } else {
+                        // Execute job only one time at first iteration of loop.
+                        if ($key ==  0) {
+                            Util::dispatchJob($topic, $order['camp_num'], 1);
+                        }
+                    }
+                }
+
+            }catch (Throwable $e) 
+            {
+                DB::rollback();
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
+            }
+        }
     }
 
 
@@ -302,55 +350,70 @@ class TopicSupport
      */
     public static function addDelegateSupport($user,$topicNum, $campNum, $nickNameId, $delegateNickNameId)
     { 
-        $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
-        $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
-        $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $delegatToNickNames);
-        $delegatorPrevSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
-        $campNum = $supportToAdd[0]->camp_num;   // first choice
-        $notifyDelegatedUser = false;        
 
-        if(count($delegatorPrevSupport)){
-            $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
-            self::removeSupport($topicNum, [], $allNickNames);  
-        }
+        try{
 
-        $delegateSupporters = array(
-                ['nick_name_id' => $nickNameId, 'delegate_nick_name_id' => $delegateNickNameId]
-            );
-        if(isset($allDelegates) && $allDelegates){
-            $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
-        } 
+            DB::beginTransaction();
+            $delegatToNickNames = self::getAllNickNamesOfNickID($delegateNickNameId);
+            $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
+            $supportToAdd = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $delegatToNickNames);
+            $delegatorPrevSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
+            $campNum = $supportToAdd[0]->camp_num;   // first choice
+            $notifyDelegatedUser = false;        
+
+            if(count($delegatorPrevSupport)){
+                $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
+                self::removeSupport($topicNum, [], $allNickNames);  
+            }
+
+            $delegateSupporters = array(
+                    ['nick_name_id' => $nickNameId, 'delegate_nick_name_id' => $delegateNickNameId]
+                );
+            if(isset($allDelegates) && $allDelegates){
+                $delegateSupporters = array_merge($delegateSupporters, $allDelegates);
+            } 
+            
+            $nickName = '';
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            if (!empty($nicknameModel)) {
+                $nickName = $nicknameModel->nick_name;
+            }
+
+            self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
+
+            DB::commit();
+            
+            /* To update the Mongo Tree while delegating at add support*/
+            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+            if(!empty($campNum)) {
+                Util::dispatchJob($topic, $campNum, 1);
+            } else {
+                Util::dispatchJob($topic, 1, 1);
+            }
         
-        $nickName = '';
-        $nicknameModel = Nickname::getNickName($nickNameId);
-        if (!empty($nicknameModel)) {
-            $nickName = $nicknameModel->nick_name;
-        }
+            $subjectStatement = "has just delegated their support to";
+            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
+            GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
+            GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
 
-        self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
-       
-        $subjectStatement = "has just delegated their support to";
-        self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
-        GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
-        GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
+            if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
+            {
+                $notifyDelegatedUser = true;
+            }
 
-       if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
+            self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
+
+            // log activity
+            self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
+            
+
+            
+        }catch (Throwable $e) 
         {
-            $notifyDelegatedUser = true;
-        }
-
-        self::notifyDelegatorAndDelegateduser($topicNum, $campNum, $nickNameId, 'add', $delegateNickNameId, $notifyDelegatedUser);
-
-        // log activity
-        self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId);       
-        
-
-        /* To update the Mongo Tree while delegating at add support*/
-        $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-        if(!empty($campNum)) {
-            Util::dispatchJob($topic, $campNum, 1);
-        } else {
-            Util::dispatchJob($topic, 1, 1);
+            DB::rollback();
+            $data = null;
+            $status = 403;
+            echo  $message = $e->getMessage();
         }
         
         
