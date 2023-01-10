@@ -442,7 +442,7 @@ return [
         "addDelegateMessage" => ":nick_name has just added delegate support to you in this topic - :topic_name",
         "addDelegateSupportUser" => "You have delegated your support to :delegate_nick_name in this topic - :topic_name",
         "promotedDelegate" => "You delegated your support to :nick_name  who delegate their support to :delegated_nick_name, now has removed their delegated support from camp - :camp_name under topic - :topic_name. So your support has been delegated to :delegated_nick_name.",
-        "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic.So you have been promoted to a direct supporter",
+        "promotedDirect" => "You delegated your support to :nick_name who was directly supporting camp - :camp_name under topic - :topic_name, now has removed their entire support from this topic. So you have been promoted to a direct supporter",
         "commitCampChange" => ":nick_name has just proposed a change to - :camp_name camp.",
         "commitStatementChange" => ":nick_name has just proposed a change to statement of - :camp_name camp.",
         "commitTopicChange" => ":nick_name has just proposed a change to - :topic_name topic.",
