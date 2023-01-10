@@ -102,7 +102,7 @@ class MetaTagController extends Controller
 
                 switch ($page_name) {
 
-                    case "CampForumPage":
+                    case "EditNewsPage1":
                         $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                         if ($validationErrors) {
                             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
