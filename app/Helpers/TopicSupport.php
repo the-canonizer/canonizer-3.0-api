@@ -176,9 +176,9 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
                 } else {
                     // Execute job only one time at last iteration of loop.
-                    if ($key ==  $removeArrayCount - 1 ) {
+                   // if ($key ==  $removeArrayCount - 1 ) {
                         Util::dispatchJob($topic, $camp, 1);
-                    }
+                  //  }
                 }
 
                 
@@ -191,17 +191,26 @@ class TopicSupport
         }
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
-            self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
-
-            $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-            foreach($orderUpdate as $order) {
-                // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
-                if($topicNum == config('global.mind_expert_topic_num')) {
-                    Util::dispatchJob($topic, $order['camp_num'], 1);
+            try
+            {
+                DB::beginTransaction();
+                self::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+                DB::commit();
+                $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+                foreach($orderUpdate as $order) {
+                    // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
+                    if($topicNum == config('global.mind_expert_topic_num')) {
+                        Util::dispatchJob($topic, $order['camp_num'], 1);
+                    }
                 }
+                Util::dispatchJob($topic, 1, 1);
+            }catch (Throwable $e) 
+            {
+                DB::rollback();
+                $data = null;
+                $status = 403;
+                echo  $message = $e->getMessage();
             }
-            Util::dispatchJob($topic, 1, 1);
-            
         }
 
         return;
@@ -256,9 +265,9 @@ class TopicSupport
                         Util::dispatchJob($topic, $camp, 1);
                     } else {
                         // Execute job only one time at last iteration of loop.
-                        if ($key ==  $removeArrayCount - 1 ) {
+                        //if ($key ==  $removeArrayCount - 1 ) {
                             Util::dispatchJob($topic, $camp, 1);
-                        }
+                        //}
                     }
 
                     self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
@@ -330,9 +339,9 @@ class TopicSupport
                         Util::dispatchJob($topic, $order['camp_num'], 1);
                     } else {
                         // Execute job only one time at first iteration of loop.
-                        if ($key ==  0) {
+                        //if ($key ==  0) {
                             Util::dispatchJob($topic, $order['camp_num'], 1);
-                        }
+                        //}
                     }
                 }
 
