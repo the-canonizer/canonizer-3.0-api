@@ -109,7 +109,7 @@ class MetaTagSeeder extends Seeder
             [
                 'page_name' => 'CampForumPage',
                 'title' => 'Forum | Canonizer',
-                'is_static' => 0,
+                'is_static' => 1,
                 'description' => 'Post your ideas and reply to threads in our community-based support forums.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -191,7 +191,7 @@ class MetaTagSeeder extends Seeder
                 'page_name' => 'Support',
                 'title' => 'List of Supported Camps | Canonizer',
                 'is_static' => 1,
-                'description' => 'Check all the Supported Camps under an existing topic. You can also support different camps as and when required.',
+                'description' => 'Lists all supported camp by a particular user.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
