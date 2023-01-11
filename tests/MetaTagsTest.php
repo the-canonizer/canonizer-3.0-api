@@ -45,7 +45,7 @@ class GetMetaTagsTest extends TestCase
         print sprintf("\nTest for page not found");
 
         $this->post('/api/v3/meta-tags', $payload);
-        $this->assertEquals(401,  $this->response->status());
+        $this->assertEquals(404,  $this->response->status());
     }
 
     public function testForCheckPageNameAlpha()
