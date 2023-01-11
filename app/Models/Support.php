@@ -203,7 +203,7 @@ class Support extends Model
         if($onlyDirectSupport){
             $supports = self::where('topic_num', '=', $topicNum)
             ->whereIn('nick_name_id', $nickNames)
-            ->where('delegate_nick_name_id','=', 0)
+            ->where('delegate_nick_name_id', 0)
             ->orderBy('support_order', 'ASC')
             ->where('end', '=', '0')->get();
         }else{
@@ -449,6 +449,7 @@ class Support extends Model
 
     public static function ifIamExplicitSupporter($filter,$nickNames, $type = null){
             Camp::clearChildCampArray();
+            $childCamps = [];
             if($type == "topic"){
                 $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
                 ->where('go_live_time', '<=', time())
@@ -463,7 +464,13 @@ class Support extends Model
                     unset($childCamps[$key]);
                 }
             }
-            $mysupports = Support::where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $nickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+            $mysupports = Support::where('topic_num', $filter['topicNum'])
+                            ->whereIn('camp_num', $childCamps)
+                            ->whereIn('nick_name_id', $nickNames)
+                            ->where('end', '=', 0)
+                            ->where('delegate_nick_name_id', '=', 0)
+                            ->orderBy('support_order', 'ASC')
+                            ->groupBy('camp_num')->get();
             return (count($mysupports)) ? true : false;
     }
 
