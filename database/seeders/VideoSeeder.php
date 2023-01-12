@@ -42,7 +42,7 @@ class VideoSeeder extends Seeder
             ],
             [
                 'id' => 4,
-                'title' => 'The world in you head',
+                'title' => 'The world in your head',
                 'link' => 'The_world_in_you_head',
                 'extension' => 'mp4',
                 'created_at' => date('Y-m-d H:i:s'),
