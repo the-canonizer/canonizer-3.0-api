@@ -6,7 +6,7 @@
     <td>
         <table width="100%">
             <tr>
-                <td style="text-align:center; padding:30px 0px;"><img src="{{URL::asset('assets/images/OTP-img.png') }}"></td>
+                <td style="text-align:center; padding:30px 0px;"><img src="{{URL::asset('assets/images/OTP-img.png') }}" alt="otp"></td>
             </tr>
         </table>
     </td>            
@@ -23,15 +23,13 @@
                 <?php } ?>
             </tr>
             <tr>
-                <td style="padding-top: 20px;  font-weight:400;">Your one time verification code is</td>
+                <td style="padding-top: <?php if(!$settingFlag){ echo '20px;';}else{echo '0px;';}?>  font-weight:400;">Your one time verification code is</td>
                 </tr>
                 <tr>
-                <td style="padding-top:10px; padding-bottom: 20px; font-weight:400; font-size:30px; color:#497BDF;">{{ $user->otp}}</td>
+                <td style="padding-top:10px; padding-bottom: 10px; font-weight:400; font-size:30px; color:#497BDF;">{{ $user->otp}}</td>
             </tr>
             <tr>
                 <td style="padding-top:10px;  font-weight:400; ">If you ever have any issues or feedback,</td>
-
-
             </tr>
             <tr>
                 <td style="padding-top:10px; font-weight:400; padding-bottom: 20px; ">Feel free to email: <a href="mailto:support@canonizer.com" style="color:#497BDF; font-weight: 600; text-decoration:none;">support@canonizer.com</a></td>
