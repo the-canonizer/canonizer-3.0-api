@@ -555,7 +555,7 @@ class CampController extends Controller
             $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
             if($request->camp_num){
                 $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num, 'asOf' => 'default']);
-                $childCamps = array_unique(Camp::getAllChildCamps($camp));
+                $childCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=false));
                 foreach($result as $key => $val){
                     if(in_array($val->camp_num, $childCamps)){
                         unset($result[$key]);
