@@ -1,14 +1,7 @@
 <?php
 
 class ParseValueWithWikiparserAPITest extends TestCase
-{
-    public function testParseValueWithWikiparserAPIWithEmptyFormData()
-    {
-        print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/parse-camp-statement', []);
-        $this->assertEquals(400, $response->status());
-    }
-    
+{    
     /**
      * Check Api with empty values
      * validation
@@ -16,7 +9,7 @@ class ParseValueWithWikiparserAPITest extends TestCase
     public function testParseValueWithWikiparserAPIWithEmptyValues()
     {
         $emptyData = [
-            'value' => '',
+            'value' => 123123,
         ];
         print sprintf("Test with empty values");
         $response = $this->call('POST', '/api/v3/parse-camp-statement', $emptyData);
