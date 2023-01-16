@@ -24,7 +24,7 @@ class ParseValueWithWikiparserAPITest extends TestCase
     }
 
     /**
-     * Check Api with empty values
+     * Check Api with integer values
      * validation
      */
     public function testParseValueWithWikiparserAPIWithIntegerValues()
