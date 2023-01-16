@@ -114,6 +114,7 @@ class ManageTopicApiTest extends TestCase
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        //  dd($this->response);
         $this->assertEquals(200,  $this->response->status());
     }
 

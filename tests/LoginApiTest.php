@@ -42,8 +42,12 @@ class LoginApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)
-            ->post('/api/v3/user/login?from_test_case=1', []);
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
+            // dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -53,13 +57,17 @@ class LoginApiTest extends TestCase
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
         $user = User::factory()->make();
         $parameters = [
-            "client_id" => "2",
-            "client_secret" => "ammkc6FkfLaXnMTGUR5vXNWgGU4PZH87TprL5xlD",
+            "client_id" =>  trans('testSample.user_ids.normal_user.user_3.client_id'),
+            "client_secret" =>  trans('testSample.user_ids.normal_user.user_3.client_secret'),
             "username" =>  trans('testSample.user_ids.normal_user.user_3.email'),
             'password' =>  trans('testSample.user_ids.normal_user.user_3.password'),
         ];
-        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters);
-        // dd($this->response);
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
+        //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
 }
