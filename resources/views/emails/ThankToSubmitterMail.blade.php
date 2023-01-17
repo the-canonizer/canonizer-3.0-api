@@ -26,7 +26,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="font-weight:400; font-size:20px; color:#497BDF;">
+                    <td style="font-weight:400; color:#497BDF;">
                         @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->link)])
                             Click Here To View
                         @endcomponent
@@ -41,7 +41,7 @@
         </td>
     </tr>
     <tr>
-        <td style="font-weight:400;">
+        <td style="font-weight:400;background:#fff;  color:#497BDF;">
             @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->historylink)])
                 Click Here To View History
             @endcomponent
