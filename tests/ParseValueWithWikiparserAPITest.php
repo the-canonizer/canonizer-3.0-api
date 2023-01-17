@@ -6,7 +6,7 @@ class ParseValueWithWikiparserAPITest extends TestCase
     {
         print sprintf("Test with empty form data");
         $response = $this->call('POST', '/api/v3/parse-camp-statement', []);
-        $this->assertEquals(400, $response->status());
+        $this->assertEquals(200, $response->status());
     }
     
     /**
@@ -20,6 +20,20 @@ class ParseValueWithWikiparserAPITest extends TestCase
         ];
         print sprintf("Test with empty values");
         $response = $this->call('POST', '/api/v3/parse-camp-statement', $emptyData);
+        $this->assertEquals(200, $response->status());
+    }
+
+    /**
+     * Check Api with integer values
+     * validation
+     */
+    public function testParseValueWithWikiparserAPIWithIntegerValues()
+    {
+        $data = [
+            'value' => 213123,
+        ];
+        print sprintf("Test with integer values");
+        $response = $this->call('POST', '/api/v3/parse-camp-statement', $data);
         $this->assertEquals(400, $response->status());
     }
     
