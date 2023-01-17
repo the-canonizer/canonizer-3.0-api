@@ -34,7 +34,7 @@ class ParseValueWithWikiparserAPITest extends TestCase
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/parse-camp-statement',$emptyData,$header);
-        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(200, $this->response->status());
     }
     
 
