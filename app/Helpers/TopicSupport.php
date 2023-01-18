@@ -941,6 +941,12 @@ class TopicSupport
                 return $returnData;
             }
 
+            /** Case IV - switch support from one delegate to another*/
+            $returnData = self::checkIfSupportSwitchToAnotherDelegate($topicNum, $campNum, $nickNames);
+            if(!empty($returnData)){
+                return $returnData;
+            }
+
         }else{
             $returnData = self::checkIfDelegatorSupporter($topicNum, $campNum, $nickNames);
             if(!empty($returnData)){
@@ -1443,7 +1449,7 @@ class TopicSupport
         $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
         $campsToemoved = [];
 
-        if (count($directSupport)) {
+        if (count($directSupport)) { 
             foreach($directSupport as $support){
 
                 $filter['topicNum'] = $topicNum;
@@ -1484,6 +1490,48 @@ class TopicSupport
         $returnData['disable_submit'] = $disableSubmit;
         $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
         $returnData['remove_camps'] = $removeCamps;
+
+        return $returnData;
+    }
+
+    /**
+     *  check is supported is a delegate supporter and switching to another delegate
+     *  @return $returnData with warning messages
+     */
+    public static function checkIfSupportSwitchToAnotherDelegate($topicNum, $campNum, $nickNames)
+    {
+        $returnData = [];
+        $supportedCamps = [];
+        $supports = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
+        if (count($supports) && $supports[0]->delegate_nick_name_id) {
+            $delegataedNickNameId = $supports[0]->delegate_nick_name_id;
+            $alreadyDelegatedTo = NickName::getNickName($delegataedNickNameId);
+            foreach($supports as $support){
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
+
+            $returnData['warning'] = "You have already delegated your support for this camp to user " . $alreadyDelegatedTo->nick_name . ". If you continue your delegated support will be removed.";
+            $returnData['topic_num'] = $topicNum;
+            $returnData['camp_num'] = $campNum;
+            $returnData['is_confirm'] = 1;
+            $returnData['is_delegator'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
+            $returnData['delegated_nick_name_id'] = $delegataedNickNameId;
+            $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
+        }
 
         return $returnData;
     }
