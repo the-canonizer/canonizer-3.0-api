@@ -94,7 +94,7 @@ class GetCampBreadCrumbApiTest extends TestCase
             'camp_num' => 5,
             'as_of' => "default"
         ];
-        print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
+        print sprintf("\n Test Breadcrumb API Response ", 200, PHP_EOL);
         $this->call('POST', '/api/v3/get-camp-breadcrumb', $data);
         $this->seeJsonStructure([
             'status_code',
@@ -104,7 +104,8 @@ class GetCampBreadCrumbApiTest extends TestCase
                     'bread_crumb',
                     'flag',
                     'subscription_id',
-                    'subscribed_camp_name'
+                    'subscribed_camp_name',
+                    'topic_name'
             ]
         ]);
     }

@@ -228,5 +228,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return (isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num']) || (isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num']);
     }
 
+    public static function getTopicFirstName($topicNumber) {
+        return self::where('topic_num', $topicNumber)->pluck('topic_name')->first();
+    }
+
 
 }
