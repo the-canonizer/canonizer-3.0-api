@@ -15,7 +15,7 @@ class SupportRemovedMailListener implements ShouldQueue
 
     public function viaQueue()
     {
-        return env('QUEUE_SERVICE_NAME');
+        return env('NOTIFY_SUPPORTER_QUEUE');
     }
  
     /**
