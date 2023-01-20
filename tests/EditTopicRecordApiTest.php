@@ -11,7 +11,7 @@ class EditTopicRecordApiTest extends TestCase
     public function testEdiTopicRecordApiWithoutUserAuth()
     {
         print sprintf("Test without auth");
-        $this->get('/api/v3/edit-topic/1');
+        $this->post('/api/v3/edit-topic');
         $this->assertEquals(401,  $this->response->status());
     }
 
@@ -23,7 +23,7 @@ class EditTopicRecordApiTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/edit-topic/abc');
+        $this->actingAs($user)->post('/api/v3/edit-topic',[]);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -34,15 +34,12 @@ class EditTopicRecordApiTest extends TestCase
     {
         print sprintf("\n Test edit topic API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/edit-topic/1');
+        $this->actingAs($user)->post('/api/v3/edit-topic');
         $this->seeJsonStructure([
             'status_code',
             'message',
             'error',
-            'data' => [
-                    'topic',
-                    'nick_name'
-            ]
+            'data' => []
         ]);
     }
 

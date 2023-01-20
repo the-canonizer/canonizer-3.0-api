@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\User;
+use App\Models\Support;
+use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ManageCampApiTest extends TestCase
 {
+    use DatabaseTransactions;
      /**
      * Check Api with empty form data
      * validation
@@ -101,7 +104,7 @@ class ManageCampApiTest extends TestCase
         $validData = [
             "topic_num" => "47",
             "camp_num" => "2",
-            "camp_id" => "3",
+            "camp_id" => "2",
             "camp_name" => rand(),
             "nick_name" => "347",
             "note" => "note",
@@ -114,7 +117,18 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
+        Support::insert([
+            'nick_name_id' => 347,
+            'delegate_nick_name_id' => 0,
+            'topic_num' => 47,
+            'camp_num'  =>  2,
+            'support_order' =>  1,
+            'start' => time(),
+            'end' => 0,
+        ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+
+        // dd($this->response);
         $this->assertEquals(200,  $this->response->status());
     }
 

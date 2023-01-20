@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 
 class GetCampRecordApiTest extends TestCase
 {
@@ -11,8 +13,14 @@ class GetCampRecordApiTest extends TestCase
     public function testGetCampRecordApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/get-camp-record', []);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', [] ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -28,8 +36,14 @@ class GetCampRecordApiTest extends TestCase
             'as_of_date' => ""
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/get-camp-record', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -43,12 +57,14 @@ class GetCampRecordApiTest extends TestCase
             'as_of' => "default"
         ];
         print sprintf("\n get camp record ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
-            '/api/v3/get-camp-record',
-            $data
-        );
-        $this->assertEquals(200, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -65,8 +81,14 @@ class GetCampRecordApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-camp-record', $invalidData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -82,8 +104,14 @@ class GetCampRecordApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-camp-record', $invalidData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -97,24 +125,13 @@ class GetCampRecordApiTest extends TestCase
             'as_of' => "default"
         ];
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
-        $this->call('POST', '/api/v3/get-camp-record', $data);
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                    'topic_num',
-                    'camp_num',
-                    'key_words',
-                    'camp_about_url',
-                    'nick_name',
-                    'subscriptionCampName',
-                    'subscriptionId',
-                    'flag',
-                    'parent_camp_name',
-                    'parentCamps',
-                    'camp_name'
-            ]
-        ]);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 }

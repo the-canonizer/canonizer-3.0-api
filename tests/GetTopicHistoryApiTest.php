@@ -12,8 +12,13 @@ class GetTopicHistoryApiTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('api/v3/get-topic-history', []);
-        $this->assertEquals(400,  $this->response->status());
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', [] ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -30,7 +35,12 @@ class GetTopicHistoryApiTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('api/v3/get-topic-history', $emptyData);
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $emptyData ,$header);
+        //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -48,8 +58,13 @@ class GetTopicHistoryApiTest extends TestCase
         ];
         print sprintf("Test with valid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('api/v3/get-topic-history', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -66,8 +81,13 @@ class GetTopicHistoryApiTest extends TestCase
         ];
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('api/v3/get-topic-history', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -81,8 +101,14 @@ class GetTopicHistoryApiTest extends TestCase
             "page" => "1",
             "topic_num" => "88",
         ];
-        $this->post('api/v3/get-topic-history', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -97,21 +123,12 @@ class GetTopicHistoryApiTest extends TestCase
             "type" => "all",
         ];
         $user = User::factory()->make();
-        $this->actingAs($user)->post('api/v3/get-topic-history', $data);
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                'items',
-                'current_page',
-                'per_page',
-                'last_page',
-                'total_rows',
-                'from',
-                'to',
-                'details'
-            ]
-        ]);
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 }

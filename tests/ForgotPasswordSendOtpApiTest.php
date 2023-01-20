@@ -34,14 +34,18 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         print sprintf(" \n Invalid Forgot Password Send Otp details submitted %d %s", 400,PHP_EOL);
 
         $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
 
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
         $parameter = [
             'email' => ""
         ];
 
         $this->actingAs($user)
-        ->post('/api/v3/forgot-password/send-otp', $parameter);
-        
+        ->post('/api/v3/forgot-password/send-otp', $parameter, $header);
+        // dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -49,13 +53,17 @@ class ForgotPasswordSendOtpApiTest extends TestCase
     {
         print sprintf(" \n Valid Forgot Password Send Otp details submitted %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
 
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
         $parameters = [
             "email" => trans('testSample.user_ids.normal_user.user_2.email'),
         ];
         $this->actingAs($user)
-            ->post('/api/v3/forgot-password/send-otp',$parameters);   
-          //  dd($this->response);
+            ->post('/api/v3/forgot-password/send-otp',$parameters , $header);   
+            // dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
    
