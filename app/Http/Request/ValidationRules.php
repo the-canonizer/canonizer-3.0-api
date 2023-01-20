@@ -513,7 +513,7 @@ class ValidationRules
     public function getParseStatementValidationRules(): array
     {
         return ([
-            'value' => 'string'
+            'value' => 'present|string'
         ]);
     }
 
