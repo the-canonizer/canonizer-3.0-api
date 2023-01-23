@@ -124,14 +124,15 @@ class GetCampBreadCrumbApiTest extends TestCase
             'camp_num' => 5,
             'as_of' => "default"
         ];
-        print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
+
+        print sprintf("\n Test Breadcrumb API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
-        //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
+
     }
 }
