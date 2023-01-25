@@ -165,7 +165,6 @@ class NicknameController extends Controller
     public function getNickSupportUser(Request $request,$nick_id)
     {
         $user = $request->user();
-        // dd($user,$nick_id);
         try {
             $allNicknames = Nickname::getNickSupportUser($user,$nick_id);
 
