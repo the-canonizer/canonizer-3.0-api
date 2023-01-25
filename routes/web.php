@@ -44,6 +44,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/post-verify-email','UserController@postVerifyEmail');
         $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
         $router->get('/thread/{id}','ThreadsController@getThreadById');
+        $router->get('get-nick-support-user/{nick_id}','NicknameController@getNickSupportUser');
 
         // Others Routes
 
