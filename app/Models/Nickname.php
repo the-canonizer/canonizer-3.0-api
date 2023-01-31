@@ -362,9 +362,8 @@ class Nickname extends Model {
     public static function getNickSupportUser($user, $nick_id)
     {
         $nickname = self::find($nick_id);
-        $ownerCode = Util::canon_encode($user->id ?? '');
-        $usernicknameid = self::where('owner_code', $ownerCode)->pluck('id')->first();
-        if ($user && $usernicknameid == $nick_id) {
+        $userByNickId = self::getUserByNickName($nick_id);
+        if ($user && $user->id == $userByNickId->id) {
            return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('owner_code', $nickname->owner_code)->orderBy('nick_name', 'ASC')->get();
         } else if ($nickname->private == 1) {
             return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('id', $nick_id)->orderBy('nick_name', 'ASC')->get();
