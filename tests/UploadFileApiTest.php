@@ -56,6 +56,7 @@ class UploadFileApiTest extends TestCase
                         ]
                 ];
         $response = $this->actingAs($user)->post('/api/v3/upload-files', $input);
+        // dd($this->response);
         $this->assertEquals(200, $this->response->status());
         //$awsEndPoint = env('AWS_END_POINT');
         //Storage::disk('s3')->assertExists($awsEndPoint .'/'.$rand.'.jpg');

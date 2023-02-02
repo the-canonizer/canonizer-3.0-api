@@ -238,17 +238,19 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function getAllChildCamps($camp): array
     {
         self::clearChildCampArray();
-        $campArray = [];
+        $camparray = [];
+        Camp::$chilcampArray = [];
+        Camp::$childtempArray = [];
         try {
             if ($camp) {
                 $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
                 $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
-                if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$chilcampArray)) {
+                if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$childtempArray)) {
                     return [];
                 }
                 Camp::$chilcampArray[] = $key;
-                Camp::$chilcampArray[] = $key1;
-                $campArray[] = $camp->camp_num;
+                Camp::$childtempArray[] = $key1;
+                $camparray[] = $camp->camp_num;
                 $childCamps = Camp::where('topic_num', $camp->topic_num)
                     ->where('parent_camp_num', $camp->camp_num)
                     ->where('go_live_time', '<=', time())
@@ -259,11 +261,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                     $latestParent = Camp::where('topic_num', $child->topic_num)
                         ->where('camp_num', $child->camp_num)
                         ->where('go_live_time', '<=', time())
+                        ->where('objector_nick_id', NULL)
                         ->latest('submit_time')
                         ->first();
                     
                     if ($latestParent->parent_camp_num == $camp->camp_num) {
-                        $campArray = array_merge($campArray, self::getAllChildCamps($child));
+                        $camparray = array_merge($camparray, self::getAllChildCamps($child));
                     }
                 }
             }
@@ -271,7 +274,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             Util::logMessage("Error :: getAllChildCamps :: ".$e->getMessage());
         }
        
-        return $campArray;
+        return $camparray;
     }
 
     public static function getAllParent($camp, $camparray = array())

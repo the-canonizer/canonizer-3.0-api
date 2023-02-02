@@ -48,23 +48,36 @@ class RegistrationApiTest extends TestCase
     public function testRegisterEmptyParams()
     {
         print sprintf("Invalid Register details submitted %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/register', []);
-        $this->assertEquals(400, $response->status());       
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $this->assertEquals(400, $this->response->status());      
     }
 
     public function testWhenIncorrectRegisterCurrentPassword(){
         print sprintf("Same Register New And Current Password %d %s", 302,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/register', ['password'=>'Test#123','password_confirmation'=>'Test#123']);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/register',['password'=>'Test#123','password_confirmation'=>'Test#123'],$header);
+        $this->assertEquals(400, $this->response->status());
     }
 
     public function testRegisterWithInvalidData()
     {
         print sprintf(" \n Invalid Register details submitted %d %s", 400,PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)
-        ->post('/api/v3/register',[]);    
-        $this->assertEquals(400, $this->response->status());
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $this->assertEquals(400, $this->response->status());      
     }
 
 
@@ -94,9 +107,12 @@ class RegistrationApiTest extends TestCase
             "password_confirmation" => trans('testSample.user_ids.normal_user.user_2.password'),
             "otp" =>  trans('testSample.user_ids.normal_user.user_2.otp'),
         ];
-        $this->actingAs($user)
-        ->post('/api/v3/register',$parameters);
-        $this->assertEquals(200, $this->response->status());
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
+        $this->assertEquals(200, $this->response->status());      
     }
 
 }

@@ -160,4 +160,19 @@ class NicknameController extends Controller
         }
 
     }
+
+
+    public function getNickSupportUser(Request $request,$nick_id)
+    {
+        $user = $request->user();
+        try {
+            $allNicknames = Nickname::getNickSupportUser($user,$nick_id);
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $allNicknames, '');
+
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+
+    }
 }

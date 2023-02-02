@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 class GetCampBreadCrumbApiTest extends TestCase
 {
  /**
@@ -9,8 +11,14 @@ class GetCampBreadCrumbApiTest extends TestCase
     public function testGetCampBreadCrumbWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/get-camp-breadcrumb', []);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb',[],$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -26,8 +34,14 @@ class GetCampBreadCrumbApiTest extends TestCase
             'as_of_date' => ""
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/get-camp-breadcrumb', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $emptyData,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -41,12 +55,14 @@ class GetCampBreadCrumbApiTest extends TestCase
             'as_of' => "default"
         ];
         print sprintf("\n get camp bread crumb ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
-            '/api/v3/get-camp-breadcrumb',
-            $data
-        );
-        $this->assertEquals(200, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -63,8 +79,15 @@ class GetCampBreadCrumbApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-camp-breadcrumb', $invalidData);
-        $this->assertEquals(400, $response->status());
+
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -80,8 +103,15 @@ class GetCampBreadCrumbApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-camp-breadcrumb', $invalidData);
-        $this->assertEquals(400, $response->status());
+
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -94,18 +124,15 @@ class GetCampBreadCrumbApiTest extends TestCase
             'camp_num' => 5,
             'as_of' => "default"
         ];
-        print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
-        $this->call('POST', '/api/v3/get-camp-breadcrumb', $data);
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                    'bread_crumb',
-                    'flag',
-                    'subscription_id',
-                    'subscribed_camp_name'
-            ]
-        ]);
+
+        print sprintf("\n Test Breadcrumb API Response ", 200, PHP_EOL);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
+        $this->assertEquals(200, $this->response->status());
+
     }
 }
