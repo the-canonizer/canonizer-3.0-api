@@ -109,7 +109,7 @@ class MetaTagSeeder extends Seeder
             [
                 'page_name' => 'CampForumPage',
                 'title' => 'Forum | Canonizer',
-                'is_static' => 1,
+                'is_static' => 0,
                 'description' => 'Post your ideas and reply to threads in our community-based support forums.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -117,9 +117,9 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'CampForumListPage',
-                'title' => 'Forum | Canonizer',
+                'title' => 'All Thread',
                 'is_static' => 0,
-                'description' => 'Post your ideas and reply to threads in our community-based support forums.',
+                'description' => 'List of all threads in a camp',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
