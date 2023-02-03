@@ -100,7 +100,7 @@ class MetaTagController extends Controller
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $metaTag, '');
             } else {
 
-                $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
+                $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                 if ($validationErrors) {
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
                 }
