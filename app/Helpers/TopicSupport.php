@@ -261,14 +261,7 @@ class TopicSupport
 
                     /* To update the Mongo Tree while removing at add support */
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                    if($topicNum == config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, $camp, 1);
-                    } else {
-                        // Execute job only one time at last iteration of loop.
-                        //if ($key ==  $removeArrayCount - 1 ) {
-                            Util::dispatchJob($topic, $camp, 1);
-                        //}
-                    }
+                    Util::dispatchJob($topic, $camp, 1);
 
                     self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                     GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
