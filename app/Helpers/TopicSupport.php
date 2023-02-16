@@ -29,15 +29,15 @@ class TopicSupport
     public static $model = 'App\Models\Support';
 
 
-    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user)
+    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $end_reason = null,$end_reason_link = null)
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type,'', $end_reason, $end_reason_link);
         
         }else if(isset($action) && $action == 'partial')
         {
-            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate, $user);
+            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate, $user ,$end_reason, $end_reason_link);
         }
     }
 
@@ -48,10 +48,10 @@ class TopicSupport
      * @param integer $delegateNickId is nick_name_id of user from whome delegation is removed
      * 
      */
-    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId)
+    public static function removeDelegateSupport($topicNum, $nickNameId, $delegateNickNameId, $end_reason, $end_reason_link)
     {
         $removeCamps = [];
-        self::removeCompleteSupport($topicNum,$removeCamps,$nickNameId, 'all', 'delegate', $delegateNickNameId); 
+        self::removeCompleteSupport($topicNum,$removeCamps,$nickNameId, 'all', 'delegate', $delegateNickNameId, $end_reason,$end_reason_link); 
         return;
     }
 
@@ -65,23 +65,24 @@ class TopicSupport
      * @param string $action defines remove status [all|partial]
      * @param string $type defines support type [direct|delegate]
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '')
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '', $end_reason = '',$end_reason_link = '')
     { 
         
         if(isset($action) && $action == 'all')  //abandon entire topic and promote deleagte
         {
             $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
-
-            $getAllActiveSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
             
+            //dd($allNickNames);
+            $getAllActiveSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
             if($getAllActiveSupport->count() == 0){ 
+                // dd($topicNum, $removeCamps , $nickNameId, $action , $type, $end_reason, $end_reason_link);
                 return;
             }
 
             $campNum = isset($getAllActiveSupport[0]->camp_num) ?  $getAllActiveSupport[0]->camp_num : '';  // First choice camp number  of topic
             $allDirectDelegates = Support::getActiveDelegators($topicNum, $allNickNames);
             
-            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames);
+            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames, $end_reason, $end_reason_link );
 
             //semd Email
             $nicknameModel = Nickname::getNickName($nickNameId);
@@ -135,7 +136,7 @@ class TopicSupport
      * Also remove support from those camps for delegated supporter
      * 
      */
-    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user)
+    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $end_reason = null,$end_reason_link = null)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
 
@@ -144,7 +145,7 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
-                self::removeSupport($topicNum,$removeCamps,$allNickNames);
+                self::removeSupport($topicNum,$removeCamps,$allNickNames,$end_reason,$end_reason_link);
                 DB::commit();
 
             }catch (Throwable $e) 
@@ -761,17 +762,17 @@ class TopicSupport
      * @param $campNum is array of camp_num 
      * @param $allNicknames is array all delegated__nick_id (s) of user to whome support is delagted  
      */
-    public static function removeSupport($topicNum, $campNum = array(), $allNickNames = array())
+    public static function removeSupport($topicNum, $campNum = array(), $allNickNames = array(), $end_reason = null,$end_reason_link = null)
     {
         $delegators = Support::getActiveDelegators($topicNum, $allNickNames);
-        Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames);
+        Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames,$end_reason,$end_reason_link);
 
         if(count($delegators))
         { 
             foreach($delegators as $delegator)
             {
                 $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
-                self::removeSupport($topicNum, $campNum, $delegatorsNickArray);
+                self::removeSupport($topicNum, $campNum, $delegatorsNickArray,$end_reason,$end_reason_link);
             }
         }
 
