@@ -64,7 +64,7 @@ class MetaTagSeeder extends Seeder
             [
                 'page_name' => 'StatementHistoryPage',
                 'title' => 'Statement History | Canonizer',
-                'is_static' => 0,
+                'is_static' => 1,
                 'description' => 'Statement history feature provides an archive of all statements in a particular camp/topic.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -117,9 +117,9 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'CampForumListPage',
-                'title' => 'Forum | Canonizer',
+                'title' => 'All Thread',
                 'is_static' => 0,
-                'description' => 'Post your ideas and reply to threads in our community-based support forums.',
+                'description' => 'List of all threads in a camp',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
@@ -189,9 +189,9 @@ class MetaTagSeeder extends Seeder
             ],
             [
                 'page_name' => 'Support',
-                'title' => 'Manage Supported Camps | Canonizer',
+                'title' => 'List of Supported Camps | Canonizer',
                 'is_static' => 1,
-                'description' => 'Check all the Supported Camps under an existing topic. You can also support different camps as and when required.',
+                'description' => 'Lists all supported camp by a particular user.',
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),

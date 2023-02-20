@@ -24,35 +24,11 @@ $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallba
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
-    $router->post('/get-camp-statement','StatementController@getStatement');
-    $router->post('/get-camp-newsfeed','NewsFeedController@getNewsFeed');
-    $router->post('/get-topic-record','TopicController@getTopicRecord');
-    $router->post('/get-camp-record','CampController@getCampRecord');
-    $router->get('/get-all-namespaces','NamespaceController@getAll');
-    $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');
-    $router->get('/get-social-media-links','SocialMediaLinkController@getLinks');
-    $router->get('/get-algorithms','AlgorithmController@getAll');
-    $router->get('/get-languages','ProfileController@getLanguages');
-    $router->get('mobile-carrier','ProfileController@mobileCarrier');
-    $router->post('/get-statement-history','StatementController@getStatementHistory');
-    $router->get('user/profile/{id}','ProfileController@getUserProfile');
-    $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
-    $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
-    $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
-    $router->post('get-camp-activity-log','ActivityController@getCampActivityLog');
+   
     $router->post('/client-token','UserController@clientToken');
-    $router->post('/get-topic-history','TopicController@getTopicHistory');
-    $router->post('/get-camp-history','CampController@getCampHistory');
-    $router->post('/parse-camp-statement', 'StatementController@parseStatement');
-    $router->post('/support-and-score-count', 'SupportController@getCampSupportAndCount');
-    $router->get('/get-terms-and-services-content','TermAndServicesController@getTermAndServicesContent');
-    $router->get('/get-privacy-policy-content','PrivacyPolicyController@getPrivacyPolicyContent');
-    $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
-    $router->get('/videos', 'VideoController@getVideos');
-    $router->post('/meta-tags', 'MetaTagController@getMetaTags');
 
     //Route Group to access api with client token
-    $router->group(['middleware' => ['Xss']], function() use ($router) {
+    $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
         $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
         $router->post('/post-verify-otp','UserController@postVerifyOtp');
@@ -68,6 +44,36 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/post-verify-email','UserController@postVerifyEmail');
         $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
         $router->get('/thread/{id}','ThreadsController@getThreadById');
+        $router->get('get-nick-support-user/{nick_id}','NicknameController@getNickSupportUser');
+
+        // Others Routes
+
+        $router->post('/get-camp-statement','StatementController@getStatement');
+        $router->post('/get-camp-newsfeed','NewsFeedController@getNewsFeed');
+        $router->post('/get-topic-record','TopicController@getTopicRecord');
+        $router->post('/get-camp-record','CampController@getCampRecord');
+        $router->get('/get-all-namespaces','NamespaceController@getAll');
+        $router->get('/get-whats-new-content','VideoPodcastController@getNewContent');
+        $router->get('/get-social-media-links','SocialMediaLinkController@getLinks');
+        $router->get('/get-algorithms','AlgorithmController@getAll');
+        $router->get('/get-languages','ProfileController@getLanguages');
+        $router->get('mobile-carrier','ProfileController@mobileCarrier');
+        $router->post('/get-statement-history','StatementController@getStatementHistory');
+        $router->get('user/profile/{id}','ProfileController@getUserProfile');
+        $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
+        $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
+        $router->post('get-camp-breadcrumb','CampController@getCampBreadCrumb');
+        $router->post('get-camp-activity-log','ActivityController@getCampActivityLog');
+        $router->post('/get-topic-history','TopicController@getTopicHistory');
+        $router->post('/get-camp-history','CampController@getCampHistory');
+        $router->post('/parse-camp-statement', 'StatementController@parseStatement');
+        $router->post('/support-and-score-count', 'SupportController@getCampSupportAndCount');
+        $router->get('/get-terms-and-services-content','TermAndServicesController@getTermAndServicesContent');
+        $router->get('/get-privacy-policy-content','PrivacyPolicyController@getPrivacyPolicyContent');
+        $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
+        $router->get('/videos', 'VideoController@getVideos');
+        $router->post('/meta-tags', 'MetaTagController@getMetaTags');
+
     });
 
     //Route Group to access api with user access token

@@ -1,13 +1,20 @@
 <?php
 
+use App\Models\User;
+
 class GetMetaTagsTest extends TestCase
 {
     public function testGetMetatagsWithoutPayload()
     {
         $payload = [];
         print sprintf("\nTest without payload");
-
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        //  dd($this->response);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -18,7 +25,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest for static pages only");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(200,  $this->response->status());
     }
 
@@ -29,7 +41,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest for dynamic pages only");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -44,8 +61,13 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest for page not found");
 
-        $this->post('/api/v3/meta-tags', $payload);
-        $this->assertEquals(401,  $this->response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $this->assertEquals(404,  $this->response->status());
     }
 
     public function testForCheckPageNameAlpha()
@@ -59,7 +81,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest to check if page name is not alphabetic");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -74,7 +101,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest to check if topic_num & camp_num are not greater than zero");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -88,7 +120,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest to check if topic_num is not present");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -102,7 +139,12 @@ class GetMetaTagsTest extends TestCase
         ];
         print sprintf("\nTest to check if camp_num is not present");
 
-        $this->post('/api/v3/meta-tags', $payload);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(400,  $this->response->status());
     }
 }
