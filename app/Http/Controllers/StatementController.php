@@ -17,13 +17,16 @@ use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use App\Events\NotifySupportersEvent;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Library\wiki_parser\wikiParser as wikiParser;
-use Illuminate\Support\Facades\Gate;
 
 
 
@@ -442,7 +445,7 @@ class StatementController extends Controller
                 if (!empty($nicknameModel)) {
                     $nickName = $nicknameModel->nick_name;
                 }
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'), null, $nickName);
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'), null, $nickName);
                 $this->createdStatementNotification($livecamp, $link, $statement, $request);
             } else if ($eventType == "update" && $ifIamSingleSupporter) {
                 $this->updatedStatementNotification($livecamp, $link, $statement, $request);
@@ -497,8 +500,8 @@ class StatementController extends Controller
 
     private function createdStatementNotification($livecamp, $link, $statement, $request)
     {
-        $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
-        $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
+        // $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
+        // $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
         $dataObject['topic_num'] = $statement->topic_num;
         $dataObject['camp_num'] = $statement->camp_num;
         $dataObject['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
@@ -514,6 +517,29 @@ class StatementController extends Controller
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
+        $topic = Topic::getLiveTopic($livecamp->topic->topic_num, "");
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+        $notificationData['email'] = $dataObject;
+
+        $liveThread =  null;
+        $threadId =  null;
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $livecamp, $liveThread, $threadId, config('global.notification_type.Statement'), $nickName->nick_name, null);
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $livecamp->topic_num,
+                "camp_num" => $livecamp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
+        }
+        
+        Event::dispatch(new NotifySupportersEvent($livecamp, $notificationData, config('global.notification_type.Statement'), $link, config('global.notify.both')));
         $activityLogData = [
             'log_type' =>  "topic/camps",
             'activity' => trans('message.activity_log_message.statement_create', ['nick_name' =>  $nickName->nick_name]),
@@ -526,7 +552,7 @@ class StatementController extends Controller
             'description' => $statement->value
         ];
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-        Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
+        // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
     
     private function updatedStatementNotification($livecamp, $link, $statement, $request)
@@ -575,7 +601,7 @@ class StatementController extends Controller
         ];
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

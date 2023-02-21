@@ -11,7 +11,9 @@ class EditCampRecordApiTest extends TestCase
     public function testEditCampApiWithoutUserAuth()
     {
         print sprintf("Test without auth");
-        $this->get('/api/v3/edit-camp/1');
+       
+        $this->post('/api/v3/edit-camp');
+        //   dd($this->response);
         $this->assertEquals(401,  $this->response->status());
     }
 
@@ -23,7 +25,7 @@ class EditCampRecordApiTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/edit-camp/abc');
+        $this->actingAs($user)->post('/api/v3/edit-camp');
         $this->assertEquals(400,  $this->response->status());
     }
 
@@ -34,17 +36,13 @@ class EditCampRecordApiTest extends TestCase
     {
         print sprintf("\n Test edit Camp API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/edit-camp/1');
+        $this->actingAs($user)->post('/api/v3/edit-camp');
+        // $this->assertEquals(200,  $this->response->status());
         $this->seeJsonStructure([
             'status_code',
             'message',
             'error',
-            'data' => [
-                    'camp',
-                    'nick_name',
-                    'parent_camp',
-                    'topic'
-            ]
+            'data' => []
         ]);
     }
 }

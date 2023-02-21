@@ -2,13 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\User;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Nickname;
+use Illuminate\Http\Request;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Http\Request;
-use App\Models\Nickname;
+use Dusterio\LumenPassport\LumenPassport;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -31,7 +32,8 @@ class AuthServiceProvider extends ServiceProvider
     {
 
         //$this->registerPolicies();
-        \Dusterio\LumenPassport\LumenPassport::routes($this->app);
+        LumenPassport::routes($this->app);
+        $this->setPassportConfiguration();
 
         // Here you may define how you wish users to be authenticated for your Lumen
         // application. The callback which receives the incoming request instance
@@ -52,5 +54,10 @@ class AuthServiceProvider extends ServiceProvider
             }
             return true;
         });
+    }
+
+    private function setPassportConfiguration(): void
+    {
+            LumenPassport::allowMultipleTokens();
     }
 }

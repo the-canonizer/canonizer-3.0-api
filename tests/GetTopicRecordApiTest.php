@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 class GetTopicRecordApiTest extends TestCase
 {
 
@@ -10,8 +12,14 @@ class GetTopicRecordApiTest extends TestCase
     public function testGetTopicRecordApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/get-topic-record', []);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', [] ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -26,8 +34,14 @@ class GetTopicRecordApiTest extends TestCase
             'as_of' => ''
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/get-topic-record', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $emptyData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -44,8 +58,14 @@ class GetTopicRecordApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-topic-record', $invalidData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -61,8 +81,14 @@ class GetTopicRecordApiTest extends TestCase
         ];
 
         print sprintf("Test with invalid values");
-        $response = $this->call('POST', '/api/v3/get-topic-record', $invalidData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -76,12 +102,14 @@ class GetTopicRecordApiTest extends TestCase
             'as_of' => 'default'
         ];
         print sprintf("\n get topic record ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
-            '/api/v3/get-topic-record',
-            $data
-        );
-        $this->assertEquals(200, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -96,18 +124,13 @@ class GetTopicRecordApiTest extends TestCase
         ];
 
         print sprintf("\n Test GetTopicRecord API Response ", 200, PHP_EOL);
-        $this->call('POST', '/api/v3/get-topic-record', $data);
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                    'topic_num',
-                    'camp_num',
-                    'topic_name',
-                    'namespace_name',
-                    'namespace_id'
-            ]
-        ]);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 }

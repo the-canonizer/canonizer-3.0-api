@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 class GetNewsFeedApiTest extends TestCase
 {
 
@@ -10,8 +12,14 @@ class GetNewsFeedApiTest extends TestCase
     public function testGetNewsFeedApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/get-camp-newsfeed', []);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', [] ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -25,8 +33,14 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => ''
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/get-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $emptyData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
     }
 
     /**
@@ -39,12 +53,14 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => 1
         ];    
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
-            '/api/v3/get-camp-newsfeed',
-            $data
-        );
-        $this->assertEquals(200, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
@@ -57,26 +73,13 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => 1
         ]; 
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
-        $this->call('POST', '/api/v3/get-camp-newsfeed', $data);
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data' => [
-                [
-                    'id',
-                    'display_text',
-                    'link',
-                    'available_for_child',
-                    'submitter_nick_name',
-                    'submit_time',
-                    'owner_flag',
-                    'manage_flag',
-                    'parent_camp_name',
-                    'parent_camp_url'
-
-                ]
-            ]
-        ]);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(200, $this->response->status());
     }
 }

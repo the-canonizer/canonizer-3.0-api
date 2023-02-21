@@ -28,13 +28,19 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         $user->otp = trans('testSample.user_ids.normal_user.user_2.otp');
         $user->username = trans('testSample.user_ids.normal_user.user_2.email');
 
+        $token = $user->createToken('TestToken')->accessToken;
+
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+
         $parameters = [
             "otp" => '',
             "username" => '',
         ];
 
         $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp', $parameters);
+            ->post('/api/v3/forgot-password/verify-otp', $parameters, $header);
 
         $this->assertEquals(400, $this->response->status());
     }
@@ -45,6 +51,12 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         $user = User::factory()->make([
             "otp" => trans('testSample.user_ids.admin_user.otp'),
         ]);
+
+        $token = $user->createToken('TestToken')->accessToken;
+
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
         
         $parameters = [
             "otp" => trans('testSample.user_ids.admin_user.otp'),
@@ -52,7 +64,7 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         ];
 
         $this->actingAs($user)
-            ->post('/api/v3/forgot-password/verify-otp', $parameters);
+            ->post('/api/v3/forgot-password/verify-otp', $parameters, $header);
         
         $this->assertEquals(200, $this->response->status());
     }

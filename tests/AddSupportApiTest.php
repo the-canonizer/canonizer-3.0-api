@@ -12,7 +12,6 @@ class AddSupportApiTest extends TestCase
 
     use DatabaseTransactions;
     
-    
     /***
      *  #userId used  362
      *  #ncikNameId used 347
@@ -43,8 +42,6 @@ class AddSupportApiTest extends TestCase
         $this->actingAs($user)->post('/api/v3/support/add', $data);
         $this->assertEquals(200, $this->response->status());
     }
-
-
 
     public function testAddSupportMessageWhenSupportDoNotExists()
     {
@@ -86,8 +83,6 @@ class AddSupportApiTest extends TestCase
         ]);
     }
 
-    
-
     public function testWarningMessageIfSupportSwitchFromChildToParent()
     {
         print sprintf(" \n Warning Message appears when support exists in child and now switching to parent  %d %s", 200, PHP_EOL);
@@ -95,15 +90,13 @@ class AddSupportApiTest extends TestCase
         $user = User::factory()->make([
             'id' => '362',
         ]);
-        
+
         $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
 
-       
         $this->seeJson([
-            "warning"=>"\"Agreement\" is a parent camp to \"Types Of Testing\", so if you commit support to \"Agreement\", the support of the child camp \"Types Of Testing\" will be removed.",
+            "warning"=>"\"Agreement\" is a parent camp to this list of child camps. If you commit support to \"Agreement\", the support of the camps in this list will be removed.",
         ]);
     }
-
 
     public function testWarningMessageIfSupportSwitchedFromParentToChild()
     {
@@ -113,17 +106,13 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=602&camp_num=2');
-
+        $this->actingAs($user)->get('/api/v3/support/check?topic_num=735&camp_num=2');
 
         $this->seeJson([
-            "warning"=>"\"camp 1\" is a child camp to \"Agreement\", so if you commit support to \"camp 1\", the support of the parent camp \"Agreement\" will be removed."
+            "warning"=>"\"Camp 1\" is a child camp to \"Agreement\", so if you commit support to \"Camp 1\", the support of the parent camp \"Agreement\" will be removed."
         ]);
     }
 
-
-    
-   
     public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
     {
         print sprintf(" \n Warning appear when delegate support exists in topic and now adding direct support %d %s", 200, PHP_EOL);
@@ -139,6 +128,4 @@ class AddSupportApiTest extends TestCase
         ]);
     }  
 
-  
-    
 }

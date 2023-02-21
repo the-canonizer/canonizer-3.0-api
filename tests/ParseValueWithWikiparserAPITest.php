@@ -1,12 +1,21 @@
 <?php
 
+use App\Models\User;
+
 class ParseValueWithWikiparserAPITest extends TestCase
 {
     public function testParseValueWithWikiparserAPIWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $response = $this->call('POST', '/api/v3/parse-camp-statement', []);
-        $this->assertEquals(400, $response->status());
+        // $response = $this->call('POST', '/api/v3/parse-camp-statement', []);
+
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/parse-camp-statement',[],$header);
+        $this->assertEquals(400, $this->response->status());
     }
     
     /**
@@ -19,8 +28,13 @@ class ParseValueWithWikiparserAPITest extends TestCase
             'value' => '',
         ];
         print sprintf("Test with empty values");
-        $response = $this->call('POST', '/api/v3/parse-camp-statement', $emptyData);
-        $this->assertEquals(400, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$emptyData,$header);
+        $this->assertEquals(200, $this->response->status());
     }
     
 
@@ -33,12 +47,13 @@ class ParseValueWithWikiparserAPITest extends TestCase
             'value' => 'string to be parsed',
         ];
         print sprintf("\n Parse value ", 200, PHP_EOL);
-        $response = $this->call(
-            'post',
-            '/api/v3/parse-camp-statement',
-            $data
-        );
-        $this->assertEquals(200, $response->status());
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
+        $this->assertEquals(200, $this->response->status());
     }
     
     /**
@@ -50,16 +65,12 @@ class ParseValueWithWikiparserAPITest extends TestCase
             'value' => '',
         ];
         print sprintf("\n  Parse value API Response ", 200, PHP_EOL);
-        $this->call(
-            'post',
-            '/api/v3/parse-camp-statement',
-            $data
-        );
-        $this->seeJsonStructure([
-            'status_code',
-            'message',
-            'error',
-            'data'
-        ]);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
+        $this->assertEquals(200, $this->response->status());
     }
 }

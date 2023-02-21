@@ -15,6 +15,7 @@ use App\Models\Statement;
 use App\Models\Thread;
 use App\Models\Topic;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Str;
 
 class MetaTagController extends Controller
@@ -85,6 +86,9 @@ class MetaTagController extends Controller
                 ->where([
                     'page_name' => $page_name,
                 ])->first();
+            if (!$metaTag) {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+            }
 
             if ($metaTag && $metaTag->is_static == 1) {
 
@@ -96,89 +100,76 @@ class MetaTagController extends Controller
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $metaTag, '');
             } else {
 
+                $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
+                if ($validationErrors) {
+                    return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+                }
+
+                $topic_num = $request->keys['topic_num'];
+                $camp_num = $request->keys['camp_num'];
+                // $forum_num = $request->keys['forum_num'];
+
+                $topic = $this->getTopicById($topic_num);
+                if (is_null($topic)) {
+                    throw new Exception(trans('message.error.topic_not_found'), 404);
+                }
+
+                $camp = $this->getCampById($topic_num, $camp_num);
+                if (is_null($camp)) {
+                    throw new Exception(trans('message.error.camp_not_found'), 404);
+                }
+                $description = $this->getCampStatementById($topic_num, $camp_num);
+                $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
+                $custom = false;
+
                 switch ($page_name) {
 
-                    case "CampForumPage":
-                        $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampForumValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
-                        if ($validationErrors) {
-                            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-                        }
+                    case 'TopicDetailsPage':
+                        $title = $topic->topic_name ?? "";
+                        $title .= (strlen($title) > 0 ? ' / ' : '') . $camp->camp_name;
+                        break;
 
-                        $topic_num = $request->keys['topic_num'];
-                        $camp_num = $request->keys['camp_num'];
-                        $forum_num = $request->keys['forum_num'];
+                    case "CampForumListPage":
+                        $custom = true;
+                        $title = $metaTag->title ?? "";
+                        $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
 
-                        $topic = $this->getTopicById($topic_num);
-                        $camp = $this->getCampById($topic_num, $camp_num);
-                        $forum_num = (new Thread())->select('id', 'title', 'body', 'user_id')->find($forum_num);
+                        $description = $metaTag->description ?? "";
+                        $description .= (strlen($description) > 0 ? ' - ' : '') . $camp->camp_name;
 
-                        $submitterNick = $this->getSubmitterById($forum_num->user_id);
+                        break;
 
+                    case 'TopicHistoryPage':
+                        $title = $topic->topic_name ?? "";
+                        break;
+
+                    case 'CampHistoryPage':
                         $title = $camp->camp_name ?? "";
-                        $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
+                        break;
 
-                        $responseArr = [
-                            "page_name" => $page_name ?? "",
-                            "title" => $title,
-                            "description" => $forum_num->body ?? "",
-                            "author" => $submitterNick->nick_name ?? "",
-                        ];
+                    case 'CampForumPage':
+                        $title = $camp->camp_name ?? "";
+                        $description = $metaTag->description ?? "";
                         break;
 
                     default:
-                        $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
-                        if ($validationErrors) {
-                            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-                        }
-
-                        $topic_num = $request->keys['topic_num'];
-                        $camp_num = $request->keys['camp_num'];
-
-                        $topic = $this->getTopicById($topic_num);
-                        $camp = $this->getCampById($topic_num, $camp_num);
-                        $statement = $this->getCampStatementById($topic_num, $camp_num);
-                        $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
-
-                        $title = '';
-                        switch ($page_name) {
-                            case 'TopicDetailsPage':
-                                $title = $topic->topic_name ?? "";
-                                $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
-                                break;
-
-                            case 'TopicHistoryPage':
-                                $title = $topic->topic_name ?? "";
-                                break;
-
-                            case 'CampHistoryPage':
-                            case 'CampForumListPage':
-                                $title = $camp->camp_name ?? "";
-                                break;
-
-                            default:
-                                # code...
-                                break;
-                        }
-
-                        $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
-
-                        $responseArr = [
-                            "page_name" => $page_name ?? "",
-                            "title" => $title,
-                            "description" => $statement,
-                            "author" => $submitterNick->nick_name ?? "",
-                        ];
-
                         break;
                 }
 
-                if (!$metaTag) {
-                    return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+                if (!$custom) {
+                    $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
                 }
+                $responseArr = [
+                    "page_name" => $page_name ?? "",
+                    "title" => $title ?? "",
+                    "description" => $description ?? "",
+                    "author" => $submitterNick->nick_name ?? "",
+                ];
+
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
             }
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 

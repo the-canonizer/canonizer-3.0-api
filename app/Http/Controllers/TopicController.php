@@ -22,13 +22,15 @@ use App\Models\CampSubscription;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use App\Events\NotifySupportersEvent;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
-use Illuminate\Support\Facades\Gate;
 use App\Facades\GetPushNotificationToSupporter;
 
 class TopicController extends Controller
@@ -413,17 +415,17 @@ class TopicController extends Controller
             $model->grace_period = 0;
             $model->update();
             $filter['topicNum'] = $model->topic_num;
-            $filter['campNum'] = $model->camp_num;
+            $filter['campNum'] = $model->camp_num ?? 1;
+            $liveCamp = Camp::getLiveCamp($filter);
+            $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             if ($type == 'topic') {
-                $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
-                $directSupporter = Support::getAllDirectSupporters($liveTopic->topic_num);
-                $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
+                // $directSupporter = Support::getAllDirectSupporters($liveTopic->topic_num);
+                // $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
                 $data['object'] = $liveTopic->topic_name;
             } else {
-                $liveCamp = Camp::getLiveCamp($filter);
-                $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
-                $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
+                // $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
+                // $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
                 $data['object'] = $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name;
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
@@ -442,7 +444,9 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $model->topic_num . '-statement/' . $model->camp_num . '/threads';
                 $data['subject'] = "Proposed change to statement for camp " . $liveCamp->topic->topic_name . " / " . $liveCamp->camp_name . " submitted";
                 $message = trans('message.success.statement_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
+
+                $notification_type = config('global.notification_type.statementCommit');
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
             } else if ($type == 'camp') {
                 $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -455,7 +459,8 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
                 $message = trans('message.success.camp_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
+                $notification_type = config('global.notification_type.campCommit');
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
             } else if ($type == 'topic') {
                 $model->camp_num = 1;
                 $link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $liveTopic->topic_num;
@@ -469,8 +474,32 @@ class TopicController extends Controller
                     Util::dispatchJob($liveTopic, 1, 1);
                 }
                 $message = trans('message.success.topic_commit');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
+                $notification_type = config('global.notification_type.topicCommit');
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
             }
+
+            $notificationData = [
+                "email" => [],
+                "push_notification" => []
+            ];
+            $notificationData['email'] = $data;
+    
+            $liveThread =  null;
+            $threadId =  null;
+            $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $liveTopic, $liveCamp, $liveThread, $threadId, $notification_type, $nickName->nick_name, null);
+            if (!empty($getMessageData)) {
+                $notificationData['push_notification'] = [
+                    "topic_num" => $liveTopic->topic_num,
+                    "camp_num" => 1,
+                    "notification_type" => $getMessageData->notification_type,
+                    "title" => $getMessageData->title,
+                    "message_body" => $getMessageData->message_body,
+                    "link" => $getMessageData->link,
+                    "thread_id" => !empty($threadId) ? $threadId : null,
+                ];
+            }
+            
+            Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
             $activityLogData = [
                 'log_type' =>  "topic/camps",
                 'activity' => trans('message.activity_log_message.commit_change', ['nick_name' =>  $nickName->nick_name, 'type' => $type]),
@@ -483,7 +512,7 @@ class TopicController extends Controller
                 'description' => $model->value
             ];
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-            Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
+            // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -882,7 +911,7 @@ class TopicController extends Controller
         ];
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, 1, $all['submitter'],$all['nick_name'],config('global.notification_type.objectTopic'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
