@@ -110,7 +110,7 @@ class TopicSupport
                 Util::dispatchJob($topic, 1, 1);
             }
 
-            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
+            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser, $removeCamps);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
             {
@@ -174,8 +174,8 @@ class TopicSupport
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 Util::dispatchJob($topic, $camp, 1);
 
-                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
+                self::supportRemovalEmail($topicModel, $campModel, $nicknameModel, '', false, $removeCamps);
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
              //log activity
@@ -255,8 +255,8 @@ class TopicSupport
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     Util::dispatchJob($topic, $camp, 1);
 
-                    self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                    GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
+                    self::supportRemovalEmail($topicModel, $campModel, $nicknameModel, '', false, $removeCamps);
+                    // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
                 self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
@@ -802,7 +802,7 @@ class TopicSupport
      * @param $camp is object of camp model
      * @param $nnickname is object of nickname model
      */
-    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='', $notifyDelegatedUser = false)
+    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='', $notifyDelegatedUser = false ,$removeCamps = array())
     {
         if(isset($delegateNickNameId) && !empty($delegateNickNameId))
         {
@@ -813,8 +813,23 @@ class TopicSupport
         }else{
             $subjectStatement = "has removed their support from";
         }
-       
-        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
+
+        /** 
+         *  send support remove mail and notification to all supporter and subscribers 
+         *  except in case of removing parent camp support
+         *  ticket # 184
+         */
+        $ifSupportChildCamp = false;
+        $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=',$camp->camp_num)->where('go_live_time', '<=', time())->latest('submit_time')->first();
+        if(isset($camp) && count($camp) > 0) {
+            $allParentCampsNumbers = Camp::getAllParent($camp);
+            if(!empty(array_intersect($removeCamps, $allParentCampsNumbers))) {
+                $ifSupportChildCamp = true;
+            }
+        }
+        if(!$ifSupportChildCamp) {
+            self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
+        }
         return;
     }
 
@@ -877,9 +892,6 @@ class TopicSupport
             ];
         }
         $channel = config('global.notify.both');
-        if($action == config('global.notification_type.removeSupport')){
-            $channel = config('global.notify.email');
-        }
         Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
         return true;
     }
