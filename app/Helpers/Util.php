@@ -23,7 +23,7 @@ use Throwable;
 use App\Jobs\PurposedToSupportersMailJob;
 use App\Models\Nickname;
 use Carbon\Carbon;
-use App\jobs\TimelineJob;
+use App\Jobs\TimelineJob;
 
 class Util
 {
