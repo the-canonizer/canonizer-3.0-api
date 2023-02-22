@@ -258,6 +258,11 @@ class CampController extends Controller
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+                //timeline start
+                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName->nick_name . " create Camp ". $topic->topic_name;
+                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                //end of timeline
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -1431,6 +1436,11 @@ class CampController extends Controller
                 }                
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+                //timeline start
+                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName->nick_name . " update Camp ". $topic->topic_name;
+                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="update_camp", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job

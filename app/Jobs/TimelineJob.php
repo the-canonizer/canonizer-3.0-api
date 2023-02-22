@@ -12,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Mingalevme\Illuminate\UQueue\Jobs\Uniqueable;
 use App\Exceptions\ServiceAuthenticationException;
 
-class CanonizerService implements ShouldQueue, Uniqueable
+class TimelineJob implements ShouldQueue, Uniqueable
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -60,16 +60,21 @@ class CanonizerService implements ShouldQueue, Uniqueable
         }
         
         $requestBody = [
-            'topic_num'     => $this->canonizerData['topic_num'],
-            'asofdate'      => $this->canonizerData['asOfDate'],
-            'algorithm'     => $this->canonizerData['algorithm'],
-            'update_all'    => $updateAll
+            'topic_num'         => $this->canonizerData['topic_num'],
+            'asofdate'          => $this->canonizerData['asOfDate'],
+            'algorithm'         => $this->canonizerData['algorithm'],
+            'update_all'        => $updateAll,
+            'message'           => $this->canonizerData['message'],
+            'type'              => $this->canonizerData['type'],
+            'id'                => $this->canonizerData['id'],
+            'old_parent_id'     => $this->canonizerData['old_parent_id'],
+            'new_parent_id'     => $this->canonizerData['new_parent_id']
         ];
         if(!empty($this->canonizerData['endpointCSStore'])) {
             $endpointCSStoreTree = $this->canonizerData['endpointCSStore'];
         }
         else{
-            $endpointCSStoreTree = env('CS_STORE_TREE');
+            $endpointCSStoreTree = env('CS_STORE_TIMELINE');
         }
         
         $appURL = env('CS_APP_URL');
