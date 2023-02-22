@@ -821,7 +821,7 @@ class TopicSupport
          */
         $ifSupportChildCamp = false;
         $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=',$camp->camp_num)->where('go_live_time', '<=', time())->latest('submit_time')->first();
-        if(isset($camp) && count($camp) > 0) {
+        if(empty($camp)) {
             $allParentCampsNumbers = Camp::getAllParent($camp);
             if(!empty(array_intersect($removeCamps, $allParentCampsNumbers))) {
                 $ifSupportChildCamp = true;
