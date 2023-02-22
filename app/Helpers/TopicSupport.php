@@ -175,7 +175,7 @@ class TopicSupport
                 Util::dispatchJob($topic, $camp, 1);
 
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
              //log activity
@@ -256,7 +256,7 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
 
                     self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                    GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
+                    // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
                 self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
@@ -877,9 +877,6 @@ class TopicSupport
             ];
         }
         $channel = config('global.notify.both');
-        if($action == config('global.notification_type.removeSupport')){
-            $channel = config('global.notify.email');
-        }
         Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
         return true;
     }
