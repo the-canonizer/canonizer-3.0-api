@@ -260,7 +260,7 @@ class CampController extends Controller
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 //timeline start
                 $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName->nick_name . " create Camp ". $topic->topic_name;
+                $timelineMessage = $nickName . " create Camp ". $camp->camp_name;
                 Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
                 //end of timeline
                 $camp_id = $camp->camp_num ?? 1;
@@ -1438,7 +1438,7 @@ class CampController extends Controller
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 //timeline start
                 $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName->nick_name . " update Camp ". $topic->topic_name;
+                $timelineMessage = $nickName . " update Camp ". $topic->topic_name;
                 Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="update_camp", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
                 //end of timeline
                 $currentTime = time();

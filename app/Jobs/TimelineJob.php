@@ -90,9 +90,9 @@ class TimelineJob implements ShouldQueue, Uniqueable
         $headers = []; // Prepare headers for request
         $headers[] = 'Content-Type:multipart/form-data';
         $headers[] = 'X-Api-Token:'.$apiToken.'';
-
+        Log::error(($requestBody));
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
-
+       
         // Check the unauthorized request here...
         if(isset($response)) {
             $checkRes = json_decode($response, true);
