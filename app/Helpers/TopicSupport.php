@@ -254,8 +254,12 @@ class TopicSupport
                     /* To update the Mongo Tree while removing at add support */
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     Util::dispatchJob($topic, $camp, 1);
-
-                    self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                    $parentcamps = Camp::getAllParent($campModel);
+                    $existParentSupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $allNickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
+                    $sendRemoveEmail = (count($existParentSupports)) ? $existParentSupports : false;
+                    if($sendRemoveEmail){
+                        self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
+                    }
                     // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
@@ -293,7 +297,7 @@ class TopicSupport
 
                 $subjectStatement = "has added their support to"; 
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
+                //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
                 self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
 
@@ -813,7 +817,7 @@ class TopicSupport
         }else{
             $subjectStatement = "has removed their support from";
         }
-       
+
         self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
         return;
     }
