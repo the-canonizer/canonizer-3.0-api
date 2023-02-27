@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 
 use DB;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Reasons;
 use App\Models\Support;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
@@ -13,12 +15,12 @@ use App\Helpers\TopicSupport;
 use App\Http\Request\Validate;
 use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\Gate;
+use App\Helpers\SupportAndScoreCount;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
-use App\Helpers\SupportAndScoreCount;
-use Illuminate\Support\Facades\Gate;
 
 
 class SupportController extends Controller
@@ -460,4 +462,28 @@ class SupportController extends Controller
           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
        }  
     }
+
+
+      /**
+     *  @OA\GET(path="support-reason-list",
+     *  tags = "{campSupport}"
+     *  description = "This will return support reason list"
+     * )
+     * 
+     */
+
+     public function getSupportReason(Request $request)
+     {
+ 
+        try{
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            $supportReasonList = Reasons::paginate($per_page);
+            $supportReasonList = Util::getPaginatorResponse($supportReasonList);
+        
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $supportReasonList,'');
+        } catch (\Throwable $e) {
+ 
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+     }
 }
