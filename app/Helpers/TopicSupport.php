@@ -171,20 +171,12 @@ class TopicSupport
                 $campModel  = self::getLiveCamp($campFilter); 
 
                 /* To update the Mongo Tree while removing support */
-                /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
+                /* Execute job to queue the updated tree */
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
-                if($topicNum == config('global.mind_expert_topic_num')) {
-                    Util::dispatchJob($topic, $camp, 1);
-                } else {
-                    // Execute job only one time at last iteration of loop.
-                   // if ($key ==  $removeArrayCount - 1 ) {
-                        Util::dispatchJob($topic, $camp, 1);
-                  //  }
-                }
+                Util::dispatchJob($topic, $camp, 1);
 
-                
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
+                // GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
             }
 
              //log activity
@@ -262,17 +254,14 @@ class TopicSupport
 
                     /* To update the Mongo Tree while removing at add support */
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
-                    if($topicNum == config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, $camp, 1);
-                    } else {
-                        // Execute job only one time at last iteration of loop.
-                        //if ($key ==  $removeArrayCount - 1 ) {
-                            Util::dispatchJob($topic, $camp, 1);
-                        //}
+                    Util::dispatchJob($topic, $camp, 1);
+                    $parentcamps = Camp::getAllParent($campModel);
+                    $existParentSupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $allNickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
+                    $sendRemoveEmail = (count($existParentSupports)) ? $existParentSupports : false;
+                    if($sendRemoveEmail){
+                        self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                     }
-
-                    self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
-                    GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
+                    // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
                 self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
@@ -309,7 +298,7 @@ class TopicSupport
 
                 $subjectStatement = "has added their support to"; 
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
-                GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
+                //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
                 self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
 
@@ -335,15 +324,8 @@ class TopicSupport
 
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 foreach($orderUpdate as $key => $order) {
-                    // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81)
-                    if($topicNum == config('global.mind_expert_topic_num')) {
-                        Util::dispatchJob($topic, $order['camp_num'], 1);
-                    } else {
-                        // Execute job only one time at first iteration of loop.
-                        //if ($key ==  0) {
-                            Util::dispatchJob($topic, $order['camp_num'], 1);
-                        //}
-                    }
+                    // Execute job to queue the updated tree
+                    Util::dispatchJob($topic, $order['camp_num'], 1);
                 }
 
             }catch (Throwable $e) 
@@ -836,7 +818,7 @@ class TopicSupport
         }else{
             $subjectStatement = "has removed their support from";
         }
-       
+
         self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
         return;
     }
@@ -900,9 +882,6 @@ class TopicSupport
             ];
         }
         $channel = config('global.notify.both');
-        if($action == config('global.notification_type.removeSupport')){
-            $channel = config('global.notify.email');
-        }
         Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
         return true;
     }
