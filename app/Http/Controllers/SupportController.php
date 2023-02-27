@@ -476,9 +476,10 @@ class SupportController extends Controller
      {
  
         try{
-            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
-            $supportReasonList = Reasons::paginate($per_page);
-            $supportReasonList = Util::getPaginatorResponse($supportReasonList);
+            // $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            $supportReasonList = Reasons::get();
+            // $supportReasonList = Reasons::paginate($per_page);
+            // $supportReasonList = Util::getPaginatorResponse($supportReasonList);
         
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $supportReasonList,'');
         } catch (\Throwable $e) {
