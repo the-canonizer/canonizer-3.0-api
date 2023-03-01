@@ -587,15 +587,16 @@ class Util
      /**
      * Dispatch Timeline job
      * @param object $topic
-     * @param boolean $updateAll
      * @return void
      */
     public function dispatchTimelineJob($topic, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null) {
 
+      
         try{
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';
             $asOfDefaultDate = time();
+          
             $canonizerServiceData = [
                 'topic_num' =>  $topic->topic_num,
                 'algorithm' => $selectedAlgo,
@@ -605,12 +606,14 @@ class Util
                 'camp_num'  => $campNum,
                 'message' => $message,
                 'type' => $type,
-                'id' => $id,
                 'old_parent_id' => $old_parent_id,
                 'new_parent_id' => $new_parent_id,
                 'isUniqueJob' => false,
-                'endpointCSStore' => env('CS_STORE_TIMELINE')
+                'endpointCSStore' => env('CS_STORE_TIMELINE'),
+                'id' => $id
             ];
+            Log::info($canonizerServiceData);
+            Log::info("canonizerServiceData");
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
             if($topic->topic_num == config('global.mind_expert_topic_num')) {
@@ -630,10 +633,10 @@ class Util
                             'camp_num'  => $campNum,
                             'message' => $message,
                             'type' => $type,
-                            'id' => $id,
                             'old_parent_id' => $old_parent_id,
                             'new_parent_id' => $new_parent_id,
-                            'endpointCSStore' => env('CS_STORE_TIMELINE')
+                            'endpointCSStore' => env('CS_STORE_TIMELINE'),
+                            'id' => $id
                         ];
                         // Dispact job when create a camp
                         dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));

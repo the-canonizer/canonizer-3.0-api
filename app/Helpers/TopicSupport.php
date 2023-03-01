@@ -109,7 +109,9 @@ class TopicSupport
             } else {
                 Util::dispatchJob($topic, 1, 1);
             }
-
+            //timeline start
+            Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nicknameModel->nick_name . " has removed " .$type. " support in camp - ". $campModel->camp_name, $type= $type."_support_removed", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
+            //timeline start
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
@@ -250,11 +252,12 @@ class TopicSupport
                 foreach($removeCamps as $key => $camp) {     
                     $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                     $campModel  = self::getLiveCamp($campFilter);
-
                     /* To update the Mongo Tree while removing at add support */
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     Util::dispatchJob($topic, $camp, 1);
-
+                    //timeline start
+                    Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " added direact support in camp - ". $campModel->camp_name, $type="direact_support_added", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
+                    //timeline start
                     self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                     GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
@@ -380,6 +383,11 @@ class TopicSupport
             } else {
                 Util::dispatchJob($topic, 1, 1);
             }
+            //timeline start
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $camp  = self::getLiveCamp($campFilter);
+            Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " has just delegated their support to camp - ". $camp->camp_name, $type="delegated_support_added", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
+            //timeline start
         
             $subjectStatement = "has just delegated their support to";
             self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);

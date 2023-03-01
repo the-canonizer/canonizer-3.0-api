@@ -53,23 +53,20 @@ class TimelineJob implements ShouldQueue, Uniqueable
         if(array_key_exists('updateAll', $this->canonizerData)) {
             $updateAll = $this->canonizerData['updateAll'];
         }
-
-        if(!empty($this->canonizerData['campChangeID'])) {
-            Util::parentCampChangedBasedOnCampChangeId($this->canonizerData['campChangeID']);
-            sleep(1);
-        }
         
         $requestBody = [
             'topic_num'         => $this->canonizerData['topic_num'],
             'asofdate'          => $this->canonizerData['asOfDate'],
             'algorithm'         => $this->canonizerData['algorithm'],
             'update_all'        => $updateAll,
-            'message'           => $this->canonizerData['message'],
-            'type'              => $this->canonizerData['type'],
             'id'                => $this->canonizerData['id'],
             'old_parent_id'     => $this->canonizerData['old_parent_id'],
+            'message'           => $this->canonizerData['message'],
+            'type'              => $this->canonizerData['type'],
             'new_parent_id'     => $this->canonizerData['new_parent_id']
         ];
+        Log::info(json_encode($requestBody));
+        Log::info("requestBody");
         if(!empty($this->canonizerData['endpointCSStore'])) {
             $endpointCSStoreTree = $this->canonizerData['endpointCSStore'];
         }
@@ -90,7 +87,7 @@ class TimelineJob implements ShouldQueue, Uniqueable
         $headers = []; // Prepare headers for request
         $headers[] = 'Content-Type:multipart/form-data';
         $headers[] = 'X-Api-Token:'.$apiToken.'';
-        Log::error(($requestBody));
+       
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
        
         // Check the unauthorized request here...
