@@ -200,7 +200,7 @@ class TopicController extends Controller
                     "camp_num" => 1,
                     "support_order" => 1,
                     "reason" => "Default Support added on agreement",
-                    "reason_link" => null,
+                    "citation_link" => null,
                     "reason_summary" => null,
                     "is_system_generated" => 1,
                 ];

@@ -20,9 +20,9 @@ class CreateEndReasonAndEndReasonLinkInSupportTable extends Migration
                     $table->text('reason')->nullable();
                 });
             }
-            if (!Schema::hasColumn('support', 'reason_link')) {
+            if (!Schema::hasColumn('support', 'citation_link')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->string('reason_link', 255)->nullable();
+                    $table->string('citation_link', 255)->nullable();
                 });
             }
             if (!Schema::hasColumn('support', 'reason_summary')) {
@@ -52,9 +52,9 @@ class CreateEndReasonAndEndReasonLinkInSupportTable extends Migration
                     $table->dropColumn('reason');
                 });
             }
-            if (Schema::hasColumn('support', 'reason_link')) {
+            if (Schema::hasColumn('support', 'citation_link')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->dropColumn('reason_link');
+                    $table->dropColumn('citation_link');
                 });
             }
         }

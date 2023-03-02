@@ -29,15 +29,15 @@ class TopicSupport
     public static $model = 'App\Models\Support';
 
 
-    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $reason = null,$reason_summary = null,$reason_link = null)
+    public  static function removeDirectSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $reason = null,$reason_summary = null,$citation_link = null)
     {
         if(isset($action) && $action == 'all')
         {
-            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type,'', $reason,$reason_summary, $reason_link);
+            return self::removeCompleteSupport($topicNum, $removeCamps , $nickNameId, $action , $type,'', $reason,$reason_summary, $citation_link);
         
         }else if(isset($action) && $action == 'partial')
         {
-            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate, $user ,$reason,$reason_summary, $reason_link);
+            return self::removePartialSupport($topicNum, $removeCamps , $nickNameId, $action,  $type, $orderUpdate, $user ,$reason,$reason_summary, $citation_link);
         }
     }
 
@@ -65,7 +65,7 @@ class TopicSupport
      * @param string $action defines remove status [all|partial]
      * @param string $type defines support type [direct|delegate]
      */
-    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '', $reason = null,$reason_summary=null,$reason_link = null)
+    public static function removeCompleteSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $delegateNickNameId = '', $reason = null,$reason_summary=null,$citation_link = null)
     { 
         
         if(isset($action) && $action == 'all')  //abandon entire topic and promote deleagte
@@ -75,14 +75,13 @@ class TopicSupport
             //dd($allNickNames);
             $getAllActiveSupport = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $allNickNames);
             if($getAllActiveSupport->count() == 0){ 
-                // dd($topicNum, $removeCamps , $nickNameId, $action , $type, $reason, $reason_summary, $reason_link);
                 return;
             }
 
             $campNum = isset($getAllActiveSupport[0]->camp_num) ?  $getAllActiveSupport[0]->camp_num : '';  // First choice camp number  of topic
             $allDirectDelegates = Support::getActiveDelegators($topicNum, $allNickNames);
             
-            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames, $reason, $reason_summary, $reason_link );
+            Support::removeSupportWithAllNicknames($topicNum, '', $allNickNames, $reason, $reason_summary, $citation_link );
 
             //semd Email
             $nicknameModel = Nickname::getNickName($nickNameId);
@@ -136,7 +135,7 @@ class TopicSupport
      * Also remove support from those camps for delegated supporter
      * 
      */
-    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $reason = null,$reason_summary =null,$reason_link = null)
+    public static function removePartialSupport($topicNum, $removeCamps = array(), $nickNameId, $action = 'all', $type = 'direct', $orderUpdate = array(), $user, $reason = null,$reason_summary =null,$citation_link = null)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
 
@@ -145,7 +144,7 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
-                self::removeSupport($topicNum,$removeCamps,$allNickNames,$reason, $reason_summary, $reason_link);
+                self::removeSupport($topicNum,$removeCamps,$allNickNames,$reason, $reason_summary, $citation_link);
                 DB::commit();
 
             }catch (Throwable $e) 
@@ -187,7 +186,7 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
-                self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason, $reason_summary, $reason_link);
+                self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason, $reason_summary, $citation_link);
                 DB::commit();
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 foreach($orderUpdate as $order) {
@@ -217,7 +216,7 @@ class TopicSupport
      * @param array $removedCamps  list of camps to be removed if any
      * @param array $orderUpdate is associative array of camps with order numbr to be updated, if any
      */
-    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array(),$reason = null,$reason_summary = null,$reason_link = null)
+    public static function addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removeCamps = array(), $orderUpdate = array(),$reason = null,$reason_summary = null,$citation_link = null)
     {
         $allNickNames = self::getAllNickNamesOfNickID($nickNameId);
         // $campArray = explode(',', trim($campNum));
@@ -239,8 +238,8 @@ class TopicSupport
             {
                 DB::beginTransaction();
 
-                self::removeSupport($topicNum,$removeCamps,$allNickNames,$reason,$reason_summary,$reason_link);
-                Support::reOrderSupport($topicNum, $allNickNames,$reason,$reason_summary,$reason_link); //after removal reorder support
+                self::removeSupport($topicNum,$removeCamps,$allNickNames,$reason,$reason_summary,$citation_link);
+                Support::reOrderSupport($topicNum, $allNickNames,$reason,$reason_summary,$citation_link); //after removal reorder support
                 
                 DB::commit();
 
@@ -286,7 +285,7 @@ class TopicSupport
                 $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
                 $campModel  = self::getLiveCamp($campFilter);
                 $delegatedNickNameId=0;
-                $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId,$delegatedNickNameId, $reason,$reason_summary,$reason_link);
+                $support = self::addSupport($topicNum, $campNum, $supportOrder, $nickNameId,$delegatedNickNameId, $reason,$reason_summary,$citation_link);
                 array_push($supportToAdd, $support);
                 if(count($allDelegates)) { 
                     self::insertDelegateSupport($allDelegates, $supportToAdd);
@@ -318,7 +317,7 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
-                self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason,$reason_summary,$reason_link);
+                self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason,$reason_summary,$citation_link);
 
                 DB::commit();
 
@@ -744,17 +743,17 @@ class TopicSupport
      * @param $campNum is array of camp_num 
      * @param $allNicknames is array all delegated__nick_id (s) of user to whome support is delagted  
      */
-    public static function removeSupport($topicNum, $campNum = array(), $allNickNames = array(), $reason = null,$reason_summary = null,$reason_link = null)
+    public static function removeSupport($topicNum, $campNum = array(), $allNickNames = array(), $reason = null,$reason_summary = null,$citation_link = null)
     {
         $delegators = Support::getActiveDelegators($topicNum, $allNickNames);
-        Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames,$reason, $reason_summary, $reason_link);
+        Support::removeSupportWithAllNicknames($topicNum, $campNum, $allNickNames,$reason, $reason_summary, $citation_link);
 
         if(count($delegators))
         { 
             foreach($delegators as $delegator)
             {
                 $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
-                self::removeSupport($topicNum, $campNum, $delegatorsNickArray, $reason, $reason_summary, $reason_link);
+                self::removeSupport($topicNum, $campNum, $delegatorsNickArray, $reason, $reason_summary, $citation_link);
             }
         }
 
@@ -764,7 +763,7 @@ class TopicSupport
     /** 
      * [Re-order support]
      */
-    public static function reorderSupport($orders, $topicNum, $allNickNames,$reason,$reason_summary,$reason_link)
+    public static function reorderSupport($orders, $topicNum, $allNickNames,$reason,$reason_summary,$citation_link)
     {
 
         try{
@@ -783,7 +782,7 @@ class TopicSupport
                     'support_order' => $order['order'],  // update your field(s) here
                     'reason'=> $reason,
                     'reason_summary'=> $reason_summary,
-                    'reason_link'=> $reason_link
+                    'citation_link'=> $citation_link
                     ]);
             }
             DB::commit();
@@ -795,7 +794,7 @@ class TopicSupport
                 foreach($delegators as $delegator)
                 {
                     $delegatorsNickArray = self::getAllNickNamesOfNickID($delegator->nick_name_id);
-                    return self::reorderSupport($orders, $topicNum, $delegatorsNickArray,$reason,$reason_summary,$reason_link);
+                    return self::reorderSupport($orders, $topicNum, $delegatorsNickArray,$reason,$reason_summary,$citation_link);
                 }
             }
 
@@ -1141,7 +1140,7 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0,$reason,$reason_summary,$reason_link)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0,$reason,$reason_summary,$citation_link)
     {
         $support = new Support();
         $support->topic_num = $topicNum;
@@ -1152,7 +1151,7 @@ class TopicSupport
         $support->start = time();
         $support->reason = $reason;
         $support->reason_summary = $reason_summary;
-        $support->reason_link = $reason_link;
+        $support->citation_link = $citation_link;
         $support->save();
 
         return $support;        

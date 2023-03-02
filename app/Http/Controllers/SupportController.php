@@ -185,10 +185,10 @@ class SupportController extends Controller
         $orderUpdate = $all['order_update']; 
         $reason = $all['reason'] ?? null; 
         $reason_summary = $all['reason_summary'] ?? null; 
-        $reason_link = $all['reason_link'] ?? null; 
+        $citation_link = $all['citation_link'] ?? null; 
 
         try{            
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$reason_link);
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
@@ -253,13 +253,13 @@ class SupportController extends Controller
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'] ?? '';
         $reason = isset($request->reason) ? $request->reason : null;
-        $reason_link =isset($request->reason_link) ?$request->reason_link : null;
+        $citation_link =isset($request->citation_link) ?$request->citation_link : null;
         $reason_summary = isset($request->reason_summary) ? $request->reason_summary : null;
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
 
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$reason_link);     
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$citation_link);     
             $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
