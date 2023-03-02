@@ -15,14 +15,24 @@ class CreateEndReasonAndEndReasonLinkInSupportTable extends Migration
     {
 
         if (Schema::hasTable('support')) {
-            if (!Schema::hasColumn('support', 'end_reason')) {
+            if (!Schema::hasColumn('support', 'reason')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->text('end_reason')->nullable();
+                    $table->text('reason')->nullable();
                 });
             }
-            if (!Schema::hasColumn('support', 'end_reason_link')) {
+            if (!Schema::hasColumn('support', 'reason_link')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->string('end_reason_link', 255)->nullable();
+                    $table->string('reason_link', 255)->nullable();
+                });
+            }
+            if (!Schema::hasColumn('support', 'reason_summary')) {
+                Schema::table('support', function (Blueprint $table) {
+                    $table->string('reason_summary', 255)->nullable();
+                });
+            }
+            if (!Schema::hasColumn('support', 'is_system_generated')) {
+                Schema::table('support', function (Blueprint $table) {
+                    $table->tinyInteger('is_system_generated')->default(0)->comment('0 => No, 1 => Yes');
                 });
             }
         }
@@ -37,14 +47,14 @@ class CreateEndReasonAndEndReasonLinkInSupportTable extends Migration
     {
 
         if (Schema::hasTable('support')) {
-            if (Schema::hasColumn('support', 'end_reason')) {
+            if (Schema::hasColumn('support', 'reason')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->dropColumn('end_reason');
+                    $table->dropColumn('reason');
                 });
             }
-            if (Schema::hasColumn('support', 'end_reason_link')) {
+            if (Schema::hasColumn('support', 'reason_link')) {
                 Schema::table('support', function (Blueprint $table) {
-                    $table->dropColumn('end_reason_link');
+                    $table->dropColumn('reason_link');
                 });
             }
         }

@@ -216,18 +216,17 @@ class Support extends Model
         return $supports;
     }
 
-    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $end_reason = null,$end_reason_link = null)
+    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $reason = null,$reason_summary = null,$reason_link = null)
     {
-        // dd($topicNum, $campNum, $nickNames, $end_reason, $end_reason_link );
         if (!empty($campNum)) {
             $supports = self::where('topic_num', '=', $topicNum)
                 ->whereIn('camp_num', $campNum)
                 ->whereIn('nick_name_id', $nickNames)
-                ->update(['end' => time(),'end_reason'=>$end_reason,'end_reason_link'=>$end_reason_link]);
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'reason_link'=>$reason_link]);
         } else {
             $supports = self::where('topic_num', '=', $topicNum)
                 ->whereIn('nick_name_id', $nickNames)
-                ->update(['end' => time(),'end_reason'=>$end_reason,'end_reason_link'=>$end_reason_link]);
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'reason_link'=>$reason_link]);
         }
 
         return;
@@ -496,7 +495,7 @@ class Support extends Model
         }
     }
 
-    public static function reOrderSupport($topicNum, $nickNames)
+    public static function reOrderSupport($topicNum, $nickNames, $reason = null,$reason_summary = null,$reason_link = null)
     {
         $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
         
@@ -509,6 +508,9 @@ class Support extends Model
             }
 
             $support->support_order = $order;
+            $support->reason = $reason;
+            $support->reason_summary = $reason_summary;
+            $support->reason_link = $reason_link;
             $support->update();
 
             //update delegators support order as well

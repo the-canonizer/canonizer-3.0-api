@@ -183,9 +183,12 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update']; 
+        $reason = $all['reason']; 
+        $reason_summary = $all['reason_summary']; 
+        $reason_link = $all['reason_link']; 
 
         try{            
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$reason_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
@@ -249,13 +252,14 @@ class SupportController extends Controller
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
         $nickNameId = $all['nick_name_id'] ?? '';
-        $end_reason = isset($request->end_reason) ? $request->end_reason : '';
-        $end_reason_link =isset($request->end_reason_link) ?$request->end_reason_link : '';
+        $reason = isset($request->reason) ? $request->reason : null;
+        $reason_link =isset($request->reason_link) ?$request->reason_link : null;
+        $reason_summary = isset($request->reason_summary) ? $request->reason_summary : null;
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
 
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$end_reason,$end_reason_link);     
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$reason_link);     
             $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
@@ -307,8 +311,6 @@ class SupportController extends Controller
         $topicNum =$all['topic_num'];
         $nickNameId = $all['nick_name_id'];
         $delegatedNickNameId = $all['delegated_nick_name_id'];
-        $end_reason = $all['end_reason'];
-        $$end_reason_link = $all['end_reason_link'] ?? '';
 
         if(!$delegatedNickNameId || !$topicNum || !$nickNameId){
             return $this->resProvider->apiJsonResponse(400, trans('message.support.delegate_invalid_request'), '', $e->getMessage());
@@ -316,7 +318,7 @@ class SupportController extends Controller
 
         try{
 
-            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId, $end_reason, $end_reason_link);               
+            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId);               
             return $this->resProvider->apiJsonResponse(200, trans('message.support.delegate_support_removed'), '','');
         
         } catch (\Throwable $e) {
