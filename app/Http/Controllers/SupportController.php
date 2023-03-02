@@ -183,9 +183,9 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update']; 
-        $reason = $all['reason']; 
-        $reason_summary = $all['reason_summary']; 
-        $reason_link = $all['reason_link']; 
+        $reason = $all['reason'] ?? null; 
+        $reason_summary = $all['reason_summary'] ?? null; 
+        $reason_link = $all['reason_link'] ?? null; 
 
         try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$reason_link);

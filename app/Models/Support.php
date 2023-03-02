@@ -14,7 +14,7 @@ class Support extends Model
     public $timestamps = false;
 
 
-    protected $fillable = ['nick_name_id', 'topic_num', 'camp_num', 'delegate_nick_name_id', 'start', 'end', 'flags', 'support_order'];
+    protected $fillable = ['reason','reason_link','reason_summary','is_system_generated','nick_name_id', 'topic_num', 'camp_num', 'delegate_nick_name_id', 'start', 'end', 'flags', 'support_order'];
 
 
     /**
