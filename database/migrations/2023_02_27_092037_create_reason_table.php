@@ -13,7 +13,7 @@ class CreateReasonTable extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('reasons')) {
+        if (!Schema::hasTable('reasons')) {
             Schema::create('reasons', function (Blueprint $table) {
                 $table->id();
                 $table->string('reason', 255);
