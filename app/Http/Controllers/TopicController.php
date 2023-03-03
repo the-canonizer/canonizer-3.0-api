@@ -199,6 +199,10 @@ class TopicController extends Controller
                     "start" =>  $current_time,
                     "camp_num" => 1,
                     "support_order" => 1,
+                    "reason" => "Default Support added on agreement",
+                    "citation_link" => null,
+                    "reason_summary" => null,
+                    "is_system_generated" => 1,
                 ];
                 ## If topic is created then add default support to that topic ##
                 $support = Support::create($topicInput);
