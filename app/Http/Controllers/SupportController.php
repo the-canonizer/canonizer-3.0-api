@@ -281,11 +281,14 @@ class SupportController extends Controller
         $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
         $nickNameId = $all['nick_name_id'];
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
+        $reason = isset($request->reason) ? $request->reason : null;
+        $citation_link =isset($request->citation_link) ?$request->citation_link : null;
+        $reason_summary = isset($request->reason_summary) ? $request->reason_summary : null;
 
         try{
            
             $allNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
-            TopicSupport::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+            TopicSupport::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason,$reason_summary,$citation_link);
 
             return $this->resProvider->apiJsonResponse(200, trans('message.support.order_update'), '','');
             
