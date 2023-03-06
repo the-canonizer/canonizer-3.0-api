@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 
 use DB;
 use App\Models\Camp;
+use App\Facades\Util;
 use App\Models\Topic;
+use App\Models\Reasons;
 use App\Models\Support;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
@@ -13,12 +15,12 @@ use App\Helpers\TopicSupport;
 use App\Http\Request\Validate;
 use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
+use Illuminate\Support\Facades\Gate;
+use App\Helpers\SupportAndScoreCount;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
-use App\Helpers\SupportAndScoreCount;
-use Illuminate\Support\Facades\Gate;
 
 
 class SupportController extends Controller
@@ -181,9 +183,12 @@ class SupportController extends Controller
         $addCamp = $all['add_camp'];
         $removedCamps = $all['remove_camps'];
         $orderUpdate = $all['order_update']; 
+        $reason = $all['reason'] ?? null; 
+        $reason_summary = $all['reason_summary'] ?? null; 
+        $citation_link = $all['citation_link'] ?? null; 
 
         try{            
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate);
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
@@ -238,6 +243,7 @@ class SupportController extends Controller
     public function removeSupport(Request $request)
     {
         $all = $request->all();
+        // return json_encode($all);
         $user = $request->user();
         $userId = $user->id;
         $topicNum =$all['topic_num'];
@@ -245,12 +251,15 @@ class SupportController extends Controller
         $removeCamps = isset($all['remove_camps']) && $all['remove_camps'] ? $all['remove_camps'] : [];
         $action = $all['action']; // all OR partial
         $type = isset($all['type']) ? $all['type'] : '';
-        $nickNameId = $all['nick_name_id'];
+        $nickNameId = $all['nick_name_id'] ?? '';
+        $reason = isset($request->reason) ? $request->reason : null;
+        $citation_link =isset($request->citation_link) ?$request->citation_link : null;
+        $reason_summary = isset($request->reason_summary) ? $request->reason_summary : null;
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
 
         try{
 
-            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user());     
+            TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$citation_link);     
             $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
@@ -272,11 +281,14 @@ class SupportController extends Controller
         $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';
         $nickNameId = $all['nick_name_id'];
         $orderUpdate = isset($all['order_update']) ? $all['order_update'] : [];
+        $reason = isset($request->reason) ? $request->reason : null;
+        $citation_link =isset($request->citation_link) ?$request->citation_link : null;
+        $reason_summary = isset($request->reason_summary) ? $request->reason_summary : null;
 
         try{
            
             $allNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
-            TopicSupport::reorderSupport($orderUpdate, $topicNum, $allNickNames);
+            TopicSupport::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason,$reason_summary,$citation_link);
 
             return $this->resProvider->apiJsonResponse(200, trans('message.support.order_update'), '','');
             
@@ -455,4 +467,29 @@ class SupportController extends Controller
           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
        }  
     }
+
+
+      /**
+     *  @OA\GET(path="support-reason-list",
+     *  tags = "{campSupport}"
+     *  description = "This will return support reason list"
+     * )
+     * 
+     */
+
+     public function getSupportReason(Request $request)
+     {
+ 
+        try{
+            // $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            $supportReasonList = Reasons::get();
+            // $supportReasonList = Reasons::paginate($per_page);
+            // $supportReasonList = Util::getPaginatorResponse($supportReasonList);
+        
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $supportReasonList,'');
+        } catch (\Throwable $e) {
+ 
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }  
+     }
 }

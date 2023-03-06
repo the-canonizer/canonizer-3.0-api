@@ -1033,12 +1033,12 @@ class CampController extends Controller
         try {
             $user = $request->user();
             $userId = $user->id;
-            $result = CampSubscription::where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'desc')->get();
+            $result = CampSubscription::where('user_id', $userId)->where('subscription_end', NULL)->orderBy('camp_subscription.id', 'ASC')->get();
             $campSubscriptionList = [];
             foreach ($result as $subscription) {
                 $topic = Topic::getLiveTopic($subscription->topic_num, 'default');
                 $camp = ($subscription->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $subscription->topic_num, 'campNum' => $subscription->camp_num, 'asOf' => 'default']) : null;
-                //echo "<pre>"; print_r($camp->camp_name);die;
+                
                 $tempCamp = [
                     'camp_num' => $subscription->camp_num,
                     'camp_name' => $camp->camp_name ?? '',
