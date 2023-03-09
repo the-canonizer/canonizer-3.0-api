@@ -62,7 +62,8 @@ return [
         'permission_denied' => "You don't have permission to access this resource.",
         'support_added' => "Support added",
         'support_removed' => "Support removed",
-        'support_delegated' => "Support delegated"
+        'support_delegated' => "Support delegated",
+        'default_support_added_reason' => "Default Support added on agreement"
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
