@@ -591,6 +591,25 @@ class TopicController extends Controller
         $message = "";
         $changeId = $data['record_id'];
         try {
+
+            if($data['user_agreed'] == 0) {
+                $changeAgreeLog = (new ChangeAgreeLog())->where([
+                    'change_id' => $changeId,
+                    'camp_num' => $data['camp_num'],
+                    'topic_num' => $data['topic_num'],
+                    'nick_name_id' => $data['nick_name_id'],
+                    'change_for' => $data['change_for'],
+                ])->delete();
+                if($changeAgreeLog){
+                    $message = trans('message.success.topic_not_agree');
+                    return $this->resProvider->apiJsonResponse(200, $message, '', '');
+                }
+                else {
+                    $message = trans('message.error.exception');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
+            }
+
             $log = new ChangeAgreeLog();
             $log->change_id = $changeId;
             $log->camp_num = $data['camp_num'];

@@ -51,6 +51,7 @@ return [
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
         'topic_agree'  => ' Your agreement to topic is submitted successfully.',
+        'topic_not_agree'  => ' Your agreement to topic is removed successfully.',
         'camp_agree'  => ' Your agreement to camp is submitted successfully.',
         'camp_commit'  => 'Your change to statement has been submitted to your supporters.',
         'topic_commit'  => 'Your change to topic has been submitted to your supporters.',
@@ -385,6 +386,8 @@ return [
     ],
     'validation_agree_to_change' => [
         'record_id_required' => "Record id is required.",
+        'user_agreed_required' => 'User agreed is required.',
+        'user_agreed_boolean' => 'User agreed should be 0 & 1.',
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required.",
         'change_for_in' => "Please enter a valid value (topic,camp,statement)",
