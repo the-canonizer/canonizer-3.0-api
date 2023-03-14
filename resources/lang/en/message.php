@@ -490,7 +490,7 @@ return [
         "topic_create" => ":nick_name created a topic",
         "topic_update" => ":nick_name updated a topic",
         "topic_object" => ":nick_name objected a change to topic",
-        "commit_change" => ":nick_name committed a change in the :type",
+        "commit_change" => ":nick_name proposed a change to the :type",
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
         "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to.",
     ],

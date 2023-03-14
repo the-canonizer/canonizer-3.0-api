@@ -515,6 +515,22 @@ class TopicController extends Controller
                 'nick_name' => $nickName->nick_name,
                 'description' => $model->value
             ];
+
+            switch ($type) {
+                case 'topic':
+                    $activityLogData['topic_name'] = $model->topic_name;
+                    $activityLogData['camp_name'] = null;
+                    break;
+                case 'camp':
+                case 'statement':
+                    $activityLogData['topic_name'] = $liveCamp->topic->topic_name;
+                    $activityLogData['camp_name'] = $liveCamp->camp_name;
+                    break;
+                
+                default:
+                    break;
+            }
+
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
