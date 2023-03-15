@@ -14,7 +14,7 @@ class Support extends Model
     public $timestamps = false;
 
 
-    protected $fillable = ['nick_name_id', 'topic_num', 'camp_num', 'delegate_nick_name_id', 'start', 'end', 'flags', 'support_order'];
+    protected $fillable = ['reason','citation_link','reason_summary','is_system_generated','nick_name_id', 'topic_num', 'camp_num', 'delegate_nick_name_id', 'start', 'end', 'flags', 'support_order'];
 
 
     /**
@@ -216,17 +216,17 @@ class Support extends Model
         return $supports;
     }
 
-    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array())
+    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $reason = null,$reason_summary = null,$citation_link = null)
     {
         if (!empty($campNum)) {
             $supports = self::where('topic_num', '=', $topicNum)
                 ->whereIn('camp_num', $campNum)
                 ->whereIn('nick_name_id', $nickNames)
-                ->update(['end' => time()]);
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
         } else {
             $supports = self::where('topic_num', '=', $topicNum)
                 ->whereIn('nick_name_id', $nickNames)
-                ->update(['end' => time()]);
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
         }
 
         return;
@@ -495,7 +495,7 @@ class Support extends Model
         }
     }
 
-    public static function reOrderSupport($topicNum, $nickNames)
+    public static function reOrderSupport($topicNum, $nickNames, $reason = null,$reason_summary = null,$citation_link = null)
     {
         $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
         
@@ -508,6 +508,9 @@ class Support extends Model
             }
 
             $support->support_order = $order;
+            $support->reason = $reason;
+            $support->reason_summary = $reason_summary;
+            $support->citation_link = $citation_link;
             $support->update();
 
             //update delegators support order as well

@@ -376,7 +376,7 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
+        
         if (! Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
@@ -394,7 +394,10 @@ class StatementController extends Controller
             
             if($eventType == 'objection') {
                 $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
-                if(!$checkUserDirectSupportExists){
+                
+                // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter($filters, $nickNames);
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
