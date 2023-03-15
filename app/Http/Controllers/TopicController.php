@@ -518,7 +518,7 @@ class TopicController extends Controller
 
             switch ($type) {
                 case 'topic':
-                    $activityLogData['topic_name'] = $model->topic_name;
+                    $activityLogData['topic_name'] = $liveTopic->topic_name;
                     $activityLogData['camp_name'] = null;
                     break;
                 case 'camp':
