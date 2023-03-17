@@ -457,6 +457,7 @@ class ValidationRules
     {
         return ([
             'record_id' => 'required',
+            'user_agreed' => 'required|boolean',
             'topic_num' => 'required',
             'camp_num' => 'required',
             'change_for' => 'required|in:topic,camp,statement',

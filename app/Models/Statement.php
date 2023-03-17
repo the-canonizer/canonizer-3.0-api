@@ -129,6 +129,15 @@ class Statement extends Model
                 $val->agreed_to_change = 0;
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
+
+                $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
+                
+                $val->agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
+                    ->where('camp_num', '=', $filter['campNum'])
+                    ->where('change_id', '=', $val->id)
+                    ->where('change_for', '=', 'statement')
+                    ->count();
+
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
