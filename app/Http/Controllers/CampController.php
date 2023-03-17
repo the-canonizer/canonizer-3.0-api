@@ -1058,7 +1058,7 @@ class CampController extends Controller
                     );
                 }
             }
-            $collection['items'] = array_values($campSubscriptionList);
+            $collection['items'] = array_reverse(array_values($campSubscriptionList));
             // $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             // $currentPage = $request->page;
             // $paginate = Util::paginate(array_values($campSubscriptionList), $per_page, $currentPage);
