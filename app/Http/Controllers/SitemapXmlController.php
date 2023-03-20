@@ -63,6 +63,30 @@ class SitemapXmlController extends Controller
     {
         return   $response['items'] = [
             [
+                'url' =>  env('APP_URL_FRONT_END') . '/browse',
+                'last_modified' => Carbon::now()
+            ],
+            [
+                'url' =>  env('APP_URL_FRONT_END') . '/activities',
+                'last_modified' => Carbon::now()
+            ],
+            [
+                'url' =>  env('APP_URL_FRONT_END') . '/terms-and-services',
+                'last_modified' => Carbon::now()
+            ],
+            [
+                'url' =>  env('APP_URL_FRONT_END') . '/privacy-policy',
+                'last_modified' => Carbon::now()
+            ],
+            [
+                'url' =>  env('APP_URL_FRONT_END') . '/https://blog.canonizer.com/',
+                'last_modified' => Carbon::now()
+            ],
+            [
+                'url' =>  env('APP_URL_FRONT_END') . '/files/2012_amplifying_final.pdf',
+                'last_modified' => Carbon::now()
+            ],
+            [
                 'url' =>  env('APP_URL_FRONT_END') . '/create/topic',
                 'last_modified' => Carbon::now()
             ],
@@ -105,12 +129,12 @@ class SitemapXmlController extends Controller
             $filter['campNum'] = 1;
             $camp = Camp::getLiveCamp($filter);
             $topicLink = Util::getTopicCampUrlWithoutTime($tv->topic_num, 1, $tv, $camp, time());
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $topicLink,
                 'last_modified' => Carbon::now()
             ];
             $topicHistoryLink = Util::topicHistoryLink($tv->topic_num, 1, $tv->topic_name, 'Aggreement', 'topic');
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $topicHistoryLink,
                 'last_modified' => Carbon::now()
             ];
@@ -125,12 +149,12 @@ class SitemapXmlController extends Controller
         foreach ($camps as $cv) {
             $topic = Topic::getLiveTopic($cv->topic_num);
             $campLink = Util::getTopicCampUrlWithoutTime($cv->topic_num, $cv->camp_num, $topic, $cv, time());
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $campLink,
                 'last_modified' => Carbon::now()
             ];
             $campHistoryLink = Util::topicHistoryLink($cv->topic_num, $cv->camp_num, $cv->topic_name, $cv->camp_name, 'camp');
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $campHistoryLink,
                 'last_modified' => Carbon::now()
             ];
@@ -145,7 +169,7 @@ class SitemapXmlController extends Controller
             ->get();
         foreach ($statements as $sv) {
             $statementsHistoryLink = config('global.APP_URL_FRONT_END') . '/statement/history/' . $sv->topic_num . '/' . $sv->camp_num;
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $statementsHistoryLink,
                 'last_modified' => Carbon::now()
             ];
@@ -162,7 +186,7 @@ class SitemapXmlController extends Controller
             $filter['campNum'] = $thread->camp_id;
             $camp = Camp::getLiveCamp($filter);
             $threadLink = config('global.APP_URL_FRONT_END') . '/forum/' . $thread->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $thread->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/';
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $threadLink,
                 'last_modified' => Carbon::now()
             ];
@@ -182,7 +206,7 @@ class SitemapXmlController extends Controller
             $filter['campNum'] = $post->camp_id;
             $camp = Camp::getLiveCamp($filter);
             $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
-            $topicUrl['items'][] = [
+            $topicUrl[] = [
                 'url' => $postLink,
                 'last_modified' => Carbon::now()
             ];
