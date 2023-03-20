@@ -619,6 +619,15 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $val->parent_camp_name = isset($val->parent_camp_num) && $val->parent_camp_num !=0 ? self::getParentCamp($val->topic_num, $val->parent_camp_num, 'default')->camp_name : null;
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 $val->agreed_to_change = 0;
+
+                $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
+                
+                $val->agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
+                    ->where('camp_num', '=', $filter['campNum'])
+                    ->where('change_id', '=', $val->id)
+                    ->where('change_for', '=', 'camp')
+                    ->count();
+
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
