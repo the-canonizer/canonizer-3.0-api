@@ -1064,10 +1064,11 @@ class CampController extends Controller
                     );
                 }
             }
-            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
-            $currentPage = $request->page;
-            $paginate = Util::paginate(array_values($campSubscriptionList), $per_page, $currentPage);
-            $collection = Util::getPaginatorResponse($paginate);
+            $collection['items'] = array_reverse(array_values($campSubscriptionList));
+            // $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            // $currentPage = $request->page;
+            // $paginate = Util::paginate(array_values($campSubscriptionList), $per_page, $currentPage);
+            // $collection = Util::getPaginatorResponse($paginate);
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $collection, null);
@@ -1407,7 +1408,13 @@ class CampController extends Controller
             }
             if ($all['event_type'] == "objection") {
                 $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
-                if(!$checkUserDirectSupportExists){
+                // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
+                    'topicNum' => $all['topic_num'],
+                    'campNum' => $all['camp_num'],
+                ], $nickNames);
+                
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }

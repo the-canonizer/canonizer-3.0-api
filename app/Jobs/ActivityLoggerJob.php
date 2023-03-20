@@ -31,12 +31,18 @@ class ActivityLoggerJob implements ShouldQueue
      */
     public function handle()
     {
-        
         $this->data['url'] = Util::makeActivityRelativeURL($this->data['url']);
         $activityLog = activity($this->data['log_type'])
             ->performedOn($this->data['model'])
             ->causedBy($this->data['user'])
-            ->withProperties(['topic_num' => (int)$this->data['topic_num'], 'camp_num' => (int)$this->data['camp_num'], 'url' => $this->data['url'], 'description' => $this->data['description']])
+            ->withProperties([
+                'topic_num' => (int)$this->data['topic_num'],
+                'camp_num' => (int)$this->data['camp_num'],
+                'url' => $this->data['url'],
+                'description' => $this->data['description'],
+                'topic_name' => $this->data['topic_name'] ?? null,
+                'camp_name' => $this->data['camp_name'] ?? null
+            ])
             ->log($this->data['activity']);
 
         if (isset($activityLog) && $activityLog->id) {
