@@ -395,11 +395,13 @@ class SupportController extends Controller
         $userId = $user->id;
         try{
             
+            $topic = Topic::getLiveTopic($topicNum);
             $data = Support::getSupportedCampsList($topicNum, $userId); 
 
             foreach($data as $key => $support){
                 $link = Camp::campLink($support['topic_num'], $support['camp_num'], $support['title'], $support['camp_name']);
                 $data[$key]['link'] = $link;
+                $data[$key]['title'] = $topic->topic_name;
             }
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
