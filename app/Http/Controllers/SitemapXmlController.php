@@ -16,166 +16,138 @@ class SitemapXmlController extends Controller
 
     public function index(Request $request)
     {
-        $response = [];
-        $response['index'] = $this->getIndexSiteMap();
-        $response['sitemap_home.xml'] = $this->getHomeSiteMapUrls();
-        $response['sitemap_topic.xml'] = $this->getTopicSiteMapUrls();
-        $response['sitemap_camp.xml'] = $this->getCampSiteMapUrls();
-        $response['sitemap_statement.xml'] = $this->getStatementSiteMapUrls();
-        $response['sitemap_thread.xml'] = $this->getThreadSiteMapUrls();
-        $response['sitemap_post.xml'] = $this->getPostSiteMapUrls();
+        $data = [
+            'index' => $this->getIndexSiteMap(),
+            'sitemap_home.xml' => $this->getHomeSiteMapUrls(),
+            'sitemap_topic.xml' => $this->getTopicSiteMapUrls(),
+            'sitemap_camp.xml' => $this->getCampSiteMapUrls(),
+            'sitemap_statement.xml' => $this->getStatementSiteMapUrls(),
+            'sitemap_thread.xml' => $this->getThreadSiteMapUrls(),
+            'sitemap_post.xml' => $this->getPostSiteMapUrls(),
+        ];
         $status = 200;
         $message = trans('message.success.success');
-        return $this->resProvider->apiJsonResponse($status, $message, $response, null);
+        return $this->resProvider->apiJsonResponse($status, $message, $data, null);
     }
 
-    public function getIndexSiteMap()
+    private function getIndexSiteMap()
     {
-        return $res['items'] = [
-            [
-                'url' => 'sitemap_home.xml',
-                'file_name' => 'sitemap_home.xml',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' => 'sitemap_topic.xml',
-                'Last Modified' => Carbon::now()
-            ],
-            [
-                'url' => 'sitemap_camp.xml',
-                'Last Modified' => Carbon::now()
-            ],
-            [
-                'url' => 'sitemap_statement.xml',
-                'Last Modified' => Carbon::now()
-            ],
-            [
-                'url' => 'sitemap_thread.xml',
-                'Last Modified' => Carbon::now()
-            ],
-            [
-                'url' => 'sitemap_post.xml',
-                'Last Modified' => Carbon::now()
-            ]
+        $urls = [
+            'sitemap_home.xml',
+            'sitemap_topic.xml',
+            'sitemap_camp.xml',
+            'sitemap_statement.xml',
+            'sitemap_thread.xml',
+            'sitemap_post.xml',
         ];
+        $lastModified = Carbon::now();
+        $siteMaps = array_map(function ($url) use ($lastModified) {
+            return [
+                'url' => $url,
+                'last_modified' => $lastModified,
+            ];
+        }, $urls);
+        return $siteMaps;
     }
+
     public function getHomeSiteMapUrls()
     {
-        return   $response['items'] = [
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/browse',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/activities',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/terms-and-services',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/privacy-policy',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/https://blog.canonizer.com/',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/files/2012_amplifying_final.pdf',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/create/topic',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>   env('APP_URL_FRONT_END') . '/settings?tab=profile_info',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>   env('APP_URL_FRONT_END') . '/settings?tab=social_oauth_verification',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>    env('APP_URL_FRONT_END') . '/settings?tab=change_password',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/settings?tab=nick_name',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' =>  env('APP_URL_FRONT_END') . '/settings?tab=supported_camps',
-                'last_modified' => Carbon::now()
-            ],
-            [
-                'url' => env('APP_URL_FRONT_END') . '/settings?tab=subscriptions',
-                'Last Modified' => Carbon::now()
-            ]
+        $urls = [
+            '/',
+            '/browse',
+            '/activities',
+            '/terms-and-services',
+            '/privacy-policy',
+            'https://blog.canonizer.com/',
+            '/files/2012_amplifying_final.pdf',
+            '/create/topic',
+            '/settings?tab=profile_info',
+            '/settings?tab=social_oauth_verification',
+            '/settings?tab=change_password',
+            '/settings?tab=nick_name',
+            '/settings?tab=supported_camps',
+            '/settings?tab=subscriptions',
         ];
+        $siteMaps = array_map(function ($url) {
+            $isExternal = strpos($url, 'http') === 0;
+            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
+            $url = $baseUrl . $url;
+            return [
+                'url' => $url,
+                'last_modified' => Carbon::now()
+            ];
+        }, $urls);
+        return $siteMaps;
     }
+
     public function getTopicSiteMapUrls()
     {
-
-        $topic =  Topic::where('objector_nick_id', '=', NULL)
+        $topics = Topic::whereNull('objector_nick_id')
             ->where('go_live_time', '<=', time())
-            ->latest('submit_time')->get();
-        $topicUrl = [];
-        foreach ($topic as $tv) {
-            $filter['topicNum'] = $tv->topic_num;
-            $filter['asOf'] = $tv->asof;
-            $filter['campNum'] = 1;
-            $camp = Camp::getLiveCamp($filter);
-            $topicLink = Util::getTopicCampUrlWithoutTime($tv->topic_num, 1, $tv, $camp, time());
-            $topicUrl[] = [
-                'url' => $topicLink,
+            ->latest('submit_time')
+            ->get();
+        $topicUrls = [];
+        foreach ($topics as $topic) {
+            $camp = Camp::getLiveCamp([
+                'topicNum' => $topic->topic_num,
+                'asOf' => $topic->asof,
+                'campNum' => 1,
+            ]);
+            $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
+            $topicHistoryUrl = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
+            $topicUrls[] = [
+                'url' => $topicUrl,
                 'last_modified' => Carbon::now()
             ];
-            $topicHistoryLink = Util::topicHistoryLink($tv->topic_num, 1, $tv->topic_name, 'Aggreement', 'topic');
-            $topicUrl[] = [
-                'url' => $topicHistoryLink,
+            $topicUrls[] = [
+                'url' => $topicHistoryUrl,
                 'last_modified' => Carbon::now()
             ];
         }
-        return  $topicUrl;
+
+        return $topicUrls;
     }
+
     public function getCampSiteMapUrls()
     {
-        $camps = Camp::where('objector_nick_id', '=', NULL)
+        $camps = Camp::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
-            ->latest('go_live_time')->get();
-        foreach ($camps as $cv) {
-            $topic = Topic::getLiveTopic($cv->topic_num);
-            $campLink = Util::getTopicCampUrlWithoutTime($cv->topic_num, $cv->camp_num, $topic, $cv, time());
-            $topicUrl[] = [
+            ->latest('go_live_time')
+            ->get();
+        $campUrls = [];
+        foreach ($camps as $camp) {
+            $topic = Topic::getLiveTopic($camp->topic_num);
+            $campLink = Util::getTopicCampUrlWithoutTime($camp->topic_num, $camp->camp_num, $topic, $camp, time());
+            $campUrls[] = [
                 'url' => $campLink,
-                'last_modified' => Carbon::now()
+                'last_modified' => Carbon::now(),
             ];
-            $campHistoryLink = Util::topicHistoryLink($cv->topic_num, $cv->camp_num, $cv->topic_name, $cv->camp_name, 'camp');
-            $topicUrl[] = [
+            $campHistoryLink = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $camp->topic_name, $camp->camp_name, 'camp');
+            $campUrls[] = [
                 'url' => $campHistoryLink,
-                'last_modified' => Carbon::now()
+                'last_modified' => Carbon::now(),
             ];
         }
-        return  $topicUrl;
+        return $campUrls;
     }
+
     public function getStatementSiteMapUrls()
     {
-        $statements =  Statement::where('objector_nick_id', '=', NULL)
+        $topicUrl = [];
+        $statements = Statement::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
             ->orderBy('submit_time', 'desc')
             ->get();
-        foreach ($statements as $sv) {
-            $statementsHistoryLink = config('global.APP_URL_FRONT_END') . '/statement/history/' . $sv->topic_num . '/' . $sv->camp_num;
+        foreach ($statements as $statement) {
+            $historyLink = env('APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             $topicUrl[] = [
-                'url' => $statementsHistoryLink,
-                'last_modified' => Carbon::now()
+                'url' => $historyLink,
+                'last_modified' => Carbon::now(),
             ];
         }
-        return  $topicUrl;
+        return $topicUrl;
     }
+
     public function getThreadSiteMapUrls()
     {
         $threads =  Thread::get();
@@ -193,6 +165,7 @@ class SitemapXmlController extends Controller
         }
         return  $topicUrl;
     }
+
     public function getPostSiteMapUrls()
     {
         $posts = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
