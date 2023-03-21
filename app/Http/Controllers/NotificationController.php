@@ -290,7 +290,9 @@ class NotificationController extends Controller
             $data = ['is_exist' => true];
             if(empty($topic) || empty($camp)){
                 $data = ['is_exist' => false];
-                $url = $request->url;
+                $isExternal = strpos($request->url, 'http') === 0;
+                $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
+                $url = $baseUrl . $request->url;
                 Event::dispatch(new NotifyAdministratorEvent($url));
             }
             $status = 200;
