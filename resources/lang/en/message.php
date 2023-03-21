@@ -513,5 +513,14 @@ return [
         'forum_num_required' => "forum_num is required.",
         'forum_num_numeric' => "forum_num should be a numeric.",
         'forum_num_gt' => "forum_num should be greater than :value.",
+    ],
+    "notify_if_url_not_exist" => [
+        'topic_num_required' => "topic_num is required.",
+        'topic_num_numeric' => "topic_num should be a numeric.",
+        'topic_num_gt' => "topic_num should be greater than :value.",
+        'camp_num_required' => "camp_num is required.",
+        'camp_num_numeric' => "camp_num should be a numeric.",
+        'camp_num_gt' => "camp_num should be greater than :value.",
+        'url_required' => "url is required.",
     ]
 ];

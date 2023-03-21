@@ -290,7 +290,7 @@ class NotificationController extends Controller
             $data = ['is_exist' => true];
             if(empty($topic) || empty($camp)){
                 $data = ['is_exist' => false];
-                $url = 'https://canonizer.com/topic.asp/120/8 ';
+                $url = $request->url;
                 Event::dispatch(new NotifyAdministratorEvent($url));
             }
             $status = 200;

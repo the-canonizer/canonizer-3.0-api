@@ -538,6 +538,7 @@ class ValidationRules
         return [
             'topic_num' => 'required|numeric|gt:0',
             'camp_num' => 'required|numeric|gt:0',
+            'url' => 'required',
         ];
     }
 }

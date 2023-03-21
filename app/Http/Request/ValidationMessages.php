@@ -609,12 +609,13 @@ class ValidationMessages
     public function notifyIfTopicNotExistValidationMessages(): array
     {
         return ([
-            'topic_num.required' => trans('message.validation_meta_tags.topic_num_required'),
-            'topic_num.numeric' => trans('message.validation_meta_tags.topic_num_numeric'),
-            'topic_num.gt' => trans('message.validation_meta_tags.topic_num_gt'),
-            'camp_num.required' => trans('message.validation_meta_tags.camp_num_required'),
-            'camp_num.numeric' => trans('message.validation_meta_tags.camp_num_numeric'),
-            'camp_num.gt' => trans('message.validation_meta_tags.camp_num_gt'),
+            'topic_num.required' => trans('message.notify_if_url_not_exist.topic_num_required'),
+            'topic_num.numeric' => trans('message.notify_if_url_not_exist.topic_num_numeric'),
+            'topic_num.gt' => trans('message.notify_if_url_not_exist.topic_num_gt'),
+            'camp_num.required' => trans('message.notify_if_url_not_exist.camp_num_required'),
+            'camp_num.numeric' => trans('message.notify_if_url_not_exist.camp_num_numeric'),
+            'camp_num.gt' => trans('message.notify_if_url_not_exist.camp_num_gt'),
+            'url.required' => trans('message.notify_if_url_not_exist.url_required'),
         ]);
     }
 }
