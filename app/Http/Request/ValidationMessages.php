@@ -605,4 +605,16 @@ class ValidationMessages
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
         ];
     }
+
+    public function notifyIfTopicNotExistValidationMessages(): array
+    {
+        return ([
+            'topic_num.required' => trans('message.validation_meta_tags.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_meta_tags.topic_num_numeric'),
+            'topic_num.gt' => trans('message.validation_meta_tags.topic_num_gt'),
+            'camp_num.required' => trans('message.validation_meta_tags.camp_num_required'),
+            'camp_num.numeric' => trans('message.validation_meta_tags.camp_num_numeric'),
+            'camp_num.gt' => trans('message.validation_meta_tags.camp_num_gt'),
+        ]);
+    }
 }

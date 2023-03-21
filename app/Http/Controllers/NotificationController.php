@@ -18,6 +18,8 @@ use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Event;
+use App\Events\NotifyAdministratorEvent;
 use App\Http\Request\ValidationMessages;
 
 class NotificationController extends Controller
@@ -263,6 +265,37 @@ class NotificationController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        } catch (Throwable $e) {
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    public function notifyIfUrlNotExist(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->notifyIfTopicNotExistValidationRules(), $this->validationMessages->notifyIfTopicNotExistValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $topic = Topic::getLiveTopic($request->topic_num);
+
+            $camp = Camp::getLiveCamp([
+                'topicNum' => $request->topic_num,
+                'asOf' => $request->asof ?? '',
+                'campNum' => $request->camp_num,
+            ]);
+
+            $data = ['is_exist' => true];
+            if(empty($topic) || empty($camp)){
+                $data = ['is_exist' => false];
+                $url = 'https://canonizer.com/topic.asp/120/8 ';
+                Event::dispatch(new NotifyAdministratorEvent($url));
+            }
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');

@@ -73,6 +73,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
         $router->get('/videos', 'VideoController@getVideos');
         $router->post('/meta-tags', 'MetaTagController@getMetaTags');
+        $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
 
     });
 

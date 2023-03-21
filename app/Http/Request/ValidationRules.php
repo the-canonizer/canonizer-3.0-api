@@ -532,4 +532,12 @@ class ValidationRules
             'keys.camp_num' => 'required|numeric|gt:0',
         ];
     }
+
+    public function notifyIfTopicNotExistValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|numeric|gt:0',
+            'camp_num' => 'required|numeric|gt:0',
+        ];
+    }
 }
