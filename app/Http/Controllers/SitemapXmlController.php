@@ -151,7 +151,12 @@ class SitemapXmlController extends Controller
     public function getThreadSiteMapUrls()
     {
         $threads =  Thread::get();
+        $unique = [];
         foreach ($threads as $thread) {
+            if (in_array($thread->topic_id, $unique)) {
+                continue;
+            }
+            $unique[] = $thread->topic_id;
             $topic = Topic::getLiveTopic($thread->topic_id);
             $filter['topicNum'] = $thread->topic_id;
             $filter['asOf'] = $thread->asof;
