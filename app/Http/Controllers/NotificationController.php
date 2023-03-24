@@ -10,6 +10,7 @@ use App\Models\Reply;
 use App\Models\Topic;
 use App\Models\Thread;
 use App\Models\Nickname;
+use App\Models\Statement;
 use App\Helpers\CampForum;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
@@ -256,9 +257,9 @@ class NotificationController extends Controller
         }
         try {
             $user = User::find($request->user()->id);
-            if($request->fcm_token == 'disabled'){
+            if ($request->fcm_token == 'disabled') {
                 $user->fcm_token = null;
-            }else{
+            } else {
                 $user->fcm_token = $request->fcm_token;
             }
             $user->save();
@@ -274,27 +275,65 @@ class NotificationController extends Controller
 
     public function notifyIfUrlNotExist(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->notifyIfTopicNotExistValidationRules(), $this->validationMessages->notifyIfTopicNotExistValidationMessages());
+        $validationErrors = $validate->validate(
+            $request,
+            $this->rules->notifyIfTopicNotExistValidationRules(),
+            $this->validationMessages->notifyIfTopicNotExistValidationMessages()
+        );
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $topic = Topic::getLiveTopic($request->topic_num);
-
-            $camp = Camp::getLiveCamp([
-                'topicNum' => $request->topic_num,
-                'asOf' => $request->asof ?? '',
-                'campNum' => $request->camp_num,
-            ]);
-
             $data = ['is_exist' => true];
-            if(empty($topic) || empty($camp)){
-                $data = ['is_exist' => false];
-                $isExternal = strpos($request->url, 'http') === 0;
-                $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
-                $url = $baseUrl . $request->url;
-                Event::dispatch(new NotifyAdministratorEvent($url));
+            $isExternal = strpos($request->url, 'http') === 0;
+            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
+            $url = $baseUrl . $request->url;
+
+            switch ($request->is_type) {
+                case 'topic':
+                    $topic = Topic::getLiveTopic($request->topic_num);
+                    $camp = Camp::getLiveCamp([
+                        'topicNum' => $request->topic_num,
+                        'asOf' => $request->asof ?? '',
+                        'campNum' => $request->camp_num,
+                    ]);
+                    if (empty($topic) || empty($camp)) {
+                        $data = ['is_exist' => false];
+                        Event::dispatch(new NotifyAdministratorEvent($url));
+                    }
+                    break;
+                case 'statement':
+                    $campStatement = Statement::getLiveStatement([
+                        'topicNum' => $request->topic_num,
+                        'asOf' => $request->asof ?? '',
+                        'asOfDate' => $request->asOfDate ?? '',
+                        'campNum' => $request->camp_num,
+                    ]);
+                    if (empty($campStatement)) {
+                        $data = ['is_exist' => false];
+                        Event::dispatch(new NotifyAdministratorEvent($url));
+                    }
+                    break;
+                case 'nickname':
+                    $nickname = Nickname::getNickName($request->nick_id);
+                    if (empty($nickname)) {
+                        $data = ['is_exist' => false];
+                        Event::dispatch(new NotifyAdministratorEvent($url));
+                    }
+                    break;
+                case 'thread':
+                    $thread = Thread::find($request->thread_id);
+                    if (empty($thread)) {
+                        $data = ['is_exist' => false];
+                        Event::dispatch(new NotifyAdministratorEvent($url));
+                    }
+                    break;
+                default:
+                    $data = ['is_exist' => false];
+                    Event::dispatch(new NotifyAdministratorEvent($url));
+                    break;
             }
+
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);

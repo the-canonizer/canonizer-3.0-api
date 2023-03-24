@@ -609,12 +609,19 @@ class ValidationMessages
     public function notifyIfTopicNotExistValidationMessages(): array
     {
         return ([
-            'topic_num.required' => trans('message.notify_if_url_not_exist.topic_num_required'),
+            'is_type.required' => trans('message.notify_if_url_not_exist.is_type_required'),
+            'topic_num.required_if' => trans('message.notify_if_url_not_exist.topic_num_required'),
             'topic_num.numeric' => trans('message.notify_if_url_not_exist.topic_num_numeric'),
             'topic_num.gt' => trans('message.notify_if_url_not_exist.topic_num_gt'),
-            'camp_num.required' => trans('message.notify_if_url_not_exist.camp_num_required'),
+            'camp_num.required_if' => trans('message.notify_if_url_not_exist.camp_num_required'),
             'camp_num.numeric' => trans('message.notify_if_url_not_exist.camp_num_numeric'),
             'camp_num.gt' => trans('message.notify_if_url_not_exist.camp_num_gt'),
+            'nick_id.required_if' => trans('message.notify_if_url_not_exist.nick_id_required'),
+            'nick_id.numeric' => trans('message.notify_if_url_not_exist.nick_id_numeric'),
+            'nick_id.gt' => trans('message.notify_if_url_not_exist.nick_id_gt'),
+            'thread_id.required_if' => trans('message.notify_if_url_not_exist.thread_id_required'),
+            'thread_id.numeric' => trans('message.notify_if_url_not_exist.thread_id_numeric'),
+            'thread_id.gt' => trans('message.notify_if_url_not_exist.thread_id_gt'),
             'url.required' => trans('message.notify_if_url_not_exist.url_required'),
         ]);
     }

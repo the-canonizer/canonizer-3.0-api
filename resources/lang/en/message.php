@@ -515,12 +515,19 @@ return [
         'forum_num_gt' => "forum_num should be greater than :value.",
     ],
     "notify_if_url_not_exist" => [
+        'is_type_required' => "is_type is required.",
         'topic_num_required' => "topic_num is required.",
         'topic_num_numeric' => "topic_num should be a numeric.",
         'topic_num_gt' => "topic_num should be greater than :value.",
         'camp_num_required' => "camp_num is required.",
         'camp_num_numeric' => "camp_num should be a numeric.",
         'camp_num_gt' => "camp_num should be greater than :value.",
+        'nick_id_required' => "nick_id is required.",
+        'nick_id_numeric' => "nick_id should be a numeric.",
+        'nick_id_gt' => "nick_id should be greater than :value.",
+        'thread_id_required' => "thread_id is required.",
+        'thread_id_numeric' => "thread_id should be a numeric.",
+        'thread_id_gt' => "thread_id should be greater than :value.",
         'url_required' => "url is required.",
     ]
 ];
