@@ -5,34 +5,36 @@ namespace App\Providers;
 use App\Mail\welcomeEmail;
 use App\Events\ExampleEvent;
 use App\Events\SendOtpEvent;
+use App\Events\CampForumEvent;
+use App\Events\LogActivityEvent;
 use App\Events\WelcomeMailEvent;
 use App\Listeners\ExampleListener;
 use App\Listeners\SendOtpListener;
+use App\Listeners\CampForumListener;
+use App\Events\NotifySupportersEvent;
+use App\Events\SupportAddedMailEvent;
 use App\Events\CampForumPostMailEvent;
+use App\Listeners\LogActivityListener;
 use App\Listeners\WelcomeMailListener;
+use App\Events\SupportRemovedMailEvent;
 use App\Events\CampForumThreadMailEvent;
+use App\Events\NotifyAdministratorEvent;
+use App\Events\SendPushNotificationEvent;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Events\ForgotPasswordSendOtpEvent;
+use App\Events\PromotedDelegatesMailEvent;
+use App\Listeners\NotifySupportersListner;
+use App\Listeners\SupportAddedMailListener;
 use App\Listeners\CampForumPostMailListener;
+use App\Listeners\NotifyAdministratorListner;
+use App\Listeners\SupportRemovedMailListener;
 use App\Listeners\CampForumThreadMailListener;
+use App\Listeners\SendPushNotificationListner;
 use App\Listeners\ThankToSubmitterMailListener;
 use App\Listeners\ForgotPasswordSendOtpListener;
-use App\Events\PromotedDelegatesMailEvent;
 use App\Listeners\PromotedDelegatesMailListener;
-use App\Events\SupportRemovedMailEvent;
-use App\Listeners\SupportRemovedMailListener;
-use App\Events\LogActivityEvent;
-use App\Listeners\LogActivityListener;
-use App\Events\SupportAddedMailEvent;
-use App\Listeners\SupportAddedMailListener;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
-use App\Events\CampForumEvent;
-use App\Events\NotifySupportersEvent;
-use App\Events\SendPushNotificationEvent;
-use App\Listeners\CampForumListener;
-use App\Listeners\NotifySupportersListner;
-use App\Listeners\SendPushNotificationListner;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -87,6 +89,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         SendPushNotificationEvent::class => [
             SendPushNotificationListner::class
+        ],
+        NotifyAdministratorEvent::class => [
+            NotifyAdministratorListner::class
         ]
     ];
 }
