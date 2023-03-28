@@ -2,7 +2,7 @@
 
 use App\Models\User;
 
-class StatementDiscardChangeTest extends TestCase
+class DiscardChangeTest extends TestCase
 {
     /**
      * Check Api without payload
@@ -11,7 +11,6 @@ class StatementDiscardChangeTest extends TestCase
     public function testDiscardChangeWithoutPayload()
     {
         $payload = [];
-        print sprintf("Test without payload");
         $user = User::factory()->make();
         $header = [
             'Accept' => 'application/json',
@@ -32,7 +31,6 @@ class StatementDiscardChangeTest extends TestCase
             "id" => "",
             "type" => "",
         ];
-        print sprintf("Test with empty form data");
         $user = User::factory()->make();
         $header = [
             'Accept' => 'application/json',
@@ -53,7 +51,6 @@ class StatementDiscardChangeTest extends TestCase
             "id" => 123,
             "type" => "HelloWorld",
         ];
-        print sprintf("Test with wrong type");
         $user = User::factory()->make();
         $header = [
             'Accept' => 'application/json',
@@ -74,7 +71,6 @@ class StatementDiscardChangeTest extends TestCase
             "id" => 123,
             "type" => "statement",
         ];
-        print sprintf("Test with wrong data");
         $user = User::factory()->make();
         $header = [
             'Accept' => 'application/json',
@@ -89,7 +85,7 @@ class StatementDiscardChangeTest extends TestCase
      * Check Api with data 
      * validation
      */
-    public function testDiscardChangeWithValidData()
+    public function testDiscardChangeForStatementWithValidData()
     {
         $validData = [
             "topic_num" => "47",
@@ -124,7 +120,89 @@ class StatementDiscardChangeTest extends TestCase
             "type" => "statement",
         ];
 
-        print sprintf("Test with valid data");
+        $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $this->assertEquals(200, $this->response->status());
+    }
+    
+    public function testDiscardChangeForTopicWithValidData()
+    {
+
+        $validData = [
+            "topic_num" => "1",
+            "topic_id" => "1",
+            "nick_name" => "347",
+            "topic_name" => rand(),
+            "submitter" => "1",
+            "namespace_id" => "1",
+            "note" => "1",
+            "event_type" => "update",
+        ];
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $header = [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
+
+        ];
+        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+    
+        $validData = [
+            "per_page" => "10",
+            "page" => "1",
+            "topic_num" => "1",
+            "type" => "all",
+        ];
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        $response = $this->response->getData();
+
+        $payload = [
+            "id" => $response->data->items[0]->id,
+            "type" => "topic",
+        ];
+
+        $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $this->assertEquals(200, $this->response->status());
+    }
+    
+    public function testDiscardChangeForCampWithValidData()
+    {
+
+        $validData = [
+            "topic_num" => "47",
+            "camp_num" => "2",
+            "camp_id" => "2",
+            "camp_name" => rand(),
+            "nick_name" => "347",
+            "camp_about_nick_id" => "123",
+            "note" => "note",
+            "submitter" => "1",
+            "event_type" => "update",
+        ];
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $header = [
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,  
+        ];
+        $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        
+        $validData = [
+            "per_page" => "10",
+            "page" => "1",
+            "topic_num" => "47",
+            "camp_num" => "2",
+            "type" => "all",
+        ];
+        $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
+        $response = $this->response->getData();
+
+        $payload = [
+            "id" => $response->data->items[0]->id,
+            "type" => "camp",
+        ];
+
         $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
         $this->assertEquals(200, $this->response->status());
     }
