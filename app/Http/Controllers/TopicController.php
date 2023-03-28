@@ -1110,4 +1110,79 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+/**
+     * @OA\Post(path="/discard/change",
+     *   tags={"Topic"},
+     *   summary="discard a change",
+     *   description="Used to discard a change for camp, topic and statement.",
+     *   operationId="discardChange",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Discard change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Record id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function discardChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getDiscardChangeValidationRules(), $this->validationMessages->getDiscardChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $inputs = $request->post();
+        $type = $inputs['type'];
+        $id = $inputs['id'];
+        $message = "";
+        $nickNames = Nickname::personNicknameArray();
+        try {
+            if ($type == 'statement') {
+                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+            } else if ($type == 'camp') {
+                $model = Camp::where('id', '=', $id)->first();
+            } else if ($type == 'topic') {
+                $model = Topic::where('id', '=', $id)->first();
+            }
+            if (!$model) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+
+            if ($model->grace_period == 1) {
+                $model->delete();
+            } else {
+                throw new Exception('The Change is already submitted. You cannot discard it.');
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }
