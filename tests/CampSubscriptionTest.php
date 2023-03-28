@@ -6,19 +6,16 @@ use App\Models\User;
 class CampSubscriptionTest extends TestCase
 {
     /**
-     * Check Api with empty form data
-     * validation
-     */
-    public function testCampSubscriptionApiWithEmptyFormData()
-    {
-        print sprintf("Test with empty form data");
+     * Check Api without payload
+    */
+    public function testCampSubscriptionApiWithoutPayload() {
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/camp/subscription', []);
         $this->assertEquals(400,  $this->response->status());
     }
 
     /**
-     * Check Api with empty data
+     * Check Api with empty payload values
      * validation
      */
     public function testCampSubscriptionApiWithEmptyValues()
@@ -29,16 +26,15 @@ class CampSubscriptionTest extends TestCase
             "checked" => "",
             "subscription_id" => ""
         ];
-        print sprintf("Test with empty values");
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/camp/subscription', $emptyData);
         $this->assertEquals(400, $this->response->status());
     }
 
     /**
-     * Check Api with invalid data
-     * validation
-     */
+        * Check Api with invalid payload data types
+        * validation
+    */
     public function testCampSubscriptionApiWithInvalidData()
     {
         $invalidData = [
@@ -47,7 +43,6 @@ class CampSubscriptionTest extends TestCase
             "checked" => "xyz",
             "subscription_id" => "abc"
         ];
-        print sprintf("Test with invalid values");
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
         $this->assertEquals(400,  $this->response->status());
@@ -55,65 +50,72 @@ class CampSubscriptionTest extends TestCase
 
     /**
      * Check Api with valid data for subscribing
-     * validation
-     */
-    public function testCampSubscriptionApiWithValidData()
-    {
-        $invalidData = [
+     * 
+    */
+    public function testCampSubscribeAndUnSubscribeWithValidData () {
+        $validData = [
             "topic_num" => 2,
             "camp_num" => 1,
             "checked" => true,
             "subscription_id" => ""
         ];
-        print sprintf("Test with valid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
+        $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+        
         $this->assertEquals(200,  $this->response->status());
+
+        /// Unit test for the un-subscription on above subscription ...
+        if($this->response->getData()->status_code == 200) {
+            // Update the payload ...
+            $validData["subscription_id"] = $this->response->getData()->data->subscriptionId;
+            $validData["checked"] = false;
+
+            $user = User::factory()->make();
+            $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+            $this->assertEquals(200,  $this->response->status());
+        }
     }
 
 
     /**
-     * Check Api with invalid data for unsubscribing
-     * validation
+     * Check Un-subscribe with invalid data -- without subscription id
      */
-    public function testCampSubscriptionApiWithInvalidUnsubscriptionData()
-    {
+    public function testCampUnSubscriptionByInvalidData() {
         $invalidData = [
             "topic_num" => 2,
             "camp_num" => 1,
             "checked" => false,
             "subscription_id" => ""
         ];
-        print sprintf("Test with invalid values");
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
         $this->assertEquals(400,  $this->response->status());
     }
 
     /**
-     * Check Api without auth
-     * validation
-     */
+     * Check subscription without auth
+    */
     public function  testCampSubscriptionApiWithoutUserAuth()
     {
-        print sprintf("Test with empty form data");
-        $user = User::factory()->make();
         $this->post('/api/v3/camp/subscription', []);
         $this->assertEquals(401,  $this->response->status());
     }
 
-    public function testGetCampSubscriptionListInvalidData(){
-        print sprintf("\n Get camp subscription List Invalid Data %d %s",400, PHP_EOL);
+    /**
+     * Check subscription listing without user auth
+    */
+    public function testGetCampSubscriptionListWithoutUserAuth() {
         $response = $this->call('GET', '/api/v3/camp/subscription/list/');
         $this->assertEquals(401, $response->status()); 
     }
 
-    public function testGetCampSubscriptionListValidData(){
-        print sprintf(" \n  Get camp subscription List Valid Data %d %s", 200,PHP_EOL);
+    /**
+    * Check subscription listing without user auth
+    */
+    public function testGetCampSubscriptionListValidData() {
         $camp = Camp::factory()->make();
 
-        $this->actingAs($camp)
-        ->get('/api/v3/camp/subscription/list?page=1&per_page=10');
+        $this->actingAs($camp)->get('/api/v3/camp/subscription/list?page=1&per_page=10');
         $this->assertEquals(200, $this->response->status());
     }
 }
