@@ -40,7 +40,7 @@ class SitemapXmlController extends Controller
             'sitemap_thread.xml',
             'sitemap_post.xml',
         ];
-        $lastModified = Carbon::now()->format('d-m-Y');
+        $lastModified = Carbon::now()->startOfDay()->toIso8601String();
         $siteMaps = array_map(function ($url) use ($lastModified) {
             return [
                 'url' => $url,
@@ -74,7 +74,7 @@ class SitemapXmlController extends Controller
             $url = $baseUrl . $url;
             return [
                 'url' => $url,
-                'last_modified' => Carbon::now()->format('d-m-Y')
+                'last_modified' => Carbon::now()->startOfDay()->toIso8601String()
             ];
         }, $urls);
         return $siteMaps;
@@ -97,11 +97,11 @@ class SitemapXmlController extends Controller
             $topicHistoryUrl = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
             $topicUrls[] = [
                 'url' => $topicUrl,
-                'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
             $topicUrls[] = [
                 'url' => $topicHistoryUrl,
-                'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
         }
 
@@ -120,12 +120,12 @@ class SitemapXmlController extends Controller
             $campLink = Util::getTopicCampUrlWithoutTime($camp->topic_num, $camp->camp_num, $topic, $camp, time());
             $campUrls[] = [
                 'url' => $campLink,
-                'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
             $campHistoryLink = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $camp->topic_name, $camp->camp_name, 'camp');
             $campUrls[] = [
                 'url' => $campHistoryLink,
-                'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
         }
         return $campUrls;
@@ -142,7 +142,7 @@ class SitemapXmlController extends Controller
             $historyLink = env('APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
             $topicUrl[] = [
                 'url' => $historyLink,
-                'last_modified' => !empty($statement->go_live_time) ? Carbon::createFromTimestamp($statement->go_live_time)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($statement->go_live_time) ? Carbon::createFromTimestamp($statement->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
         }
         return $topicUrl;
@@ -165,7 +165,7 @@ class SitemapXmlController extends Controller
             $threadLink = config('global.APP_URL_FRONT_END') . '/forum/' . $thread->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $thread->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/';
             $topicUrl[] = [
                 'url' => $threadLink,
-                'last_modified' => !empty($thread->updated_at) ? Carbon::createFromTimestamp($thread->updated_at)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' => !empty($thread->updated_at) ? Carbon::createFromTimestamp($thread->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
         }
         return  $topicUrl;
@@ -186,7 +186,7 @@ class SitemapXmlController extends Controller
             $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
             $topicUrl[] = [
                 'url' => $postLink,
-                'last_modified' =>!empty($post->updated_at) ? Carbon::createFromTimestamp($post->updated_at)->format('d-m-Y') : Carbon::now()->format('d-m-Y')
+                'last_modified' =>!empty($post->updated_at) ? Carbon::createFromTimestamp($post->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
             ];
         }
         return  $topicUrl;
