@@ -833,7 +833,8 @@ class StatementController extends Controller
                         'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
                         'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
                         'is_disabled' => $val->is_disabled,
-                        'is_one_level' => $val->is_one_level
+                        'is_one_level' => $val->is_one_level,
+                        'is_archive' => $val->is_archive
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;

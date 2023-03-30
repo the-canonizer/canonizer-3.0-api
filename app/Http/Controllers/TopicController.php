@@ -670,6 +670,9 @@ class TopicController extends Controller
                         if (isset($topic)) {
                             Util::dispatchJob($topic, $camp->camp_num, 1);
                         }
+
+                        /** and is archived then subcamps of that camps with archived as well */
+                        
                     }
                     $message = trans('message.success.camp_agree');
                 } else {

@@ -1491,6 +1491,7 @@ class CampController extends Controller
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->is_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
+        $camp->direct_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
         $camp->camp_num = $all['camp_num'];
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];
