@@ -788,7 +788,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         if (!empty($parent_camp_num)) {
             $parent = array();
-            $selfData = self::where('topic_num', $topic_num)->where('camp_num', $parent_camp_num)->orderBy('id', 'desc')->first();
+            // $selfData = self::where('topic_num', $topic_num)->where('camp_num', $parent_camp_num)->orderBy('id', 'desc')->first();
+            $selfData = self::where('topic_num',  $topic_num)
+            ->where('camp_num', '=', $parent_camp_num)
+            ->where('objector_nick_id', '=', NULL)
+            ->where('go_live_time', '<=', time())
+            ->latest('go_live_time')->first();
             $parent[] = $selfData;
                 if ($selfData->parent_camp_num) {
                     $push = self::getParentFromParent($selfData->parent_camp_num, $selfData->topic_num);

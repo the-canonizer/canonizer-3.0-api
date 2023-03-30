@@ -532,4 +532,15 @@ class ValidationRules
             'keys.camp_num' => 'required|numeric|gt:0',
         ];
     }
+
+    public function notifyIfTopicNotExistValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required_if:is_type,topic|required_if:is_type,statement|numeric|gt:0',
+            'camp_num' => 'required_if:is_type,topic|required_if:is_type,statement|numeric|gt:0',
+            'nick_id' => 'required_if:is_type,nickname|numeric|gt:0',
+            'thread_id' => 'required_if:is_type,thread|numeric|gt:0',
+            'url' => 'required',
+        ];
+    }
 }
