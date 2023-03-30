@@ -831,7 +831,9 @@ class StatementController extends Controller
                         'camp_about_url' => $val->camp_about_url,
                         'camp_about_nick_id' => $val->camp_about_nick_id,
                         'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
-                        'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? ""
+                        'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
+                        'is_disabled' => $val->is_disabled,
+                        'is_one_level' => $val->is_one_level
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -870,6 +872,8 @@ class StatementController extends Controller
                         default:
                             $statement['liveStatement']['status'] = "NULL";
                     }
+                    $statement['liveStatement']['is_one_level'] = ($liveStatement->is_one_level);
+                    $statement['liveStatement']['is_one_level'] = ($liveStatement->is_one_level);
                 }
                 $statement['latestRevision'] = ($latestRevision->submit_time);
             }
