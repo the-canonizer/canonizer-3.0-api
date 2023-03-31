@@ -125,6 +125,7 @@ class MetaTagController extends Controller
                 switch ($page_name) {
 
                     case 'TopicDetailsPage':
+                    case 'TopicAnimationPage':
                         $title = $topic->topic_name ?? "";
                         $title .= (strlen($title) > 0 ? ' / ' : '') . $camp->camp_name;
                         break;
