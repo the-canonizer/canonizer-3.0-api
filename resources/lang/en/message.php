@@ -369,6 +369,11 @@ return [
         'type_in' => "Please enter a valid value (topic,camp,statement)",
         'id_required' => "Id is required.",
     ],
+    'validation_discard_change' => [
+        'id_required' => "Id is required.",
+        'type_required' => "type is required (topic, camp, statement)",
+        'type_in' => "Please enter a valid value (topic, camp, statement)",
+    ],
     'statement_comparison' => [
         'ids_required' => "Statement Ids is required.",
         'topic_num_required' => "Topic Num is required.",
