@@ -127,7 +127,7 @@ class MetaTagController extends Controller
                     case 'TopicDetailsPage':
                     case 'TopicAnimationPage':
                         $title = $topic->topic_name ?? "";
-                        $title .= (strlen($title) > 0 ? ' / ' : '') . $camp->camp_name;
+                        $title .= (strlen($title) > 0 ? ' | ' : '') . $camp->camp_name;
                         break;
 
                     case "CampForumListPage":
