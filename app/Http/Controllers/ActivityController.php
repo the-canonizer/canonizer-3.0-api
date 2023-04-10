@@ -83,7 +83,11 @@ class ActivityController extends Controller
         try {
             $log = ActivityUser::whereHas('Activity', function ($query) use ($logType) {
                 $query->where('log_name', $logType);
-            })->with('Activity')->where('user_id', $request->user()->id)->latest()->paginate($perPage);
+            })->with('Activity');
+            if(!$request->is_admin_show_all){
+                $log->where('user_id', $request->user()->id);
+            }
+            $log = $log->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
