@@ -33,6 +33,26 @@ class GetMetaTagsTest extends TestCase
         $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
         $this->assertEquals(200,  $this->response->status());
     }
+    
+    public function testGetMetatagsForDynamicPageWithValidData()
+    {
+        $payload = [
+            'page_name' => 'TopicDetailsPage',
+            "keys" => [
+                "topic_num" => 904,
+                "camp_num" => 1,
+            ]
+        ];
+        print sprintf("\nTest for dynamic pages with valid data");
+
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/meta-tags', $payload, $header);
+        $this->assertEquals(200,  $this->response->status());
+    }
 
     public function testGetMetatagsForDynamicPage()
     {

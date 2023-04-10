@@ -121,6 +121,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
         $router->post('support-order/update','SupportController@updateSupportOrder');
         $router->post('commit/change','TopicController@commitAndNotifyChange');
+        $router->post('discard/change','TopicController@discardChange');
         $router->post('/get-statement-comparison','StatementController@getStatementComparison');
         $router->get('support/check','SupportController@checkIfSupportExist');
         $router->post('topic-support-list','SupportController@getSupportInTopic');

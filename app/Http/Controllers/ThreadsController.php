@@ -413,7 +413,9 @@ class ThreadsController extends Controller
                 if (!empty($request->like)) {
                     $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
                 }
-                $threads = $query->groupBy('thread.id')->latest()->paginate($per_page);
+                $threads = $query->groupBy('thread.id')
+                ->orderByRaw('CASE WHEN post.updated_at > thread.created_at THEN post.updated_at ELSE thread.created_at END DESC')
+                ->paginate($per_page);
                 $threads = Util::getPaginatorResponse($threads);
                 foreach ($threads->items as $value) {
                     $namspaceId =  Topic::select('namespace_id')->where('topic_num', $value->topic_id)->get();
@@ -421,7 +423,7 @@ class ThreadsController extends Controller
                         $value->namespace_id = $nId->namespace_id;
                     }
                     if ($value->post_count > 0) {
-                        $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->latest()->first();
+                        $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->orderBy('post.updated_at','DESC')->first();
                         $value->post_updated_at = $latestPost->updated_at;
                         $value->nick_name_id = $latestPost->user_id;
                         $nickName = Nickname::find($latestPost->user_id);
@@ -440,9 +442,19 @@ class ThreadsController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
-            $query = Thread::leftJoin('post', function ($join) {
+            $query = Thread::leftJoin('post', function ($join) use ($request, $userNicknames) {
                 $join->on('thread.id', '=', 'post.c_thread_id');
                 $join->where('post.is_delete', 0);
+                if ($request->type == config('global.thread_type.myThread')) {
+                    if (count($userNicknames) > 0) {
+                        $join->where('thread.user_id', $userNicknames[0]->id);
+                    }
+                }
+                if ($request->type == config('global.thread_type.myPrticipate')) {
+                    if (count($userNicknames) > 0) {
+                        $join->where('post.user_id', $userNicknames[0]->id);
+                    }
+                }
             })
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
@@ -451,18 +463,9 @@ class ThreadsController extends Controller
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             }
-
-            if ($request->type == config('global.thread_type.myThread')) {
-                if (count($userNicknames) > 0) {
-                    $query->where('thread.user_id', $userNicknames[0]->id)->groupBy('thread.id');
-                }
-            }
-            if ($request->type == config('global.thread_type.myPrticipate')) {
-                if (count($userNicknames) > 0) {
-                    $query->where('post.user_id', $userNicknames[0]->id)->groupBy('thread.id');
-                }
-            }
-            $threads = $query->latest()->paginate($per_page);
+            $query->groupBy('thread.id');
+            $threads = $query->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')            
+            ->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::leftJoin('post', function ($join) {
                     $join->on('thread.id', '=', 'post.c_thread_id');
@@ -486,7 +489,7 @@ class ThreadsController extends Controller
                 }
                 $value->post_count = $postCount;
                 if ($postCount > 0) {
-                    $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->latest()->first();
+                    $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->orderBy('post.updated_at','DESC')->first();
                     $value->post_updated_at = $latestPost->updated_at;
                     $value->nick_name_id = $latestPost->user_id;
                     $nickName = Nickname::find($latestPost->user_id);

@@ -304,6 +304,15 @@ class MetaTagSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
+            [
+                'page_name' => 'TopicAnimationPage',
+                'title' => 'Event Line | Canonizer',
+                'is_static' => 0,
+                'description' => '[Topic Description] limited to 160 characters.',
+                'submitter_nick_id' => null,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],  
         ];
     
         foreach ($data as $value) {
