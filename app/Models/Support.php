@@ -159,7 +159,7 @@ class Support extends Model
      * This will remove support from all nicknames of that user with nick id @param $nickNameId
      * 
      */
-    public static function removeSupport($topicNum, $nickNameId, $campNum = '')
+    public static function removeSupport($topicNum, $nickNameId='', $campNum = '')
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         self::removeSupportWithAllNicknames($topicNum, $campNum, $usersNickNames);
@@ -548,7 +548,15 @@ class Support extends Model
         return $support;
     }
 
-
-
+    public static function removeSupportByCamps($topicNum, $campNum = array(),$reason = null,$reason_summary = null,$citation_link = null)
+    {
+        if (!empty($campNum)) {
+            $supports = self::where('topic_num', '=', $topicNum)
+                ->whereIn('camp_num', $campNum)
+                ->where('end', '=',  0)
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
+        }
+        return;
+    }
 
 }

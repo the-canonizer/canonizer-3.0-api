@@ -606,7 +606,8 @@ class TopicController extends Controller
         $data = $request->all();
         $message = "";
         $changeId = $data['record_id'];
-        try {
+
+        try {        
 
             if($data['user_agreed'] == 0) {
                 $changeAgreeLog = (new ChangeAgreeLog())->where([
@@ -652,8 +653,11 @@ class TopicController extends Controller
             } else if ($data['change_for'] == 'camp') {
                 $camp = Camp::where('id', $changeId)->first();
                 if ($camp) {
+                    DB::beginTransaction();
+
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
+                    $preLiveCamp = Camp::getLiveCamp($filter);
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
@@ -672,10 +676,26 @@ class TopicController extends Controller
                         }
 
                         /** and is archived then subcamps of that camps with archived as well */
-                        
+                        if($liveCamp->is_archive != $preLiveCamp->is_archive)
+                        {
+                           if($liveCamp->is_archive)
+                           {
+                                //archive supcamps and also end support of camp including subcamps
+                                $allchilds = Camp::getAllLiveChildCamps($camp, True);
+                               
+                                if (($key = array_search($camp->camp_num, $allchilds)) !== false) {
+                                    Support::removeSupportByCamps($data['topic_num'], [$allchilds[$key]], $reason = trans('messages.camp.camp_archived'), $reason_summary = trans('messages.camp.camp_archived_direct_summary'));
+                                    unset($allchilds[$key]);
+                                }
+                                Support::removeSupportByCamps($data['topic_num'], $allchilds, $reason = trans('messages.camp.camp_archived'), $reason_summary = trans('messages.camp.camp_archived_indirectly_summary'));
+                                Camp::archiveChildCamps($camp->topic_num, $allchilds);
+                            } 
+                        }
                     }
+                    DB::commit();
                     $message = trans('message.success.camp_agree');
                 } else {
+                    DB::rollback();
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             } else if ($data['change_for'] == 'topic') {
@@ -698,7 +718,9 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
+            
         } catch (Exception $e) {
+          
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }

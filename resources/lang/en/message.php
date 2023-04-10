@@ -529,5 +529,10 @@ return [
         'thread_id_numeric' => "thread_id should be a numeric.",
         'thread_id_gt' => "thread_id should be greater than :value.",
         'url_required' => "url is required.",
-    ]
+    ],
+    "camp" => [
+        "camp_archived" => 'archived',
+        "camp_archived_direct_summary" => "This camp has been archived directly",
+        "camp_archived_indirectly_summary" => "This camp has been archived implicitly."
+    ];
 ];
