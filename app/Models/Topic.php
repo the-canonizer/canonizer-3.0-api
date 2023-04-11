@@ -174,13 +174,24 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 $val->agreed_to_change = 0;
 
-                $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
                 
-                $val->agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
+                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
+                $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
-                    ->where('change_for', '=', 'topic')
-                    ->count();
+                    ->where('change_for', '=', 'statement')
+                    ->get()->pluck('nick_name_id')->toArray();
+                
+                $val->agreed_supporters = count($agreed_supporters);
+
+                if($val->submitter_nick_id > 0 && !in_array($val->submitter_nick_id, $agreed_supporters)) 
+                {   
+                    $val->agreed_supporters++;
+                }
+
+                $nickNames = Nickname::personNicknameArray();
+                $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
 
 
                 switch ($val) {

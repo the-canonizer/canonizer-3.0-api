@@ -538,7 +538,7 @@ class Support extends Model
             $mysupports = Support::where('topic_num', $filter['topicNum'])
                             ->whereIn('camp_num', $childCamps)
                             ->whereIn('nick_name_id', $nickNames)
-                            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime])
+                            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
                             ->where('delegate_nick_name_id', '=', 0)
                             ->orderBy('support_order', 'ASC')
                             ->groupBy('camp_num')->get();
