@@ -625,7 +625,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
-                    ->where('change_for', '=', 'statement')
+                    ->where('change_for', '=', 'camp')
                     ->get()->pluck('nick_name_id')->toArray();
                 
                 $val->agreed_supporters = count($agreed_supporters);

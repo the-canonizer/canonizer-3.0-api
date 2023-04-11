@@ -179,7 +179,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
-                    ->where('change_for', '=', 'statement')
+                    ->where('change_for', '=', 'topic')
                     ->get()->pluck('nick_name_id')->toArray();
                 
                 $val->agreed_supporters = count($agreed_supporters);
