@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
+use Carbon\Carbon;
 use DB;
 
 class Support extends Model
@@ -79,6 +80,18 @@ class Support extends Model
         } else {
             $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->first();
         }
+
+        return !empty($support) ? $support->nick_name_id : 0;
+    }
+
+    public static function ifIamSupporterForChange($topic_num, $camp_num, $nick_names, $submit_time = null, $delayed = false)
+    {
+        $support = self::where('topic_num', '=', $topic_num)
+            ->where('camp_num', '=', $camp_num)
+            ->whereIn('nick_name_id', $nick_names)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submit_time])
+            ->first();
 
         return !empty($support) ? $support->nick_name_id : 0;
     }
@@ -275,6 +288,37 @@ class Support extends Model
         }
         return count($support) + $supportCount;
     }
+    
+    public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null)
+    {
+        $submit_time = $submit_time ?: Carbon::now()->timestamp;
+        
+        // Number of supporters who were the supporter when change is submitted and then removed their support
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw('? between `start` and `end`', [$submit_time])
+            ->get()->pluck('nick_name_id')->toArray();
+        
+        
+        // Number of supporters who are the supporter when change is submitted
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->where('start', '<', $submit_time)
+            ->where('end', '=', 0)
+            ->get()->pluck('nick_name_id')->toArray();
+        
+        $totalSupporters = array_merge(...$totalSupporters);
+        $totalSupportersCount = count($totalSupporters);
+        
+        if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+        {   
+            $totalSupportersCount++;
+        }
+
+        return $totalSupportersCount;
+    }
 
     public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
     {
@@ -468,6 +512,33 @@ class Support extends Model
                             ->whereIn('camp_num', $childCamps)
                             ->whereIn('nick_name_id', $nickNames)
                             ->where('end', '=', 0)
+                            ->where('delegate_nick_name_id', '=', 0)
+                            ->orderBy('support_order', 'ASC')
+                            ->groupBy('camp_num')->get();
+            return (count($mysupports)) ? true : false;
+    }
+
+    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null){
+            Camp::clearChildCampArray();
+            $childCamps = [];
+            if($type == "topic"){
+                $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
+                ->where('go_live_time', '<=', time())
+                ->groupBy('camp_num')
+                ->get()
+                ->toArray();
+            }else{
+                $liveCamp = Camp::getLiveCamp($filter);
+                $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+                $key = array_search($liveCamp->camp_num, $childCamps, true);
+                if ($key !== false) {
+                    unset($childCamps[$key]);
+                }
+            }
+            $mysupports = Support::where('topic_num', $filter['topicNum'])
+                            ->whereIn('camp_num', $childCamps)
+                            ->whereIn('nick_name_id', $nickNames)
+                            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime])
                             ->where('delegate_nick_name_id', '=', 0)
                             ->orderBy('support_order', 'ASC')
                             ->groupBy('camp_num')->get();
