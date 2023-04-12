@@ -435,6 +435,14 @@ class ValidationRules
             'type' => 'in:statement,camp,topic',
         ]);
     }
+
+    public function getDiscardChangeValidationRules(): array
+    {
+        return ([
+            'id' => 'required',
+            'type' => 'required|in:statement,camp,topic',
+        ]);
+    }
     
     public function getStatementComparisonValidationRules(): array
     {

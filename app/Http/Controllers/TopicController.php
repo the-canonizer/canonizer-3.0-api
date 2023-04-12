@@ -190,8 +190,11 @@ class TopicController extends Controller
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
+            $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
                 Util::dispatchJob($topic, 1, 1);
+                $timelineMessage = $nickName . " created New Topic ". $topic->topic_name;
+                Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="create_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -459,10 +462,10 @@ class TopicController extends Controller
                 $data['forum_link'] = 'forum/' . $liveCamp->topic_num . '-' . $liveCamp->camp_name . '/' . $liveCamp->camp_num . '/threads';
                 $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
                 $topic = $model->topic;
+                $message = trans('message.success.camp_commit');
                 if (isset($topic)) {
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
-                $message = trans('message.success.camp_commit');
                 $notification_type = config('global.notification_type.campCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
             } else if ($type == 'topic') {
@@ -474,10 +477,11 @@ class TopicController extends Controller
                 $data['camp_num'] = 1;
                 $data['forum_link'] = 'forum/' . $liveTopic->topic_num . '-' . $liveTopic->topic_name . '/1/threads';
                 $data['subject'] = "Proposed change to topic " . $liveTopic->topic_name . " submitted";
+                $message = trans('message.success.topic_commit');
                 if (isset($liveTopic)) {
                     Util::dispatchJob($liveTopic, 1, 1);
                 }
-                $message = trans('message.success.topic_commit');
+                
                 $notification_type = config('global.notification_type.topicCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
             }
@@ -895,7 +899,13 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
+                
                 Util::dispatchJob($topic, 1, 1);
+                //timeline start
+                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " updated Topic ". $topic->topic_name;
+                Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
@@ -1106,6 +1116,81 @@ class TopicController extends Controller
             } else {
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
             }
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+/**
+     * @OA\Post(path="/discard/change",
+     *   tags={"Topic"},
+     *   summary="discard a change",
+     *   description="Used to discard a change for camp, topic and statement.",
+     *   operationId="discardChange",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Discard change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Record id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function discardChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getDiscardChangeValidationRules(), $this->validationMessages->getDiscardChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $inputs = $request->post();
+        $type = $inputs['type'];
+        $id = $inputs['id'];
+        $message = "";
+        $nickNames = Nickname::personNicknameArray();
+        try {
+            if ($type == 'statement') {
+                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+            } else if ($type == 'camp') {
+                $model = Camp::where('id', '=', $id)->first();
+            } else if ($type == 'topic') {
+                $model = Topic::where('id', '=', $id)->first();
+            }
+            if (!$model) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+
+            if ($model->grace_period == 1) {
+                $model->delete();
+            } else {
+                throw new Exception('The Change is already submitted. You cannot discard it.');
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

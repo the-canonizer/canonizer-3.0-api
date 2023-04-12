@@ -490,6 +490,15 @@ class ValidationMessages
             'id.required' => trans('message.validation_commit_change.id_required'),
         ];
     }
+
+    public function getDiscardChangeValidationMessages(): array
+    {
+        return [
+            'id.required' => trans('message.validation_discard_change.id_required'),
+            'type.required' => trans('message.validation_discard_change.type_required'),
+            'type.in' => trans('message.validation_discard_change.type_in'),
+        ];
+    }
     
     public function getStatementComparisonValidationMessages(): array
     {

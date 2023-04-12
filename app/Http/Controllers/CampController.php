@@ -258,6 +258,12 @@ class CampController extends Controller
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+                //timeline start
+                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " create Camp ". $camp->camp_name;
+                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+                
+                //end of timeline
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -376,7 +382,7 @@ class CampController extends Controller
                     $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
                 if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
-                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
+                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num, $filter['asOf']);
                 }
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
@@ -1438,6 +1444,19 @@ class CampController extends Controller
                 }                
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+                //timeline start
+                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                if($all['parent_camp_num']!=$all['old_parent_camp_num']){
+                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " change parent for topic   ". $topic->topic_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+                }
+                else if(strcmp($camp->camp_num,$all['camp_name'])!=0){
+                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " changed Camp name ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
+                }
+                else{
+                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " update Camp ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
+                }
+               
+                //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job

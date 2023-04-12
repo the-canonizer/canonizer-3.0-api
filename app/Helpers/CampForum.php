@@ -253,11 +253,17 @@ class CampForum
      * @param  [type] $campnum [description]
      * @return [type]          [description]
      */
-    public static function getCampName($topicid, $campnum)
+    public static function getCampName($topicid, $campnum, $asOf= "default")
     {
-        return Camp::where('camp_num', $campnum)->where('objector_nick_id', '=', null)->where('topic_num', $topicid)
-            ->where('go_live_time', '<=', time())
-            ->latest('submit_time')->first()->camp_name;
+        if($asOf == 'review') {
+            return Camp::where('camp_num', $campnum)->where('objector_nick_id', '=', null)->where('topic_num', $topicid)
+                ->where('grace_period', 0)
+                ->latest('go_live_time')->first()->camp_name;
+        } else {
+            return Camp::where('camp_num', $campnum)->where('objector_nick_id', '=', null)->where('topic_num', $topicid)
+                ->where('go_live_time', '<=', time())
+                ->latest('submit_time')->first()->camp_name;
+        }
     }
 
     /**
