@@ -551,4 +551,11 @@ class ValidationRules
             'url' => 'required',
         ];
     }
+
+    public function getLoginAsUserValidationRules(): array
+    {
+        return ([
+            'id' => 'required',
+        ]);
+    }
 }

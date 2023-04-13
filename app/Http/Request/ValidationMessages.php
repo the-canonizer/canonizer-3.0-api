@@ -634,4 +634,11 @@ class ValidationMessages
             'url.required' => trans('message.notify_if_url_not_exist.url_required'),
         ]);
     }
+
+    public function getLoginAsUserValidationMessages(): array
+    {
+        return [
+            'id.required' => trans('message.validation_login_as_user_change.id_required'),
+        ];
+    }
 }
