@@ -679,21 +679,10 @@ class TopicController extends Controller
                             Util::dispatchJob($topic, $camp->camp_num, 1);
                         }
 
-                        /** and is archived then subcamps of that camps with archived as well */
+                       /** Archive and restoration of archive camp #574 */
                         if($liveCamp->is_archive != $preLiveCamp->is_archive)
                         {
-                           if($liveCamp->is_archive)
-                           {
-                                //archive supcamps and also end support of camp including subcamps
-                                $allchilds = Camp::getAllLiveChildCamps($camp, True);
-                               
-                                if (($key = array_search($camp->camp_num, $allchilds)) !== false) {
-                                    Support::removeSupportByCamps($data['topic_num'], [$allchilds[$key]], $reason = trans('messages.camp.camp_archived'), $reason_summary = trans('messages.camp.camp_archived_direct_summary'));
-                                    unset($allchilds[$key]);
-                                }
-                                Support::removeSupportByCamps($data['topic_num'], $allchilds, $reason = trans('messages.camp.camp_archived'), $reason_summary = trans('messages.camp.camp_archived_indirectly_summary'));
-                                Camp::archiveChildCamps($camp->topic_num, $allchilds);
-                            } 
+                            util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive);
                         }
                     }
                     DB::commit();

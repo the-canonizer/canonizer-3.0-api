@@ -497,25 +497,27 @@ class Support extends Model
 
     public static function reOrderSupport($topicNum, $nickNames, $reason = null,$reason_summary = null,$citation_link = null)
     {
-        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
-        
-        $order = 1;
-        foreach($support as $support)
-        {
-            if($order === $support->support_order){
+        if(!empty($nickNames)){
+            $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+            
+            $order = 1;
+            foreach($support as $support)
+            {
+                if($order === $support->support_order){
+                    $order++;
+                    continue;
+                }
+
+                $support->support_order = $order;
+                $support->reason = $reason;
+                $support->reason_summary = $reason_summary;
+                $support->citation_link = $citation_link;
+                $support->update();
+
+                //update delegators support order as well
+                self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
                 $order++;
-                continue;
             }
-
-            $support->support_order = $order;
-            $support->reason = $reason;
-            $support->reason_summary = $reason_summary;
-            $support->citation_link = $citation_link;
-            $support->update();
-
-            //update delegators support order as well
-            self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
-            $order++;
         }
 
         return;
@@ -557,6 +559,14 @@ class Support extends Model
                 ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
         }
         return;
+    }
+
+    public static function getSupportersNickNameIdInCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '=', 0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
     }
 
 }

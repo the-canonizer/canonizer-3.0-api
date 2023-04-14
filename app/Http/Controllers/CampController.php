@@ -1398,7 +1398,7 @@ class CampController extends Controller
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
          
-            if ($all['event_type'] == "update") {
+            if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
                 if (!$ifIamSingleSupporter) {
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
@@ -1421,7 +1421,12 @@ class CampController extends Controller
                 $camp = $this->objectCamp($all);
             } elseif ($all['event_type'] == "edit") {
                 $camp = $this->editCamp($all);
-            }
+            } 
+            
+            $filter['topicNum'] = $all['topic_num'];
+            $filter['campNum'] = $all['camp_num'];
+            $preliveCamp = Camp::getLiveCamp($filter);
+
             $camp->save();
             $topic = $camp->topic;
             $filter['topicNum'] = $all['topic_num'];
@@ -1441,6 +1446,13 @@ class CampController extends Controller
                         Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
                     }
                     $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                    
+                    /** Archive and restoration of archive camp #574 */
+                    $prevArchiveStatus = $preliveCamp->is_archive;
+                    $updatedArchiveStatus = $all['is_archive'];
+                    if($prevArchiveStatus != $updatedArchiveStatus){
+                        Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
+                    }
                 }                
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);

@@ -648,4 +648,30 @@ class Util
         }
         
     }
+
+    /**
+     * camp Archive
+     */
+    public static function updateArchivedCampAndSupport($camp, $archiveFlag = null)
+    {
+        if($archiveFlag === 1){
+            $allchilds = Camp::getAllLiveChildCamps($camp, True);
+            $supporterNickNames = Support::getSupportersNickNameIdInCamps($camp->topic_num, $allchilds);
+           
+            if (($key = array_search($camp->camp_num, $allchilds)) !== false) {
+                Support::removeSupportByCamps($camp->topic_num, [$allchilds[$key]], $reason = trans('message.camp.camp_archived'), $reason_summary = trans('message.camp.camp_archived_direct_summary'));
+                unset($allchilds[$key]);
+            }
+            Support::removeSupportByCamps($camp->topic_num, $allchilds, $reason = trans('message.camp.camp_archived'), $reason_summary = trans('message.camp.camp_archived_indirectly_summary'));
+            Support::reOrderSupport($camp->topic_num, $supporterNickNames);
+            Camp::archiveChildCamps($camp->topic_num, $allchilds);
+            
+        }
+
+        if($archiveFlag === 0){
+            // restor archived camps
+        }
+
+        return;
+    } 
 }
