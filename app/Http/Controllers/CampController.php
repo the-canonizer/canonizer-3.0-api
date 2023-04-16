@@ -382,7 +382,7 @@ class CampController extends Controller
                     $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
                 }
                 if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
-                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num);
+                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num, $filter['asOf']);
                 }
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
