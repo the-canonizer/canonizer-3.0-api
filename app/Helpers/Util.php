@@ -666,10 +666,23 @@ class Util
             Support::reOrderSupport($camp->topic_num, $supporterNickNames);
             Camp::archiveChildCamps($camp->topic_num, $allchilds);
             
+            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+            //timeline start
+            $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " archived a camp ". $camp->camp_name;
+            self::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+            
+            
         }
 
         if($archiveFlag === 0){
             // restor archived camps
+            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+            //timeline start
+            $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+            self::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+            
         }
 
         return;
