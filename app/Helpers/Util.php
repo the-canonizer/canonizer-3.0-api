@@ -652,7 +652,7 @@ class Util
     /**
      * camp Archive
      */
-    public static function updateArchivedCampAndSupport($camp, $archiveFlag = null)
+    public function updateArchivedCampAndSupport($camp, $archiveFlag = null)
     {
         if($archiveFlag === 1){
             $allchilds = Camp::getAllLiveChildCamps($camp, True);
@@ -668,20 +668,20 @@ class Util
             
             $topic = Topic::getLiveTopic($camp->topic_num, 'default');
             //timeline start
-            $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " archived a camp ". $camp->camp_name;
-            self::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " archived a camp ";
+            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
             
             
         }
 
         if($archiveFlag === 0){
             // restor archived camps
-            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+           // $topic = Topic::getLiveTopic($camp->topic_num, 'default');
             //timeline start
-            $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
-            self::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+//$nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+           // $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+            //$this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
             
         }
 
