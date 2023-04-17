@@ -90,7 +90,7 @@ class ActivityController extends Controller
                     $query->where('log_name', $logType);
                 }
             })->with('Activity');
-            if(!$request->is_admin_show_all){
+            if(!$request->is_admin_show_all && !$topicNum){
                 $log->where('user_id', $request->user()->id);
             }
             $log = $log->latest()->paginate($perPage);
