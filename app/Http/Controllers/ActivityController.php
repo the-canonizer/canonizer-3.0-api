@@ -84,9 +84,10 @@ class ActivityController extends Controller
         $campNum = $request->camp_num ?? 1;
         try {
             $log = ActivityUser::whereHas('Activity', function ($query) use ($logType, $topicNum, $campNum) {
-                $query->where('log_name', $logType);
                 if($topicNum){
                     $query->whereJsonContains('properties->topic_num', (int) $topicNum)->whereJsonContains('properties->camp_num', (int) $campNum);
+                }else{
+                    $query->where('log_name', $logType);
                 }
             })->with('Activity');
             if(!$request->is_admin_show_all){
