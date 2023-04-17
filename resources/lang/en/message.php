@@ -534,5 +534,8 @@ return [
         'thread_id_numeric' => "thread_id should be a numeric.",
         'thread_id_gt' => "thread_id should be greater than :value.",
         'url_required' => "url is required.",
-    ]
+    ],
+    'validation_login_as_user_change' => [
+        'id_required' => "Id is required.",
+    ],
 ];

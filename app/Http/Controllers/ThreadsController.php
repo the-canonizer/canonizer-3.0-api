@@ -404,7 +404,7 @@ class ThreadsController extends Controller
             if ($request->type == config('global.thread_type.allThread')) {
                 $query = Thread::leftJoin('post', function ($join) {
                     $join->on('thread.id', '=', 'post.c_thread_id');
-                    $join->where('post.is_delete', 0);
+                    $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
                 })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
@@ -444,12 +444,7 @@ class ThreadsController extends Controller
             $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
             $query = Thread::leftJoin('post', function ($join) use ($request, $userNicknames) {
                 $join->on('thread.id', '=', 'post.c_thread_id');
-                $join->where('post.is_delete', 0);
-                if ($request->type == config('global.thread_type.myThread')) {
-                    if (count($userNicknames) > 0) {
-                        $join->where('thread.user_id', $userNicknames[0]->id);
-                    }
-                }
+                $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
                 if ($request->type == config('global.thread_type.myPrticipate')) {
                     if (count($userNicknames) > 0) {
                         $join->where('post.user_id', $userNicknames[0]->id);
@@ -463,13 +458,16 @@ class ThreadsController extends Controller
             if (!empty($request->like)) {
                 $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             }
+            if ($request->type == config('global.thread_type.myThread') && count($userNicknames) > 0) {
+                $query->where('thread.user_id', $userNicknames[0]->id);
+            }
             $query->groupBy('thread.id');
             $threads = $query->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')            
             ->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
                 $query = Thread::leftJoin('post', function ($join) {
                     $join->on('thread.id', '=', 'post.c_thread_id');
-                    $join->where('post.is_delete', 0);
+                    $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
                 })
                     ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                     ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
