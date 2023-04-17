@@ -84,6 +84,11 @@ class Support extends Model
         return !empty($support) ? $support->nick_name_id : 0;
     }
 
+    /*
+    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+    *   Now support at the time of submition will be count as total supporter. 
+    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+    */
     public static function ifIamSupporterForChange($topic_num, $camp_num, $nick_names, $submit_time = null, $delayed = false)
     {
         $support = self::where('topic_num', '=', $topic_num)
@@ -310,8 +315,8 @@ class Support extends Model
             ->get()->pluck('nick_name_id')->toArray();
         
         $totalSupporters = array_merge(...$totalSupporters);
-        $totalSupportersCount = count($totalSupporters);
-        
+        $totalSupportersCount = count(array_unique($totalSupporters));
+
         if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
         {   
             $totalSupportersCount++;

@@ -629,7 +629,6 @@ class TopicController extends Controller
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
             }
-
             $log = new ChangeAgreeLog();
             $log->change_id = $changeId;
             $log->camp_num = $data['camp_num'];
@@ -637,12 +636,31 @@ class TopicController extends Controller
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
             $log->save();
-            $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->count();
+            
+            /*
+            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+            *   Now support at the time of submition will be count as total supporter. 
+            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+            */
+            $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])
+                ->where('camp_num', '=', $data['camp_num'])
+                ->where('change_id', '=', $changeId)
+                ->where('change_for', '=', $data['change_for'])
+                ->get()->pluck('nick_name_id')->toArray();
+
+            $agreeCount = count($agreed_supporters);
+            
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
                     $submitterNickId = $statement->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
                     if ($agreeCount == $supporters) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $statement->update();
@@ -662,7 +680,20 @@ class TopicController extends Controller
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
+
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
@@ -683,7 +714,19 @@ class TopicController extends Controller
                 $topic = Topic::where('id', $changeId)->first();
                 if ($topic) {
                     $submitterNickId = $topic->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
+                    
                     if ($agreeCount == $supporters) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();

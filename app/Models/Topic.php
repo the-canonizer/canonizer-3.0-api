@@ -174,7 +174,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 $val->agreed_to_change = 0;
 
-                
+                /*
+                *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                *   Now support at the time of submition will be count as total supporter. 
+                *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                */
                 $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
