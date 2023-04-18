@@ -419,6 +419,7 @@ class TopicController extends Controller
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
+            $model->submit_time = time();
             $model->grace_period = 0;
             $model->update();
             $filter['topicNum'] = $model->topic_num;
