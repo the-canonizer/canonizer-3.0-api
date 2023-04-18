@@ -589,7 +589,7 @@ class Util
      * @param object $topic
      * @return void
      */
-    public function dispatchTimelineJob($topic, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null) {
+    public function dispatchTimelineJob($topic, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null) {
 
       
         try{
@@ -612,8 +612,14 @@ class Util
                 'endpointCSStore' => env('CS_STORE_TIMELINE'),
                 'id' => $id
             ];
+            if ($delay) {
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds($delay);
+                $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
+            }
             Log::info($canonizerServiceData);
             Log::info("canonizerServiceData");
+           
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
             if($topic->topic_num == config('global.mind_expert_topic_num')) {
@@ -669,19 +675,21 @@ class Util
             $topic = Topic::getLiveTopic($camp->topic_num, 'default');
             //timeline start
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " archived a camp ";
-            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+            $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
+            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
             
             
         }
 
         if($archiveFlag === 0){
-            // restor archived camps
-           // $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+            //restor archived camps
+            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
             //timeline start
-//$nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-           // $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
-            //$this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
             
         }
 
