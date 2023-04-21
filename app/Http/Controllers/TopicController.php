@@ -193,7 +193,7 @@ class TopicController extends Controller
             $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
                 Util::dispatchJob($topic, 1, 1);
-                $timelineMessage = $nickName . " created New Topic ". $topic->topic_name;
+                $timelineMessage = $nickName . " created a new topic ". $topic->topic_name;
                 Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="create_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
@@ -903,7 +903,7 @@ class TopicController extends Controller
                 Util::dispatchJob($topic, 1, 1);
                 //timeline start
                 $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " updated Topic ". $topic->topic_name;
+                $timelineMessage = $nickName . " updated the topic ". $topic->topic_name;
                 Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
                 //end of timeline
                 $currentTime = time();
