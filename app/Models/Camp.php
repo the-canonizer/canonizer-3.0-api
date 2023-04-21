@@ -392,17 +392,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             // #1291 notify parent camps subscribers
             $parentCamps = array_unique(self::getAllParent($oneCamp));
             $camps = array_unique(array_merge($childCamps, $parentCamps));
-
-
-
-
-
-
-
-
-
-
-
            // $childCamps = array_unique(self::getAllChildCamps($oneCamp));
            // $parentCamps = array_unique(self::getAllParent($onecamp));
            // $camps = array_unique(array_merge($childCamps, $parentCamps));
@@ -526,13 +515,18 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return (count($mysupports)) ? $mysupports : false;
     }
 
-    public static function validateChildsupport($topicNum, $campNum, $userNicknames) 
+    public static function validateChildsupport($topicNum, $campNum, $userNicknames, $checkArchive = false) 
     {
         $filter = self::getLiveCampFilter($topicNum, $campNum);
         $oneCamp = self::getLiveCamp($filter);
 
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
-        $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        if($checkArchive){
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        }else{
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        }
+        
 
         return (count($mysupports)) ? $mysupports : false;
     }
@@ -872,5 +866,22 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->groupBy('camp_num')
                         ->orderBy('submit_time', 'desc')
                         ->get();
+    }
+
+    public static function archiveChildCamps($topicNum, $childCamps, $isArchive = 1, $directArchive = 0)
+    {
+        foreach($childCamps as $campNum)
+        {
+            $camp = Camp::where('topic_num', $topicNum)
+                        ->where('camp_num', $campNum)
+                        ->where('go_live_time', '<=', time())
+                        ->where('objector_nick_id', NULL)
+                        ->latest('submit_time')
+                        ->first();
+            $camp->is_archive = $isArchive;
+            $camp->direct_archive = $directArchive;
+            $camp->update();
+        }
+        return;
     }
 }

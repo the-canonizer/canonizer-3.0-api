@@ -535,6 +535,13 @@ return [
         'thread_id_gt' => "thread_id should be greater than :value.",
         'url_required' => "url is required.",
     ],
+    "camp" => [
+        "camp_archived" => 'archived',
+        "camp_archived_direct_summary" => "This camp has been archived directly",
+        "camp_archived_indirectly_summary" => "This camp has been archived implicitly.",
+        "camp_unarchive" => "unarchived",
+        "camp_unarchived_summary" => "Support added back, because camp is restored.",
+    ],
     'validation_login_as_user_change' => [
         'id_required' => "Id is required.",
     ],

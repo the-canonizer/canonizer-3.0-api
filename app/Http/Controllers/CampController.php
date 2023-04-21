@@ -1397,8 +1397,13 @@ class CampController extends Controller
             }
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            
+            /*if(!$all['is_archive']){ //restore support
+               $checkArchiveCampSupporter = Support::checkArchivedCampSupporter();
+            }*/
+            
          
-            if ($all['event_type'] == "update") {
+            if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
                 if (!$ifIamSingleSupporter) {
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
@@ -1421,7 +1426,12 @@ class CampController extends Controller
                 $camp = $this->objectCamp($all);
             } elseif ($all['event_type'] == "edit") {
                 $camp = $this->editCamp($all);
-            }
+            } 
+            
+            $filter['topicNum'] = $all['topic_num'];
+            $filter['campNum'] = $all['camp_num'];
+            $preliveCamp = Camp::getLiveCamp($filter);
+
             $camp->save();
             $topic = $camp->topic;
             $filter['topicNum'] = $all['topic_num'];
@@ -1441,6 +1451,13 @@ class CampController extends Controller
                         Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
                     }
                     $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                    
+                    /** Archive and restoration of archive camp #574 */
+                    $prevArchiveStatus = $preliveCamp->is_archive;
+                    $updatedArchiveStatus = $all['is_archive'];
+                    if($prevArchiveStatus != $updatedArchiveStatus){
+                        Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
+                    }
                 }                
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);
@@ -1515,6 +1532,8 @@ class CampController extends Controller
         $camp->camp_about_nick_id = $all['camp_about_nick_id'] ?? "";
         $camp->is_disabled =  !empty($all['is_disabled']) ? $all['is_disabled'] : 0;
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
+        $camp->is_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
+        $camp->direct_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
         $camp->camp_num = $all['camp_num'];
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];

@@ -610,7 +610,8 @@ class TopicController extends Controller
         $data = $request->all();
         $message = "";
         $changeId = $data['record_id'];
-        try {
+
+        try {        
 
             if($data['user_agreed'] == 0) {
                 $changeAgreeLog = (new ChangeAgreeLog())->where([
@@ -656,8 +657,11 @@ class TopicController extends Controller
             } else if ($data['change_for'] == 'camp') {
                 $camp = Camp::where('id', $changeId)->first();
                 if ($camp) {
+                    DB::beginTransaction();
+
                     $filter['topicNum'] = $data['topic_num'];
                     $filter['campNum'] = $data['camp_num'];
+                    $preLiveCamp = Camp::getLiveCamp($filter);
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
@@ -674,9 +678,17 @@ class TopicController extends Controller
                         if (isset($topic)) {
                             Util::dispatchJob($topic, $camp->camp_num, 1);
                         }
+
+                       /** Archive and restoration of archive camp #574 */
+                        if($liveCamp->is_archive != $preLiveCamp->is_archive)
+                        {
+                            util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive);
+                        }
                     }
+                    DB::commit();
                     $message = trans('message.success.camp_agree');
                 } else {
+                    DB::rollback();
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             } else if ($data['change_for'] == 'topic') {
@@ -699,7 +711,9 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
+            
         } catch (Exception $e) {
+          
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }

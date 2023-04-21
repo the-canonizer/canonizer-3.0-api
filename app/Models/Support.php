@@ -159,33 +159,13 @@ class Support extends Model
      * This will remove support from all nicknames of that user with nick id @param $nickNameId
      * 
      */
-    public static function removeSupport($topicNum, $nickNameId, $campNum = '')
+    public static function removeSupport($topicNum, $nickNameId='', $campNum = '')
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         self::removeSupportWithAllNicknames($topicNum, $campNum, $usersNickNames);
 
         return;
     }
-
-    /*
-     * Remove Direct Support
-     
-    public static function removeDirectSupport($topicNum ,$campNum = '', $nickNamesArray = array(), $action='')
-    {
-        if((isset($action) && $action == 'all') || $cammNum == '')  //abandon entire topic and promote deleagte
-        {
-           
-            ///$getAllActiveSupport = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNamesArray);
-
-            self::removeSupportWithAllNicknames($topicNum, $campNum, $nickNamesArray);
-            self::promoteDelegatesToDirect($topicNum, $nickNamesArray);
-
-            return;
-            
-        }
-
-
-    }*/
 
     public static function getActiveDelegators($topicNum, $usersNickNames)
     {
@@ -497,25 +477,27 @@ class Support extends Model
 
     public static function reOrderSupport($topicNum, $nickNames, $reason = null,$reason_summary = null,$citation_link = null)
     {
-        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
-        
-        $order = 1;
-        foreach($support as $support)
-        {
-            if($order === $support->support_order){
+        if(!empty($nickNames)){
+            $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+            
+            $order = 1;
+            foreach($support as $support)
+            {
+                if($order === $support->support_order){
+                    $order++;
+                    continue;
+                }
+
+                $support->support_order = $order;
+                $support->reason = $reason;
+                $support->reason_summary = $reason_summary;
+                $support->citation_link = $citation_link;
+                $support->update();
+
+                //update delegators support order as well
+                self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
                 $order++;
-                continue;
             }
-
-            $support->support_order = $order;
-            $support->reason = $reason;
-            $support->reason_summary = $reason_summary;
-            $support->citation_link = $citation_link;
-            $support->update();
-
-            //update delegators support order as well
-            self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
-            $order++;
         }
 
         return;
@@ -548,7 +530,57 @@ class Support extends Model
         return $support;
     }
 
+    public static function removeSupportByCamps($topicNum, $campNum = array(),$reason = null,$reason_summary = null,$citation_link = null)
+    {
+        if (!empty($campNum)) {
+            $supports = self::where('topic_num', '=', $topicNum)
+                ->whereIn('camp_num', $campNum)
+                ->where('end', '=',  0)
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
+        }
+        return;
+    }
+
+    public static function getSupportersNickNameIdInCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '=', 0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+    }
+
+    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+    }
+
+    public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
+    {
+        $nickNames = Nickname::getAllNicknamesByNickId($nickId);
+        $support = self::where('topic_num', '=', $topicNum)
+                        ->whereIn('nick_name_id', $nickNames)
+                        ->orderBy('support_order', 'DESC')
+                        ->where('end', '=', '0')->first();
+
+        return $support;
+    }
 
 
+    public static function setSupportToIrrevokable($toppicNum, $camps, $archivedFlag = false)
+    {
+        if($archivedFlag){
+            return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->update(['archive_support_flag' => 1, 'archive_support_flag_date' => time()]);
+        }
+    }
 
 }

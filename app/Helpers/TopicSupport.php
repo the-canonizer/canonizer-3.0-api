@@ -963,6 +963,12 @@ class TopicSupport
             }
         }
 
+        // check archive camp warning message
+        $returnData = self::checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames, true);
+        if(!empty($returnData)){ 
+            return $returnData;
+        }
+
        
 
         return $returnData;
@@ -1075,11 +1081,11 @@ class TopicSupport
     /**
      * [This will check & return warning if support switched from parent to child]
      */
-    public static function checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames)
+    public static function checkIfSupportSwitchToParent($topicNum, $campNum, $nickNames, $checkArchive =  false)
     {
         $returnData = [];
         $as_of_time = time();
-        $childSupport = Camp::validateChildsupport($topicNum, $campNum, $nickNames);
+        $childSupport = Camp::validateChildsupport($topicNum, $campNum, $nickNames, $checkArchive);
 
         $filter = Camp::getLiveCampFilter($topicNum, $campNum);
         $onecamp = self::getLiveCamp($filter);
@@ -1109,12 +1115,20 @@ class TopicSupport
 
                 }else{
                     $returnData['is_confirm'] = 1;  
-                    $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
+                    if($checkArchive){
+                        $returnData['archive_support_end'] = 1;
+                        $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to the archived child camp. So if you commit your support to "'.$onecamp->camp_name .'", the support of archived child camp will be removed permanently.';
+                    }else
+                        $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to "'. $childCampName. '", so if you commit support to "'.$onecamp->camp_name .'", the support of the child camp "'. $childCampName. '" will be removed.';
 
                 }
             } else {
                 $returnData['is_confirm'] = 1;    
-                $returnData['warning'] = '"'.$onecamp->camp_name .'" is a parent camp to this list of child camps. If you commit support to "'.$onecamp->camp_name .'", the support of the camps in this list will be removed.';
+                if($checkArchive){
+                    $returnData['archive_support_end'] = 1;
+                    $returnData['warning'] =  '"'.$onecamp->camp_name .'" is a parent camp to this list of archived child camps. So if you commit your support to "'.$onecamp->camp_name .'", the support of archived camps will be removed permanently.';
+                }else
+                    $returnData['warning'] = '"'.$onecamp->camp_name .'" is a parent camp to this list of child camps. If you commit support to "'.$onecamp->camp_name .'", the support of the camps in this list will be removed.';
                 
             }
 
