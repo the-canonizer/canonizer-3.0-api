@@ -1397,6 +1397,11 @@ class CampController extends Controller
             }
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            
+            /*if(!$all['is_archive']){ //restore support
+               $checkArchiveCampSupporter = Support::checkArchivedCampSupporter();
+            }*/
+            
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);

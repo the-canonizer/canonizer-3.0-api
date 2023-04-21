@@ -167,26 +167,6 @@ class Support extends Model
         return;
     }
 
-    /*
-     * Remove Direct Support
-     
-    public static function removeDirectSupport($topicNum ,$campNum = '', $nickNamesArray = array(), $action='')
-    {
-        if((isset($action) && $action == 'all') || $cammNum == '')  //abandon entire topic and promote deleagte
-        {
-           
-            ///$getAllActiveSupport = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNamesArray);
-
-            self::removeSupportWithAllNicknames($topicNum, $campNum, $nickNamesArray);
-            self::promoteDelegatesToDirect($topicNum, $nickNamesArray);
-
-            return;
-            
-        }
-
-
-    }*/
-
     public static function getActiveDelegators($topicNum, $usersNickNames)
     {
         $delegators = self::where('topic_num', '=', $topicNum)
@@ -567,6 +547,40 @@ class Support extends Model
                                 ->whereIn('camp_num', $camps)
                                 ->where('end', '=', 0)
                                 ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+    }
+
+    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+    }
+
+    public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
+    {
+        $nickNames = Nickname::getAllNicknamesByNickId($nickId);
+        $support = self::where('topic_num', '=', $topicNum)
+                        ->whereIn('nick_name_id', $nickNames)
+                        ->orderBy('support_order', 'DESC')
+                        ->where('end', '=', '0')->first();
+
+        return $support;
+    }
+
+
+    public static function setSupportToIrrevokable($toppicNum, $camps, $archivedFlag = false)
+    {
+        if($archivedFlag){
+            return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->update(['archive_support_flag' => 1, 'archive_support_flag_date' => time()]);
+        }
     }
 
 }

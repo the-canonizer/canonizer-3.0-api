@@ -868,7 +868,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->get();
     }
 
-    public static function archiveChildCamps($topicNum, $childCamps, $directArchive = 0)
+    public static function archiveChildCamps($topicNum, $childCamps, $isArchive = 1, $directArchive = 0)
     {
         foreach($childCamps as $campNum)
         {
@@ -878,8 +878,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->where('objector_nick_id', NULL)
                         ->latest('submit_time')
                         ->first();
-            $camp->is_archive = 1;
-            $camp->direct_archive = 0;
+            $camp->is_archive = $isArchive;
+            $camp->direct_archive = $directArchive;
             $camp->update();
         }
         return;
