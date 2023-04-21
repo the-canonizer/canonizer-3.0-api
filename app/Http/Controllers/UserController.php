@@ -1980,4 +1980,66 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
     }
+
+    /**
+     * @OA\Post(path="/login-as-user",
+     *   tags={"User"},
+     *   summary="get user access token for login as user",
+     *   description="This is used to get user access token for login as user from admin.",
+     *   operationId="loginAsUser",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *   ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="login as user",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="User id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *           )
+     *       )  
+     *    ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message"),
+     *   @OA\Response(response=401, description="Unauthenticated")
+     *  )
+     */
+    public function loginAsUser(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getLoginAsUserValidationRules(), $this->validationMessages->getLoginAsUserValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $userId = $request->id;
+            $user = User::find($userId);
+            if (empty($user)) {
+                $status = 400;
+                $message = trans('message.error.user_not_exist');
+                return $this->resProvider->apiJsonResponse($status, $message, null, "");
+            }
+            $token = $user->createToken('loginAsUser', ['*'])->accessToken;
+            $data = [
+                'access_token' => $token,
+                'user' => new UserResource($user)
+            ];
+            $status = 200;
+            $message = trans('message.success.success');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
+        }
+    }
 }

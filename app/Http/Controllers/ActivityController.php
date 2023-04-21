@@ -80,10 +80,20 @@ class ActivityController extends Controller
         }
         $perPage = $request->per_page ?? config('global.per_page');
         $logType = $request->log_type;
+        $topicNum = $request->topic_num;
+        $campNum = $request->camp_num ?? 1;
         try {
-            $log = ActivityUser::whereHas('Activity', function ($query) use ($logType) {
-                $query->where('log_name', $logType);
-            })->with('Activity')->where('user_id', $request->user()->id)->latest()->paginate($perPage);
+            $log = ActivityUser::whereHas('Activity', function ($query) use ($logType, $topicNum, $campNum) {
+                if($topicNum){
+                    $query->whereJsonContains('properties->topic_num', (int) $topicNum)->whereJsonContains('properties->camp_num', (int) $campNum);
+                }else{
+                    $query->where('log_name', $logType);
+                }
+            })->with('Activity');
+            if(!$request->is_admin_show_all && !$topicNum){
+                $log->where('user_id', $request->user()->id);
+            }
+            $log = $log->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {

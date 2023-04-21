@@ -140,6 +140,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/store-camp-newsfeed','NewsFeedController@storeNewsFeed');
         $router->post('/update-camp-newsfeed','NewsFeedController@updateNewsFeed');
         $router->post('/delete-camp-newsfeed','NewsFeedController@deleteNewsFeed');
+        $router->post('/login-as-user','UserController@loginAsUser');
     });
     $router->post('/ads','AdsController@getAds');
     $router->post('/images','ImageController@getImages');
