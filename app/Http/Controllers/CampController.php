@@ -259,10 +259,10 @@ class CampController extends Controller
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 //timeline start
-                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " create Camp ". $camp->camp_name;
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " created a new camp ". $camp->camp_name;
                 Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-                
+                 
                 //end of timeline
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
@@ -1468,6 +1468,12 @@ class CampController extends Controller
                         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
                     }
                 }
+                //timeline start
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " updated the camp ". $camp->camp_name;
+                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+
+                //end of timeline
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
