@@ -91,7 +91,7 @@ class SitemapXmlController extends Controller
                 'asOf' => $topic->asof,
                 'campNum' => 1,
             ]);
-            if ($camp->is_archive == 0) {
+            if ($camp !== null && $camp->is_archive == 0) {
                 $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
                 $topicUrls[] = [
                     'url' => $topicUrl,
@@ -160,6 +160,9 @@ class SitemapXmlController extends Controller
                 $filter['topicNum'] = $post->topic_id;
                 $filter['campNum'] = $post->camp_id;
                 $camp = Camp::getLiveCamp($filter);
+                if (empty($topic) || empty($camp)) {
+                    continue;
+                }
                 $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
                 $topicUrl[] = [
                     'url' => $postLink,

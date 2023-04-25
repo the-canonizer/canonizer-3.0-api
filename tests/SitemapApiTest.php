@@ -22,7 +22,7 @@ class SitemapApiTest extends TestCase
 
     public function testSitemapWithInValidUrl()
     {
-        print sprintf(" \n Sitemap with valid data %d %s", 200, PHP_EOL);
+        print sprintf(" \n Sitemap with invalid url %d %s", 404, PHP_EOL);
         $user = User::factory()->make();
         $this->actingAs($user)->post('/api/v3/sitemap');
         //  dd($this->response);
