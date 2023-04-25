@@ -147,19 +147,21 @@ class SitemapXmlController extends Controller
     {
         $posts = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
             ->Join('thread as t', 't.id', '=', 'post.c_thread_id')
-            ->select('post.*', 't.camp_id', 't.topic_id')
+            ->select('post.*', 't.id as thread_id', 't.camp_id', 't.topic_id')
             ->where('is_delete', '0')->latest()->get();
         foreach ($posts as $post) {
-            $topic = Topic::getLiveTopic($post->topic_id);
-            $filter['topicNum'] = $post->topic_id;
-            $filter['asOf'] = $post->asof;
-            $filter['campNum'] = $post->camp_id;
-            $camp = Camp::getLiveCamp($filter);
-            $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
-            $topicUrl[] = [
-                'url' => $postLink,
-                'last_modified' => !empty($post->updated_at) ? Carbon::createFromTimestamp($post->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-            ];
+            if ($post->id) {
+                $topic = Topic::getLiveTopic($post->topic_id);
+                $filter['topicNum'] = $post->topic_id;
+                $filter['asOf'] = $post->asof;
+                $filter['campNum'] = $post->camp_id;
+                $camp = Camp::getLiveCamp($filter);
+                $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
+                $topicUrl[] = [
+                    'url' => $postLink,
+                    'last_modified' => !empty($post->updated_at) ? Carbon::createFromTimestamp($post->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                ];
+            }
         }
         return  $topicUrl;
     }
