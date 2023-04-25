@@ -91,11 +91,13 @@ class SitemapXmlController extends Controller
                 'asOf' => $topic->asof,
                 'campNum' => 1,
             ]);
-            $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
-            $topicUrls[] = [
-                'url' => $topicUrl,
-                'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-            ];
+            if ($camp->is_archive == 0) {
+                $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
+                $topicUrls[] = [
+                    'url' => $topicUrl,
+                    'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                ];
+            }
         }
 
         return $topicUrls;
@@ -105,6 +107,7 @@ class SitemapXmlController extends Controller
     {
         $camps = Camp::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
+            ->where('is_archive', '0')
             ->latest('go_live_time')
             ->get();
         $campUrls = [];
@@ -125,15 +128,18 @@ class SitemapXmlController extends Controller
         $threads =  Thread::get();
         $unique = [];
         foreach ($threads as $thread) {
-            if (in_array($thread->topic_id, $unique)) {
+            if (in_array($thread->topic_id . '' . $thread->camp_id, $unique)) {
                 continue;
             }
-            $unique[] = $thread->topic_id;
+            $unique[] = $thread->topic_id . '' . $thread->camp_id;
             $topic = Topic::getLiveTopic($thread->topic_id);
             $filter['topicNum'] = $thread->topic_id;
             $filter['asOf'] = $thread->asof;
             $filter['campNum'] = $thread->camp_id;
             $camp = Camp::getLiveCamp($filter);
+            if (empty($topic) || empty($camp)) {
+                continue;
+            }
             $threadLink = config('global.APP_URL_FRONT_END') . '/forum/' . $thread->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $thread->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/';
             $topicUrl[] = [
                 'url' => $threadLink,
@@ -145,21 +151,19 @@ class SitemapXmlController extends Controller
 
     public function getPostSiteMapUrls()
     {
-        $posts = Reply::leftJoin('nick_name', 'nick_name.id', '=', 'post.user_id')
-            ->Join('thread as t', 't.id', '=', 'post.c_thread_id')
-            ->select('post.*', 't.id as thread_id', 't.camp_id', 't.topic_id')
-            ->where('is_delete', '0')->latest()->get();
-        foreach ($posts as $post) {
-            if ($post->id) {
+        $threadsWithReplies = Thread::has('replies')->with('latestReply')->withCount('replies')->get()->sortByDesc(function ($thread, $key) {
+            return $thread->latestReply->updated_at;
+        });
+        foreach ($threadsWithReplies as $post) {
+            if (!empty($post->latestReply)) {
                 $topic = Topic::getLiveTopic($post->topic_id);
                 $filter['topicNum'] = $post->topic_id;
-                $filter['asOf'] = $post->asof;
                 $filter['campNum'] = $post->camp_id;
                 $camp = Camp::getLiveCamp($filter);
                 $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
                 $topicUrl[] = [
                     'url' => $postLink,
-                    'last_modified' => !empty($post->updated_at) ? Carbon::createFromTimestamp($post->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                    'last_modified' => !empty($post->latestReply->updated_at) ? Carbon::createFromTimestamp($post->latestReply->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
                 ];
             }
         }
