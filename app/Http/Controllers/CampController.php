@@ -384,9 +384,11 @@ class CampController extends Controller
                 if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
                     $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num, $filter['asOf']);
                 }
+                $livecamp->camp_about_nick_name = NickName::getNickName($livecamp->camp_about_nick_id)->nick_name ?? null;
+                $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id','note', 'camp_about_url', 'is_archive' , 'direct_archive', 'submit_time' ,'go_live_time'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
