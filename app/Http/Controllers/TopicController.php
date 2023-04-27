@@ -419,10 +419,21 @@ class TopicController extends Controller
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
-            $model->grace_period = 0;
-            $model->update();
+
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
+
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
+
+            $model->submit_time = time();
+            $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+
+            if($ifIamSingleSupporter) {
+                $model->go_live_time = time();
+            }
+
+            $model->grace_period = 0;
+            $model->update();
             $liveCamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             if ($type == 'topic') {
