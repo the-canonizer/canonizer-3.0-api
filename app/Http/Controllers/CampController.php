@@ -1454,7 +1454,7 @@ class CampController extends Controller
                     
                     /** Archive and restoration of archive camp #574 */
                     $prevArchiveStatus = $preliveCamp->is_archive;
-                    $updatedArchiveStatus = $all['is_archive'];
+                    $updatedArchiveStatus = $all['is_archive'] ?? 0;
                     if($prevArchiveStatus != $updatedArchiveStatus){
                         Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
                     }
@@ -1494,7 +1494,7 @@ class CampController extends Controller
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, $e->getLine(), '', $e->getMessage());
         }
     }
 
