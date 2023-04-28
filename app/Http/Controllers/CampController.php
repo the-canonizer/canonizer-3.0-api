@@ -1494,7 +1494,7 @@ class CampController extends Controller
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, $e->getLine(), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
