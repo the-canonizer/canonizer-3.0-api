@@ -581,7 +581,21 @@ class CampController extends Controller
                 $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, null);
             }
-            $data = $result;
+
+            /* #230 restrict in review camp nums to be in list of parent if parent change is the case */
+            
+            if ($request->filter == 'bydate') {
+                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($request->asOfDate)));
+            } else {
+                $asOfDate = time();
+            }
+            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+            ->where('go_live_time', '>', $asOfDate)
+            ->where('objector_nick_id', NULL)
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+            $data = $parentChangedInReviewCamps;
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
