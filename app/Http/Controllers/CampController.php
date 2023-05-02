@@ -589,13 +589,13 @@ class CampController extends Controller
             } else {
                 $asOfDate = time();
             }
-            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            /*$parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
             ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
             ->where('go_live_time', '>', $asOfDate)
             ->where('objector_nick_id', NULL)
-            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();*/
 
-            $data = $parentChangedInReviewCamps;
+            $data = $result;
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $data, null);
