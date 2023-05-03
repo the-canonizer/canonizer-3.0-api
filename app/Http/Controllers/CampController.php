@@ -583,7 +583,6 @@ class CampController extends Controller
             }
 
             /* #230 restrict in review camp nums to be in list of parent if parent change is the case */
-            
             if ($request->filter == 'bydate') {
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($request->asOfDate)));
             } else {
@@ -597,8 +596,8 @@ class CampController extends Controller
 
             if(!empty($parentChangedInReviewCamps)){
                 foreach($result as $key => $parent){ 
-                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){echo 'fvdfvf';
-                        $parent->setParentChangeInReviewAttribute('parent_change_in_review', true);
+                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                        $parent->parent_change_in_review =  true;
                     }
                 }
             }

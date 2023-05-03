@@ -34,19 +34,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
-    //public $parent_change_in_review;
     protected $parent_change_in_review;
-
-    public function getParentChangeInReviewAttribute()
-    {
-        return false;
-    }
-
-    public function setParentChangeInReviewAttribute($value)
-    {
-        return $this->parent_change_in_review = $value;
-    }
-
     
 
     /**
