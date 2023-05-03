@@ -34,6 +34,10 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
+    protected $attributes =   ['parent_change_in_review'];
+
+
+    
 
     /**
      * The attributes that should be hidden for arrays.
@@ -883,5 +887,22 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $camp->update();
         }
         return;
+    }
+
+
+    public static function parentChangedInReviewCamps($topicNum, $filter = 'bydate', $asOfDate = time())
+    {
+        if ($filter == 'bydate') {
+            $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asOfDate)));
+        } else {
+            $asOfDate = time();
+        }
+        $parentChangedInReviewCamps = Camp::where('topic_num','=', $topicNum)
+        ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+        ->where('go_live_time', '>', $asOfDate)
+        ->where('objector_nick_id', NULL)
+        ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+        return $parentChangedInReviewCamps;
     }
 }

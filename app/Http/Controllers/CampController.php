@@ -561,7 +561,7 @@ class CampController extends Controller
             $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
             if($request->camp_num){
                 $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num, 'asOf' => 'default']);
-                $childCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=false));
+                $childCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=true));
                 foreach($result as $key => $val){
                     if(in_array($val->camp_num, $childCamps)){
                         unset($result[$key]);
@@ -583,18 +583,14 @@ class CampController extends Controller
             }
 
             /* #230 restrict in review camp nums to be in list of parent if parent change is the case */
-            
-            if ($request->filter == 'bydate') {
-                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($request->asOfDate)));
-            } else {
-                $asOfDate = time();
+            $parentChangedInReviewCamps = Camp::parentChangedInReviewCamps($request->topic_num, $request->filter, $request->asOfDate);
+            if(!empty($parentChangedInReviewCamps)){
+                foreach($result as $key => $parent){
+                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                        $result[$key]->parent_change_in_review = true;
+                    }
+                }
             }
-            /*$parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
-            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
-            ->where('go_live_time', '>', $asOfDate)
-            ->where('objector_nick_id', NULL)
-            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();*/
-
             $data = $result;
             $status = 200;
             $message = trans('message.success.success');
