@@ -587,7 +587,7 @@ class CampController extends Controller
             if(!empty($parentChangedInReviewCamps)){
                 foreach($result as $key => $parent){
                     if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
-                        $result[$key]->parent_change_in_review = true;
+                       // $result[$key]->parent_change_in_review = true;
                     }
                 }
             }
