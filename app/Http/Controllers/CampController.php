@@ -386,7 +386,7 @@ class CampController extends Controller
                 }
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level','is_archive','direct_archive'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -1433,6 +1433,7 @@ class CampController extends Controller
             $preliveCamp = Camp::getLiveCamp($filter);
 
             $camp->save();
+           // echo "<pre>"; print_r($camp);
             $topic = $camp->topic;
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
