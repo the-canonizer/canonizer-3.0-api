@@ -961,9 +961,14 @@ class TopicController extends Controller
                 
                 Util::dispatchJob($topic, 1, 1);
                 //timeline start
-                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " updated the topic ". $topic->topic_name;
-                Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                if($all['topic_id']!=null){
+                    $old_topic = Topic::where('id', $all['topic_id'])->first();
+                    if(Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))){
+                        $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                        $timelineMessage = $nickName . " changed topic name from ". $old_topic['topic_name']. " to ".$topic->topic_name;
+                        Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                    }
+                }
                 //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job

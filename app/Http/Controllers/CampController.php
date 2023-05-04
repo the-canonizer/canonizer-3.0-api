@@ -1463,18 +1463,22 @@ class CampController extends Controller
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 //timeline start
-                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 if($all['parent_camp_num']!=$all['old_parent_camp_num']){
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " change parent for topic   ". $topic->topic_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+                    Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
                 }
-                else if(strcmp($camp->camp_num,$all['camp_name'])!=0){
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " changed Camp name ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
-                }
-                else{
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " update Camp ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
-                }
-               
                 //end of timeline
+
+                 //timeline start
+                 if($all['camp_id']!=null){
+                    $old_camp = Camp::where('id', $all['camp_id'])->first();
+                    if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
+                        $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
+                        Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+                    }
+                }
+                //end of timeline
+
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
@@ -1486,12 +1490,6 @@ class CampController extends Controller
                         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
                     }
                 }
-                //timeline start
-                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " updated the camp ". $camp->camp_name;
-                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-
-                //end of timeline
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
