@@ -622,13 +622,29 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 $val->agreed_to_change = 0;
 
-                $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
-                
-                $val->agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
+                /*
+                *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                *   Now support at the time of submition will be count as total supporter. 
+                *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                */
+                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
+                $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
                     ->where('change_for', '=', 'camp')
-                    ->count();
+                    ->get()->pluck('nick_name_id')->toArray();
+                
+                $val->agreed_supporters = count($agreed_supporters);
+
+                if($val->submitter_nick_id > 0 && !in_array($val->submitter_nick_id, $agreed_supporters)) 
+                {   
+                    $val->agreed_supporters++;
+                }
+
+                $nickNames = Nickname::personNicknameArray();
+                $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
+
 
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
