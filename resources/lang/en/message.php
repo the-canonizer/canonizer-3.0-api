@@ -26,6 +26,7 @@ return [
         'forum_not_found' => 'No forum found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
+        'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
     ],
     'success' => [
         'success'          => 'Success',
