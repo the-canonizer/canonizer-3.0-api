@@ -1455,7 +1455,7 @@ class CampController extends Controller
                     
                     /** Archive and restoration of archive camp #574 */
                     $prevArchiveStatus = $preliveCamp->is_archive;
-                    $updatedArchiveStatus = $all['is_archive'];
+                    $updatedArchiveStatus = $all['is_archive'] ?? 0;
                     if($prevArchiveStatus != $updatedArchiveStatus){
                         Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
                     }
