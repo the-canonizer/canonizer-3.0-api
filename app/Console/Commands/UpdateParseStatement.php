@@ -14,7 +14,7 @@ class UpdateParseStatement extends Command
      *
      * @var string
      */
-    protected $signature = 'update:parsevalue';
+    protected $signature = 'update:parsevalue {id?}';
 
     /**
      * The console command description.
@@ -40,18 +40,31 @@ class UpdateParseStatement extends Command
      */
     public function handle()
     {
+        $WikiParser = new wikiParser;
+        $id = $this->argument('id') ?? NULL;
         try {
-            $WikiParser = new wikiParser;
-            $statements = Statement::all();
-            $updateRecored = 0;
-            foreach($statements as $statement) { 
+            // Check the argument of id with command / else use the all.
+            if (!empty($id)) {
+                $id =  $id;
+                $statement = Statement::find($id);
+                $updateRecored = 1;
                 $WikiParser = new wikiParser;
                 $statement->parsed_value = $WikiParser->parse($statement->value);
                 $statement->update();
-                $updateRecored++;
-            }
-            echo "Total record found for update: " . $statements->count() . "\r\n";
-            echo "Updated record: " . $updateRecored . "\r\n";
+                echo "Total record found for update: " . $statement->count() . "\r\n";
+                echo "Updated record: " . $updateRecored . "\r\n";
+            } else {
+                $statements = Statement::all();
+                $updateRecored = 0;
+                foreach($statements as $statement) { 
+                    $WikiParser = new wikiParser;
+                    $statement->parsed_value = $WikiParser->parse($statement->value);
+                    $statement->update();
+                    $updateRecored++;
+                }
+                echo "Total record found for update: " . $statements->count() . "\r\n";
+                echo "Updated record: " . $updateRecored . "\r\n";
+            }   
         } catch (Exception $e) {
             echo "Updated record error " . $e->getMessage() . "\r\n";
         }

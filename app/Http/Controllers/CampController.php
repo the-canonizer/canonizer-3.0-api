@@ -384,9 +384,11 @@ class CampController extends Controller
                 if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
                     $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num, $filter['asOf']);
                 }
+                $livecamp->camp_about_nick_name = NickName::getNickName($livecamp->camp_about_nick_id)->nick_name ?? null;
+                $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id','note', 'camp_about_url', 'is_archive' , 'direct_archive', 'submit_time' ,'go_live_time'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -561,7 +563,7 @@ class CampController extends Controller
             $result = Camp::filterParentCampForForm($result,$request->topic_num,$request->parent_camp_num);
             if($request->camp_num){
                 $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num, 'asOf' => 'default']);
-                $childCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=false));
+                $childCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=true));
                 foreach($result as $key => $val){
                     if(in_array($val->camp_num, $childCamps)){
                         unset($result[$key]);
@@ -581,6 +583,27 @@ class CampController extends Controller
                 $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, null);
             }
+
+            /* #230 restrict in review camp nums to be in list of parent if parent change is the case */
+            if ($request->filter == 'bydate') {
+                $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($request->asOfDate)));
+            } else {
+                $asOfDate = time();
+            }
+            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+            ->where('go_live_time', '>', $asOfDate)
+            ->where('objector_nick_id', NULL)
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+            if(!empty($parentChangedInReviewCamps)){
+                foreach($result as $key => $parent){ 
+                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                        $parent->parent_change_in_review =  true;
+                    }
+                }
+            }
+
             $data = $result;
             $status = 200;
             $message = trans('message.success.success');
@@ -1430,6 +1453,7 @@ class CampController extends Controller
             $preliveCamp = Camp::getLiveCamp($filter);
 
             $camp->save();
+           // echo "<pre>"; print_r($camp);
             $topic = $camp->topic;
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
@@ -1451,7 +1475,7 @@ class CampController extends Controller
                     
                     /** Archive and restoration of archive camp #574 */
                     $prevArchiveStatus = $preliveCamp->is_archive;
-                    $updatedArchiveStatus = $all['is_archive'];
+                    $updatedArchiveStatus = $all['is_archive'] ?? 0;
                     if($prevArchiveStatus != $updatedArchiveStatus){
                         Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
                     }
@@ -1459,18 +1483,22 @@ class CampController extends Controller
                 
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 //timeline start
-                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 if($all['parent_camp_num']!=$all['old_parent_camp_num']){
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " change parent for topic   ". $topic->topic_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+                    Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
                 }
-                else if(strcmp($camp->camp_num,$all['camp_name'])!=0){
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " changed Camp name ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
-                }
-                else{
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$nickName . " update Camp ". $camp->camp_name, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);    
-                }
-               
                 //end of timeline
+
+                 //timeline start
+                 if($all['camp_id']!=null){
+                    $old_camp = Camp::where('id', $all['camp_id'])->first();
+                    if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
+                        $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
+                        Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+                    }
+                }
+                //end of timeline
+
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
@@ -1482,12 +1510,6 @@ class CampController extends Controller
                         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
                     }
                 }
-                //timeline start
-                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " updated the camp ". $camp->camp_name;
-                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-
-                //end of timeline
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
