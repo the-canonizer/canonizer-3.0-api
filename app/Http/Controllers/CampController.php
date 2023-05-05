@@ -1405,11 +1405,8 @@ class CampController extends Controller
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
-                if (!$ifIamSingleSupporter) {
-                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                } else {
-                    $camp->grace_period = 0;
-                }
+                $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $camp->grace_period = 1;
             }
             if ($all['event_type'] == "objection") {
                 $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
