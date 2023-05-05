@@ -675,6 +675,8 @@ class Util
             }           
             Camp::archiveChildCamps($camp->topic_num, $allchilds);
             
+            //dispatch job
+            Util::dispatchJob($camp->topic_num, 1, 1);
 
             //timeline start
             $topic = Topic::getLiveTopic($camp->topic_num, 'default');
@@ -685,7 +687,6 @@ class Util
         }
 
         if($archiveFlag === 0){
-            echo $archiveFlag;
             $directArchive = 0;
             Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
@@ -705,7 +706,6 @@ class Util
                    TopicSupport::addSupport($camp->topic_num, $camp->camp_num, $supportOrder, $nickNameId, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
                 }
             }
-
             //timeline start
             $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
