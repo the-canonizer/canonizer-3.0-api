@@ -341,13 +341,15 @@ class TopicController extends Controller
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
             }
             $topic->namespace_name = $namespaceLabel;
+            $topic->submitter_nick_name=NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
+            $topic->camp_num =  $topic->camp_num ?? 1;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id'];
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
             
@@ -419,6 +421,8 @@ class TopicController extends Controller
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
+            $model->submit_time = time();
+            $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $model->grace_period = 0;
             $model->update();
             $filter['topicNum'] = $model->topic_num;
@@ -630,7 +634,6 @@ class TopicController extends Controller
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
             }
-
             $log = new ChangeAgreeLog();
             $log->change_id = $changeId;
             $log->camp_num = $data['camp_num'];
@@ -638,12 +641,31 @@ class TopicController extends Controller
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
             $log->save();
-            $agreeCount = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->count();
+            
+            /*
+            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+            *   Now support at the time of submition will be count as total supporter. 
+            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+            */
+            $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])
+                ->where('camp_num', '=', $data['camp_num'])
+                ->where('change_id', '=', $changeId)
+                ->where('change_for', '=', $data['change_for'])
+                ->get()->pluck('nick_name_id')->toArray();
+
+            $agreeCount = count($agreed_supporters);
+            
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
                     $submitterNickId = $statement->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
                     if ($agreeCount == $supporters) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $statement->update();
@@ -666,7 +688,20 @@ class TopicController extends Controller
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
+
                     if ($agreeCount == $supporters) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
@@ -695,7 +730,19 @@ class TopicController extends Controller
                 $topic = Topic::where('id', $changeId)->first();
                 if ($topic) {
                     $submitterNickId = $topic->submitter_nick_id;
-                    $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
+
+                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
+                    {   
+                        $agreeCount++;
+                    }
+                    
                     if ($agreeCount == $supporters) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
@@ -916,9 +963,14 @@ class TopicController extends Controller
                 
                 Util::dispatchJob($topic, 1, 1);
                 //timeline start
-                $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " updated the topic ". $topic->topic_name;
-                Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                if($all['topic_id']!=null){
+                    $old_topic = Topic::where('id', $all['topic_id'])->first();
+                    if(Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))){
+                        $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
+                        $timelineMessage = $nickName . " changed topic name from ". $old_topic['topic_name']. " to ".$topic->topic_name;
+                        Util::dispatchTimelineJob($topic, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                    }
+                }
                 //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
