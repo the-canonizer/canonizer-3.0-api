@@ -557,15 +557,22 @@ class SupportController extends Controller
             }
             $inputs = $request->input();
 
+            $where = [
+                'topic_num' => $inputs['topic_num'],
+                'camp_num' => $inputs['camp_num'],
+                'id' => $inputs['change_num'],
+            ];
+
             switch ($inputs['type']) {
                 case 'statement':
-                    $model = Statement::where('id', '=', $inputs['change_num'])->first();
+                    $model = Statement::where($where)->first();
                     break;
                 case 'camp':
-                    $model = Camp::where('id', '=', $inputs['change_num'])->first();
+                    $model = Camp::where($where)->first();
                     break;
                 case 'topic':
-                    $model = Topic::where('id', '=', $inputs['change_num'])->first();
+                    unset($where['camp_num']);
+                    $model = Topic::where($where)->first();
                     break;
 
                 default:
@@ -586,21 +593,18 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
 
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), $e->getLine(), $e->getMessage());
         }
     }
 
     private function arrageSupporters($response) {
         
-        dd($response);
-        foreach ($response['total_supporters'] as $key => $supporter) {
-            $response['supporters'][$key]['agreed'] = in_array($supporter['nick_id'], $response['agreed_supporters']);
-            if(in_array($supporter['nick_id'], $response['agreed_supporters'])) {
-                $response['supporters'][$key]['agreed'] = true;
-            } else {
-                $response['total_supporters'][$key]['agreed'] = false;
-            }
-        }
+        
+        $response['supporters'] = collect($response['total_supporters'])->map(function ($supporter) use ($response) {
+            $supporter['agreed'] = in_array($supporter['id'], $response['agreed_supporters']);
+            return $supporter;
+        })->toArray();
+        unset($response['total_supporters'], $response['agreed_supporters']);
 
         return $response;
     }

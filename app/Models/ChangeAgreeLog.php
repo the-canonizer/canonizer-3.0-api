@@ -19,11 +19,10 @@ class ChangeAgreeLog extends Model
             ->where('change_for', '=', $changeFor)
             ->get()->pluck('nick_name_id')->toArray();
 
-        $agreedSupporters = array_unique(array_merge(...$agreedSupporters));
         if ($submitterNickId > 0 && !in_array($submitterNickId, $agreedSupporters)) {
             $agreedSupporters[] = $submitterNickId;
         }
-        $agreedSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $agreedSupporters)->get()->toArray();
+        // $agreedSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $agreedSupporters)->get()->toArray();
 
         return [$agreedSupporters, count($agreedSupporters)];
     }
