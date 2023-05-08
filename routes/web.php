@@ -26,6 +26,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Api for non register users
    
     $router->post('/client-token','UserController@clientToken');
+    $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
 
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {

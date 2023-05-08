@@ -558,4 +558,13 @@ class ValidationRules
             'id' => 'required',
         ]);
     }
+
+    public function getEmbeddedCodeTrackingRules(): array
+    {
+        return ([
+            'url' => 'required|unique:embedded_code_tracking|url',
+            'ip_address' => 'sometimes|nullable|ip',
+            'user_agent' => 'sometimes|nullable|string',
+        ]);
+    }
 }
