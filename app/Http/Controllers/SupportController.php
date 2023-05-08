@@ -21,7 +21,8 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
-
+use App\Models\ChangeAgreeLog;
+use App\Models\Statement;
 
 class SupportController extends Controller
 {
@@ -494,4 +495,113 @@ class SupportController extends Controller
            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }  
      }
+
+     /**
+     * @OA\Post(path="get-change-supporters",
+     *   tags={"Topic"},
+     *   summary="get supporter with count",
+     *   description="Used to get supporter with count for camp, topic and statement.",
+     *   operationId="get-change-supporters",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         ) 
+     *    ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Discard change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic_num id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="camp_num id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="change_num",
+     *                   description="change_num id is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   required=true,
+     *                   type="string",
+     *               ),
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getChangeSupporters(Request $request, Validate $validate)
+    {
+        try {
+            $validationErrors = $validate->validate($request, $this->rules->getChangeSupportersValidationRules(), $this->validationMessages->getChangeSupportersValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $inputs = $request->input();
+
+            switch ($inputs['type']) {
+                case 'statement':
+                    $model = Statement::where('id', '=', $inputs['change_num'])->first();
+                    break;
+                case 'camp':
+                    $model = Camp::where('id', '=', $inputs['change_num'])->first();
+                    break;
+                case 'topic':
+                    $model = Topic::where('id', '=', $inputs['change_num'])->first();
+                    break;
+
+                default:
+                    $model = null;
+                    break;
+            }
+
+            if (!$model) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+            
+            $response = [];
+            [$response['total_supporters'], $response['total_supporters_count']] = Support::getSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time);
+            [$response['agreed_supporters'], $response['agreed_supporters_count']] = ChangeAgreeLog::getAgreedSupporter((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->id, $inputs['type'], $model->submitter_nick_id);
+        
+            $response = $this->arrageSupporters($response);
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    private function arrageSupporters($response) {
+        
+        dd($response);
+        foreach ($response['total_supporters'] as $key => $supporter) {
+            $response['supporters'][$key]['agreed'] = in_array($supporter['nick_id'], $response['agreed_supporters']);
+            if(in_array($supporter['nick_id'], $response['agreed_supporters'])) {
+                $response['supporters'][$key]['agreed'] = true;
+            } else {
+                $response['total_supporters'][$key]['agreed'] = false;
+            }
+        }
+
+        return $response;
+    }
 }

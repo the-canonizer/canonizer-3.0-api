@@ -305,6 +305,36 @@ class Support extends Model
         return $totalSupportersCount;
     }
 
+    public static function getSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null)
+    {
+        $submit_time = $submit_time ?: Carbon::now()->timestamp;
+        
+        // Number of supporters who were the supporter when change is submitted and then removed their support
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw('? between `start` and `end`', [$submit_time])
+            ->get()->pluck('nick_name_id')->toArray();
+        
+        
+        // Number of supporters who are the supporter when change is submitted
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->where('start', '<', $submit_time)
+            ->where('end', '=', 0)
+            ->get()->pluck('nick_name_id')->toArray();
+        
+        $totalSupporters = array_unique(array_merge(...$totalSupporters));
+        if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+        {
+            $totalSupporters[] = $submitterNickId;
+        }        
+        $totalSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $totalSupporters)->get()->toArray();
+        
+        return [$totalSupporters, count($totalSupporters)];
+    }
+
     public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
     {
         $supportFlag = 1;

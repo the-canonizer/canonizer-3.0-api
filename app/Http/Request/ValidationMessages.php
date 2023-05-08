@@ -641,4 +641,24 @@ class ValidationMessages
             'id.required' => trans('message.validation_login_as_user_change.id_required'),
         ];
     }
+
+    public function getChangeSupportersValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
+            'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
+            
+            'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
+            'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
+            
+            'change_num.required' => trans('message.validation_change_supporters.change_num_required'),
+            'change_num.numeric' => trans('message.validation_change_supporters.change_num_numeric'),
+            'change_num.gt' => trans('message.validation_change_supporters.change_num_gt'),     
+            
+            'type.required' => trans('message.validation_change_supporters.type_required'),
+            'type.required' => trans('message.validation_change_supporters.type_in'),
+        ];
+    }
 }
