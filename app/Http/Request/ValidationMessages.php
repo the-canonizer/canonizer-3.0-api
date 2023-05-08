@@ -642,6 +642,17 @@ class ValidationMessages
         ];
     }
 
+    public function getEmbeddedCodeTrackingMessages(): array
+    {
+        return [
+            'url.required' => trans('message.embedded_code_tracking_message.url_required'),
+            'url.unique' => trans('message.embedded_code_tracking_message.url_unique'),
+            'url.url' => trans('message.embedded_code_tracking_message.url_invalid'),
+            'ip_address.ip' => trans('message.embedded_code_tracking_message.ip_invalid'),
+            'user_agent.string' => trans('message.embedded_code_tracking_message.user_agent_string'),
+        ];
+    }
+
     public function getChangeSupportersValidationMessages(): array
     {
         return [
