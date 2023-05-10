@@ -1428,14 +1428,18 @@ class CampController extends Controller
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
-                /* Now every change have commit time must , so due to this the change 
+                /* Now every change have grace_period must , so due to this the change 
                     will no go live instantly until committed. So that's why go_live_time will be 1 day for all 
                     changes except the unit test case.
                 */
-                if(!array_key_exists("from_test_case", $all) && !$all["from_test_case"]) {
-                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                }
+                $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
                 $camp->grace_period = 1;
+
+                if(array_key_exists("from_test_case", $all)) {
+                    if($all['from_test_case']) {
+                        $camp->go_live_time = time();
+                    }
+                }
             }
             if ($all['event_type'] == "objection") {
                 $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
