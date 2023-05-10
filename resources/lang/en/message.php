@@ -528,9 +528,9 @@ return [
         'camp_num_numeric' => "camp_num should be a numeric.",
         'camp_num_gt' => "camp_num should be greater than :value.",
 
-        'change_num_required' => "change_num is required.",
-        'change_num_numeric' => "change_num should be a numeric.",
-        'change_num_gt' => "change_num should be greater than :value.",
+        'change_id_required' => "change_id is required.",
+        'change_id_numeric' => "change_id should be a numeric.",
+        'change_id_gt' => "change_id should be greater than :value.",
         
         'type_required' => ":attribute is required.",
         'type_in' => 'The selected :attribute is invalid.',

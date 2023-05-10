@@ -530,8 +530,8 @@ class SupportController extends Controller
      *                   type="integer",
      *               ),
      *               @OA\Property(
-     *                   property="change_num",
-     *                   description="change_num id is required",
+     *                   property="change_id",
+     *                   description="change_id id is required",
      *                   required=true,
      *                   type="integer",
      *               ),
@@ -560,7 +560,7 @@ class SupportController extends Controller
             $where = [
                 'topic_num' => $inputs['topic_num'],
                 'camp_num' => $inputs['camp_num'],
-                'id' => $inputs['change_num'],
+                'id' => $inputs['change_id'],
             ];
 
             switch ($inputs['type']) {
@@ -597,9 +597,8 @@ class SupportController extends Controller
         }
     }
 
-    private function arrageSupporters($response) {
-        
-        
+    private function arrageSupporters($response) 
+    {
         $response['supporters'] = collect($response['total_supporters'])->map(function ($supporter) use ($response) {
             $supporter['agreed'] = in_array($supporter['id'], $response['agreed_supporters']);
             return $supporter;

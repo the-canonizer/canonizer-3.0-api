@@ -664,9 +664,9 @@ class ValidationMessages
             'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
             'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
             
-            'change_num.required' => trans('message.validation_change_supporters.change_num_required'),
-            'change_num.numeric' => trans('message.validation_change_supporters.change_num_numeric'),
-            'change_num.gt' => trans('message.validation_change_supporters.change_num_gt'),     
+            'change_id.required' => trans('message.validation_change_supporters.change_id_required'),
+            'change_id.numeric' => trans('message.validation_change_supporters.change_id_numeric'),
+            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),     
             
             'type.required' => trans('message.validation_change_supporters.type_required'),
             'type.required' => trans('message.validation_change_supporters.type_in'),
