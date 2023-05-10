@@ -688,13 +688,13 @@ class Util
 
         if($archiveFlag === 0){
             $directArchive = 0;
-            Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
+            //Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
             
             if(count($supporterNickNames)){
-                foreach($supporterNickNames as $nickNameId)
+                foreach($supporterNickNames as $sp)
                 {
-                   $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $nickNameId);
+                   $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
                    if(!empty($lastSupportOrder)){
                         $supportOrder =  $lastSupportOrder->support_order + 1; 
                         $delegatedNickNameId = $lastSupportOrder->delegate_nick_name_id;
@@ -703,7 +703,7 @@ class Util
                         $delegatedNickNameId = 0; 
                    }
                    
-                   TopicSupport::addSupport($camp->topic_num, $camp->camp_num, $supportOrder, $nickNameId, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                   TopicSupport::addSupport($camp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
                 }
             }
             //timeline start

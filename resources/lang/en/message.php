@@ -539,7 +539,7 @@ return [
         "camp_archived" => 'archived',
         "camp_archived_direct_summary" => "This camp has been archived directly",
         "camp_archived_indirectly_summary" => "This camp has been archived implicitly.",
-        "camp_unarchive" => "unarchived",
+        "camp_unarchived" => "unarchived",
         "camp_unarchived_summary" => "Support added back, because camp is restored.",
     ],
     'validation_login_as_user_change' => [
