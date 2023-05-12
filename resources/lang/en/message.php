@@ -546,4 +546,12 @@ return [
     'validation_login_as_user_change' => [
         'id_required' => "Id is required.",
     ],
+    'embedded_code_tracking_message' => [
+        'url_required' => "The url field is required.",
+        'url_invalid' => "The url must be a valid URL format",
+        'url_unique' => "The url has already been taken.",
+        'ip_invalid' => "The IP address must be a valid IP format.",
+        'user_agent_string' => "The :attribute must be a valid user agent string.",
+        
+    ],
 ];
