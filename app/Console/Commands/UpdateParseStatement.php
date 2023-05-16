@@ -50,6 +50,7 @@ class UpdateParseStatement extends Command
                 $updateRecored = 1;
                 $WikiParser = new wikiParser;
                 $statement->parsed_value = $WikiParser->parse($statement->value);
+                $statement->parsed_value = str_replace("<br />","<p> </p>",$statement->parsed_value);
                 $statement->update();
                 echo "Total record found for update: " . $statement->count() . "\r\n";
                 echo "Updated record: " . $updateRecored . "\r\n";
@@ -59,6 +60,7 @@ class UpdateParseStatement extends Command
                 foreach($statements as $statement) { 
                     $WikiParser = new wikiParser;
                     $statement->parsed_value = $WikiParser->parse($statement->value);
+                    $statement->parsed_value = str_replace("<br />","<p> </p>",$statement->parsed_value);
                     $statement->update();
                     $updateRecored++;
                 }
