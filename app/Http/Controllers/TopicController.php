@@ -421,12 +421,21 @@ class TopicController extends Controller
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
-            $model->submit_time = time();
-            $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-            $model->grace_period = 0;
-            $model->update();
+
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
+
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
+
+            $model->submit_time = time();
+            $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+
+            if($ifIamSingleSupporter) {
+                $model->go_live_time = time();
+            }
+
+            $model->grace_period = 0;
+            $model->update();
             $liveCamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             if ($type == 'topic') {
@@ -933,10 +942,13 @@ class TopicController extends Controller
                 $topic->namespace_id = $all['namespace_id'];
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];
-                $topic->go_live_time = $current_time;
+                // $topic->go_live_time = $current_time;
+                $topic->go_live_time = Carbon::parse($current_time)->addDay()->timestamp;
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
-                $topic->grace_period = 0;
+                // $topic->grace_period = 0;
+                $topic->grace_period = 1;
+
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
                 $message = trans('message.success.topic_update');

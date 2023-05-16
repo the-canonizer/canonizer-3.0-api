@@ -408,21 +408,22 @@ class StatementController extends Controller
             } else {
                 ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
-            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
-            if ($all['camp_num'] > 1) {
-                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
-                    $statement->grace_period = 0;
-                } else {
-                    $statement->grace_period = 1;
-                }
-            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
-                $statement->grace_period = 0;
-            }
-
-            if (!$ifIamSingleSupporter) {
-                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $statement->grace_period = 1;
-            }
+//            dd($statement->grace_period, $all['submitter'], $loginUserNicknames);
+//            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
+//            if ($all['camp_num'] > 1) {
+//                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
+//                    $statement->grace_period = 0;
+//                } else {
+//                    $statement->grace_period = 1;
+//                }
+//            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
+//                $statement->grace_period = 0;
+//            }
+//
+//            if (!$ifIamSingleSupporter) {
+//                $statement->grace_period = 1;
+//            }
+             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
             if($eventType == 'objection') {
                 $statement->grace_period = 0;
