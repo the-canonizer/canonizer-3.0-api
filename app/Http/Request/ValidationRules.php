@@ -567,4 +567,14 @@ class ValidationRules
             'user_agent' => 'sometimes|nullable|string',
         ]);
     }
+
+    public function getChangeSupportersValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|numeric|gt:0',
+            'camp_num' => 'required|numeric|gt:0',
+            'change_id' => 'required|numeric|gt:0',
+            'type' => 'required|in:topic,camp,statement',
+        ];
+    }
 }
