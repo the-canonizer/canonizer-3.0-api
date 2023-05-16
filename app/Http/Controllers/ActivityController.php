@@ -138,7 +138,9 @@ class ActivityController extends Controller
         }
         try {
             if($request->is_admin_show_all && $request->is_admin_show_all == 'all'){
-                $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->get();
+                $perPage = $request->per_page ?? config('global.per_page');
+                $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
+                $log = Util::getPaginatorResponse($log);
             }else{
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
             }
