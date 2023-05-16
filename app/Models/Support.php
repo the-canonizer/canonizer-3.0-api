@@ -632,7 +632,7 @@ class Support extends Model
                                 ->where('end', '!=', 0)
                                 ->where('reason','=','archived')
                                 ->where('archive_support_flag','=',0)
-                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+                                ->groupBy('nick_name_id')->get();
     }
 
     public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
