@@ -639,8 +639,8 @@ class TopicController extends Controller
                     return $this->resProvider->apiJsonResponse(200, $message, '', '');
                 }
                 else {
-                    $message = trans('message.error.exception');
-                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                    $message = trans('message.error.disagree_history_changed', ['history' => $data['change_for']]);
+                    return $this->resProvider->apiJsonResponse(200, $message, '', '');
                 }
             }
             $log = new ChangeAgreeLog();
