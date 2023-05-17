@@ -274,7 +274,7 @@ class Support extends Model
         return count($support) + $supportCount;
     }
     
-    public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null)
+    public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
     {
         $submit_time = $submit_time ?: Carbon::now()->timestamp;
         
@@ -300,6 +300,13 @@ class Support extends Model
         if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
         {   
             $totalSupportersCount++;
+        }
+
+        // Also include explicit support count in total...
+        if(count($additionalFilter)) {
+            $nickNames = Nickname::personNicknameArray();
+            $totalSupporters = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true);
+            $totalSupportersCount = $totalSupportersCount + $totalSupporters ?? 0;
         }
 
         return $totalSupportersCount;
@@ -533,7 +540,7 @@ class Support extends Model
             return (count($mysupports)) ? true : false;
     }
 
-    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null){
+    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null, $includeExplicitCount = false){
             Camp::clearChildCampArray();
             $childCamps = [];
             if($type == "topic"){
@@ -550,13 +557,25 @@ class Support extends Model
                     unset($childCamps[$key]);
                 }
             }
-            $mysupports = Support::where('topic_num', $filter['topicNum'])
-                            ->whereIn('camp_num', $childCamps)
-                            ->whereIn('nick_name_id', $nickNames)
-                            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
-                            ->where('delegate_nick_name_id', '=', 0)
-                            ->orderBy('support_order', 'ASC')
-                            ->groupBy('camp_num')->get();
+
+            $query = Support::query();
+            
+            $query->where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps);
+            if(!$includeExplicitCount) {
+                $query->whereIn('nick_name_id', $nickNames);
+            }
+            $query->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
+                ->where('delegate_nick_name_id', '=', 0)->orderBy('support_order', 'ASC');
+            if(!$includeExplicitCount) {
+                $query->groupBy('camp_num');
+            }
+
+            $mysupports = $query->get();
+            
+            if($includeExplicitCount) {
+                return (count($mysupports)) ? count($mysupports) : 0;
+            }
+
             return (count($mysupports)) ? true : false;
     }
 

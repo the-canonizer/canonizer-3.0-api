@@ -136,7 +136,7 @@ class Statement extends Model
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
                 // $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
-                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
+                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter);
                 
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
