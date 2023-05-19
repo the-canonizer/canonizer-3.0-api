@@ -46,4 +46,14 @@ class Thread extends Model implements AuthenticatableContract, AuthorizableContr
         });
     }
 
+    public function replies()
+    {
+        return $this->hasMany(Reply::class, 'c_thread_id', 'id');
+    }
+
+    public function latestReply()
+    {
+        return $this->hasOne(Reply::class, 'c_thread_id', 'id')->latestOfMany('updated_at');
+    }
+
 }
