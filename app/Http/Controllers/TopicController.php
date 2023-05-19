@@ -942,12 +942,12 @@ class TopicController extends Controller
                 $topic->namespace_id = $all['namespace_id'];
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];
-                // $topic->go_live_time = $current_time;
-                $topic->go_live_time = Carbon::parse($current_time)->addDay()->timestamp;
+                $topic->go_live_time = $current_time;
+                // $topic->go_live_time = Carbon::parse($current_time)->addDay()->timestamp;
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
-                // $topic->grace_period = 0;
-                $topic->grace_period = 1;
+                $topic->grace_period = 0;
+                // $topic->grace_period = 1;
 
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
