@@ -27,6 +27,7 @@ return [
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
+        'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
     ],
     'success' => [
         'success'          => 'Success',
