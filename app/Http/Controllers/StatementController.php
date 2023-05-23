@@ -555,7 +555,7 @@ class StatementController extends Controller
             'nick_name' => $nickName->nick_name,
             'description' => $statement->value
         ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
         // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
     
@@ -573,7 +573,7 @@ class StatementController extends Controller
             'nick_name' => $nickName->nick_name,
             'description' => $statement->value
         ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
 
     private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
@@ -604,7 +604,7 @@ class StatementController extends Controller
             'description' => $statement->value
         ];
         try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
         } catch (Exception $e) {

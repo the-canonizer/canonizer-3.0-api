@@ -252,7 +252,7 @@ class TopicController extends Controller
                         'nick_name' => $nickName,
                         'description' => $request->topic_name
                     ];
-                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 } catch (Throwable $e) {
                     $data = null;
                     $status = 403;
@@ -548,7 +548,7 @@ class TopicController extends Controller
                     break;
             }
 
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
@@ -1037,7 +1037,7 @@ class TopicController extends Controller
             'description' => $liveTopic->topic_name
         ];
         try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, 1, $all['submitter'],$all['nick_name'],config('global.notification_type.objectTopic'));
         } catch (Exception $e) {
