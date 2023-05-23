@@ -201,7 +201,7 @@ class ThreadsController extends Controller
                     'nick_name' => $nickName,
                     'description' => $request->title
                 ];
-                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id, $nickName);
             } else {
                 $data = null;
@@ -644,7 +644,7 @@ class ThreadsController extends Controller
                     'nick_name' => Nickname::getNickName($threads->user_id)->nick_name,
                     'description' => $request->title
                 ];
-                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 $status = 200;
                 $message = trans('message.thread.update_success');
             }

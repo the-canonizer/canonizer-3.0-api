@@ -220,7 +220,7 @@ class NewsFeedController extends Controller
                 'nick_name' => $nickName,
                 'description' =>  $display_text
             ];
-            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             $temp[] = $news;
             $indexes =NewsFeed::apiResponseIndexes();
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
@@ -336,7 +336,7 @@ class NewsFeedController extends Controller
                 'nick_name' => $nickName,
                 'description' =>  $request->display_text
             ];
-            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             return $this->resProvider->apiJsonResponse(200, trans('message.success.news_feed_add'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -408,7 +408,7 @@ class NewsFeedController extends Controller
                     'nick_name' =>  $nickName,
                     'description' =>  $newsFeed->display_text
                 ];
-                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), '', '');
             } else {
                 return $this->resProvider->apiJsonResponse(401, trans('message.general.permission_denied'), '', '');

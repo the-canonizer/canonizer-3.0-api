@@ -290,7 +290,7 @@ class CampController extends Controller
                         'nick_name' => $nickName,
                         'description' =>  $request->camp_name
                     ];
-                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                     GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'), null, $nickName);
                 } catch (Throwable $e) {
                     $data = null;
@@ -1623,7 +1623,7 @@ class CampController extends Controller
             'nick_name' => $nickName->nick_name,
             'description' => $camp->camp_name
         ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
         // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
@@ -1656,7 +1656,7 @@ class CampController extends Controller
             'description' => $camp->camp_name
         ];
         try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, $camp->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectCamp'));
         } catch (\Swift_TransportException $e) {

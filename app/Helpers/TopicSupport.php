@@ -1214,7 +1214,7 @@ class TopicSupport
             'description' => $description
         ];
 
-        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
 
     /**
