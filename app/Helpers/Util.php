@@ -688,7 +688,7 @@ class Util
 
         if($archiveFlag === 0){
             $directArchive = 0;
-            //Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
+            Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
             
             if(count($supporterNickNames)){
