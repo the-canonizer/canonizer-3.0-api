@@ -91,7 +91,8 @@ class SitemapXmlController extends Controller
                 'asOf' => $topic->asof,
                 'campNum' => 1,
             ]);
-            if ($camp !== null && $camp->is_archive == 0) {
+            // if ($camp !== null && $camp->is_archive == 0) {
+            if ($camp !== null) {
                 $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
                 $topicUrls[] = [
                     'url' => $topicUrl,
@@ -107,7 +108,7 @@ class SitemapXmlController extends Controller
     {
         $camps = Camp::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
-            ->where('is_archive', '0')
+            // ->where('is_archive', '0')
             ->latest('go_live_time')
             ->get();
         $campUrls = [];
