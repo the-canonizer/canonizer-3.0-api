@@ -488,6 +488,18 @@ class UploadController extends Controller
         $query = $request->get('query');
         try{
             $files = Upload::where('file_name','LIKE','%'.$query.'%')->where('user_id',$user->id)->orderBy('created_at', 'desc')->get();
+            
+            foreach($files as $val){
+                $s3FileName = $val->file_name;
+                if(isset($val->file_path) && $val->file_path)
+                {
+                    $strArray = explode('/',$val->file_path);
+                    $s3FileName = end($strArray);
+                }
+                
+                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$s3FileName;
+            } 
+            
             $data = [
                 'files' => $files,
             ];
