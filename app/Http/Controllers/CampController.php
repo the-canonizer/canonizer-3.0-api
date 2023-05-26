@@ -1432,8 +1432,8 @@ class CampController extends Controller
                 //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all 
                 //     changes except the unit test case.
                 // */
-                // $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                // $camp->grace_period = 1;
+                $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $camp->grace_period = 1;
 
                 // if(array_key_exists("from_test_case", $all)) {
                 //     if($all['from_test_case']) {
@@ -1441,11 +1441,11 @@ class CampController extends Controller
                 //     }
                 // }
 
-                if (!$ifIamSingleSupporter) {
-                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                } else {
-                    $camp->grace_period = 0;
-                }
+                // if (!$ifIamSingleSupporter) {
+                //     $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                // } else {
+                //     $camp->grace_period = 0;
+                // }
             }
             if ($all['event_type'] == "objection") {
                 $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
@@ -1487,7 +1487,7 @@ class CampController extends Controller
                     if($before_parent_camp_num ==$all['parent_camp_num']){
                         Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
                     }
-                    $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                    // $this->updateCampNotification($camp, $liveCamp, $link, $request);
                     
                     /** Archive and restoration of archive camp #574 */
                     $prevArchiveStatus = $preliveCamp->is_archive;
@@ -1586,45 +1586,6 @@ class CampController extends Controller
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->object_time = time();
         return $camp;
-    }
-
-    private function updateCampNotification($camp, $liveCamp, $link, $request)
-    {
-        $link = config('global.APP_URL_FRONT_END') .'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
-        $data['type'] = "camp";
-        $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
-        $data['link'] = $link;
-        $data['support_camp'] = $liveCamp->camp_name;
-        $data['is_live'] = ($camp->go_live_time <= time()) ? 1 : 0;
-        $data['note'] = $camp->note;
-        $data['camp_num'] = $camp->camp_num;
-        $nickName = Nickname::getNickName($camp->submitter_nick_id);
-        $data['topic_num'] = $camp->topic_num;
-        $data['nick_name'] = $nickName->nick_name;
-        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
-        $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
-        $data['nick_name_id'] = $nickName->id;
-        $notificationData = [
-            "email" => [],
-            "push_notification" => []
-        ];
-        $notificationData['email'] = $data;
-        Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, config('global.notification_type.manageCamp'), $link, config('global.notify.email')));
-
-        // $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
-            'url' => $link,
-            'model' => $camp,
-            'topic_num' => $camp->topic_num,
-            'camp_num' =>  $camp->camp_num,
-            'user' => $request->user(),
-            'nick_name' => $nickName->nick_name,
-            'description' => $camp->camp_name
-        ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
-        // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
     private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
