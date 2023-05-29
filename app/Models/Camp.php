@@ -224,6 +224,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         return self::where('topic_num', $topicNum)
             ->where('objector_nick_id', '=', NULL)
+            ->where('is_archive', '=', 0)
             ->where('go_live_time', '<=', $asOfDate)
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' group by camp_num)')
             ->orderBy('camp_name', 'ASC')->groupBy('camp_num')->get();
