@@ -480,27 +480,57 @@ class TopicController extends Controller
                 $topic = $model->topic;
                 $message = trans('message.success.camp_commit');
 
-                if($ifIamSingleSupporter){
+                if ($ifIamSingleSupporter) {
                     $all['topic_num'] = $liveCamp->topic_num;
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     $beforeUpdateCamp = Util::getCampByChangeId($filter['campNum']);
                     $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
-                    if($before_parent_camp_num ==$all['parent_camp_num']){
+                    if ($before_parent_camp_num == $all['parent_camp_num']) {
                         Util::parentCampChangedBasedOnCampChangeId($filter['campNum']);
                     }
                     $this->updateCampNotification($model, $liveCamp, $link, $request);
-                    
+
                     /** Archive and restoration of archive camp #574 */
                     $prevArchiveStatus = $preliveCamp->is_archive;
                     $updatedArchiveStatus = $all['is_archive'] ?? 0;
-                    if($prevArchiveStatus != $updatedArchiveStatus){
+                    if ($prevArchiveStatus != $updatedArchiveStatus) {
                         Util::updateArchivedCampAndSupport($model, $updatedArchiveStatus);
                     }
-                }   
+                }
 
                 if (isset($topic)) {
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
+
+                //timeline start
+                $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
+                if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+                    Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $nickName . " changed the parent of camp   " . $model->camp_name, $type = "parent_change", $id = $model->id, $old_parent_id = $all['old_parent_camp_num'], $new_parent_id = $all['parent_camp_num']);
+                }
+                //end of timeline
+
+                //timeline start
+                if ($all['camp_id'] != null) {
+                    $old_camp = Camp::where('id', $all['camp_id'])->first();
+                    if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))) {
+                        $timelineMessage = $nickName . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
+                        Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $timelineMessage, $type = "update_camp", $id = $model->id, $old_parent_id = null, $new_parent_id = null);
+                    }
+                }
+                //end of timeline
+
+                $currentTime = time();
+                $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24 * 60 * 60) + 10; // 24 hour commit time + 10 seconds for delay job
+                if (($currentTime < $model->go_live_time && $currentTime >= $model->submit_time) && $model->grace_period && $model->objector_nick_id == null) {
+                    Util::dispatchJob($topic, $model->camp_num, 1, $delayCommitTimeInSeconds);
+                    Util::dispatchJob($topic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
+                } else {
+                    if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
+                        Util::dispatchJob($topic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
+                    }
+                }
+
                 $notification_type = config('global.notification_type.campCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
             } else if ($type == 'topic') {
