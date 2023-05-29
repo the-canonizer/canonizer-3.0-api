@@ -275,7 +275,7 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" =>  $topic->topic_name . " / " . $camp->camp_name,
+                        "object" =>  $topic->topic_name . " > " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -1588,6 +1588,45 @@ class CampController extends Controller
         return $camp;
     }
 
+    private function updateCampNotification($camp, $liveCamp, $link, $request)
+    {
+        $link = config('global.APP_URL_FRONT_END') .'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $data['type'] = "camp";
+        $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
+        $data['link'] = $link;
+        $data['support_camp'] = $liveCamp->camp_name;
+        $data['is_live'] = ($camp->go_live_time <= time()) ? 1 : 0;
+        $data['note'] = $camp->note;
+        $data['camp_num'] = $camp->camp_num;
+        $nickName = Nickname::getNickName($camp->submitter_nick_id);
+        $data['topic_num'] = $camp->topic_num;
+        $data['nick_name'] = $nickName->nick_name;
+        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' > ' . $liveCamp->camp_name . " submitted";
+        $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
+        $data['nick_name_id'] = $nickName->id;
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+        $notificationData['email'] = $data;
+        Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, config('global.notification_type.manageCamp'), $link, config('global.notify.email')));
+
+        // $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $camp->topic_num,
+            'camp_num' =>  $camp->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $camp->camp_name
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+        // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
+    }
+
     private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
@@ -1603,7 +1642,7 @@ class CampController extends Controller
         $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
-        $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;
+        $data['object'] = $liveCamp->topic->topic_name . " > " . $liveCamp->camp_name;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",

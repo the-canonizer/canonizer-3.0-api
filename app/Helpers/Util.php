@@ -345,10 +345,10 @@ class Util
             $subject = 'canon';
             $namespace = Namespaces::find($namespace_id);
             if(preg_match('/sandbox/i',$namespace->name)){
-                $subject = 'canon/sandbox/';
+                $subject = 'canon > sandbox';
             }
             if(preg_match('/sandbox testing/i',$namespace->name)){
-                $subject = 'canon/sandbox testing/';
+                $subject = 'canon > sandbox testing';
             }
             if(env('APP_ENV') == 'staging'){
                 return '[staging.' . $subject . ']';
@@ -688,7 +688,7 @@ class Util
 
         if($archiveFlag === 0){
             $directArchive = 0;
-            //Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
+            Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
             
             if(count($supporterNickNames)){
