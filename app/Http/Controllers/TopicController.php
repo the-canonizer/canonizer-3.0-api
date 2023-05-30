@@ -503,17 +503,17 @@ class TopicController extends Controller
                 }
 
                 //timeline start
-                $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
+                // $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
                 if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
-                    Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $nickName . " changed the parent of camp   " . $model->camp_name, $type = "parent_change", $id = $model->id, $old_parent_id = $all['old_parent_camp_num'], $new_parent_id = $all['parent_camp_num']);
+                    Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name, $type = "parent_change", $id = $model->id, $old_parent_id = $all['old_parent_camp_num'], $new_parent_id = $all['parent_camp_num']);
                 }
                 //end of timeline
 
                 //timeline start
-                if ($all['camp_id'] != null) {
-                    $old_camp = Camp::where('id', $all['camp_id'])->first();
-                    if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))) {
-                        $timelineMessage = $nickName . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
+                if ($model->camp_num != null) {
+                    $old_camp = Camp::where('id', $model->camp_num)->first();
+                    if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
+                        $timelineMessage = $nickName->nick_name . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
                         Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $timelineMessage, $type = "update_camp", $id = $model->id, $old_parent_id = null, $new_parent_id = null);
                     }
                 }
