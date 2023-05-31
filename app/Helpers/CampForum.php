@@ -434,7 +434,7 @@ class CampForum
             "post" => $post,
             "camp_name"   =>  $camp_name,
             "thread" => Thread::where('id', $threadId)->latest()->get(),
-            "subject" => $topic_name . " > " . $camp_name . " > " . $liveThread->title . " post " . $post_msg,
+            "subject" => $topic_name . " >> " . $camp_name . " >> " . $liveThread->title . " post " . $post_msg,
             "namespace_id" => $topic->namespace_id,
             "nick_name_id" => $nick_id,
             "nickname_url" => Nickname::getNickNameLink($nick_id, $topic->namespace_id, $topicid, $campnum),
