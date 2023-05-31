@@ -623,8 +623,36 @@ class TopicController extends Controller
         $data = $request->all();
         $message = "";
         $changeId = $data['record_id'];
+        $responseData = [
+            'is_submitted' => 1
+        ];
 
         try {        
+
+            $where = [
+                'id' => $changeId,
+                ['objector_nick_id', '!=', null],
+            ];
+            switch ($data['change_for']) {
+                case 'statement':
+                    $model = Statement::where($where)->first();
+                    break;
+                case 'camp':
+                    $model = Camp::where($where)->first();
+                    break;
+                case 'topic':
+                    $model = Topic::where($where)->first();
+                    break;
+
+                default:
+                    $model = null;
+                    break;
+            }
+            if (!is_null($model)) {
+                $responseData['is_submitted'] = 0;
+                $message = trans('message.error.disagree_objected_history_changed', ['history' => $data['change_for']]);
+                return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
+            } 
 
             if($data['user_agreed'] == 0) {
                 $changeAgreeLog = (new ChangeAgreeLog())->where([
@@ -634,14 +662,14 @@ class TopicController extends Controller
                     'nick_name_id' => $data['nick_name_id'],
                     'change_for' => $data['change_for'],
                 ])->delete();
-                if($changeAgreeLog){
+                if ($changeAgreeLog) {
                     $message = trans('message.success.topic_not_agree');
-                    return $this->resProvider->apiJsonResponse(200, $message, '', '');
                 }
                 else {
+                    $responseData['is_submitted'] = 0;
                     $message = trans('message.error.disagree_history_changed', ['history' => $data['change_for']]);
-                    return $this->resProvider->apiJsonResponse(200, $message, '', '');
                 }
+                return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
             }
             $log = new ChangeAgreeLog();
             $log->change_id = $changeId;
@@ -766,7 +794,7 @@ class TopicController extends Controller
             } else {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
-            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+            return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
             
         } catch (Exception $e) {
           
