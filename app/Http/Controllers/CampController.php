@@ -1480,54 +1480,54 @@ class CampController extends Controller
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
             } 
-            // else if ($all['event_type'] == "update") {
-            //     if($ifIamSingleSupporter){
-            //         Util::checkParentCampChanged($all, false, $liveCamp);
-            //         $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
-            //         $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
-            //         if($before_parent_camp_num ==$all['parent_camp_num']){
-            //             Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
-            //         }
-            //         // $this->updateCampNotification($camp, $liveCamp, $link, $request);
+            else if ($all['event_type'] == "update" && array_key_exists("from_test_case", $all)) {
+                if($ifIamSingleSupporter && $all['from_test_case']){
+                    Util::checkParentCampChanged($all, false, $liveCamp);
+                    // $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
+                    // $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
+                    // if($before_parent_camp_num ==$all['parent_camp_num']){
+                    //     Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
+                    // }
+                    // $this->updateCampNotification($camp, $liveCamp, $link, $request);
                     
-            //         /** Archive and restoration of archive camp #574 */
-            //         $prevArchiveStatus = $preliveCamp->is_archive;
-            //         $updatedArchiveStatus = $all['is_archive'] ?? 0;
-            //         if($prevArchiveStatus != $updatedArchiveStatus){
-            //             Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
-            //         }
-            //     }                
+                    /** Archive and restoration of archive camp #574 */
+                    // $prevArchiveStatus = $preliveCamp->is_archive;
+                    // $updatedArchiveStatus = $all['is_archive'] ?? 0;
+                    // if($prevArchiveStatus != $updatedArchiveStatus){
+                    //     Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
+                    // }
+                }                
                 
-            //     Util::dispatchJob($topic, $camp->camp_num, 1);
-            //     //timeline start
-            //     $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            //     if($all['parent_camp_num']!=$all['old_parent_camp_num']){
-            //         Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
-            //     }
-            //     //end of timeline
+                // Util::dispatchJob($topic, $camp->camp_num, 1);
+                // //timeline start
+                // $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                // if($all['parent_camp_num']!=$all['old_parent_camp_num']){
+                //     Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+                // }
+                // //end of timeline
 
-            //      //timeline start
-            //      if($all['camp_id']!=null){
-            //         $old_camp = Camp::where('id', $all['camp_id'])->first();
-            //         if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
-            //             $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
-            //             Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-            //         }
-            //     }
-            //     //end of timeline
+                //  //timeline start
+                //  if($all['camp_id']!=null){
+                //     $old_camp = Camp::where('id', $all['camp_id'])->first();
+                //     if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
+                //         $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
+                //         Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+                //     }
+                // }
+                // //end of timeline
 
-            //     $currentTime = time();
-            //     $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
-            //     $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
-            //     if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
-            //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
-            //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
-            //     } else {
-            //         if($currentTime < $camp->go_live_time && $camp->objector_nick_id == null) {
-            //             Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
-            //         }
-            //     }
-            // }
+                // $currentTime = time();
+                // $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                // $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                // if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
+                //     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
+                //     Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                // } else {
+                //     if($currentTime < $camp->go_live_time && $camp->objector_nick_id == null) {
+                //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                //     }
+                // }
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

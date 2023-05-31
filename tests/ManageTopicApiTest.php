@@ -168,7 +168,7 @@ class ManageTopicApiTest extends TestCase
         $this->assertEquals(401,  $this->response->status());
     }
 
-    public function testUpdateManageTopicWithValidDataToCheckGradePeriod()
+    public function testUpdateManageTopicWithValidDataToCheckGracePeriod()
     {
         $validData = [
             "topic_num" => "1",
