@@ -489,7 +489,7 @@ class TopicSupport
             $subject = "You have been promoted as direct supporter.";
         }
         
-        $object = $topic->topic_name ." > ".$camp->camp_name;
+        $object = $topic->topic_name ." >> ".$camp->camp_name;
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['topic_num'] = $topicNum;
         $data['camp_num'] = $campNum;
@@ -855,7 +855,7 @@ class TopicSupport
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
-        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." > ".$camp->camp_name;
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." >> ".$camp->camp_name;
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
@@ -1362,7 +1362,7 @@ class TopicSupport
         $nickname =  Nickname::getNickName($nickNameId);
         $delegatedToNickname =  Nickname::getNickName($delegatedNickNameId);
 
-        $object = $topic->topic_name ." > ".$camp->camp_name;
+        $object = $topic->topic_name ." >> ".$camp->camp_name;
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);

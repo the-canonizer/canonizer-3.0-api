@@ -508,7 +508,7 @@ class StatementController extends Controller
         // $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
         $dataObject['topic_num'] = $statement->topic_num;
         $dataObject['camp_num'] = $statement->camp_num;
-        $dataObject['object'] = $livecamp->topic->topic_name . " > " . $livecamp->camp_name;
+        $dataObject['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
         $dataObject['support_camp'] = $livecamp->camp_name;
         $dataObject['go_live_time'] = $statement->go_live_time;
         $dataObject['type'] = 'statement : for camp ';
@@ -517,7 +517,7 @@ class StatementController extends Controller
         $nickName = Nickname::getNickName($statement->submitter_nick_id);
         $dataObject['nick_name'] = $nickName->nick_name;
         $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " > " . $livecamp->camp_name . " submitted";
+        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " >> " . $livecamp->camp_name . " submitted";
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
@@ -584,7 +584,7 @@ class StatementController extends Controller
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
         $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
         $data['type'] = "Camp";
-        $data['object'] = $livecamp->topic->topic_name . " > " . $livecamp->camp_name;
+        $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';

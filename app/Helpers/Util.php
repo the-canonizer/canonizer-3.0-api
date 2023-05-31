@@ -345,10 +345,10 @@ class Util
             $subject = 'canon';
             $namespace = Namespaces::find($namespace_id);
             if(preg_match('/sandbox/i',$namespace->name)){
-                $subject = 'canon > sandbox';
+                $subject = 'canon >> sandbox';
             }
             if(preg_match('/sandbox testing/i',$namespace->name)){
-                $subject = 'canon > sandbox testing';
+                $subject = 'canon >> sandbox testing';
             }
             if(env('APP_ENV') == 'staging'){
                 return '[staging.' . $subject . ']';

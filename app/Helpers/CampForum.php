@@ -43,7 +43,7 @@ class CampForum
         $subCampIds = CampForum::getForumAllChildCamps($camp);
         $data['camp_name'] = $camp_name;
         $data['nick_name'] = CampForum::getForumNickName($nick_id);
-        $data['subject'] = $topic_name . " > " . $data['camp_name'] . " > " . $thread_title .
+        $data['subject'] = $topic_name . " >> " . $data['camp_name'] . " >> " . $thread_title .
             " created";
         $data['namespace_id'] = $topic->namespace_id;
         $data['nick_name_id'] = $nick_id;
@@ -149,7 +149,7 @@ class CampForum
         $notificationData['email'] = [
             "camp_name" => $camp_name,
             "nick_name" => CampForum::getForumNickName($nick_id),
-            "subject"   => $topic_name . " > " . $camp_name . " > " . $thread_title . " created",
+            "subject"   => $topic_name . " >> " . $camp_name . " >> " . $thread_title . " created",
             "namespace_id" => $topic->namespace_id,
             "nick_name_id" => $nick_id,
             "camp_url" => Camp::campLink($topicid, $campnum, $topic_name, $camp_name),
@@ -317,7 +317,7 @@ class CampForum
         $data['post'] = $post;
         $data['camp_name'] = $camp_name;
         $data['thread'] = Thread::where('id', $threadId)->latest()->get();
-        $data['subject'] = $topic_name . " > " . $camp_name . " > " . $data['thread'][0]->title . " post " . $post_msg;
+        $data['subject'] = $topic_name . " >> " . $camp_name . " >> " . $data['thread'][0]->title . " post " . $post_msg;
         $data['namespace_id'] = $topic->namespace_id;
         $data['nick_name_id'] = $nick_id;
         $data['nickname_url'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $topicid, $campnum);
