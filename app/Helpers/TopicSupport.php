@@ -255,7 +255,7 @@ class TopicSupport
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     Util::dispatchJob($topic, $camp, 1);
                     //timeline start
-                    Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " removed direact support from camp - ". $campModel->camp_name, $type="direact_support_added", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
+                    Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " removed direct support from camp - ". $campModel->camp_name, $type="direct_support_added", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
                     //timeline start
                     $parentcamps = Camp::getAllParent($campModel);
                     $existParentSupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $parentcamps)->whereIn('nick_name_id', $allNickNames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->get();
@@ -298,7 +298,7 @@ class TopicSupport
                 /* To update the Mongo Tree while adding support */
                 Util::dispatchJob($topic, $campNum, 1);
                 //timeline start
-                Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " add direact support in camp - ". $campModel->camp_name, $type="direact_support_added", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
+                Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " add direct support in camp - ". $campModel->camp_name, $type="direct_support_added", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
                 //timeline start
                 $subjectStatement = "has added their support to"; 
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
@@ -334,7 +334,7 @@ class TopicSupport
                     $campFilter = ['topicNum' => $topicNum, 'campNum' => $order['camp_num']];
                     $campModel  = self::getLiveCamp($campFilter); 
                     //timeline start
-                    Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " has chnaged the order preferene of camp - ". $campModel->camp_name, $type="reorder_support", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
+                    Util::dispatchTimelineJob($topic, $campModel->camp_num, 1, $message =$nickName . " has changed the order preference of camp - ". $campModel->camp_name, $type="reorder_support", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
                     //timeline start
                 }
 
