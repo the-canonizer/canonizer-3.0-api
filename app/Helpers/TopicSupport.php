@@ -109,9 +109,11 @@ class TopicSupport
             } else {
                 Util::dispatchJob($topic, 1, 1);
             }
+
             //timeline start
-            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nicknameModel->nick_name . " has removed " .$type. " support in camp - ". $campModel->camp_name, $type= $type."_support_removed", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null);    
-            //timeline start
+            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nicknameModel->nick_name . " has removed " .$type. " support in camp - ". $campModel->camp_name, $type= $type."_support_removed", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null);    
+            //timeline end
+
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
 
             if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
