@@ -194,7 +194,7 @@ class TopicController extends Controller
             if ($topic) {
                 Util::dispatchJob($topic, 1, 1);
                 
-                $timelineMessage = $nickName . " created a new topic and also added their support on camp ". $topic->topic_name;
+                $timelineMessage = $nickName . " created a new topic and also added their support on Camp ". $topic->topic_name;
                 Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =0, $message =$timelineMessage, $type="create_topic", $id=$topic->topic_num, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time());
                 
                 $topicInput = [
@@ -1010,7 +1010,7 @@ class TopicController extends Controller
                     if(Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))){
                         $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
                         $timelineMessage = $nickName . " changed topic name from ". $old_topic['topic_name']. " to ".$topic->topic_name;
-                        Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id=$topic->id, $old_parent_id=null, $new_parent_id=null);   
+                        Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id = $topic->topic_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=time());   
                     }
                 }
                 //end of timeline
