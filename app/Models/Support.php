@@ -708,4 +708,16 @@ class Support extends Model
         }
     }
 
+    /**
+     * On Unarchive check which camps support needs to be revoked
+     */
+    public static function getSupportToBeRevoked($toppicNum)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('camp_num')->get();
+    }
+
 }
