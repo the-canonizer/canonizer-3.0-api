@@ -697,7 +697,7 @@ class TopicController extends Controller
                 if ($statement) {
                     $submitterNickId = $statement->submitter_nick_id;
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
-                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time);
+                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
 
                     if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
                     {   
