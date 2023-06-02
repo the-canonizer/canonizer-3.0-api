@@ -585,7 +585,7 @@ class SupportController extends Controller
             }
             
             $response = [];
-            [$response['total_supporters'], $response['total_supporters_count']] = Support::getSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time);
+            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time);
             [$response['agreed_supporters'], $response['agreed_supporters_count']] = ChangeAgreeLog::getAgreedSupporter((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->id, $inputs['type'], $model->submitter_nick_id);
         
             $response = $this->arrageSupporters($response);

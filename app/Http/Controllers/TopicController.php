@@ -697,13 +697,13 @@ class TopicController extends Controller
                 if ($statement) {
                     $submitterNickId = $statement->submitter_nick_id;
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
-                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-
+                    // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
                     if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
                     {   
                         $agreeCount++;
                     }
-                    if ($agreeCount == $supporters) {
+                    if ($agreeCount == $totalSupportersCount) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $statement->update();
                         self::updateStatementsInReview($statement);
@@ -732,14 +732,14 @@ class TopicController extends Controller
                     *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
-                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
-
+                    // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
                     if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
                     {   
                         $agreeCount++;
                     }
 
-                    if ($agreeCount == $supporters) {
+                    if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();
                         self::updateCampsInReview($camp);
@@ -773,14 +773,15 @@ class TopicController extends Controller
                     *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
-                    $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
-
+                    // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    
                     if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
                     {   
                         $agreeCount++;
                     }
                     
-                    if ($agreeCount == $supporters) {
+                    if ($agreeCount == $totalSupportersCount) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
                         self::updateTopicsInReview($topic);
