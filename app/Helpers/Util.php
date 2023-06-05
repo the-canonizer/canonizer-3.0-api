@@ -589,16 +589,16 @@ class Util
      * @param object $topic
      * @return void
      */
-    public function dispatchTimelineJob($topic, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null) {
+    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null) {
 
       
         try{
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';
-            $asOfDefaultDate = time();
+            $asOfDefaultDate =isset($asOfDefaultDate)? $asOfDefaultDate : time();
           
             $canonizerServiceData = [
-                'topic_num' =>  $topic->topic_num,
+                'topic_num' =>  $topic_num,
                 'algorithm' => $selectedAlgo,
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
@@ -683,7 +683,7 @@ class Util
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
             $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
         }
 
         if($archiveFlag === 0){
@@ -711,7 +711,7 @@ class Util
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
             $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
             
         }
 
