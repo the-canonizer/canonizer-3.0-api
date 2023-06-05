@@ -258,12 +258,13 @@ class CampController extends Controller
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+
                 //timeline start
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " created a new camp ". $camp->camp_name;
-                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-                 
+                $timelineMessage = $nickName . " created a new Camp ". $camp->camp_name;
+                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null);    
                 //end of timeline
+
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
