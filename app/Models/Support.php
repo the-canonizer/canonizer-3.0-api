@@ -274,7 +274,46 @@ class Support extends Model
         return count($support) + $supportCount;
     }
     
-    public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
+   // public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
+    // {
+    //     $submit_time = $submit_time ?: Carbon::now()->timestamp;
+        
+    //     // Number of supporters who were the supporter when change is submitted and then removed their support
+    //     $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+    //         ->where('camp_num', '=', $campNum)
+    //         ->where('delegate_nick_name_id', 0)
+    //         ->whereRaw('? between `start` and `end`', [$submit_time])
+    //         ->get()->pluck('nick_name_id')->toArray();
+        
+        
+    //     // Number of supporters who are the supporter when change is submitted
+    //     $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+    //         ->where('camp_num', '=', $campNum)
+    //         ->where('delegate_nick_name_id', 0)
+    //         ->where('start', '<', $submit_time)
+    //         ->where('end', '=', 0)
+    //         ->get()->pluck('nick_name_id')->toArray();
+        
+    //     $totalSupporters = array_merge(...$totalSupporters);
+    //     $totalSupportersCount = count(array_unique($totalSupporters));
+
+    //     if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+    //     {   
+    //         $totalSupportersCount++;
+    //     }
+
+    //     // Also include explicit support count in total...
+    //     if(count($additionalFilter)) {
+    //         $nickNames = Nickname::personNicknameArray();
+    //         $totalSupporters = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true);
+    //         dd($totalSupporters);
+    //         $totalSupportersCount = $totalSupportersCount + $totalSupporters ?? 0;
+    //     }
+
+    //     return $totalSupportersCount;
+    // }
+
+    public static function getTotalSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
     {
         $submit_time = $submit_time ?: Carbon::now()->timestamp;
         
@@ -294,61 +333,21 @@ class Support extends Model
             ->where('end', '=', 0)
             ->get()->pluck('nick_name_id')->toArray();
         
-        $totalSupporters = array_merge(...$totalSupporters);
-        $totalSupportersCount = count(array_unique($totalSupporters));
-
-        if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
-        {   
-            $totalSupportersCount++;
-        }
-
+            
         // Also include explicit support count in total...
         if(count($additionalFilter)) {
             $nickNames = Nickname::personNicknameArray();
-            $totalSupporters = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[1];
-            $totalSupportersCount = $totalSupportersCount + $totalSupporters ?? 0;
-        }
-
-        return $totalSupportersCount;
-    }
-
-    public static function getSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $includeExplicitCount = false)
-    {
-        $submit_time = $submit_time ?: Carbon::now()->timestamp;
-
-        // Number of supporters who were the supporter when change is submitted and then removed their support
-        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
-            ->where('camp_num', '=', $campNum)
-            ->where('delegate_nick_name_id', 0)
-            ->whereRaw('? between `start` and `end`', [$submit_time])
-            ->get()->pluck('nick_name_id')->toArray();
-
-
-        // Number of supporters who are the supporter when change is submitted
-        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
-            ->where('camp_num', '=', $campNum)
-            ->where('delegate_nick_name_id', 0)
-            ->where('start', '<', $submit_time)
-            ->where('end', '=', 0)
-            ->get()->pluck('nick_name_id')->toArray();
-
-        // $totalSupporters = array_unique(array_merge(...$totalSupporters));
-        if ($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) {
-            $totalSupporters[][] = $submitterNickId;
-        }
-
-        //Check if there is any explicit supporter for this change
-        if ($includeExplicitCount) {
-            $nickNames = Nickname::personNicknameArray();
-            $additionalFilter = [
-                'topicNum' => $topicNum,
-                'campNum' => $campNum,
-            ];
             $totalSupporters[] = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[0]->pluck('nick_name_id')->toArray();
         }
         $totalSupporters = array_unique(array_merge(...$totalSupporters));
-        $totalSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $totalSupporters)->get()->toArray();
+        
+        if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+        {
+            $totalSupporters[] = $submitterNickId;
+        }        
 
+        $totalSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $totalSupporters)->get()->toArray();
+        
         return [$totalSupporters, count($totalSupporters)];
     }
 
