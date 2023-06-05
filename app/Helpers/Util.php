@@ -687,6 +687,8 @@ class Util
         }
 
         if($archiveFlag === 0){
+            $supportToBeRevoked = Support::getSupportToBeRevoked($camp->topic_num);
+            //echo "<pre>"; print_r($allchilds);
             $directArchive = 0;
             Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
@@ -694,16 +696,21 @@ class Util
             if(count($supporterNickNames)){
                 foreach($supporterNickNames as $sp)
                 {
-                   $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
-                   if(!empty($lastSupportOrder)){
-                        $supportOrder =  $lastSupportOrder->support_order + 1; 
-                        $delegatedNickNameId = $lastSupportOrder->delegate_nick_name_id;
-                   }else{
-                        $supportOrder =  1; 
-                        $delegatedNickNameId = 0; 
-                   }
-                   
-                   TopicSupport::addSupport($camp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                    $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
+                    if(!empty($lastSupportOrder)){
+                            $supportOrder =  $lastSupportOrder->support_order + 1; 
+                    }else{
+                            $supportOrder =  1; 
+                    }
+                    $delegatedNickNameId = $sp->delegate_nick_name_id;
+
+                    foreach($supportToBeRevoked as $support)
+                    {
+                        TopicSupport::addSupport($support->topic_num, $support->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                        $supportOrder++;
+                    }                   
+                   //TopicSupport::addSupport($camp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                   Util::dispatchJob($camp->topic_num, 1, 1);
                 }
             }
             //timeline start
