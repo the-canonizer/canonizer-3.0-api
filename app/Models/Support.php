@@ -549,44 +549,44 @@ class Support extends Model
             return (count($mysupports)) ? true : false;
     }
 
-    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null, $includeExplicitCount = false){
-            Camp::clearChildCampArray();
-            $childCamps = [];
-            if($type == "topic"){
-                $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
-                ->where('go_live_time', '<=', time())
+    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null, $includeExplicitSupporters = false)
+    {
+        Camp::clearChildCampArray();
+        $childCamps = [];
+        if ($type == "topic") {
+            $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
+            ->where('go_live_time', '<=', time())
                 ->groupBy('camp_num')
                 ->get()
                 ->toArray();
-            }else{
-                $liveCamp = Camp::getLiveCamp($filter);
-                $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
-                $key = array_search($liveCamp->camp_num, $childCamps, true);
-                if ($key !== false) {
-                    unset($childCamps[$key]);
-                }
+        } else {
+            $liveCamp = Camp::getLiveCamp($filter);
+            $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+            $key = array_search($liveCamp->camp_num, $childCamps, true);
+            if ($key !== false) {
+                unset($childCamps[$key]);
             }
+        }
 
-            $query = Support::query();
-            
-            $query->where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps);
-            if(!$includeExplicitCount) {
-                $query->whereIn('nick_name_id', $nickNames);
-            }
-            $query->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
-                ->where('delegate_nick_name_id', '=', 0)->orderBy('support_order', 'ASC');
-            if(!$includeExplicitCount) {
-                $query->groupBy('camp_num');
-            }
+        $query = Support::query();
 
-            $mysupports = $query->get();
-            
-            if($includeExplicitCount) {
-                return [$mysupports, count($mysupports)];
-                return (count($mysupports)) ? count($mysupports) : 0;
-            }
+        $query->where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps);
+        if (!$includeExplicitSupporters) {
+            $query->whereIn('nick_name_id', $nickNames);
+        }
+        $query->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
+            ->where('delegate_nick_name_id', '=', 0)->orderBy('support_order', 'ASC');
+        if (!$includeExplicitSupporters) {
+            $query->groupBy('camp_num');
+        }
 
-            return (count($mysupports)) ? true : false;
+        $mysupports = $query->get();
+
+        if ($includeExplicitSupporters) {
+            return [$mysupports, count($mysupports) ?? 0];
+        }
+
+        return (count($mysupports)) ? true : false;
     }
 
     /**
