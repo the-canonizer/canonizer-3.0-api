@@ -10,7 +10,7 @@ class ChangeAgreeLog extends Model
     protected $table = 'change_agree_logs';
     public $timestamps = false;
 
-    public static function getAgreedSupporter($topicNum, $campNum, $changeNum, $changeFor, $submitterNickId)
+    public static function getAgreedSupporter($topicNum, $campNum, $changeNum, $changeFor, $submitterNickId, $submit_time, $includeExplicitCount = false)
     {
 
         $agreedSupporters = self::where('topic_num', '=', $topicNum)
@@ -22,6 +22,16 @@ class ChangeAgreeLog extends Model
         if ($submitterNickId > 0 && !in_array($submitterNickId, $agreedSupporters)) {
             $agreedSupporters[] = $submitterNickId;
         }
+
+        if($includeExplicitCount) {
+            $nickNames = Nickname::personNicknameArray();
+            $additionalFilter = [
+                'topicNum' => $topicNum,
+                'campNum' => $campNum,
+            ];
+            $agreedSupporters[] = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[0]->pluck('nick_name_id')->toArray();
+        }
+        
         // $agreedSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $agreedSupporters)->get()->toArray();
 
         return [$agreedSupporters, count($agreedSupporters)];
