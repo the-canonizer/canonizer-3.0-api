@@ -507,7 +507,8 @@ class TopicController extends Controller
                 //timeline start
                 // $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
                 if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
-                    Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name, $type = "parent_change", $id = $model->id, $old_parent_id = $all['old_parent_camp_num'], $new_parent_id = $all['parent_camp_num']);
+                    $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name;
+                    Util::dispatchTimelineJob($topic, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num']);
                 }
                 //end of timeline
 
@@ -516,7 +517,7 @@ class TopicController extends Controller
                     $old_camp = Camp::where('id', $model->camp_num)->first();
                     if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
                         $timelineMessage = $nickName->nick_name . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
-                        Util::dispatchTimelineJob($topic, $model->camp_num, $updateAll = 1, $message = $timelineMessage, $type = "update_camp", $id = $model->id, $old_parent_id = null, $new_parent_id = null);
+                        Util::dispatchTimelineJob($topic, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null);
                     }
                 }
                 //end of timeline
@@ -1358,7 +1359,7 @@ class TopicController extends Controller
 
     private function updateCampNotification($camp, $liveCamp, $link, $request)
     {
-        $link = config('global.APP_URL_FRONT_END') .'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $link = config('global.APP_URL_FRONT_END') .'/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['type'] = "camp";
         $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
         $data['link'] = $link;
