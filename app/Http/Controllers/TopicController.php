@@ -566,7 +566,7 @@ class TopicController extends Controller
             if (!empty($getMessageData)) {
                 $notificationData['push_notification'] = [
                     "topic_num" => $liveTopic->topic_num,
-                    "camp_num" => 1,
+                    "camp_num" => $liveCamp->camp_num,
                     "notification_type" => $getMessageData->notification_type,
                     "title" => $getMessageData->title,
                     "message_body" => $getMessageData->message_body,
