@@ -23,6 +23,7 @@ use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use App\Models\ChangeAgreeLog;
 use App\Models\Statement;
+use Exception;
 
 class SupportController extends Controller
 {
@@ -583,24 +584,25 @@ class SupportController extends Controller
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
-            
+
+            $isChangeLive = $model->grace_period == 0 && $model->go_live_time < time() && is_null($model->objector_nick_id);
+
             $response = [];
-            [$response['total_supporters'], $response['total_supporters_count']] = Support::getSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time);
-            [$response['agreed_supporters'], $response['agreed_supporters_count']] = ChangeAgreeLog::getAgreedSupporter((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->id, $inputs['type'], $model->submitter_nick_id);
-        
-            $response = $this->arrageSupporters($response);
+            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time);
+            [$response['agreed_supporters'], $response['agreed_supporters_count']] = ChangeAgreeLog::getAgreedSupporter((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->id, $inputs['type'], $model->submitter_nick_id, $model->submit_time);
+
+            $response = $this->checkAgreedSupporters($response, $isChangeLive);
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
-
         } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), $e->getLine(), $e->getMessage());
+            return $this->resProvider->apiJsonResponse($e->getCode() > 0 ? $e->getCode() : 500, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
-    private function arrageSupporters($response) 
+    private function checkAgreedSupporters($response, $isChangeLive = false)
     {
-        $response['supporters'] = collect($response['total_supporters'])->map(function ($supporter) use ($response) {
-            $supporter['agreed'] = in_array($supporter['id'], $response['agreed_supporters']);
+        $response['supporters'] = collect($response['total_supporters'])->map(function ($supporter) use ($response, $isChangeLive) {
+            $supporter['agreed'] = $isChangeLive ? true : in_array($supporter['id'], $response['agreed_supporters']);
             return $supporter;
         })->toArray();
         unset($response['total_supporters'], $response['agreed_supporters']);

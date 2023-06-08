@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Statement;
 use App\Models\User;
 use App\Models\Support;
 use Laravel\Lumen\Testing\DatabaseTransactions;
@@ -183,5 +184,29 @@ class StoreStatementApiTest extends TestCase
         print sprintf("Test with empty form data");
         $this->post('/api/v3/store-camp-statement', []);
         $this->assertEquals(401,  $this->response->status());
+    }
+
+    public function testCreateStatementInGracePeriodWithValidData() 
+    {
+        $validData = [
+            "topic_num" => "47",
+            "camp_num" => "1",
+            "nick_name" => "347",
+            "note" => "note",
+            "submitter" => "1",
+            "statement" => "statement",
+            "event_type" => "create",
+        ];
+        print sprintf("Test with valid values for creating a statement and it should be in grace period");
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $this->assertEquals(200,  $this->response->status());
+
+        $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
+        $this->assertNotNull($statement);
+        $this->assertEquals(1, $statement->grace_period);
+        
     }
 }
