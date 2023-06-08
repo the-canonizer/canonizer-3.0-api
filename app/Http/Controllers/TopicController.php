@@ -1362,7 +1362,7 @@ class TopicController extends Controller
     {
         $link = config('global.APP_URL_FRONT_END') .'/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['type'] = "camp";
-        $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
+        $data['object'] = $liveCamp->topic->topic_name . " >> " . $camp->camp_name;
         $data['link'] = $link;
         $data['support_camp'] = $liveCamp->camp_name;
         $data['is_live'] = ($camp->go_live_time <= time()) ? 1 : 0;
@@ -1371,7 +1371,7 @@ class TopicController extends Controller
         $nickName = Nickname::getNickName($camp->submitter_nick_id);
         $data['topic_num'] = $camp->topic_num;
         $data['nick_name'] = $nickName->nick_name;
-        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
+        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' >> ' . $liveCamp->camp_name . " submitted";
         $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
         $notificationData = [
