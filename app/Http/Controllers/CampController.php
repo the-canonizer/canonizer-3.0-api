@@ -276,7 +276,7 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" =>  $topic->topic_name . " > " . $camp->camp_name,
+                        "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -1605,7 +1605,7 @@ class CampController extends Controller
         $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
-        $data['object'] = $liveCamp->topic->topic_name . " > " . $liveCamp->camp_name;
+        $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
