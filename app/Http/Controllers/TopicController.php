@@ -493,11 +493,12 @@ class TopicController extends Controller
                     $this->updateCampNotification($model, $liveCamp, $link, $request);
 
                     /** Archive and restoration of archive camp #574 */
-                    $prevArchiveStatus = $preliveCamp->is_archive;
-                    $updatedArchiveStatus = $all['is_archive'] ?? 0;
-                    if ($prevArchiveStatus != $updatedArchiveStatus) {
-                        Util::updateArchivedCampAndSupport($model, $updatedArchiveStatus);
-                    }
+                    Util::updateArchivedCampAndSupport($model, $model->is_archive);
+                    // $prevArchiveStatus = $preliveCamp->is_archive;
+                    // $updatedArchiveStatus = $all['is_archive'] ?? 0;
+                    // if ($prevArchiveStatus != $updatedArchiveStatus) {
+                    //     Util::updateArchivedCampAndSupport($model, $updatedArchiveStatus);
+                    // }
                 }
 
                 if (isset($topic)) {
