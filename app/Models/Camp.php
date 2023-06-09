@@ -646,7 +646,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
-                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
 
                 switch ($val) {
