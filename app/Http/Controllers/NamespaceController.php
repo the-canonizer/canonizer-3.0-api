@@ -66,7 +66,7 @@ class NamespaceController extends Controller
     public function getAll()
     {
         try {
-            $namespaces = Namespaces::all();
+            $namespaces = Namespaces::orderBy('sort_order', 'ASC')->get();
             foreach ($namespaces as $namespace) {
                 $namespace->label = Namespaces::getNamespaceLabel($namespace, $namespace->name);
             }
