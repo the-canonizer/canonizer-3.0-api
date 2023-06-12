@@ -59,12 +59,6 @@ class SitemapXmlController extends Controller
             'https://blog.canonizer.com/',
             '/files/2012_amplifying_final.pdf',
             '/create/topic',
-            '/settings?tab=profile_info',
-            '/settings?tab=social_oauth_verification',
-            '/settings?tab=change_password',
-            '/settings?tab=nick_name',
-            '/settings?tab=supported_camps',
-            '/settings?tab=subscriptions',
         ];
         $siteMaps = array_map(function ($url) {
             $isExternal = strpos($url, 'http') === 0;
