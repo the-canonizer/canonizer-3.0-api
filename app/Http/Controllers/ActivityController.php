@@ -80,10 +80,16 @@ class ActivityController extends Controller
         }
         $perPage = $request->per_page ?? config('global.per_page');
         $logType = $request->log_type;
+        $topicNum = $request->topic_num;
+        $campNum = $request->camp_num ?? 1;
         try {
             $log = ActivityUser::whereHas('Activity', function ($query) use ($logType) {
-                $query->where('log_name', $logType);
-            })->with('Activity')->where('user_id', $request->user()->id)->latest()->paginate($perPage);
+                    $query->where('log_name', $logType);
+            })->with('Activity');
+            if(!$request->is_admin_show_all && !$topicNum){
+                $log->where('user_id', $request->user()->id);
+            }
+            $log = $log->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
@@ -131,7 +137,13 @@ class ActivityController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
+            if($request->is_admin_show_all && $request->is_admin_show_all == 'all'){
+                $perPage = $request->per_page ?? config('global.per_page');
+                $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
+                $log = Util::getPaginatorResponse($log);
+            }else{
+                $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -36,6 +36,7 @@ class Reply extends Model implements AuthenticatableContract, AuthorizableContra
         });
 
         self::updating(function($model){
+            unset($model->thread_id);
             $model->updated_at = time();
         });
 

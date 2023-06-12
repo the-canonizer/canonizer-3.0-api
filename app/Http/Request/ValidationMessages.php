@@ -634,4 +634,42 @@ class ValidationMessages
             'url.required' => trans('message.notify_if_url_not_exist.url_required'),
         ]);
     }
+
+    public function getLoginAsUserValidationMessages(): array
+    {
+        return [
+            'id.required' => trans('message.validation_login_as_user_change.id_required'),
+        ];
+    }
+
+    public function getEmbeddedCodeTrackingMessages(): array
+    {
+        return [
+            'url.required' => trans('message.embedded_code_tracking_message.url_required'),
+            'url.unique' => trans('message.embedded_code_tracking_message.url_unique'),
+            'url.url' => trans('message.embedded_code_tracking_message.url_invalid'),
+            'ip_address.ip' => trans('message.embedded_code_tracking_message.ip_invalid'),
+            'user_agent.string' => trans('message.embedded_code_tracking_message.user_agent_string'),
+        ];
+    }
+
+    public function getChangeSupportersValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
+            'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
+            
+            'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
+            'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
+            
+            'change_id.required' => trans('message.validation_change_supporters.change_id_required'),
+            'change_id.numeric' => trans('message.validation_change_supporters.change_id_numeric'),
+            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),     
+            
+            'type.required' => trans('message.validation_change_supporters.type_required'),
+            'type.required' => trans('message.validation_change_supporters.type_in'),
+        ];
+    }
 }

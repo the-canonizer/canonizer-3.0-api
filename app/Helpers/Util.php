@@ -345,10 +345,10 @@ class Util
             $subject = 'canon';
             $namespace = Namespaces::find($namespace_id);
             if(preg_match('/sandbox/i',$namespace->name)){
-                $subject = 'canon/sandbox/';
+                $subject = 'canon >> sandbox';
             }
             if(preg_match('/sandbox testing/i',$namespace->name)){
-                $subject = 'canon/sandbox testing/';
+                $subject = 'canon >> sandbox testing';
             }
             if(env('APP_ENV') == 'staging'){
                 return '[staging.' . $subject . ']';
@@ -589,16 +589,16 @@ class Util
      * @param object $topic
      * @return void
      */
-    public function dispatchTimelineJob($topic, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null) {
+    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null) {
 
       
         try{
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';
-            $asOfDefaultDate = time();
+            $asOfDefaultDate =isset($asOfDefaultDate)? $asOfDefaultDate : time();
           
             $canonizerServiceData = [
-                'topic_num' =>  $topic->topic_num,
+                'topic_num' =>  $topic_num,
                 'algorithm' => $selectedAlgo,
                 'asOfDate'  => $asOfDefaultDate,
                 'asOf'      => $asOf,
@@ -612,8 +612,14 @@ class Util
                 'endpointCSStore' => env('CS_STORE_TIMELINE'),
                 'id' => $id
             ];
+            if ($delay) {
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds($delay);
+                $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
+            }
             Log::info($canonizerServiceData);
             Log::info("canonizerServiceData");
+           
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
             if($topic->topic_num == config('global.mind_expert_topic_num')) {
@@ -648,4 +654,74 @@ class Util
         }
         
     }
+
+    /**
+     * camp Archive
+     */
+    public function updateArchivedCampAndSupport($camp, $archiveFlag = null)
+    {
+        $allchilds = Camp::getAllLiveChildCamps($camp, True);
+        if($archiveFlag === 1){            
+            $supporterNickNames = Support::getSupportersNickNameIdInCamps($camp->topic_num, $allchilds);
+           
+            if (($key = array_search($camp->camp_num, $allchilds)) !== false) {
+                Support::removeSupportByCamps($camp->topic_num, [$allchilds[$key]], $reason = trans('message.camp.camp_archived'), $reason_summary = trans('message.camp.camp_archived_direct_summary'));
+                unset($allchilds[$key]);
+            }
+            Support::removeSupportByCamps($camp->topic_num, $allchilds, $reason = trans('message.camp.camp_archived'), $reason_summary = trans('message.camp.camp_archived_indirectly_summary'));
+            foreach($supporterNickNames as $nickNameId){
+                $nickNames = Nickname::getAllNicknamesByNickId($nickNameId);
+                Support::reOrderSupport($camp->topic_num, $nickNames);
+            }           
+            Camp::archiveChildCamps($camp->topic_num, $allchilds);
+            
+            //dispatch job
+            Util::dispatchJob($camp->topic_num, 1, 1);
+
+            //timeline start
+            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
+            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+        }
+
+        if($archiveFlag === 0){
+            $supportToBeRevoked = Support::getSupportToBeRevoked($camp->topic_num);
+            //echo "<pre>"; print_r($allchilds);
+            $directArchive = 0;
+            Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
+            $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
+            
+            if(count($supporterNickNames)){
+                foreach($supporterNickNames as $sp)
+                {
+                    $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
+                    if(!empty($lastSupportOrder)){
+                            $supportOrder =  $lastSupportOrder->support_order + 1; 
+                    }else{
+                            $supportOrder =  1; 
+                    }
+                    $delegatedNickNameId = $sp->delegate_nick_name_id;
+
+                    foreach($supportToBeRevoked as $support)
+                    {
+                        TopicSupport::addSupport($support->topic_num, $support->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                        $supportOrder++;
+                    }                   
+                   //TopicSupport::addSupport($camp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                   Util::dispatchJob($camp->topic_num, 1, 1);
+                }
+            }
+            //timeline start
+            $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
+            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+            
+        }
+
+        return;
+    } 
 }

@@ -21,7 +21,7 @@
                     <td style="padding:10px 0px 10px;">
                         <p>
                             <a target="_blank"
-                                href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&namespace=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
+                                href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
                                 href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a>
                             @if (empty($data['is_live']) || $data['is_live'] != 1)
