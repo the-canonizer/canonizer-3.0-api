@@ -211,7 +211,7 @@ class ReplyController extends Controller
             $activitLogData['activity'] = trans('message.activity_log_message.post_update', ['nick_name' => $nickName]);
         }
 
-        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
 
     /**

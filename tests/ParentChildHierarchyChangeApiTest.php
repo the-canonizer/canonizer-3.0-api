@@ -49,7 +49,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "camp_id"=>3377,
             "camp_name"=>"camp 5",
             "parent_camp_num"=>4,  // This is new parent id
-            "old_parent_camp_num"=>1 // This is previous parent id
+            "old_parent_camp_num"=>1, // This is previous parent id
+            "from_test_case"=>1
         ];
 
         $this->actingAs($user)->post('/api/v3/manage-camp', $data);
@@ -77,7 +78,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "camp_id"=>3377,
             "camp_name"=>"camp 5",
             "parent_camp_num"=>5,  // This is new parent id
-            "old_parent_camp_num"=>1 // This is previous parent id
+            "old_parent_camp_num"=>1, // This is previous parent id
+            "from_test_case"=>1
         ];
 
         $this->actingAs($user)->post('/api/v3/manage-camp', $data);

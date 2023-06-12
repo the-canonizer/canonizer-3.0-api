@@ -551,4 +551,30 @@ class ValidationRules
             'url' => 'required',
         ];
     }
+
+    public function getLoginAsUserValidationRules(): array
+    {
+        return ([
+            'id' => 'required',
+        ]);
+    }
+
+    public function getEmbeddedCodeTrackingRules(): array
+    {
+        return ([
+            'url' => 'required|unique:embedded_code_tracking|url',
+            'ip_address' => 'sometimes|nullable|ip',
+            'user_agent' => 'sometimes|nullable|string',
+        ]);
+    }
+
+    public function getChangeSupportersValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|numeric|gt:0',
+            'camp_num' => 'required|numeric|gt:0',
+            'change_id' => 'required|numeric|gt:0',
+            'type' => 'required|in:topic,camp,statement',
+        ];
+    }
 }

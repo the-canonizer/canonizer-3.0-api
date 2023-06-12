@@ -408,21 +408,22 @@ class StatementController extends Controller
             } else {
                 ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
-            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
-            if ($all['camp_num'] > 1) {
-                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
-                    $statement->grace_period = 0;
-                } else {
-                    $statement->grace_period = 1;
-                }
-            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
-                $statement->grace_period = 0;
-            }
-
-            if (!$ifIamSingleSupporter) {
-                $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $statement->grace_period = 1;
-            }
+//            dd($statement->grace_period, $all['submitter'], $loginUserNicknames);
+//            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
+//            if ($all['camp_num'] > 1) {
+//                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
+//                    $statement->grace_period = 0;
+//                } else {
+//                    $statement->grace_period = 1;
+//                }
+//            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
+//                $statement->grace_period = 0;
+//            }
+//
+//            if (!$ifIamSingleSupporter) {
+//                $statement->grace_period = 1;
+//            }
+             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
             if($eventType == 'objection') {
                 $statement->grace_period = 0;
@@ -507,7 +508,7 @@ class StatementController extends Controller
         // $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
         $dataObject['topic_num'] = $statement->topic_num;
         $dataObject['camp_num'] = $statement->camp_num;
-        $dataObject['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+        $dataObject['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
         $dataObject['support_camp'] = $livecamp->camp_name;
         $dataObject['go_live_time'] = $statement->go_live_time;
         $dataObject['type'] = 'statement : for camp ';
@@ -516,7 +517,7 @@ class StatementController extends Controller
         $nickName = Nickname::getNickName($statement->submitter_nick_id);
         $dataObject['nick_name'] = $nickName->nick_name;
         $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " / " . $livecamp->camp_name . " submitted";
+        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " >> " . $livecamp->camp_name . " submitted";
         $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
         $dataObject['nick_name_id'] = $nickName->id;
         $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
@@ -554,7 +555,7 @@ class StatementController extends Controller
             'nick_name' => $nickName->nick_name,
             'description' => $statement->value
         ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
         // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
     
@@ -572,7 +573,7 @@ class StatementController extends Controller
             'nick_name' => $nickName->nick_name,
             'description' => $statement->value
         ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
 
     private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
@@ -583,7 +584,7 @@ class StatementController extends Controller
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
         $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
         $data['type'] = "Camp";
-        $data['object'] = $livecamp->topic->topic_name . " / " . $livecamp->camp_name;
+        $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
@@ -603,7 +604,7 @@ class StatementController extends Controller
             'description' => $statement->value
         ];
         try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
         } catch (Exception $e) {
@@ -833,7 +834,8 @@ class StatementController extends Controller
                         'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
                         'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
                         'is_disabled' => $val->is_disabled,
-                        'is_one_level' => $val->is_one_level
+                        'is_one_level' => $val->is_one_level,
+                        'is_archive' => $val->is_archive
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;

@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateParseStatement',
         'App\Console\Commands\DeleteURLFromActivityLogsCommand',
         'App\Console\Commands\ThreadCreatedDate',
+        'App\Console\Commands\UpdateNamespaceToCanon',
     ];
 
     /**

@@ -34,6 +34,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
+    protected $parent_change_in_review;
+    
 
     /**
      * The attributes that should be hidden for arrays.
@@ -222,6 +224,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         return self::where('topic_num', $topicNum)
             ->where('objector_nick_id', '=', NULL)
+            ->where('is_archive', '=', 0)
             ->where('go_live_time', '<=', $asOfDate)
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' group by camp_num)')
             ->orderBy('camp_name', 'ASC')->groupBy('camp_num')->get();
@@ -392,17 +395,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             // #1291 notify parent camps subscribers
             $parentCamps = array_unique(self::getAllParent($oneCamp));
             $camps = array_unique(array_merge($childCamps, $parentCamps));
-
-
-
-
-
-
-
-
-
-
-
            // $childCamps = array_unique(self::getAllChildCamps($oneCamp));
            // $parentCamps = array_unique(self::getAllParent($onecamp));
            // $camps = array_unique(array_merge($childCamps, $parentCamps));
@@ -526,13 +518,18 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return (count($mysupports)) ? $mysupports : false;
     }
 
-    public static function validateChildsupport($topicNum, $campNum, $userNicknames) 
+    public static function validateChildsupport($topicNum, $campNum, $userNicknames, $checkArchive = false) 
     {
         $filter = self::getLiveCampFilter($topicNum, $campNum);
         $oneCamp = self::getLiveCamp($filter);
 
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
-        $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        if($checkArchive){
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        }else{
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+        }
+        
 
         return (count($mysupports)) ? $mysupports : false;
     }
@@ -628,13 +625,29 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $val->isAuthor = $submitterUserID == $filter['userId']  ?  true : false ;
                 $val->agreed_to_change = 0;
 
-                $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
-                
-                $val->agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
+                /*
+                *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                *   Now support at the time of submition will be count as total supporter. 
+                *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                */
+                $val->total_supporters = Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
+                $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
                     ->where('change_for', '=', 'camp')
-                    ->count();
+                    ->get()->pluck('nick_name_id')->toArray();
+                
+                $val->agreed_supporters = count($agreed_supporters);
+
+                if($val->submitter_nick_id > 0 && !in_array($val->submitter_nick_id, $agreed_supporters)) 
+                {   
+                    $val->agreed_supporters++;
+                }
+
+                $nickNames = Nickname::personNicknameArray();
+                $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
+
 
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
@@ -873,4 +886,24 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->orderBy('submit_time', 'desc')
                         ->get();
     }
+
+    public static function archiveChildCamps($topicNum, $childCamps, $isArchive = 1, $directArchive = 0)
+    {
+        foreach($childCamps as $campNum)
+        {
+            $camp = Camp::where('topic_num', $topicNum)
+                        ->where('camp_num', $campNum)
+                        ->where('go_live_time', '<=', time())
+                        ->where('objector_nick_id', NULL)
+                        ->latest('submit_time')
+                        ->first();
+            $camp->is_archive = $isArchive;
+            $camp->direct_archive = $directArchive;
+            $camp->update();
+        }
+        return;
+    }
+
+
+    
 }

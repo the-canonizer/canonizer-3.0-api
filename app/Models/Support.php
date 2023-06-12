@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
+use Carbon\Carbon;
 use DB;
 
 class Support extends Model
@@ -79,6 +80,23 @@ class Support extends Model
         } else {
             $support = self::where('topic_num', '=', $topic_num)->where('camp_num', '=', $camp_num)->whereIn('nick_name_id', $nick_names)->where('delegate_nick_name_id', 0)->where('end', '=', 0)->first();
         }
+
+        return !empty($support) ? $support->nick_name_id : 0;
+    }
+
+    /*
+    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+    *   Now support at the time of submition will be count as total supporter. 
+    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+    */
+    public static function ifIamSupporterForChange($topic_num, $camp_num, $nick_names, $submit_time = null, $delayed = false)
+    {
+        $support = self::where('topic_num', '=', $topic_num)
+            ->where('camp_num', '=', $camp_num)
+            ->whereIn('nick_name_id', $nick_names)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submit_time])
+            ->first();
 
         return !empty($support) ? $support->nick_name_id : 0;
     }
@@ -159,33 +177,13 @@ class Support extends Model
      * This will remove support from all nicknames of that user with nick id @param $nickNameId
      * 
      */
-    public static function removeSupport($topicNum, $nickNameId, $campNum = '')
+    public static function removeSupport($topicNum, $nickNameId='', $campNum = '')
     {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         self::removeSupportWithAllNicknames($topicNum, $campNum, $usersNickNames);
 
         return;
     }
-
-    /*
-     * Remove Direct Support
-     
-    public static function removeDirectSupport($topicNum ,$campNum = '', $nickNamesArray = array(), $action='')
-    {
-        if((isset($action) && $action == 'all') || $cammNum == '')  //abandon entire topic and promote deleagte
-        {
-           
-            ///$getAllActiveSupport = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNamesArray);
-
-            self::removeSupportWithAllNicknames($topicNum, $campNum, $nickNamesArray);
-            self::promoteDelegatesToDirect($topicNum, $nickNamesArray);
-
-            return;
-            
-        }
-
-
-    }*/
 
     public static function getActiveDelegators($topicNum, $usersNickNames)
     {
@@ -274,6 +272,83 @@ class Support extends Model
             }
         }
         return count($support) + $supportCount;
+    }
+    
+   // public static function countSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
+    // {
+    //     $submit_time = $submit_time ?: Carbon::now()->timestamp;
+        
+    //     // Number of supporters who were the supporter when change is submitted and then removed their support
+    //     $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+    //         ->where('camp_num', '=', $campNum)
+    //         ->where('delegate_nick_name_id', 0)
+    //         ->whereRaw('? between `start` and `end`', [$submit_time])
+    //         ->get()->pluck('nick_name_id')->toArray();
+        
+        
+    //     // Number of supporters who are the supporter when change is submitted
+    //     $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+    //         ->where('camp_num', '=', $campNum)
+    //         ->where('delegate_nick_name_id', 0)
+    //         ->where('start', '<', $submit_time)
+    //         ->where('end', '=', 0)
+    //         ->get()->pluck('nick_name_id')->toArray();
+        
+    //     $totalSupporters = array_merge(...$totalSupporters);
+    //     $totalSupportersCount = count(array_unique($totalSupporters));
+
+    //     if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+    //     {   
+    //         $totalSupportersCount++;
+    //     }
+
+    //     // Also include explicit support count in total...
+    //     if(count($additionalFilter)) {
+    //         $nickNames = Nickname::personNicknameArray();
+    //         $totalSupporters = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true);
+    //         dd($totalSupporters);
+    //         $totalSupportersCount = $totalSupportersCount + $totalSupporters ?? 0;
+    //     }
+
+    //     return $totalSupportersCount;
+    // }
+
+    public static function getTotalSupporterByTimestamp($topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [])
+    {
+        $submit_time = $submit_time ?: Carbon::now()->timestamp;
+        
+        // Number of supporters who were the supporter when change is submitted and then removed their support
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->whereRaw('? between `start` and `end`', [$submit_time])
+            ->get()->pluck('nick_name_id')->toArray();
+        
+        
+        // Number of supporters who are the supporter when change is submitted
+        $totalSupporters[] = self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('delegate_nick_name_id', 0)
+            ->where('start', '<', $submit_time)
+            ->where('end', '=', 0)
+            ->get()->pluck('nick_name_id')->toArray();
+        
+            
+        // Also include explicit support count in total...
+        if(count($additionalFilter)) {
+            $nickNames = Nickname::personNicknameArray();
+            $totalSupporters[] = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[0]->pluck('nick_name_id')->toArray();
+        }
+        $totalSupporters = array_unique(array_merge(...$totalSupporters));
+        
+        if($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) 
+        {
+            $totalSupporters[] = $submitterNickId;
+        }        
+
+        $totalSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $totalSupporters)->get()->toArray();
+        
+        return [$totalSupporters, count($totalSupporters)];
     }
 
     public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
@@ -474,6 +549,46 @@ class Support extends Model
             return (count($mysupports)) ? true : false;
     }
 
+    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null, $includeExplicitSupporters = false)
+    {
+        Camp::clearChildCampArray();
+        $childCamps = [];
+        if ($type == "topic") {
+            $childCamps = Camp::select('camp_num')->where('topic_num', $filter['topicNum'])
+            ->where('go_live_time', '<=', time())
+                ->groupBy('camp_num')
+                ->get()
+                ->toArray();
+        } else {
+            $liveCamp = Camp::getLiveCamp($filter);
+            $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+            $key = array_search($liveCamp->camp_num, $childCamps, true);
+            if ($key !== false) {
+                unset($childCamps[$key]);
+            }
+        }
+
+        $query = Support::query();
+
+        $query->where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps);
+        if (!$includeExplicitSupporters) {
+            $query->whereIn('nick_name_id', $nickNames);
+        }
+        $query->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
+            ->where('delegate_nick_name_id', '=', 0)->orderBy('support_order', 'ASC');
+        if (!$includeExplicitSupporters) {
+            $query->groupBy('camp_num');
+        }
+
+        $mysupports = $query->get();
+
+        if ($includeExplicitSupporters) {
+            return [$mysupports, count($mysupports) ?? 0];
+        }
+
+        return (count($mysupports)) ? true : false;
+    }
+
     /**
      * Remove Support along with  delegates
      */
@@ -497,25 +612,27 @@ class Support extends Model
 
     public static function reOrderSupport($topicNum, $nickNames, $reason = null,$reason_summary = null,$citation_link = null)
     {
-        $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
-        
-        $order = 1;
-        foreach($support as $support)
-        {
-            if($order === $support->support_order){
+        if(!empty($nickNames)){
+            $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+            
+            $order = 1;
+            foreach($support as $support)
+            {
+                if($order === $support->support_order){
+                    $order++;
+                    continue;
+                }
+
+                $support->support_order = $order;
+                $support->reason = $reason;
+                $support->reason_summary = $reason_summary;
+                $support->citation_link = $citation_link;
+                $support->update();
+
+                //update delegators support order as well
+                self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
                 $order++;
-                continue;
             }
-
-            $support->support_order = $order;
-            $support->reason = $reason;
-            $support->reason_summary = $reason_summary;
-            $support->citation_link = $citation_link;
-            $support->update();
-
-            //update delegators support order as well
-            self::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
-            $order++;
         }
 
         return;
@@ -548,7 +665,69 @@ class Support extends Model
         return $support;
     }
 
+    public static function removeSupportByCamps($topicNum, $campNum = array(),$reason = null,$reason_summary = null,$citation_link = null)
+    {
+        if (!empty($campNum)) {
+            $supports = self::where('topic_num', '=', $topicNum)
+                ->whereIn('camp_num', $campNum)
+                ->where('end', '=',  0)
+                ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
+        }
+        return;
+    }
+
+    public static function getSupportersNickNameIdInCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '=', 0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
+    }
+
+    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('nick_name_id')->get();
+    }
+
+    public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
+    {
+        $nickNames = Nickname::getAllNicknamesByNickId($nickId);
+        $support = self::where('topic_num', '=', $topicNum)
+                        ->whereIn('nick_name_id', $nickNames)
+                        ->orderBy('support_order', 'DESC')
+                        ->where('end', '=', '0')->first();
+
+        return $support;
+    }
 
 
+    public static function setSupportToIrrevokable($toppicNum, $camps, $archivedFlag = false)
+    {
+        if($archivedFlag){
+            return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->update(['archive_support_flag' => 1, 'archive_support_flag_date' => time()]);
+        }
+    }
+
+    /**
+     * On Unarchive check which camps support needs to be revoked
+     */
+    public static function getSupportToBeRevoked($toppicNum)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('camp_num')->get();
+    }
 
 }

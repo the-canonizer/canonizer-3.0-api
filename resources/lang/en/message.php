@@ -26,6 +26,8 @@ return [
         'forum_not_found' => 'No forum found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
+        'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
+        'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
     ],
     'success' => [
         'success'          => 'Success',
@@ -519,6 +521,23 @@ return [
         'forum_num_numeric' => "forum_num should be a numeric.",
         'forum_num_gt' => "forum_num should be greater than :value.",
     ],
+    "validation_change_supporters" => [
+        'topic_num_required' => "topic_num is required.",
+        'topic_num_numeric' => "topic_num should be a numeric.",
+        'topic_num_gt' => "topic_num should be greater than :value.",
+
+        'camp_num_required' => "camp_num is required.",
+        'camp_num_numeric' => "camp_num should be a numeric.",
+        'camp_num_gt' => "camp_num should be greater than :value.",
+
+        'change_id_required' => "change_id is required.",
+        'change_id_numeric' => "change_id should be a numeric.",
+        'change_id_gt' => "change_id should be greater than :value.",
+        
+        'type_required' => ":attribute is required.",
+        'type_in' => 'The selected :attribute is invalid.',
+        
+    ],
     "notify_if_url_not_exist" => [
         'is_type_required' => "is_type is required.",
         'topic_num_required' => "topic_num is required.",
@@ -534,5 +553,23 @@ return [
         'thread_id_numeric' => "thread_id should be a numeric.",
         'thread_id_gt' => "thread_id should be greater than :value.",
         'url_required' => "url is required.",
-    ]
+    ],
+    "camp" => [
+        "camp_archived" => 'archived',
+        "camp_archived_direct_summary" => "This camp has been archived directly",
+        "camp_archived_indirectly_summary" => "This camp has been archived implicitly.",
+        "camp_unarchived" => "unarchived",
+        "camp_unarchived_summary" => "Support added back, because camp is restored.",
+    ],
+    'validation_login_as_user_change' => [
+        'id_required' => "Id is required.",
+    ],
+    'embedded_code_tracking_message' => [
+        'url_required' => "The url field is required.",
+        'url_invalid' => "The url must be a valid URL format",
+        'url_unique' => "The url has already been taken.",
+        'ip_invalid' => "The IP address must be a valid IP format.",
+        'user_agent_string' => "The :attribute must be a valid user agent string.",
+        
+    ],
 ];
