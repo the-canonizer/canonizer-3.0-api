@@ -1001,7 +1001,7 @@ class TopicController extends Controller
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
                 ];
-                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $topic->submit_time, null, false, 'ifIamExplicitSupporter');
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $topic->submit_time, 'topic', false, 'ifIamExplicitSupporter');
 
                 if($checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection_topic');
@@ -1092,7 +1092,7 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             DB::rollback();
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage().''.$e->getLine());
         }
     }
 
