@@ -995,8 +995,15 @@ class TopicController extends Controller
             }
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
-                if(!$checkUserDirectSupportExists){
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
+                $topic = Statement::where('id', $all['topic_id'])->first();
+                $filters = [
+                    'topicNum' => $all['topic_num'],
+                    'campNum' => $all['camp_num'],
+                ];
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $topic->submit_time, null, false, 'ifIamExplicitSupporter');
+
+                if($checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection_topic');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
