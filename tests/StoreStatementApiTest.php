@@ -3,7 +3,6 @@
 use App\Models\Statement;
 use App\Models\User;
 use App\Models\Support;
-use Carbon\Carbon;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class StoreStatementApiTest extends TestCase
@@ -117,11 +116,11 @@ class StoreStatementApiTest extends TestCase
         $this->assertEquals(200,  $this->response->status());
     }
 
-     /**
-     * Check Api with valid data
+/**
+     * Check Api with valid data & support added after change is submitted
      * validation
      */
-    public function testObjectionStatementApiWithValidData() 
+    public function testObjectionStatementApiWithValidDataAfterChangeIsSubmitted()
     {
         $validData = [
             "topic_num" => "47",
@@ -134,16 +133,10 @@ class StoreStatementApiTest extends TestCase
             "objection_reason" => "reason",
             "statement_id" => "1",
         ];
-        print sprintf("Test with valid values for objecting a statement");
-           $user = User::factory()->make([
+
+        $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-
-        $statement = Statement::where([
-            'topic_num' => $validData['topic_num'],
-            'camp_num' => $validData['camp_num'],
-            'submitter_nick_id' => $validData['nick_name'],
-        ])->first();
 
         Support::insert([
             'nick_name_id' => 347,
@@ -151,11 +144,11 @@ class StoreStatementApiTest extends TestCase
             'topic_num' => 47,
             'camp_num'  =>  1,
             'support_order' =>  1,
-            'start' => Carbon::parse($statement->submit_time)->subSeconds(15),
+            'start' => time(),
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
          /**
