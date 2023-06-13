@@ -3,6 +3,7 @@
 use App\Models\Statement;
 use App\Models\User;
 use App\Models\Support;
+use Carbon\Carbon;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class StoreStatementApiTest extends TestCase
@@ -137,13 +138,20 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
+
+        $statement = Statement::where([
+            'topic_num' => $validData['topic_num'],
+            'camp_num' => $validData['camp_num'],
+            'submitter_nick_id' => $validData['nick_name'],
+        ])->first();
+
         Support::insert([
             'nick_name_id' => 347,
             'delegate_nick_name_id' => 0,
             'topic_num' => 47,
             'camp_num'  =>  1,
             'support_order' =>  1,
-            'start' => time(),
+            'start' => Carbon::parse($statement->submit_time)->subSeconds(15),
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
