@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
+use App\Models\Namespaces;
 use App\Models\Reply;
 use App\Models\Topic;
 use App\Models\Thread;
@@ -74,8 +75,10 @@ class SitemapXmlController extends Controller
 
     public function getTopicSiteMapUrls()
     {
+        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
         $topics = Topic::whereNull('objector_nick_id')
             ->where('go_live_time', '<=', time())
+            ->whereNotIn('namespace_id', $namespaceIds)
             ->latest('submit_time')
             ->get();
         $topicUrls = [];
@@ -99,9 +102,13 @@ class SitemapXmlController extends Controller
 
     public function getCampSiteMapUrls()
     {
+        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
         $camps = Camp::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
             ->where('is_archive', '0')
+            ->whereHas('topic', function ($query) use ($namespaceIds) {
+                $query->whereNotIn('topic.namespace_id', $namespaceIds);
+            })
             ->latest('go_live_time')
             ->get();
         $campUrls = [];
@@ -119,7 +126,10 @@ class SitemapXmlController extends Controller
 
     public function getThreadSiteMapUrls()
     {
-        $threads =  Thread::get();
+        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $threads =  Thread::whereHas('topic', function ($query) use ($namespaceIds) {
+            $query->whereNotIn('topic.namespace_id', $namespaceIds);
+        })->get();
         $unique = [];
         foreach ($threads as $thread) {
             if (in_array($thread->topic_id . '' . $thread->camp_id, $unique)) {
@@ -145,9 +155,14 @@ class SitemapXmlController extends Controller
 
     public function getPostSiteMapUrls()
     {
-        $threadsWithReplies = Thread::has('replies')->with('latestReply')->withCount('replies')->get()->sortByDesc(function ($thread, $key) {
-            return $thread->latestReply->updated_at;
-        });
+        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $threadsWithReplies = Thread::has('replies')->with('latestReply')->withCount('replies')
+            ->whereHas('topic', function ($query) use ($namespaceIds) {
+                $query->whereNotIn('topic.namespace_id', $namespaceIds);
+            })
+            ->get()->sortByDesc(function ($thread, $key) {
+                return $thread->latestReply->updated_at;
+            });
         foreach ($threadsWithReplies as $post) {
             if (!empty($post->latestReply)) {
                 $topic = Topic::getLiveTopic($post->topic_id);
