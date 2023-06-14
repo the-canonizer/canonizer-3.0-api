@@ -21,6 +21,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\DeleteURLFromActivityLogsCommand',
         'App\Console\Commands\ThreadCreatedDate',
         'App\Console\Commands\UpdateNamespaceToCanon',
+        'App\Console\Commands\UpdateUrlOfActivityOnCampUpdate',
     ];
 
     /**
