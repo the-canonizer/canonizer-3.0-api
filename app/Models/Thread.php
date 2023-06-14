@@ -14,8 +14,8 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
 class Thread extends Model implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, HasApiTokens  , Authorizable, HasFactory;
-    
+    use Authenticatable, HasApiTokens, Authorizable, HasFactory;
+
     protected $table = 'thread';
     public $timestamps = false;
 
@@ -56,4 +56,11 @@ class Thread extends Model implements AuthenticatableContract, AuthorizableContr
         return $this->hasOne(Reply::class, 'c_thread_id', 'id')->latestOfMany('updated_at');
     }
 
+    public function topic()
+    {
+        return $this->hasOne(Topic::class, 'topic_num', 'topic_id')
+            ->where('go_live_time', '<=', time())
+            ->where('objector_nick_id', '=', NULL)
+            ->orderBy('go_live_time', 'DESC');
+    }
 }
