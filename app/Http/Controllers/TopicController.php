@@ -195,7 +195,7 @@ class TopicController extends Controller
                 Util::dispatchJob($topic, 1, 1);
                 
                 $timelineMessage = $nickName . " created a new topic and also added their support on Camp ". $topic->topic_name;
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =0, $message =$timelineMessage, $type="create_topic", $id=1, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time());
+                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="create_topic", $id=1, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time());
                 
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
