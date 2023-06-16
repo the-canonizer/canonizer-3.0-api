@@ -195,7 +195,7 @@ class TopicController extends Controller
                 Util::dispatchJob($topic, 1, 1);
                 
                 $timelineMessage = $nickName . " created a new topic and also added their support on Camp ". $topic->topic_name;
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =0, $message =$timelineMessage, $type="create_topic", $id=1, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time());
+                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="create_topic", $id=1, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time());
                 
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
@@ -995,8 +995,15 @@ class TopicController extends Controller
             }
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
-                if(!$checkUserDirectSupportExists){
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
+                $topic = Statement::where('id', $all['topic_id'])->first();
+                $filters = [
+                    'topicNum' => $all['topic_num'],
+                    'campNum' => $all['camp_num'],
+                ];
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $topic->submit_time, 'topic', false, 'ifIamExplicitSupporter');
+
+                if($checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection_topic');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -1085,7 +1092,7 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             DB::rollback();
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage().''.$e->getLine());
         }
     }
 

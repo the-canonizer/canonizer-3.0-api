@@ -393,11 +393,13 @@ class StatementController extends Controller
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
             
             if($eventType == 'objection') {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
                 
                 // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
-                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter($filters, $nickNames);
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter){
+                $statement = Statement::where('id', $all['statement_id'])->first();
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $statement->submit_time, null, false, 'ifIamExplicitSupporter');
+
+                if(!$checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -423,11 +425,11 @@ class StatementController extends Controller
 //            if (!$ifIamSingleSupporter) {
 //                $statement->grace_period = 1;
 //            }
-             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
-            if($eventType == 'objection') {
-                $statement->grace_period = 0;
-            }
+            // if($eventType == 'objection') {
+            //     $statement->grace_period = 0;
+            // }
 
             /** Dispatch job for the case when the statement is in grace period by user B,
              * so schedule a job that will run and update the tree

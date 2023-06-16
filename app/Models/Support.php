@@ -305,7 +305,7 @@ class Support extends Model
     //     // Also include explicit support count in total...
     //     if(count($additionalFilter)) {
     //         $nickNames = Nickname::personNicknameArray();
-    //         $totalSupporters = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true);
+    //         $totalSupporters = self::ifIamExplicitSupporterBySubmitTime($additionalFilter, $nickNames, $submit_time, null, true);
     //         dd($totalSupporters);
     //         $totalSupportersCount = $totalSupportersCount + $totalSupporters ?? 0;
     //     }
@@ -337,7 +337,7 @@ class Support extends Model
         // Also include explicit support count in total...
         if(count($additionalFilter)) {
             $nickNames = Nickname::personNicknameArray();
-            $totalSupporters[] = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[0]->pluck('nick_name_id')->toArray();
+            $totalSupporters[] = self::ifIamExplicitSupporterBySubmitTime($additionalFilter, $nickNames, $submit_time, null, true, 'supporters')->pluck('nick_name_id')->toArray();
         }
         $totalSupporters = array_unique(array_merge(...$totalSupporters));
         
@@ -549,7 +549,7 @@ class Support extends Model
             return (count($mysupports)) ? true : false;
     }
 
-    public static function ifIamExplicitSupporterForChange($filter, $nickNames, $submittime, $type = null, $includeExplicitSupporters = false)
+    public static function ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, $type = null, $includeImplicitSupporters = false, $returnKey = '')
     {
         Camp::clearChildCampArray();
         $childCamps = [];
@@ -570,23 +570,34 @@ class Support extends Model
 
         $query = Support::query();
 
-        $query->where('topic_num', $filter['topicNum'])->whereIn('camp_num', $childCamps);
-        if (!$includeExplicitSupporters) {
+        $query->where('topic_num', $filter['topicNum']);
+
+        if (count($childCamps) > 0)
+            $query->whereIn('camp_num', $childCamps);
+
+        if (!$includeImplicitSupporters) {
             $query->whereIn('nick_name_id', $nickNames);
         }
+
         $query->whereRaw('? between `start` and IF(`end` > 0, `end`, 9999999999)', [$submittime]) // check submittime is within start and end
             ->where('delegate_nick_name_id', '=', 0)->orderBy('support_order', 'ASC');
-        if (!$includeExplicitSupporters) {
+
+        if (!$includeImplicitSupporters) {
             $query->groupBy('camp_num');
         }
 
         $mysupports = $query->get();
 
-        if ($includeExplicitSupporters) {
-            return [$mysupports, count($mysupports) ?? 0];
-        }
+        $returnData = [
+            'supporters' => $mysupports,
+            'supporter_count' => count($mysupports) ?? 0,
+            'ifIamExplicitSupporter' => (count($mysupports)) ? true : false,
+        ];
 
-        return (count($mysupports)) ? true : false;
+        if (strlen($returnKey) > 0)
+            return $returnData[$returnKey];
+
+        return $returnData;
     }
 
     /**
