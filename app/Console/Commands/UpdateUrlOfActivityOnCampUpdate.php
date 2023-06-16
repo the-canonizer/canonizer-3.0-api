@@ -51,7 +51,6 @@ class UpdateUrlOfActivityOnCampUpdate extends Command
 
             $searchCriteria = 'updated a camp';
             $getActivities = ActivityLog::where('description','LIKE','%'.$searchCriteria.'%')
-                            ->whereJsonContains('properties->url', "")
                             ->orderBy('id','DESC')->get();
 
             // update the URL for those above selected activities...
