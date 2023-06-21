@@ -75,7 +75,11 @@ class SitemapXmlController extends Controller
 
     public function getTopicSiteMapUrls()
     {
-        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+        $namespaceIds = [];
+        foreach ($namespaces as $namespace) {
+            $namespaceIds[] = $namespace->id;
+        }
         $topics = Topic::whereNull('objector_nick_id')
             ->where('go_live_time', '<=', time())
             ->whereNotIn('namespace_id', $namespaceIds)
@@ -102,7 +106,11 @@ class SitemapXmlController extends Controller
 
     public function getCampSiteMapUrls()
     {
-        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+        $namespaceIds = [];
+        foreach ($namespaces as $namespace) {
+            $namespaceIds[] = $namespace->id;
+        }
         $camps = Camp::where('objector_nick_id', '=', null)
             ->where('go_live_time', '<=', time())
             ->where('is_archive', '0')
@@ -126,7 +134,11 @@ class SitemapXmlController extends Controller
 
     public function getThreadSiteMapUrls()
     {
-        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+        $namespaceIds = [];
+        foreach ($namespaces as $namespace) {
+            $namespaceIds[] = $namespace->id;
+        }
         $threads =  Thread::whereHas('topic', function ($query) use ($namespaceIds) {
             $query->whereNotIn('topic.namespace_id', $namespaceIds);
         })->get();
@@ -155,7 +167,11 @@ class SitemapXmlController extends Controller
 
     public function getPostSiteMapUrls()
     {
-        $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+        $namespaceIds = [];
+        foreach ($namespaces as $namespace) {
+            $namespaceIds[] = $namespace->id;
+        }
         $threadsWithReplies = Thread::has('replies')->with('latestReply')->withCount('replies')
             ->whereHas('topic', function ($query) use ($namespaceIds) {
                 $query->whereNotIn('topic.namespace_id', $namespaceIds);
