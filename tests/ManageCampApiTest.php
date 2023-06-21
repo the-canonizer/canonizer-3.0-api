@@ -100,7 +100,7 @@ class ManageCampApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageCampWithValidData()
+    public function testObjectionManageCampWithValidDataAfterChangeIsSubmitted()
     {
         $validData = [
             "topic_num" => "47",
@@ -114,7 +114,7 @@ class ManageCampApiTest extends TestCase
             "event_type" => "objection",
             "objection_reason" => "reason",
         ];
-        print sprintf("Test with valid values for objecting a camp");
+        print sprintf("Test with valid values for objecting a camp after the change is submitted");
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
@@ -128,9 +128,7 @@ class ManageCampApiTest extends TestCase
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-
-        // dd($this->response);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
     /**
