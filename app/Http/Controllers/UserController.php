@@ -260,7 +260,7 @@ class UserController extends Controller
             ];
             $validateRecaptcha = Util::httpPost($postUrl, $payload);
             if ($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) {
-                $status = 403;
+                $status = 304;
                 $message = "The reCAPTCHA verification failed, please try again.";
                 if ($validateRecaptcha->status_code != 200) {
                     $message = "An error occurred during reCAPTCHA verification.";
