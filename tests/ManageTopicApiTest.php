@@ -110,7 +110,7 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageTopicWithValidData()
+    public function testObjectionManageTopicWithValidDataAfterChangeIsSubmitted()
     {
 
         $validData = [
@@ -124,13 +124,13 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "objection",
             "objection_reason" => "reason",
         ];
-        print sprintf("Test with valid values for objecting a camp");
+        print sprintf("Test with valid values for objecting a camp after the change is submitted");
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
         //  dd($this->response);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
     /**

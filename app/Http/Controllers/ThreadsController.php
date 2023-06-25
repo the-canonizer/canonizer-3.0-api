@@ -392,7 +392,6 @@ class ThreadsController extends Controller
 
     public function threadList(Request $request, Validate $validate)
     {
-
         $validationErrors = $validate->validate($request, $this->rules->getThreadListValidationRules(), $this->validationMessages->getThreadListValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -402,100 +401,26 @@ class ThreadsController extends Controller
             $threads = null;
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
-                $query = Thread::leftJoin('post', function ($join) {
-                    $join->on('thread.id', '=', 'post.c_thread_id');
-                    $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
-                })
-                    ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
-                    ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
-                    ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
-                if (!empty($request->like)) {
-                    $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
-                }
-                $threads = $query->groupBy('thread.id')
-                ->orderByRaw('CASE WHEN post.updated_at > thread.created_at THEN post.updated_at ELSE thread.created_at END DESC')
-                ->paginate($per_page);
-                $threads = Util::getPaginatorResponse($threads);
-                foreach ($threads->items as $value) {
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $value->topic_id)->get();
-                    foreach ($namspaceId as $nId) {
-                        $value->namespace_id = $nId->namespace_id;
-                    }
-                    if ($value->post_count > 0) {
-                        $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->orderBy('post.updated_at','DESC')->first();
-                        $value->post_updated_at = $latestPost->updated_at;
-                        $value->nick_name_id = $latestPost->user_id;
-                        $nickName = Nickname::find($latestPost->user_id);
-                        if (!empty($nickName)) {
-                            $value->nick_name = $nickName->nick_name;
-                        }
-                    }
-                }
-                $status = 200;
-                $message = trans('message.success.success');
-                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+                $threads = $this->getAllThreads($request, $per_page);
             }
+
             if (!$request->user()) {
                 $status = 401;
                 $message = trans('message.thread.not_authorized');
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
-            $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
-            $query = Thread::leftJoin('post', function ($join) use ($request, $userNicknames) {
-                $join->on('thread.id', '=', 'post.c_thread_id');
-                $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
-                if ($request->type == config('global.thread_type.myPrticipate')) {
-                    if (count($userNicknames) > 0) {
-                        $join->where('post.user_id', $userNicknames[0]->id);
-                    }
-                }
-            })
-                ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
-                ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
-                ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
-            if (!empty($request->like)) {
-                $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            if ($request->type == config('global.thread_type.myThread')) {
+                $threads = $this->geMyThreads($request, $per_page);
             }
-            if ($request->type == config('global.thread_type.myThread') && count($userNicknames) > 0) {
-                $query->where('thread.user_id', $userNicknames[0]->id);
+            if ($request->type == config('global.thread_type.myPrticipate')) {
+                $threads = $this->getMyPrticipate($request, $per_page);
             }
-            $query->groupBy('thread.id');
-            $threads = $query->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')            
-            ->paginate($per_page);
             if ($request->type == config('global.thread_type.top10')) {
-                $query = Thread::leftJoin('post', function ($join) {
-                    $join->on('thread.id', '=', 'post.c_thread_id');
-                    $join->where('post.is_delete', 0)->orderBy('post.updated_at', 'desc');
-                })
-                    ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
-                    ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-                    ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
-                    ->where('camp_id', $request->camp_num)->where('topic_id', $request->topic_num);
-                if (!empty($request->like)) {
-                    $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
-                }
-                $threads = $query->groupBy('thread.id')->orderBy('post_count', 'desc')->paginate($per_page);
+                $threads = $this->getTop10Threads($request, $per_page);
             }
             $threads = Util::getPaginatorResponse($threads);
-            foreach ($threads->items as $value) {
-                $postCount =  Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->count();
-                $namspaceId =  Topic::select('namespace_id')->where('topic_num', $value->topic_id)->get();
-                foreach ($namspaceId as $nId) {
-                    $value->namespace_id = $nId->namespace_id;
-                }
-                $value->post_count = $postCount;
-                if ($postCount > 0) {
-                    $latestPost = Reply::where('c_thread_id', $value->id)->where('post.is_delete', 0)->orderBy('post.updated_at','DESC')->first();
-                    $value->post_updated_at = $latestPost->updated_at;
-                    $value->nick_name_id = $latestPost->user_id;
-                    $nickName = Nickname::find($latestPost->user_id);
-                    if (!empty($nickName)) {
-                        $value->nick_name = $nickName->nick_name;
-                    }
-                }
-            }
+            $this->updateThreadsInfo($threads);
+
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
@@ -503,6 +428,122 @@ class ThreadsController extends Controller
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+        }
+    }
+
+    private function getAllThreads($request, $per_page)
+    {
+        return Thread::leftJoin('post', function ($join) {
+            $join->on('thread.id', '=', 'post.c_thread_id')
+                ->where('post.is_delete', 0);
+        })
+            ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+            ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->where('camp_id', $request->camp_num)
+            ->where('topic_id', $request->topic_num)
+            ->when(!empty($request->like), function ($query) use ($request) {
+                return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            })
+            ->groupBy('thread.id')
+            ->orderByRaw('CASE WHEN post.updated_at > thread.created_at THEN post.updated_at ELSE thread.created_at END DESC')
+            ->paginate($per_page);
+    }
+
+    private function geMyThreads($request, $per_page)
+    {
+        $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
+
+        return Thread::leftJoin('post', function ($join) use ($request, $userNicknames) {
+            $join->on('thread.id', '=', 'post.c_thread_id')
+                ->where('post.is_delete', 0);
+        })
+            ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+            ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->where('camp_id', $request->camp_num)
+            ->where('topic_id', $request->topic_num)
+            ->where('thread.user_id', $userNicknames[0]->id)
+            ->when(!empty($request->like), function ($query) use ($request) {
+                return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            })
+            ->groupBy('thread.id')
+            ->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')
+            ->paginate($per_page);
+    }
+
+    private function getMyPrticipate($request, $per_page)
+    {
+        $userNicknames = Nickname::topicNicknameUsed($request->topic_num)->sortBy('nick_name');
+
+        return Thread::leftJoin('post', function ($join) use ($request, $userNicknames) {
+            $join->on('thread.id', '=', 'post.c_thread_id')
+                ->where('post.is_delete', 0);
+        })
+            ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+            ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->where('camp_id', $request->camp_num)
+            ->where('topic_id', $request->topic_num)
+            ->where('post.user_id', $userNicknames[0]->id)
+            ->when(!empty($request->like), function ($query) use ($request) {
+                return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            })
+            ->groupBy('thread.id')
+            ->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')
+            ->paginate($per_page);
+    }
+
+    private function getTop10Threads($request, $per_page)
+    {
+        return Thread::leftJoin('post', function ($join) {
+            $join->on('thread.id', '=', 'post.c_thread_id')
+                ->where('post.is_delete', 0);
+        })
+            ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
+            ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->where('camp_id', $request->camp_num)
+            ->where('topic_id', $request->topic_num)
+            ->when(!empty($request->like), function ($query) use ($request) {
+                return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
+            })
+            ->groupBy('thread.id')
+            ->orderBy('post_count', 'desc')
+            ->paginate($per_page);
+    }
+
+    private function updateThreadsInfo($threads)
+    {
+        foreach ($threads->items as $thread) {
+            $postCount = Reply::where('c_thread_id', $thread->id)
+                ->where('post.is_delete', 0)
+                ->count();
+
+            $namspaceId = Topic::select('namespace_id')
+                ->where('topic_num', $thread->topic_id)
+                ->get();
+
+            foreach ($namspaceId as $nId) {
+                $thread->namespace_id = $nId->namespace_id;
+            }
+
+            $thread->post_count = $postCount;
+
+            if ($postCount > 0) {
+                $latestPost = Reply::where('c_thread_id', $thread->id)
+                    ->where('post.is_delete', 0)
+                    ->orderBy('post.updated_at', 'DESC')
+                    ->first();
+
+                $thread->post_updated_at = $latestPost->updated_at;
+                $thread->nick_name_id = $latestPost->user_id;
+
+                $nickName = Nickname::find($latestPost->user_id);
+                if (!empty($nickName)) {
+                    $thread->nick_name = $nickName->nick_name;
+                }
+            }
         }
     }
 

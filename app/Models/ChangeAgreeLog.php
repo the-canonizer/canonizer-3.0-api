@@ -29,7 +29,7 @@ class ChangeAgreeLog extends Model
                 'topicNum' => $topicNum,
                 'campNum' => $campNum,
             ];
-            $agreedSupporters[] = self::ifIamExplicitSupporterForChange($additionalFilter, $nickNames, $submit_time, null, true)[0]->pluck('nick_name_id')->toArray();
+            $agreedSupporters[] = self::ifIamExplicitSupporterBySubmitTime($additionalFilter, $nickNames, $submit_time, null, true, 'supporters')->pluck('nick_name_id')->toArray();
         }
         
         // $agreedSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $agreedSupporters)->get()->toArray();
