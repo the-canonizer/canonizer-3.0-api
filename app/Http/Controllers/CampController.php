@@ -1601,7 +1601,8 @@ class CampController extends Controller
     {
         $user = Nickname::getUserByNickName($all['submitter']);
         $topic = Topic::getLiveTopic($camp->topic_num, 'default');
-        $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $liveCamp);
+        // $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $liveCamp);
+        $link = '/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $camp->topic_num . '-' . $camp->camp_name . '/' . $camp->camp_num . '/threads';
