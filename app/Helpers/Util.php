@@ -750,6 +750,9 @@ class Util
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
                 }
             }
+
+            //end old support permanently
+            Support::setSupportToIrrevokable($camp->topic_num, $allchilds, true);
             //timeline start
             $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
