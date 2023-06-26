@@ -22,7 +22,7 @@
 
                 <tr>
                     <td style="font-weight:400;">
-                        <p>You proposed a change for {{ $data->type }} : <b>{{ $data->object }}</b></p>
+                        <p>You proposed a change for {{ $data->type }} : <b>{!! $data->object !!}</b></p>
                     </td>
                 </tr>
                 <tr>

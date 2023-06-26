@@ -32,6 +32,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
 
 class TopicController extends Controller
 {
@@ -451,7 +452,10 @@ class TopicController extends Controller
             } else {
                 // $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
                 // $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
-                $data['object'] = $liveCamp->topic->topic_name . ' >> ' . $liveCamp->camp_name;
+                
+                // $data['object'] = $liveCamp->topic->topic_name . ' >> ' . $liveCamp->camp_name;
+                $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, '>>');
+
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
             }
@@ -490,7 +494,7 @@ class TopicController extends Controller
                     if ($before_parent_camp_num == $all['parent_camp_num']) {
                         Util::parentCampChangedBasedOnCampChangeId($filter['campNum']);
                     }
-                    $this->updateCampNotification($model, $liveCamp, $link, $request);
+                    // $this->updateCampNotification($model, $liveCamp, $link, $request);
 
                     /** Archive and restoration of archive camp #574 */
                     Util::updateArchivedCampAndSupport($model, $model->is_archive);

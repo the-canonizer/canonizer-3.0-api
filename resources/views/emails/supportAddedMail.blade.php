@@ -30,9 +30,14 @@
                         </td>
                     <?php }else{  ?>
                         <td style="padding-top: 0px;  font-weight:400;">
-                            <p> <a target="_blank"
+                            <p> 
+                                {{-- <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
-                                has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b>
+                                has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b> --}}
+
+                                <a target="_blank"
+                                    href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                has added their support to this camp: {!! $data['object'] !!}</b>
                                 
                             </p>
                         </td>
