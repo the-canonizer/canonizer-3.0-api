@@ -21,6 +21,7 @@
                 </tr>
                 <tr>
                     <td style="padding-top: 10px;  font-weight:400;">
+                        {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
                         {{-- <p><a target="_blank"
                                 href="<?=  \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has objected to your <a href="{{ \App\Facades\Util::linkForEmail($data['history_link']) }}" target='_balnk'>proposed

@@ -20,6 +20,7 @@
                 <tr>
                     <td style="padding:10px 0px 10px;">
                         <p>
+                            {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
                             {{-- <a target="_blank"
                                 href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
