@@ -738,6 +738,7 @@ class Support extends Model
                                 ->where('end', '!=', 0)
                                 ->where('reason','=','archived')
                                 ->where('archive_support_flag','=',0)
+                                ->orderBy('support_order', 'ASC')
                                 ->groupBy('camp_num')->get();
     }
 
