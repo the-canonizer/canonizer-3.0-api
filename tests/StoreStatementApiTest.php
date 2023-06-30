@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Statement;
 use App\Models\User;
 use App\Models\Support;
 use Laravel\Lumen\Testing\DatabaseTransactions;
@@ -115,11 +116,11 @@ class StoreStatementApiTest extends TestCase
         $this->assertEquals(200,  $this->response->status());
     }
 
-     /**
-     * Check Api with valid data
+/**
+     * Check Api with valid data & support added after change is submitted
      * validation
      */
-    public function testObjectionStatementApiWithValidData() 
+    public function testObjectionStatementApiWithValidDataAfterChangeIsSubmitted()
     {
         $validData = [
             "topic_num" => "47",
@@ -132,10 +133,11 @@ class StoreStatementApiTest extends TestCase
             "objection_reason" => "reason",
             "statement_id" => "1",
         ];
-        print sprintf("Test with valid values for objecting a statement");
-           $user = User::factory()->make([
+
+        $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
+
         Support::insert([
             'nick_name_id' => 347,
             'delegate_nick_name_id' => 0,
@@ -146,7 +148,7 @@ class StoreStatementApiTest extends TestCase
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
          /**
@@ -183,5 +185,29 @@ class StoreStatementApiTest extends TestCase
         print sprintf("Test with empty form data");
         $this->post('/api/v3/store-camp-statement', []);
         $this->assertEquals(401,  $this->response->status());
+    }
+
+    public function testCreateStatementInGracePeriodWithValidData() 
+    {
+        $validData = [
+            "topic_num" => "47",
+            "camp_num" => "1",
+            "nick_name" => "347",
+            "note" => "note",
+            "submitter" => "1",
+            "statement" => "statement",
+            "event_type" => "create",
+        ];
+        print sprintf("Test with valid values for creating a statement and it should be in grace period");
+           $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $this->assertEquals(200,  $this->response->status());
+
+        $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
+        $this->assertNotNull($statement);
+        $this->assertEquals(1, $statement->grace_period);
+        
     }
 }

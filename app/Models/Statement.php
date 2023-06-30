@@ -136,7 +136,7 @@ class Statement extends Model
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
                 // $val->total_supporters = Support::getAllSupporters($filter['topicNum'], $filter['campNum'], $val->submitter_nick_id);
-                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
+                $val->total_supporters = Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
                 
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
@@ -153,7 +153,7 @@ class Statement extends Model
 
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
-                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:

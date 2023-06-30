@@ -258,12 +258,13 @@ class CampController extends Controller
             if ($camp) {
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
+
                 //timeline start
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-                $timelineMessage = $nickName . " created a new camp ". $camp->camp_name;
-                Util::dispatchTimelineJob($topic, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-                 
+                $timelineMessage = $nickName . " created a new Camp ". $camp->camp_name;
+                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null);    
                 //end of timeline
+
                 $camp_id = $camp->camp_num ?? 1;
                 $filter['topicNum'] = $request->topic_num;
                 $filter['asOf'] = $request->asof;
@@ -275,7 +276,7 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" =>  $topic->topic_name . " / " . $camp->camp_name,
+                        "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -290,7 +291,7 @@ class CampController extends Controller
                         'nick_name' => $nickName,
                         'description' =>  $request->camp_name
                     ];
-                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                    dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                     GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $camp->camp_num, config('global.notification_type.Camp'), null, $nickName);
                 } catch (Throwable $e) {
                     $data = null;
@@ -1428,21 +1429,41 @@ class CampController extends Controller
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
-                if (!$ifIamSingleSupporter) {
-                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                } else {
-                    $camp->grace_period = 0;
+                // /* Now every change have grace_period must , so due to this the change 
+                //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all 
+                //     changes except the unit test case.
+                // */
+                $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $camp->grace_period = 1;
+
+                if(array_key_exists("from_test_case", $all)) {
+                    if($all['from_test_case']) {
+                        $camp->go_live_time = time();
+                    }
                 }
+
+                // if (!$ifIamSingleSupporter) {
+                //     $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                // } else {
+                //     $camp->grace_period = 0;
+                // }
             }
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
-                // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
-                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
+                // // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
+                // $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
+                //     'topicNum' => $all['topic_num'],
+                //     'campNum' => $all['camp_num'],
+                // ], $nickNames);
+
+                $camp = Camp::where('id', $all['camp_id'])->first();
+                $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
-                ], $nickNames);
-                
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter){
+                ];
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
+
+                if(!$checkIfIAmExplicitSupporter){
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -1466,53 +1487,54 @@ class CampController extends Controller
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
-            } else if ($all['event_type'] == "update") {
-                if($ifIamSingleSupporter){
+            } 
+            else if ($all['event_type'] == "update" && array_key_exists("from_test_case", $all)) {
+                if($ifIamSingleSupporter && $all['from_test_case']){
                     Util::checkParentCampChanged($all, false, $liveCamp);
-                    $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
-                    $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
-                    if($before_parent_camp_num ==$all['parent_camp_num']){
-                        Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
-                    }
-                    $this->updateCampNotification($camp, $liveCamp, $link, $request);
+                    // $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
+                    // $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
+                    // if($before_parent_camp_num ==$all['parent_camp_num']){
+                    //     Util::parentCampChangedBasedOnCampChangeId($all['camp_id']);
+                    // }
+                    // $this->updateCampNotification($camp, $liveCamp, $link, $request);
                     
                     /** Archive and restoration of archive camp #574 */
-                    $prevArchiveStatus = $preliveCamp->is_archive;
-                    $updatedArchiveStatus = $all['is_archive'] ?? 0;
-                    if($prevArchiveStatus != $updatedArchiveStatus){
-                        Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
-                    }
+                    // $prevArchiveStatus = $preliveCamp->is_archive;
+                    // $updatedArchiveStatus = $all['is_archive'] ?? 0;
+                    // if($prevArchiveStatus != $updatedArchiveStatus){
+                    //     Util::updateArchivedCampAndSupport($camp, $updatedArchiveStatus);
+                    // }
                 }                
                 
-                Util::dispatchJob($topic, $camp->camp_num, 1);
-                //timeline start
-                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-                if($all['parent_camp_num']!=$all['old_parent_camp_num']){
-                    Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
-                }
-                //end of timeline
+                // Util::dispatchJob($topic, $camp->camp_num, 1);
+                // //timeline start
+                // $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                // if($all['parent_camp_num']!=$all['old_parent_camp_num']){
+                //     Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+                // }
+                // //end of timeline
 
-                 //timeline start
-                 if($all['camp_id']!=null){
-                    $old_camp = Camp::where('id', $all['camp_id'])->first();
-                    if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
-                        $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
-                        Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
-                    }
-                }
-                //end of timeline
+                //  //timeline start
+                //  if($all['camp_id']!=null){
+                //     $old_camp = Camp::where('id', $all['camp_id'])->first();
+                //     if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
+                //         $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
+                //         Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+                //     }
+                // }
+                // //end of timeline
 
-                $currentTime = time();
-                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
-                if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
-                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
-                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
-                } else {
-                    if($currentTime < $camp->go_live_time && $camp->objector_nick_id == null) {
-                        Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
-                    }
-                }
+                // $currentTime = time();
+                // $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                // $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                // if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
+                //     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
+                //     Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                // } else {
+                //     if($currentTime < $camp->go_live_time && $camp->objector_nick_id == null) {
+                //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
+                //     }
+                // }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -1575,50 +1597,12 @@ class CampController extends Controller
         return $camp;
     }
 
-    private function updateCampNotification($camp, $liveCamp, $link, $request)
-    {
-        $link = config('global.APP_URL_FRONT_END') .'camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
-        $data['type'] = "camp";
-        $data['object'] = $liveCamp->topic->topic_name . " / " . $camp->camp_name;
-        $data['link'] = $link;
-        $data['support_camp'] = $liveCamp->camp_name;
-        $data['is_live'] = ($camp->go_live_time <= time()) ? 1 : 0;
-        $data['note'] = $camp->note;
-        $data['camp_num'] = $camp->camp_num;
-        $nickName = Nickname::getNickName($camp->submitter_nick_id);
-        $data['topic_num'] = $camp->topic_num;
-        $data['nick_name'] = $nickName->nick_name;
-        $data['subject'] = "Proposed change to " . $liveCamp->topic->topic_name . ' / ' . $liveCamp->camp_name . " submitted";
-        $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
-        $data['nick_name_id'] = $nickName->id;
-        $notificationData = [
-            "email" => [],
-            "push_notification" => []
-        ];
-        $notificationData['email'] = $data;
-        Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, config('global.notification_type.manageCamp'), $link, config('global.notify.email')));
-
-        // $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
-            'url' => $link,
-            'model' => $camp,
-            'topic_num' => $camp->topic_num,
-            'camp_num' =>  $camp->camp_num,
-            'user' => $request->user(),
-            'nick_name' => $nickName->nick_name,
-            'description' => $camp->camp_name
-        ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
-        // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
-    }
-
     private function objectCampNotification($camp, $all, $link, $liveCamp, $request)
     {
         $user = Nickname::getUserByNickName($all['submitter']);
         $topic = Topic::getLiveTopic($camp->topic_num, 'default');
-        $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $liveCamp);
+        // $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $liveCamp);
+        $link = '/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $camp->topic_num . '-' . $camp->camp_name . '/' . $camp->camp_num . '/threads';
@@ -1629,7 +1613,7 @@ class CampController extends Controller
         $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
-        $data['object'] = $liveCamp->topic->topic_name . "/" . $liveCamp->camp_name;
+        $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
@@ -1643,7 +1627,7 @@ class CampController extends Controller
             'description' => $camp->camp_name
         ];
         try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
             GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, $camp->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectCamp'));
         } catch (\Swift_TransportException $e) {

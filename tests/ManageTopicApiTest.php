@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Models\Support;
+use App\Models\Topic;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ManageTopicApiTest extends TestCase
@@ -109,7 +110,7 @@ class ManageTopicApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageTopicWithValidData()
+    public function testObjectionManageTopicWithValidDataAfterChangeIsSubmitted()
     {
 
         $validData = [
@@ -123,13 +124,13 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "objection",
             "objection_reason" => "reason",
         ];
-        print sprintf("Test with valid values for objecting a camp");
+        print sprintf("Test with valid values for objecting a camp after the change is submitted");
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
         //  dd($this->response);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
     /**
@@ -165,5 +166,29 @@ class ManageTopicApiTest extends TestCase
     {
         $this->post('/api/v3/manage-topic', []);
         $this->assertEquals(401,  $this->response->status());
+    }
+
+    public function testUpdateManageTopicWithValidDataToCheckGracePeriod()
+    {
+        $validData = [
+            "topic_num" => "1",
+            "topic_id" => "1",
+            "nick_name" => "347",
+            "topic_name" => rand(),
+            "submitter" => "1",
+            "namespace_id" => "1",
+            "note" => "1",
+            "event_type" => "update",
+        ];
+        print sprintf("Test with valid values for updating topic and check if it is in grace peroid");
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        $this->assertEquals(200,  $this->response->status());
+
+        $topic = Topic::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
+        $this->assertNotNull($topic);
+        $this->assertEquals(1, $topic->grace_period);
     }
 }

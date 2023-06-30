@@ -26,6 +26,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Api for non register users
    
     $router->post('/client-token','UserController@clientToken');
+    $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
 
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
@@ -134,6 +135,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
         $router->get('/support-reason-list','SupportController@getSupportReason');
+        
+        $router->post('/get-change-supporters','SupportController@getChangeSupporters');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

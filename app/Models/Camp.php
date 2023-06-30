@@ -224,6 +224,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         return self::where('topic_num', $topicNum)
             ->where('objector_nick_id', '=', NULL)
+            ->where('is_archive', '=', 0)
             ->where('go_live_time', '<=', $asOfDate)
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNum . ' and objector_nick_id is null and go_live_time < ' . $asOfDate . ' group by camp_num)')
             ->orderBy('camp_name', 'ASC')->groupBy('camp_num')->get();
@@ -629,7 +630,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 *   Now support at the time of submition will be count as total supporter. 
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
-                $val->total_supporters = Support::countSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime);
+                $val->total_supporters = Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
@@ -645,7 +646,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
-                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterForChange($filter, $nickNames, $submittime);
+                $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
 
                 switch ($val) {

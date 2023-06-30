@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Camp;
 use App\Models\User;
 use App\Models\Support;
 use Laravel\Lumen\Testing\DatabaseTransactions;
@@ -99,7 +100,7 @@ class ManageCampApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testObjectionManageCampWithValidData()
+    public function testObjectionManageCampWithValidDataAfterChangeIsSubmitted()
     {
         $validData = [
             "topic_num" => "47",
@@ -113,7 +114,7 @@ class ManageCampApiTest extends TestCase
             "event_type" => "objection",
             "objection_reason" => "reason",
         ];
-        print sprintf("Test with valid values for objecting a camp");
+        print sprintf("Test with valid values for objecting a camp after the change is submitted");
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
@@ -127,9 +128,7 @@ class ManageCampApiTest extends TestCase
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-
-        // dd($this->response);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(400,  $this->response->status());
     }
 
     /**
@@ -167,5 +166,30 @@ class ManageCampApiTest extends TestCase
     {
         $this->post('/api/v3/manage-camp', []);
         $this->assertEquals(401,  $this->response->status());
+    }
+    
+    public function testUpdateManageCampWithValidDataToCheckGracePeriod()
+    {
+        $validData = [
+            "topic_num" => "47",
+            "camp_num" => "2",
+            "camp_id" => "2",
+            "camp_name" => rand(),
+            "nick_name" => "347",
+            "camp_about_nick_id" => "123",
+            "note" => "note",
+            "submitter" => "1",
+            "event_type" => "update",
+        ];
+        print sprintf("Test with valid values for updating camp & check the change should be in grace period");
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $this->assertEquals(200,  $this->response->status());
+        
+        $camp = Camp::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
+        $this->assertNotNull($camp);
+        $this->assertEquals(1, $camp->grace_period);
     }
 }
