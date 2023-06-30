@@ -182,7 +182,7 @@ class NotificationController extends Controller
         try {
             $notificationList = null;
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
-
+            $isSeen =  !empty($request->is_seen)  ? $request->is_seen : 0;
             $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($per_page);
             $notificationList = Util::getPaginatorResponse($notificationList);
             foreach ($notificationList->items as $value) {
@@ -221,7 +221,13 @@ class NotificationController extends Controller
                         $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
                 }
             }
-            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_read', 0)->count();
+            if($isSeen){
+                PushNotification::where('user_id', $request->user()->id)
+                                ->where('is_seen', 0)
+                                ->update(['is_seen' => 1,'seen_time' => time()]);
+            }
+
+            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 0)->count();
 
             $status = 200;
             $message = trans('message.success.success');
@@ -238,6 +244,8 @@ class NotificationController extends Controller
         try {
             $PushNotification = PushNotification::find($id);
             $PushNotification->is_read = 1;
+            $PushNotification->is_seen = 1;
+            $PushNotification->seen_time = time();
             $PushNotification->save();
             $status = 200;
             $message = trans('message.success.success');
