@@ -252,7 +252,26 @@ class UserController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
+            $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
+            $payload = [
+                'secret' => $request->secret_key,
+                'response' => $request->captcha_token,
+                'remoteip' => $request->ip()
+            ];
+            $validateRecaptcha = Util::httpPost($postUrl, $payload);
+            if ($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) {
+                $status = 406;
+                $message = "The reCAPTCHA verification failed, please try again.";
+                if ($validateRecaptcha->status_code != 200) {
+                    $message = "An error occurred during reCAPTCHA verification.";
+                } elseif (!$validateRecaptcha->data['success']) {
+                    $message = "The reCAPTCHA verification failed.";
+                } elseif ($validateRecaptcha->data['score'] < 0.5) {
+                    $message = "The reCAPTCHA verification score is too low.";
+                }
 
+                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            }
             $authCode = mt_rand(100000, 999999);
             //$authCode = 454545;
             $input = [
@@ -811,9 +830,9 @@ class UserController extends Controller
             $generateToken = Util::httpPost($postUrl, $payload);
             if ($generateToken->status_code == 200) {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
-                if($request->is_login == 0){
-                    $link_index_page = config('global.APP_URL_FRONT_END') .'/topic/132-Help/1-Agreement';
-                    Event::dispatch(new WelcomeMailEvent($user,$link_index_page));
+                if ($request->is_login == 0) {
+                    $link_index_page = config('global.APP_URL_FRONT_END') . '/topic/132-Help/1-Agreement';
+                    Event::dispatch(new WelcomeMailEvent($user, $link_index_page));
                 }
                 $user->is_admin = ($user->type == 'admin') ? true : false;
                 $data = [
@@ -1957,7 +1976,7 @@ class UserController extends Controller
             $provider = $request->provider;
             $socialEmailVerify = SocialEmailVerify::where('code', '=', $request->code)->where('provider', '=', $provider)->first();
             $socialEmailVerify->email = $request->email;
-            if($request->type == 'nameVerify'){
+            if ($request->type == 'nameVerify') {
                 $socialEmailVerify->first_name = $request->first_name;
                 $socialEmailVerify->last_name = $request->last_name;
             }
