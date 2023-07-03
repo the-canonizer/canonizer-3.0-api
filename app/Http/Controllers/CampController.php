@@ -591,19 +591,8 @@ class CampController extends Controller
             } else {
                 $asOfDate = time();
             }
-            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
-            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
-            ->where('go_live_time', '>', $asOfDate)
-            ->where('objector_nick_id', NULL)
-            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
 
-            if(!empty($parentChangedInReviewCamps)){
-                foreach($result as $key => $parent){ 
-                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
-                        $parent->parent_change_in_review =  true;
-                    }
-                }
-            }
+            $result = $this->inReviewCampsFilter($result, $request, $asOfDate);            
 
             $data = $result;
             $status = 200;
@@ -1633,5 +1622,33 @@ class CampController extends Controller
         } catch (\Swift_TransportException $e) {
             throw new \Swift_TransportException($e);
         }
+    }
+
+    private function inReviewCampsFilter($result, $request, $asOfDate)
+    {
+        $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+            ->where('go_live_time', '>', $asOfDate)
+            ->where('objector_nick_id', NULL)
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+        if(!empty($parentChangedInReviewCamps)){
+            $childOfInReviewCampsList= [];
+            foreach($parentChangedInReviewCamps as $inReviewCampNum){
+                $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $inReviewCampNum, 'asOf' => 'default']);
+                $childOfInReviewCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=true));
+                $childOfInReviewCampsList = array_merge($childOfInReviewCampsList, $childOfInReviewCamps);
+            }
+            foreach($result as $key => $parent){ 
+                if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                    $parent->parent_change_in_review =  true;
+                }
+                if(in_array($parent->camp_num, $childOfInReviewCampsList)){
+                    $parent->parent_change_in_review =  true;
+                }
+            }
+        }
+
+        return $result;
     }
 }
