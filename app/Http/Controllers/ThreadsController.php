@@ -402,6 +402,11 @@ class ThreadsController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
                 $threads = $this->getAllThreads($request, $per_page);
+                $threads = Util::getPaginatorResponse($threads);
+                $this->updateThreadsInfo($threads);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
 
             if (!$request->user()) {
