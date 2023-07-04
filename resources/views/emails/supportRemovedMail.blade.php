@@ -28,9 +28,15 @@
                 <?php }else{  ?>
                     <tr>
                         <td style="padding-top: 0px;  font-weight:400;">
-                            <p> <a target="_blank"
+                            <p> 
+                                {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
+                                {{-- <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
-                                has removed their support from this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b>
+                                has removed their support from this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b> --}}
+
+                                <a target="_blank"
+                                    href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                has removed their support from this camp: {!! $data['object'] !!}</b>
                             </p>
                         </td>
                     </tr>

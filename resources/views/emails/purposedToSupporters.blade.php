@@ -20,7 +20,8 @@
                 <tr>
                     <td style="padding:10px 0px 10px;">
                         <p>
-                            <a target="_blank"
+                            {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
+                            {{-- <a target="_blank"
                                 href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
                                 href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a>
@@ -31,7 +32,21 @@
                                 <a href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a> object to this change,
                                 it will go live in one day / 24 hours
                                 <br>
+                            @endif --}}
+
+                            <a target="_blank"
+                                href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
+                            has proposed a change to this {{ $data['type'] }} {!! $data['object'] !!}
+                            @if (empty($data['is_live']) || $data['is_live'] != 1)
+                                which you currently
+                                {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
+                                If no supporters of this {{ $data['type'] }}
+                                {!! $data['object'] !!} object to this change,
+                                it will go live in one day / 24 hours
+                                <br>
                             @endif
+
+                            
                             @if (!empty($data['note']))
                                 <p>Edit summary : {{ $data['note'] }}</p>
                             @endif
