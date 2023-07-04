@@ -28,6 +28,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
 
 class CampController extends Controller
 {
@@ -276,7 +277,8 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
+                        "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>'),
+                        // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -591,19 +593,8 @@ class CampController extends Controller
             } else {
                 $asOfDate = time();
             }
-            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
-            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
-            ->where('go_live_time', '>', $asOfDate)
-            ->where('objector_nick_id', NULL)
-            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
 
-            if(!empty($parentChangedInReviewCamps)){
-                foreach($result as $key => $parent){ 
-                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
-                        $parent->parent_change_in_review =  true;
-                    }
-                }
-            }
+            $result = $this->inReviewCampsFilter($result, $request, $asOfDate);            
 
             $data = $result;
             $status = 200;
@@ -1613,7 +1604,8 @@ class CampController extends Controller
         $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
-        $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
+        // $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
+        $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, '>>');
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
@@ -1633,5 +1625,33 @@ class CampController extends Controller
         } catch (\Swift_TransportException $e) {
             throw new \Swift_TransportException($e);
         }
+    }
+
+    private function inReviewCampsFilter($result, $request, $asOfDate)
+    {
+        $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+            ->where('go_live_time', '>', $asOfDate)
+            ->where('objector_nick_id', NULL)
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+        if(!empty($parentChangedInReviewCamps)){
+            $childOfInReviewCampsList= [];
+            foreach($parentChangedInReviewCamps as $inReviewCampNum){
+                $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $inReviewCampNum, 'asOf' => 'default']);
+                $childOfInReviewCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=true));
+                $childOfInReviewCampsList = array_merge($childOfInReviewCampsList, $childOfInReviewCamps);
+            }
+            foreach($result as $key => $parent){ 
+                if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                    $parent->parent_change_in_review =  true;
+                }
+                if(in_array($parent->camp_num, $childOfInReviewCampsList)){
+                    $parent->parent_change_in_review =  true;
+                }
+            }
+        }
+
+        return $result;
     }
 }

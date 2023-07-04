@@ -865,12 +865,13 @@ class TopicSupport
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
-        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." >> ".$camp->camp_name;
+        $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." >> ".$camp->camp_name;
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>');
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
         $data['object']     = $object;
-        $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $object. ".";
+        $data['subject']    = $nickname->nick_name . " ". $subjectStatement . " " . $subject. ".";
         $data['topic']      = $topic;
         $data['camp']       = $camp;
         $data['camp_name']  = $camp->camp_name;
