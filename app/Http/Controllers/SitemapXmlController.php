@@ -24,6 +24,7 @@ class SitemapXmlController extends Controller
             'sitemap_camp.xml' => $this->getCampSiteMapUrls(),
             'sitemap_thread.xml' => $this->getThreadSiteMapUrls(),
             'sitemap_post.xml' => $this->getPostSiteMapUrls(),
+            'sitemap_videos.xml' => $this->getVideoSiteMapUrls(),
         ];
         $status = 200;
         $message = trans('message.success.success');
@@ -38,6 +39,7 @@ class SitemapXmlController extends Controller
             'sitemap_camp.xml',
             'sitemap_thread.xml',
             'sitemap_post.xml',
+            'sitemap_videos.xml',
         ];
         $lastModified = Carbon::now()->startOfDay()->toIso8601String();
         $siteMaps = array_map(function ($url) use ($lastModified) {
@@ -196,5 +198,31 @@ class SitemapXmlController extends Controller
             }
         }
         return  $topicUrl;
+    }
+
+    public function getVideoSiteMapUrls()
+    {
+        $urls = [
+            '/videos/consciousness?chapter=introduction&format=360',
+            '/videos/consciousness?chapter=perceiving+a+strawberry&format=360',
+            '/videos/consciousness?chapter=differentiating+reality+and+knowledge+of+reality&format=360',
+            '/videos/consciousness?chapter=the+world+in+your+head&format=360',
+            '/videos/consciousness?chapter=the+perception+of+size&format=360',
+            '/videos/consciousness?chapter=computational+binding&format=360',
+            '/videos/consciousness?chapter=cognitive+knowledge&format=360',
+            '/videos/consciousness?chapter=simulation+hypothesis&format=360',
+            '/videos/consciousness?chapter=representational+qualia+theory+consensus&format=360',
+            '/videos/consciousness?chapter=conclusion&format=360',
+        ];
+        $siteMaps = array_map(function ($url) {
+            $isExternal = strpos($url, 'http') === 0;
+            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
+            $url = $baseUrl . $url;
+            return [
+                'url' => $url,
+                'last_modified' => Carbon::now()->startOfDay()->toIso8601String()
+            ];
+        }, $urls);
+        return $siteMaps;
     }
 }
