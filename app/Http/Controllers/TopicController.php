@@ -1390,18 +1390,18 @@ class TopicController extends Controller
         Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, config('global.notification_type.manageCamp'), $link, config('global.notify.email')));
 
         // $subscribers = Camp::getCampSubscribers($camp->topic_num, $camp->camp_num);
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
-            'url' => $link,
-            'model' => $camp,
-            'topic_num' => $camp->topic_num,
-            'camp_num' =>  $camp->camp_num,
-            'user' => $request->user(),
-            'nick_name' => $nickName->nick_name,
-            'description' => $camp->camp_name
-        ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+        // $activityLogData = [
+        //     'log_type' =>  "topic/camps",
+        //     'activity' => trans('message.activity_log_message.camp_update', ['nick_name' => $nickName->nick_name]),
+        //     'url' => $link,
+        //     'model' => $camp,
+        //     'topic_num' => $camp->topic_num,
+        //     'camp_num' =>  $camp->camp_num,
+        //     'user' => $request->user(),
+        //     'nick_name' => $nickName->nick_name,
+        //     'description' => $camp->camp_name
+        // ];
+        // dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
         // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 }
