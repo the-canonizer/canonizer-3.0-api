@@ -619,13 +619,13 @@ class Util
                 $delayTime = Carbon::now()->addSeconds($delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
-            Log::info($canonizerServiceData);
-            Log::info("canonizerServiceData");
+            //Log::info($canonizerServiceData);
+            //Log::info("canonizerServiceData");
            
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
-            if($topic->topic_num == config('global.mind_expert_topic_num')) {
-                $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
+            if($topic_num == config('global.mind_expert_topic_num')) {
+                $camp = Camp::where('topic_num', $topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
                 if(!empty($camp)) {
                     // Get submitter nick name id
                     $submitterNickNameID = $camp->camp_about_nick_id;
@@ -633,7 +633,7 @@ class Util
                     foreach($affectedTopicNums as $affectedTopicNum) {
                         $topic = Topic::where('topic_num', $affectedTopicNum)->get()->last();
                         $canonizerServiceData = [
-                            'topic_num' => $topic->topic_num,
+                            'topic_num' => $topic_num,
                             'algorithm' => $selectedAlgo,
                             'asOfDate'  => $asOfDefaultDate,
                             'asOf'      => $asOf,
@@ -653,7 +653,7 @@ class Util
                 }
             }
         } catch(Exception $ex) {
-            Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
+            Log::error("Util :: dispatchTimelineJob :: message: ".$ex->getMessage());
         }
         
     }
