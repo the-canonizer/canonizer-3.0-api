@@ -590,7 +590,7 @@ class Util
      * @param object $topic
      * @return void
      */
-    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null) {
+    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null, $timeline_url=null) {
 
       
         try{
@@ -611,7 +611,8 @@ class Util
                 'new_parent_id' => $new_parent_id,
                 'isUniqueJob' => false,
                 'endpointCSStore' => env('CS_STORE_TIMELINE'),
-                'id' => $id
+                'id' => $id,
+                'url'=>$timeline_url
             ];
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
@@ -643,7 +644,8 @@ class Util
                             'old_parent_id' => $old_parent_id,
                             'new_parent_id' => $new_parent_id,
                             'endpointCSStore' => env('CS_STORE_TIMELINE'),
-                            'id' => $id
+                            'id' => $id,
+                            'url'=>$timeline_url
                         ];
                         // Dispact job when create a camp
                         dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -684,7 +686,10 @@ class Util
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
             $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+
+            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="archive_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null, $delayCommitTimeInSeconds, $asOfDefaultDate=time(), $timeline_url);   
         }
 
         if($archiveFlag === 0){
@@ -758,10 +763,53 @@ class Util
             $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
             $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+
+            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="unarchived_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=$delayCommitTimeInSeconds, $asOfDefaultDate=time(), $timeline_url);   
             
         }
 
         return;
     } 
+
+     /**
+     * Get the url.
+     *
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     * @param boolean $isReview
+     *
+     * @return string url
+     */
+
+    public function getTimelineUrlgetTimelineUrl($topic_num, $topic_name, $camp_num, $camp_name, $topicTitle, $type, $rootUrl, $namespaceId, $topicCreatedByNickId)
+    {
+        try {
+            $topic_name =isset($topic_name)?$topic_name:$topicTitle;
+            $camp_num =isset($camp_num)?$camp_num:1;
+            $camp_name =isset($camp_name)?$camp_name:"Agreement";
+            if($type =="create_topic" || $type =="create_camp" || $type =="parent_change"){
+                $urlPortion =  '/topic/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name) . '/' . $camp_num . '-' . $this->replaceSpecialCharacters($camp_name);
+
+            }
+            else if($type =="update_topic"){
+                $urlPortion =  '/topic/history/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name);
+
+            }
+            else if($type =="update_camp"){
+                $urlPortion =  '/camp/history/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name). '/' . $camp_num . '-' . $this->replaceSpecialCharacters($camp_name);
+
+            }
+            else{
+                $urlPortion = '/user/supports/' . $topicCreatedByNickId.'?topicnum='. $topic_num .'&campnum='. $camp_num .'&canon='.$namespaceId;
+
+            }
+            return $urlPortion;
+
+        } catch (CampURLException $th) {
+             throw new CampURLException("URL Exception");
+         }
+    }
 }
