@@ -111,7 +111,9 @@ class TopicSupport
             }
 
             //timeline start
-            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nicknameModel->nick_name . " has removed " .$type. " support in camp - ". $campModel->camp_name, $type= $type."_support_removed", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null);    
+            $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$campModel->camp_num, $camp_name=$campModel->camp_name, $topicTitle=$topic->topic_name, $type."_support_removed", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nicknameModel->nick_name . " has removed " .$type. " support in camp - ". $campModel->camp_name, $type= $type."_support_removed", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=time(), $timeline_url);    
             //timeline end
 
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
@@ -259,7 +261,9 @@ class TopicSupport
                     Util::dispatchJob($topic, $camp, 1);
 
                     //timeline start
-                    Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " removed direct support from camp - ". $campModel->camp_name, $type="direct_support_removed", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1);    
+                    $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$campModel->camp_num, $camp_name=$campModel->camp_name, $topicTitle=$topic->topic_name, "direct_support_removed", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+                    Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " removed direct support from camp - ". $campModel->camp_name, $type="direct_support_removed", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1,$timeline_url);    
                     //timeline end
 
                     $parentcamps = Camp::getAllParent($campModel);
@@ -304,7 +308,9 @@ class TopicSupport
                 Util::dispatchJob($topic, $campNum, 1);
 
                 //timeline start
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " add direct support in camp - ". $campModel->camp_name, $type="direct_support_added", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1);    
+                $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$campModel->camp_num, $camp_name=$campModel->camp_name, $topicTitle=$topic->topic_name, $type="direct_support_added", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " add direct support in camp - ". $campModel->camp_name, $type="direct_support_added", $id=$campModel->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1,$timeline_url);    
                 //timeline start
 
                 $subjectStatement = "has added their support to"; 
@@ -342,7 +348,9 @@ class TopicSupport
                     $campModel  = self::getLiveCamp($campFilter); 
 
                     //timeline start
-                    Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " has changed the order preference of camp - ". $campModel->camp_name, $type="reorder_support", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1);    
+                    $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$campModel->camp_num, $camp_name=$campModel->camp_name, $topicTitle=$topic->topic_name, $type="delegated_support_added", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+                    Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campModel->camp_num, 1, $message =$nickName . " has changed the order preference of camp - ". $campModel->camp_name, $type="reorder_support", $id=$campModel->id, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=$asOfDefaultDate+1,$timeline_url);    
                     //timeline end
 
                 }
@@ -408,7 +416,10 @@ class TopicSupport
             //timeline start
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $camp  = self::getLiveCamp($campFilter);
-            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$nickName . " has just delegated their support to camp - ". $camp->camp_name, $type="delegated_support_added", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null);    
+
+            $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="delegated_support_added", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+
+            Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$nickName . " has just delegated their support to camp - ". $camp->camp_name, $type="delegated_support_added", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=null,$asOfDefaultDate=time(),$timeline_url);    
             //timeline start
         
             $subjectStatement = "has just delegated their support to";
