@@ -128,7 +128,7 @@ class ManageCampApiTest extends TestCase
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $this->assertEquals(200,  $this->response->status()); // Direct supporter can object their own change
     }
 
     /**
