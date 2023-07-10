@@ -967,7 +967,7 @@ class UserController extends Controller
         } catch (Exception $ex) {
             $status = 400;
             $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
         }
     }
 

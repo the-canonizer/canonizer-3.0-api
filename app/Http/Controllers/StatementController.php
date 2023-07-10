@@ -499,6 +499,7 @@ class StatementController extends Controller
     {
         $statement = Statement::where('id', $all['statement_id'])->first();
         $statement->value = $all['statement'] ?? "";
+        $statement->parsed_value = $all['statement'] ?? "";
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
         return $statement;
