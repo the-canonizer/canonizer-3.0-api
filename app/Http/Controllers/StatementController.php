@@ -387,19 +387,18 @@ class StatementController extends Controller
         $filters['asOf'] = 'default';
         $eventType = $all['event_type'];
         try {
-            $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
-            $loginUserNicknames =  Nickname::personNicknameIds();
+            // $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
+            // $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
             
             if($eventType == 'objection') {
-                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
-                
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
                 // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 $statement = Statement::where('id', $all['statement_id'])->first();
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $statement->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if(!$checkIfIAmExplicitSupporter){
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
                     $message = trans('message.support.not_authorized_for_objection');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }

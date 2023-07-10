@@ -1443,7 +1443,7 @@ class CampController extends Controller
                 // }
             }
             if ($all['event_type'] == "objection") {
-                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 // // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 // $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
                 //     'topicNum' => $all['topic_num'],
@@ -1457,7 +1457,7 @@ class CampController extends Controller
                 ];
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if(!$checkIfIAmExplicitSupporter){
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
