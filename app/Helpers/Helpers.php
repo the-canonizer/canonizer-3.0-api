@@ -32,6 +32,6 @@ class Helpers
 
     private static function createLink($text, $link)
     {
-        return "<a href='" . $link . "'>" . $text . "</a>";
+        return "<b><a href='" . $link . "'>" . $text . "</a></b>";
     }
 }

@@ -30,7 +30,7 @@
 
                         <p>
                             <a target="_blank" href="<?=  \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] .  '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
-                            has objected to your <a href="{{ \App\Facades\Util::linkForEmail($data['history_link']) }}" target='_balnk'>proposed change</a> submitted for {{ $data['type'] }} 
+                            has objected to your <a href="{{ \App\Facades\Util::linkForEmail($data['history_link']) }}" target='_blank'>proposed change</a> submitted for {{ $data['type'] }} 
                             ({!! $data['object'] !!}) {{ $data['object_type'] }} </p>
                     </td>
                 </tr>
