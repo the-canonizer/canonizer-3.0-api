@@ -70,12 +70,12 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are directly supporting {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @else
-                                        <li>You are directly supporting <a
+                                        <li>You are directly supporting <b><a
                                                 href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
-                                                {{ $data['camp_name'] }} </a></li>
+                                                {{ $data['camp_name'] }} </a></b></li>
                                     @endif
 
                                     @if (isset($data['also_subscriber']) &&
