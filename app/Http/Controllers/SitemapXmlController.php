@@ -203,16 +203,16 @@ class SitemapXmlController extends Controller
     public function getVideoSiteMapUrls()
     {
         $urls = [
-            '/videos/consciousness?chapter=introduction&format=360',
-            '/videos/consciousness?chapter=perceiving+a+strawberry&format=360',
-            '/videos/consciousness?chapter=differentiating+reality+and+knowledge+of+reality&format=360',
-            '/videos/consciousness?chapter=the+world+in+your+head&format=360',
-            '/videos/consciousness?chapter=the+perception+of+size&format=360',
-            '/videos/consciousness?chapter=computational+binding&format=360',
-            '/videos/consciousness?chapter=cognitive+knowledge&format=360',
-            '/videos/consciousness?chapter=simulation+hypothesis&format=360',
-            '/videos/consciousness?chapter=representational+qualia+theory+consensus&format=360',
-            '/videos/consciousness?chapter=conclusion&format=360',
+            '/videos/consciousness?chapter=introduction&amp;format=360',
+            '/videos/consciousness?chapter=perceiving+a+strawberry&amp;format=360',
+            '/videos/consciousness?chapter=differentiating+reality+and+knowledge+of+reality&amp;format=360',
+            '/videos/consciousness?chapter=the+world+in+your+head&amp;format=360',
+            '/videos/consciousness?chapter=the+perception+of+size&amp;format=360',
+            '/videos/consciousness?chapter=computational+binding&amp;format=360',
+            '/videos/consciousness?chapter=cognitive+knowledge&amp;format=360',
+            '/videos/consciousness?chapter=simulation+hypothesis&amp;format=360',
+            '/videos/consciousness?chapter=representational+qualia+theory+consensus&amp;format=360',
+            '/videos/consciousness?chapter=conclusion&amp;format=360',
         ];
         $siteMaps = array_map(function ($url) {
             $isExternal = strpos($url, 'http') === 0;
