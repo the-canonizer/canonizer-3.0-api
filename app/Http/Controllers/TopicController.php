@@ -1130,7 +1130,10 @@ class TopicController extends Controller
         $data['history_link'] = config('global.APP_URL_FRONT_END') .'/'. $link;
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
-        $data['object'] = $liveTopic->topic_name;
+
+        $data['object'] =  Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, '>>');
+        // $data['object'] = $liveTopic->topic_name;
+        
         $data['object_type'] = "";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $topic->topic_num . '-' . $liveTopic->topic_name . '/1/threads';
