@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Event;
 use App\Http\Request\ValidationMessages;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 
 
@@ -586,7 +587,10 @@ class StatementController extends Controller
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
         $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
         $data['type'] = "Camp";
-        $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
+
+        // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
+        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, '>>');
+        
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';

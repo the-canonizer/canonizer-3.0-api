@@ -36,7 +36,7 @@
 
                             <a target="_blank"
                                 href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
-                            has proposed a change to this {{ $data['type'] }} {!! $data['object'] !!}
+                            has proposed a change to this {{ $data['type'] }} <b>{!! $data['object'] !!}</b>
                             @if (empty($data['is_live']) || $data['is_live'] != 1)
                                 which you currently
                                 {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
@@ -57,11 +57,11 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @else
-                                        <li>You are subscribed to <a href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
-                                                {{ $data['camp_name'] }} </a></li>
+                                        <li>You are subscribed to <b><a href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
+                                                {{ $data['camp_name'] }} </a></b></li>
                                     @endif
 
                                 </ul>
@@ -83,7 +83,7 @@
                                         isset($data['sub_support_list']) &&
                                         count($data['sub_support_list']) > 0)
                                         @foreach ($data['sub_support_list'] as $support)
-                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @endif
 
