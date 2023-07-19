@@ -687,9 +687,9 @@ class Util
             $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
 
-            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="archive_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "archive_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null, $delayCommitTimeInSeconds, $asOfDefaultDate=time(), $timeline_url);   
+            $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "archive_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
         }
 
         if($archiveFlag === 0){
@@ -764,9 +764,9 @@ class Util
             $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
             $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
 
-            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="unarchived_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "unarchived_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null, $delay=$delayCommitTimeInSeconds, $asOfDefaultDate=time(), $timeline_url);   
+            $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "unarchived_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
             
         }
 
