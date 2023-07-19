@@ -198,9 +198,9 @@ class TopicController extends Controller
                 
                 $timelineMessage = $nickName . " created a new topic and also added their support on Camp ". $topic->topic_name;
                 
-                $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=1, $camp_name="Agreement", $topicTitle=$topic->topic_name, $type="create_topic", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "create_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
                        
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="create_topic", $id=1, $old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=time(),$timeline_url);
+                Util::dispatchTimelineJob($topic->topic_num, 1, 1, $timelineMessage, "create_topic", 1, null, null, null, time(), $timeline_url);
                 
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
@@ -520,9 +520,9 @@ class TopicController extends Controller
                 if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
                     $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name;
 
-                    $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$model->camp_num, $camp_name=$model->camp_name, $topicTitle=$topic->topic_name, $type="parent_change", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                    $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
                
-                    Util::dispatchTimelineJob($topic= $topic->topic_num, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num'],$delay=null,$asOfDefaultDate=time(),$timeline_url);
+                    Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);
                 }
                 //end of timeline
 
@@ -532,9 +532,9 @@ class TopicController extends Controller
                     if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
                         $timelineMessage = $nickName->nick_name . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
                         
-                        $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$model->camp_num, $camp_name=$model->camp_name, $topicTitle=$topic->topic_name, $type="update_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                        $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
                
-                        Util::dispatchTimelineJob($topic= $topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, $delay=null,$asOfDefaultDate=time(),$timeline_url);
+                        Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, null, time(), $timeline_url);
                     }
                 }
                 //end of timeline
@@ -1091,9 +1091,9 @@ class TopicController extends Controller
 
                         $timelineMessage = $nickName . " changed topic name from ". $old_topic['topic_name']. " to ".$topic->topic_name;
 
-                        $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=1, $camp_name="Agreement", $topicTitle=$topic->topic_name, $type="update_topic", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                        $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "update_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
                         
-                        Util::dispatchTimelineJob($topic_num = $topic->topic_num, $campNum = 1, $updateAll =1, $message =$timelineMessage, $type="update_topic", $id = 1, $old_parent_id=null, $new_parent_id=null, $delay=null, $asOfDefaultDate=time(),$timeline_url);   
+                        Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);   
                     }
                 }
                 //end of timeline

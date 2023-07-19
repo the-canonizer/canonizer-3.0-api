@@ -264,9 +264,9 @@ class CampController extends Controller
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 $timelineMessage = $nickName . " created a new Camp ". $camp->camp_name;
 
-                $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="create_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "create_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
                         
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,  $delay=null, $asOfDefaultDate=time(),$timeline_url);    
+                Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "create_camp", $camp->camp_num, null, null, null, time(), $timeline_url);    
                 //end of timeline
 
                 $camp_id = $camp->camp_num ?? 1;
@@ -1505,9 +1505,9 @@ class CampController extends Controller
                 // $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 // if($all['parent_camp_num']!=$all['old_parent_camp_num']){
 
-                 //    $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="parent_change", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                 //    $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-                //     Util::dispatchTimelineJob($topic= $topic->topic_num, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num'], $delay=null,$asOfDefaultDate=time(),$timeline_url);    
+                //     Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " changed the parent of camp   " . $camp->camp_name, "parent_change", $camp->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);    
                 // }
                 // //end of timeline
 
@@ -1517,9 +1517,9 @@ class CampController extends Controller
                 //     if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
                 //         $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
 
-                //         $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic_num= $topic->topic_num, $topic_name =$topic->topic_name, $camp_num=$camp->camp_num, $camp_name=$camp->camp_name, $topicTitle=$topic->topic_name, $type="update_camp", $rootUrl=null, $namespaceId=$topic->namespace_id, $topicCreatedByNickId=$topic->submitter_nick_id);
+                //         $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
                 
-                //         Util::dispatchTimelineJob($topic= $topic->topic_num, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null, $delay=null,$asOfDefaultDate=time(),$timeline_url);   
+                //         Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "update_camp", $camp->id, null, null, null, time(), $timeline_url);   
                 //     }
                 // }
                 // //end of timeline
