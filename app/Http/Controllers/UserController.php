@@ -254,7 +254,7 @@ class UserController extends Controller
         try {
             $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
             $payload = [
-                'secret' => $request->secret_key,
+                'secret' => env('RECAPTCHA_SECRET_KEY'),
                 'response' => $request->captcha_token,
                 'remoteip' => $request->ip()
             ];
