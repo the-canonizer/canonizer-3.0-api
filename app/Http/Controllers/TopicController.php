@@ -431,20 +431,39 @@ class TopicController extends Controller
 
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
+            $archiveReviewPeriod = false;
+            if ($type == 'camp') {
+                $preliveCamp = Camp::getLiveCamp($filter);
+                $prevArchiveStatus = $preliveCamp->is_archive;
+                $updatedArchiveStatus = $all['is_archive'] ?? 0;
+                if ($prevArchiveStatus != $updatedArchiveStatus) {
+                    $model->archive_action_time = time();
+                    // get supporters list
+                    $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
+                    $archiveCampSupportNicknames->filter(function ($sp) use ($nickNames) {
+                        if (in_array($sp->nick_name_id, $nickNames)){
+                            return true;
+                        }
+                    });
+                    
+                    if(count($archiveCampSupportNicknames) > 0)
+                    {
+                        $archiveReviewPeriod = true;
+                    }
+                }
+            }
 
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
 
             $model->submit_time = time();
             $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
-            if($ifIamSingleSupporter) {
+            if($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
             }
 
             $model->grace_period = 0;
-            if ($type == 'camp') {
-                $preliveCamp = Camp::getLiveCamp($filter);
-            }
+           
             $model->update();
             $liveCamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
@@ -503,6 +522,7 @@ class TopicController extends Controller
                     // $this->updateCampNotification($model, $liveCamp, $link, $request);
 
                     /** Archive and restoration of archive camp #574 */
+                    if(!$archiveReviewPeriod)
                     Util::updateArchivedCampAndSupport($model, $model->is_archive);
                     // $prevArchiveStatus = $preliveCamp->is_archive;
                     // $updatedArchiveStatus = $all['is_archive'] ?? 0;
@@ -826,6 +846,8 @@ class TopicController extends Controller
                        /** Archive and restoration of archive camp #574 */
                         if($liveCamp->is_archive != $preLiveCamp->is_archive)
                         {
+                            $camp->archive_action_time = time();
+                            $camp->update();
                             util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive);
                         }
                     }
