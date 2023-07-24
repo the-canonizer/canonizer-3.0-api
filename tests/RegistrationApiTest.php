@@ -112,6 +112,7 @@ class RegistrationApiTest extends TestCase
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
+        dd($this->response);
         $this->assertEquals(200, $this->response->status());      
     }
 
