@@ -705,6 +705,16 @@ class Support extends Model
                                 ->groupBy('nick_name_id')->get();
     }
 
+    public stattic function getSupportersNickNameListOfArchivedCamps($toppicNum, $camps)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+                                ->whereIn('camp_num', $camps)
+                                ->where('end', '!=', 0)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)
+                                ->groupBy('nick_name_id')->pluck('nick_name_id');
+    }
+
     public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
     {
         $nickNames = Nickname::getAllNicknamesByNickId($nickId);

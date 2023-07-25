@@ -435,11 +435,11 @@ class TopicController extends Controller
             if ($type == 'camp') {
                 $preliveCamp = Camp::getLiveCamp($filter);
                 $prevArchiveStatus = $preliveCamp->is_archive;
-                $updatedArchiveStatus = $all['is_archive'] ?? 0;
+                $updatedArchiveStatus = $model->is_archive;
                 if ($prevArchiveStatus != $updatedArchiveStatus) {
                     $model->archive_action_time = time();
                     // get supporters list
-                    $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
+                    $archiveCampSupportNicknames = Support::getSupportersNickNameListOfArchivedCamps($model->topic_num, [$model->camp_num]);
                     $archiveCampSupportNicknames->filter(function ($sp) use ($nickNames) {
                         if (in_array($sp->nick_name_id, $nickNames)){
                             return true;
