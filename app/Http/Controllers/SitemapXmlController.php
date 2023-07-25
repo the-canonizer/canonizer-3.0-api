@@ -44,7 +44,7 @@ class SitemapXmlController extends Controller
         $lastModified = Carbon::now()->startOfDay()->toIso8601String();
         $siteMaps = array_map(function ($url) use ($lastModified) {
             return [
-                'url' => $url,
+                'url' => env('APP_URL_FRONT_END').'/'.$url,
                 'last_modified' => $lastModified,
             ];
         }, $urls);
