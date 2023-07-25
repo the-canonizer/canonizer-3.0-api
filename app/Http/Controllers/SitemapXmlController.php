@@ -203,20 +203,20 @@ class SitemapXmlController extends Controller
     public function getVideoSiteMapUrls()
     {
         $urls = [
-            '/videos/consciousness?chapter=introduction&amp;format=360',
-            '/videos/consciousness?chapter=perceiving+a+strawberry&amp;format=360',
-            '/videos/consciousness?chapter=differentiating+reality+and+knowledge+of+reality&amp;format=360',
-            '/videos/consciousness?chapter=the+world+in+your+head&amp;format=360',
-            '/videos/consciousness?chapter=the+perception+of+size&amp;format=360',
-            '/videos/consciousness?chapter=computational+binding&amp;format=360',
-            '/videos/consciousness?chapter=cognitive+knowledge&amp;format=360',
-            '/videos/consciousness?chapter=simulation+hypothesis&amp;format=360',
-            '/videos/consciousness?chapter=representational+qualia+theory+consensus&amp;format=360',
-            '/videos/consciousness?chapter=conclusion&amp;format=360',
+            '/introduction',
+            '/perceiving-a-strawberry',
+            '/differentiating-reality-and-knowledge-of-reality',
+            '/the-world-in-your-head',
+            '/the-perception-of-size',
+            '/computational-binding',
+            '/cognitive-knowledge',
+            '/simulation-hypothesis',
+            '/representational-qualia-theory-consensus',
+            '/conclusion',
         ];
         $siteMaps = array_map(function ($url) {
             $isExternal = strpos($url, 'http') === 0;
-            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
+            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END').'/videos/consciousness';
             $url = $baseUrl . $url;
             return [
                 'url' => $url,
