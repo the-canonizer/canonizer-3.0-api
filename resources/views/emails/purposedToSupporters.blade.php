@@ -36,7 +36,7 @@
 
                             <a target="_blank"
                                 href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
-                            has proposed a change to this {{ $data['type'] }} <b>{!! $data['object'] !!}</b>
+                            has <a href="{{ \App\Facades\Util::linkForEmail($link) }}">proposed a change</a> to this {{ $data['type'] }} <b>{!! $data['object'] !!}</b>
                             @if (empty($data['is_live']) || $data['is_live'] != 1)
                                 which you currently
                                 {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
