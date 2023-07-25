@@ -154,7 +154,7 @@ class TopicController extends Controller
             ->first();
 
         $result = Topic::where('topic_name', Util::remove_emoji($request->topic_name))->first();
-        
+
         if (isset($liveTopicData) && $liveTopicData != null) {
             if ($liveTopicData && isset($liveTopicData['topic_name'])) {
                 $status = 400;
@@ -195,13 +195,13 @@ class TopicController extends Controller
             if ($topic) {
 
                 Util::dispatchJob($topic, 1, 1);
-                
-                $timelineMessage = $nickName . " created a new topic and also added their support on Camp ". $topic->topic_name;
-                
+
+                $timelineMessage = $nickName . " created a new topic and also added their support on Camp " . $topic->topic_name;
+
                 $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "create_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
-                       
+
                 Util::dispatchTimelineJob($topic->topic_num, 1, 1, $timelineMessage, "create_topic", 1, null, null, null, time(), $timeline_url);
-                
+
                 $topicInput = [
                     "topic_num" => $topic->topic_num,
                     "nick_name_id" => $request->nick_name,
@@ -340,7 +340,7 @@ class TopicController extends Controller
         try {
             $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
             if (!$topic) {
-            $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
+                $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
             }
             $namespace = Namespaces::find($topic->namespace_id);
             $namespaceLabel = '';
@@ -348,7 +348,7 @@ class TopicController extends Controller
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
             }
             $topic->namespace_name = $namespaceLabel;
-            $topic->submitter_nick_name=NickName::getNickName($topic->submitter_nick_id)->nick_name;
+            $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
             if ($request->user()) {
@@ -359,7 +359,7 @@ class TopicController extends Controller
             $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
-            
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -437,7 +437,7 @@ class TopicController extends Controller
             $model->submit_time = time();
             $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
-            if($ifIamSingleSupporter) {
+            if ($ifIamSingleSupporter) {
                 $model->go_live_time = time();
             }
 
@@ -446,13 +446,32 @@ class TopicController extends Controller
                 $preliveCamp = Camp::getLiveCamp($filter);
             }
             $model->update();
+
+            //Updating rest of the changes which are "in review"
+            if ($ifIamSingleSupporter) {
+                switch ($type) {
+                    case 'statement':
+                        self::updateStatementsInReview($model);
+                        break;
+                    case 'camp':
+                        self::updateCampsInReview($model);
+                        break;
+                    case 'topic':
+                        self::updateTopicsInReview($model);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
             $liveCamp = Camp::getLiveCamp($filter);
             $liveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             if ($type == 'topic') {
                 // $directSupporter = Support::getAllDirectSupporters($liveTopic->topic_num);
                 // $subscribers = Camp::getCampSubscribers($liveTopic->topic_num, 1);
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
-                
+
                 // $data['object'] = $liveTopic->topic_name;
                 $data['object'] = Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, '>>');
             } else {
@@ -521,7 +540,7 @@ class TopicController extends Controller
                     $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name;
 
                     $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
-               
+
                     Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);
                 }
                 //end of timeline
@@ -531,9 +550,9 @@ class TopicController extends Controller
                     $old_camp = Camp::where('id', $model->camp_num)->first();
                     if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
                         $timelineMessage = $nickName->nick_name . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
-                        
-                        $timeline_url =Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
-               
+
+                        $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
                         Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, null, time(), $timeline_url);
                     }
                 }
@@ -566,7 +585,7 @@ class TopicController extends Controller
                 if (isset($liveTopic)) {
                     Util::dispatchJob($liveTopic, 1, 1);
                 }
-                
+
                 $notification_type = config('global.notification_type.topicCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
             }
@@ -576,7 +595,7 @@ class TopicController extends Controller
                 "push_notification" => []
             ];
             $notificationData['email'] = $data;
-    
+
             $liveThread =  null;
             $threadId =  null;
             $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $liveTopic, $liveCamp, $liveThread, $threadId, $notification_type, $nickName->nick_name, null);
@@ -591,7 +610,7 @@ class TopicController extends Controller
                     "thread_id" => !empty($threadId) ? $threadId : null,
                 ];
             }
-            
+
             Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -615,7 +634,7 @@ class TopicController extends Controller
                     $activityLogData['topic_name'] = $liveCamp->topic->topic_name;
                     $activityLogData['camp_name'] = $liveCamp->camp_name;
                     break;
-                
+
                 default:
                     break;
             }
@@ -699,7 +718,7 @@ class TopicController extends Controller
             'is_submitted' => 1
         ];
 
-        try {        
+        try {
 
             $where = [
                 'id' => $changeId,
@@ -724,9 +743,9 @@ class TopicController extends Controller
                 $responseData['is_submitted'] = 0;
                 $message = trans('message.error.disagree_objected_history_changed', ['history' => $data['change_for']]);
                 return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
-            } 
+            }
 
-            if($data['user_agreed'] == 0) {
+            if ($data['user_agreed'] == 0) {
                 $changeAgreeLog = (new ChangeAgreeLog())->where([
                     'change_id' => $changeId,
                     'camp_num' => $data['camp_num'],
@@ -736,8 +755,7 @@ class TopicController extends Controller
                 ])->delete();
                 if ($changeAgreeLog) {
                     $message = trans('message.success.topic_not_agree');
-                }
-                else {
+                } else {
                     $responseData['is_submitted'] = 0;
                     $message = trans('message.error.disagree_history_changed', ['history' => $data['change_for']]);
                 }
@@ -750,7 +768,7 @@ class TopicController extends Controller
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
             $log->save();
-            
+
             /*
             *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
             *   Now support at the time of submition will be count as total supporter. 
@@ -763,7 +781,7 @@ class TopicController extends Controller
                 ->get()->pluck('nick_name_id')->toArray();
 
             $agreeCount = count($agreed_supporters);
-            
+
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
@@ -771,8 +789,7 @@ class TopicController extends Controller
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
                     [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
-                    {   
+                    if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
                     if ($agreeCount == $totalSupportersCount) {
@@ -797,7 +814,7 @@ class TopicController extends Controller
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     $submitterNickId = $camp->submitter_nick_id;
-                    
+
                     /*
                     *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
                     *   Now support at the time of submition will be count as total supporter. 
@@ -806,8 +823,7 @@ class TopicController extends Controller
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
                     [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
-                    {   
+                    if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
 
@@ -823,9 +839,8 @@ class TopicController extends Controller
                             Util::dispatchJob($topic, $camp->camp_num, 1);
                         }
 
-                       /** Archive and restoration of archive camp #574 */
-                        if($liveCamp->is_archive != $preLiveCamp->is_archive)
-                        {
+                        /** Archive and restoration of archive camp #574 */
+                        if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
                             util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive);
                         }
                     }
@@ -847,12 +862,11 @@ class TopicController extends Controller
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
                     [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-                    
-                    if($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) 
-                    {   
+
+                    if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
-                    
+
                     if ($agreeCount == $totalSupportersCount) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
@@ -868,9 +882,8 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
-            
         } catch (Exception $e) {
-          
+
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
@@ -883,8 +896,8 @@ class TopicController extends Controller
             ['go_live_time', '>', Carbon::now()->timestamp]
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewTopicChanges)) {
-            foreach ($inReviewTopicChanges as $key=>$topic) {
-                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
+            foreach ($inReviewTopicChanges as $key => $topic) {
+                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
             }
         }
     }
@@ -898,8 +911,8 @@ class TopicController extends Controller
             ['go_live_time', '>', Carbon::now()->timestamp]
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewStatementChanges)) {
-            foreach ($inReviewStatementChanges as $key=>$statement) {
-                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
+            foreach ($inReviewStatementChanges as $key => $statement) {
+                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
             }
         }
     }
@@ -913,8 +926,8 @@ class TopicController extends Controller
             ['go_live_time', '>', Carbon::now()->timestamp]
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewCampChanges)) {
-            foreach ($inReviewCampChanges as $key=>$Camp) {
-                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key+1)]);
+            foreach ($inReviewCampChanges as $key => $Camp) {
+                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
             }
         }
     }
@@ -1017,9 +1030,9 @@ class TopicController extends Controller
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
                 ];
-                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $topic->submit_time, 'topic', false, 'ifIamExplicitSupporter');
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames, $topic->submit_time, 'topic', false, 'ifIamExplicitSupporter');
 
-                if($checkIfIAmExplicitSupporter){
+                if ($checkIfIAmExplicitSupporter) {
                     $message = trans('message.support.not_authorized_for_objection_topic');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -1073,38 +1086,38 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 $topic->grace_period = 0;
             }
-            
+
             $topic->save();
             DB::commit();
 
             if ($all['event_type'] == "objection") {
                 $this->objectedTopicNotification($all, $topic, $request);
             } else if ($all['event_type'] == "update") {
-                
+
                 Util::dispatchJob($topic, 1, 1);
                 //timeline start
-                if($all['topic_id']!=null){
+                if ($all['topic_id'] != null) {
                     $old_topic = Topic::where('id', $all['topic_id'])->first();
-                    if(Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))){
+                    if (Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))) {
 
                         $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
 
-                        $timelineMessage = $nickName . " changed topic name from ". $old_topic['topic_name']. " to ".$topic->topic_name;
+                        $timelineMessage = $nickName . " changed topic name from " . $old_topic['topic_name'] . " to " . $topic->topic_name;
 
                         $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "update_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
-                        
-                        Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);   
+
+                        Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);
                     }
                 }
                 //end of timeline
                 $currentTime = time();
-                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (24*60*60) + 10; // 24 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayLiveTimeInSeconds = (24 * 60 * 60) + 10; // 24 hour commit time + 10 seconds for delay job
                 if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
                     Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
                     Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
                 } else {
-                    if($current_time < $topic->go_live_time && $topic->objector_nick_id == null) {
+                    if ($current_time < $topic->go_live_time && $topic->objector_nick_id == null) {
                         Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
                     }
                 }
@@ -1113,7 +1126,7 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
             DB::rollback();
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage().''.$e->getLine());
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage() . '' . $e->getLine());
         }
     }
 
@@ -1127,20 +1140,20 @@ class TopicController extends Controller
         $link = 'topic/history/' . $topic->topic_num . '-' .  $liveTopic->topic_name;
         $nickName = Nickname::getNickName($all['nick_name']);
         $data['topic_link'] = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $liveTopic, 1);
-        $data['history_link'] = config('global.APP_URL_FRONT_END') .'/'. $link;
+        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/' . $link;
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
 
         $data['object'] =  Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, '>>');
         // $data['object'] = $liveTopic->topic_name;
-        
+
         $data['object_type'] = "";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $topic->topic_num . '-' . $liveTopic->topic_name . '/1/threads';
         $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
         $data['namespace_id'] = (isset($topic->namespace_id) && $topic->namespace_id)  ?  $topic->namespace_id : 1;
         $data['nick_name_id'] = $nickName->id;
-        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .General::getDealingWithDisagreementUrl();
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
             'activity' => trans('message.activity_log_message.topic_object', ['nick_name' =>  $nickName->nick_name]),
@@ -1155,7 +1168,7 @@ class TopicController extends Controller
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-            GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, 1, $all['submitter'],$all['nick_name'],config('global.notification_type.objectTopic'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($topic->topic_num, 1, $all['submitter'], $all['nick_name'], config('global.notification_type.objectTopic'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -1315,7 +1328,7 @@ class TopicController extends Controller
         }
     }
 
-/**
+    /**
      * @OA\Post(path="/discard/change",
      *   tags={"Topic"},
      *   summary="discard a change",
@@ -1392,7 +1405,7 @@ class TopicController extends Controller
 
     private function updateCampNotification($camp, $liveCamp, $link, $request)
     {
-        $link = config('global.APP_URL_FRONT_END') .'/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
+        $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
         $data['type'] = "camp";
         $data['object'] = $liveCamp->topic->topic_name . " >> " . $camp->camp_name;
         $data['link'] = $link;
