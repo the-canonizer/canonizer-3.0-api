@@ -705,16 +705,6 @@ class Support extends Model
                                 ->groupBy('nick_name_id')->get();
     }
 
-    public stattic function getSupportersNickNameListOfArchivedCamps($toppicNum, $camps)
-    {
-        return self::where('topic_num', '=', $toppicNum)
-                                ->whereIn('camp_num', $camps)
-                                ->where('end', '!=', 0)
-                                ->where('reason','=','archived')
-                                ->where('archive_support_flag','=',0)
-                                ->groupBy('nick_name_id')->pluck('nick_name_id');
-    }
-
     public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
     {
         $nickNames = Nickname::getAllNicknamesByNickId($nickId);
@@ -750,6 +740,17 @@ class Support extends Model
                                 ->where('archive_support_flag','=',0)
                                 ->orderBy('support_order', 'ASC')
                                 ->groupBy('camp_num')->get();
+    }
+
+    public static function checkIfArchiveSupporter($toppicNum, $nickNames)
+    {
+        $support = self::where('topic_num', '=', $toppicNum)
+                                ->where('end', '!=', 0)
+                                ->whereIn('nick_name_id', $nickNames)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)->first();
+
+        return !empty($support) ? $support->nick_name_id : 0;
     }
 
 }

@@ -661,6 +661,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->where('change_id', '=', $val->id)
                         ->exists(); 
                         $val->status = "in_review";
+                        if($val->is_archive == 0 && $val->archive_action_time != 0)
+                            $val->ifIamSupporter = Support::checkIfArchiveSupporter($filter['topicNum'], $nickNames);
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":
                         $val->status = "live";
@@ -898,6 +900,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->latest('submit_time')
                         ->first();
             $camp->is_archive = $isArchive;
+            $camp->archive_action_time = 0;    // when change is agreed, revert archive_action to default state
             $camp->direct_archive = $directArchive;
             $camp->update();
         }

@@ -417,6 +417,7 @@ class TopicController extends Controller
         $id = $all['id'];
         $message = "";
         $nickNames = Nickname::personNicknameArray();
+        $archiveCampSupportNicknames = [];
         try {
             if ($type == 'statement') {
                 $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
@@ -437,15 +438,15 @@ class TopicController extends Controller
                 $prevArchiveStatus = $preliveCamp->is_archive;
                 $updatedArchiveStatus = $model->is_archive;
                 if ($prevArchiveStatus != $updatedArchiveStatus) {
+
                     $model->archive_action_time = time();
                     // get supporters list
-                    $archiveCampSupportNicknames = Support::getSupportersNickNameListOfArchivedCamps($model->topic_num, [$model->camp_num]);
-                    $archiveCampSupportNicknames->filter(function ($sp) use ($nickNames) {
+                    $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
+                    foreach ($archiveCampSupportNicknames as $key => $sp) {
                         if (in_array($sp->nick_name_id, $nickNames)){
-                            return true;
+                            unset($archiveCampSupportNicknames[$key]);
                         }
-                    });
-                    
+                    }                    
                     if(count($archiveCampSupportNicknames) > 0)
                     {
                         $archiveReviewPeriod = true;
@@ -642,7 +643,7 @@ class TopicController extends Controller
 
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
-            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+            return $this->resProvider->apiJsonResponse(200, $message, $archiveCampSupportNicknames, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
