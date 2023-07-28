@@ -661,8 +661,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->where('change_id', '=', $val->id)
                         ->exists(); 
                         $val->status = "in_review";
-                        if($val->is_archive == 0 && $val->archive_action_time != 0)
+                        if($val->is_archive == 0 && $val->archive_action_time != 0){
                             $val->ifIamSupporter = Support::checkIfArchiveSupporter($filter['topicNum'], $nickNames);
+                           // update total supporters count for archived supporters 
+                            $revokableSupporter = count(Support::getSupportToBeRevoked( $filter['topicNum']));
+                            $val->total_supporters = $val->total_supporters + $revokableSupporter;
+                        }
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":
                         $val->status = "live";

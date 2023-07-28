@@ -848,6 +848,13 @@ class TopicController extends Controller
                         $agreeCount++;
                     }
 
+                     /** Archive and restoration of archive camp #574 */
+                     if($camp->is_archive != $preLiveCamp->is_archive)
+                     {
+                        $revokableSupporter = count(Support::getSupportToBeRevoked($data['topic_num']));
+                        $totalSupportersCount = $totalSupportersCount + $revokableSupporter;
+                     }
+
                     if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $camp->update();

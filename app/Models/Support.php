@@ -730,7 +730,8 @@ class Support extends Model
     }
 
     /**
-     * On Unarchive check which camps support needs to be revoked
+     *
+     *  On Unarchive check which camps support needs to be revoked
      */
     public static function getSupportToBeRevoked($toppicNum)
     {
