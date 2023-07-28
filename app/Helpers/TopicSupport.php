@@ -310,7 +310,7 @@ class TopicSupport
                 //timeline start
                 $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $campModel->camp_num, $campModel->camp_name, $topic->topic_name, "direct_support_added", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-                Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " add direct support in camp - " . $campModel->camp_name, "direct_support_added", $campModel->camp_num, null, null, null, $asOfDefaultDate + 1, $timeline_url);
+                Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " added direct support in camp - " . $campModel->camp_name, "direct_support_added", $campModel->camp_num, null, null, null, $asOfDefaultDate + 1, $timeline_url);
                 //timeline start
 
                 $subjectStatement = "has added their support to"; 
