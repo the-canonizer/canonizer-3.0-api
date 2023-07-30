@@ -730,7 +730,8 @@ class Support extends Model
     }
 
     /**
-     * On Unarchive check which camps support needs to be revoked
+     *
+     *  On Unarchive check which camps support needs to be revoked
      */
     public static function getSupportToBeRevoked($toppicNum)
     {
@@ -740,6 +741,17 @@ class Support extends Model
                                 ->where('archive_support_flag','=',0)
                                 ->orderBy('support_order', 'ASC')
                                 ->groupBy('camp_num')->get();
+    }
+
+    public static function checkIfArchiveSupporter($toppicNum, $nickNames)
+    {
+        $support = self::where('topic_num', '=', $toppicNum)
+                                ->where('end', '!=', 0)
+                                ->whereIn('nick_name_id', $nickNames)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)->first();
+
+        return !empty($support) ? $support->nick_name_id : 0;
     }
 
 }
