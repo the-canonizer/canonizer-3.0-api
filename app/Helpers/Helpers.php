@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Camp;
 use App\Models\Topic;
+use Carbon\Carbon;
 
 class Helpers
 {
@@ -33,5 +34,25 @@ class Helpers
     private static function createLink($text, $link)
     {
         return "<b><a href='" . $link . "'>" . $text . "</a></b>";
+    }
+
+    public static function getChangesCount($model, $topic_num, $camp_num)
+    {
+
+        $where = [
+            ['topic_num', '=', $topic_num],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['submit_time', '<=', Carbon::now()->timestamp],
+            ['objector_nick_id', '=', NULL],
+            ['grace_period', '=', 0],
+        ];
+
+        if (!($model instanceof Topic)) {
+            $where[] = ['camp_num', '=', $camp_num];
+        }
+
+        return $model::where('topic_num', $topic_num)
+            ->where($where)
+            ->count();
     }
 }

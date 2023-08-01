@@ -399,6 +399,11 @@ class CampController extends Controller
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
             }
+
+            if ($livecamp && $filter['asOf'] === 'default') {
+                $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
+                $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -360,6 +360,11 @@ class TopicController extends Controller
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
 
+            if ($topic && $filter['asOf'] === 'default') {
+                $inReviewChangesCount = Helpers::getChangesCount((new Topic()), $request->topic_num, $request->camp_num);
+                $topicRecord = array_merge($topicRecord, ['in_review_changes' => $inReviewChangesCount]);
+            }
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
