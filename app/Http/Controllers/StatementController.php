@@ -107,9 +107,9 @@ class StatementController extends Controller
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
 
-            if ($campStatement && $filter['asOf'] === 'default') {
+            if ($filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
-                $statement[0] = array_merge($statement[0], ['in_review_changes' => $inReviewChangesCount]);
+                $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
