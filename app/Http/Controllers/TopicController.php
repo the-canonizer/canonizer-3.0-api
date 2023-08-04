@@ -532,6 +532,10 @@ class TopicController extends Controller
                 $message = trans('message.success.camp_commit');
 
                 if ($ifIamSingleSupporter) {
+                     /** Archive and restoration of archive camp #574 */
+                     if(!$archiveReviewPeriod)
+                     Util::updateArchivedCampAndSupport($model, $model->is_archive);
+
                     $all['topic_num'] = $liveCamp->topic_num;
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     $beforeUpdateCamp = Util::getCampByChangeId($filter['campNum']);
@@ -541,9 +545,7 @@ class TopicController extends Controller
                     }
                     // $this->updateCampNotification($model, $liveCamp, $link, $request);
 
-                    /** Archive and restoration of archive camp #574 */
-                    if(!$archiveReviewPeriod)
-                    Util::updateArchivedCampAndSupport($model, $model->is_archive);
+                   
                     // $prevArchiveStatus = $preliveCamp->is_archive;
                     // $updatedArchiveStatus = $all['is_archive'] ?? 0;
                     // if ($prevArchiveStatus != $updatedArchiveStatus) {
