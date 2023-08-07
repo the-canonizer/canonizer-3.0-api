@@ -100,12 +100,18 @@ class StatementController extends Controller
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
                 $WikiParser = new wikiParser;
-                $campStatement->parsed_value = $campStatement->parsed_value;// $WikiParser->parse($campStatement->value);
+                $campStatement->parsed_value = $campStatement->parsed_value; // $WikiParser->parse($campStatement->value);
                 $campStatement->submitter_nick_name = $campStatement->submitterNickName->nick_name;
                 $statement[] = $campStatement;
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
+
+            if ($filter['asOf'] === 'default') {
+                $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
+                $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
+            }
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -278,7 +284,7 @@ class StatementController extends Controller
                 $parentCamp = Camp::campNameWithAncestors($camp, $filter);
                 $nickName = Nickname::topicNicknameUsed($statement->topic_num);
                 $WikiParser = new wikiParser;
-                $statement->parsed_value =$statement->parsed_value;// $WikiParser->parse($statement->value);
+                $statement->parsed_value = $statement->parsed_value; // $WikiParser->parse($statement->value);
                 $data = new stdClass();
                 $data->statement = $statement;
                 $data->topic = $topic;
@@ -377,11 +383,11 @@ class StatementController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+
+        if (!Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
-        
+
         $all = $request->all();
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
@@ -392,14 +398,14 @@ class StatementController extends Controller
             // $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
-            
-            if($eventType == 'objection') {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames,[$all['camp_num']]);
+
+            if ($eventType == 'objection') {
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 $statement = Statement::where('id', $all['statement_id'])->first();
-                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $statement->submit_time, null, false, 'ifIamExplicitSupporter');
+                $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames, $statement->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
+                if (!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
                     $message = trans('message.support.not_authorized_for_objection');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -410,21 +416,21 @@ class StatementController extends Controller
             } else {
                 ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
-//            dd($statement->grace_period, $all['submitter'], $loginUserNicknames);
-//            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
-//            if ($all['camp_num'] > 1) {
-//                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
-//                    $statement->grace_period = 0;
-//                } else {
-//                    $statement->grace_period = 1;
-//                }
-//            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
-//                $statement->grace_period = 0;
-//            }
-//
-//            if (!$ifIamSingleSupporter) {
-//                $statement->grace_period = 1;
-//            }
+            //            dd($statement->grace_period, $all['submitter'], $loginUserNicknames);
+            //            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
+            //            if ($all['camp_num'] > 1) {
+            //                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
+            //                    $statement->grace_period = 0;
+            //                } else {
+            //                    $statement->grace_period = 1;
+            //                }
+            //            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
+            //                $statement->grace_period = 0;
+            //            }
+            //
+            //            if (!$ifIamSingleSupporter) {
+            //                $statement->grace_period = 1;
+            //            }
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
             // if($eventType == 'objection') {
@@ -435,16 +441,16 @@ class StatementController extends Controller
              * so schedule a job that will run and update the tree
              * also this will update the grace period flag as well.
              * */
-            if($statement->grace_period == 1) {
+            if ($statement->grace_period == 1) {
                 $topic = Topic::getLiveTopic($all['topic_num']);
-                $delayCommitTimeInSeconds = (1*60*60) + 10; // 1 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
                 Util::dispatchJob($topic, $all['camp_num'], 1, $delayCommitTimeInSeconds);
             }
 
             $statement->save();
             $livecamp = Camp::getLiveCamp($filters);
             $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
-            
+
             if ($eventType == "create" && $statement->grace_period == 0) {
                 $nickName = '';
                 $nicknameModel = Nickname::getNickName($all['nick_name']);
@@ -545,7 +551,7 @@ class StatementController extends Controller
                 "thread_id" => !empty($threadId) ? $threadId : null,
             ];
         }
-        
+
         Event::dispatch(new NotifySupportersEvent($livecamp, $notificationData, config('global.notification_type.Statement'), $link, config('global.notify.both')));
         $activityLogData = [
             'log_type' =>  "topic/camps",
@@ -561,7 +567,7 @@ class StatementController extends Controller
         dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
         // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
     }
-    
+
     private function updatedStatementNotification($livecamp, $link, $statement, $request)
     {
         $nickName = Nickname::getNickName($statement->submitter_nick_id);
@@ -590,7 +596,7 @@ class StatementController extends Controller
 
         // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
         $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, '>>');
-        
+
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
         $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
@@ -612,7 +618,7 @@ class StatementController extends Controller
         try {
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-            GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'],$all['nick_name'],config('global.notification_type.objectStatement'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'], $all['nick_name'], config('global.notification_type.objectStatement'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -663,18 +669,18 @@ class StatementController extends Controller
         }
         $statement = [];
         try {
-    
+
             $compare = !empty($request->compare) ? $request->compare : 'statement';
-    
+
             if ($compare == 'statement') {
                 $campStatement =  Statement::whereIn('id', $request->ids)->get();
-    
+
                 $WikiParser = new wikiParser;
                 $currentTime = time();
                 $currentLive = 0;
                 if ($campStatement) {
                     foreach ($campStatement as $val) {
-    
+
                         switch ($val) {
                             case $val->objector_nick_id !== NULL:
                                 $status = "objected";
@@ -693,7 +699,7 @@ class StatementController extends Controller
                         $statement['comparison'][] = array(
                             'go_live_time' => ($val->go_live_time),
                             'submit_time' => ($val->submit_time),
-                            'object_time' => ($val->object_time), 
+                            'object_time' => ($val->object_time),
                             'parsed_value' => $val->parsed_value, //$WikiParser->parse($val->value),
                             'value' => $val->value,
                             'topic_num' => $val->topic_num,
@@ -749,9 +755,9 @@ class StatementController extends Controller
             }
             if ($request->compare == 'topic') {
                 $campStatement =  Topic::whereIn('id', $request->ids)->get();
-    
+
                 foreach ($campStatement as $val) {
-    
+
                     $statement['comparison'][] = array(
                         'go_live_time' => ($val->go_live_time),
                         'submit_time' => ($val->submit_time),
@@ -812,7 +818,7 @@ class StatementController extends Controller
             }
             if ($request->compare == 'camp') {
                 $campStatement =  Camp::whereIn('id', $request->ids)->get();
-    
+
                 foreach ($campStatement as $val) {
                     $statement['comparison'][] = array(
                         'go_live_time' => ($val->go_live_time),
@@ -838,7 +844,7 @@ class StatementController extends Controller
                         'camp_about_url' => $val->camp_about_url,
                         'camp_about_nick_id' => $val->camp_about_nick_id,
                         'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
-                        'parent_camp_name'=> Camp::where('camp_num', $val->parent_camp_num)->where('topic_num',$val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
+                        'parent_camp_name' => Camp::where('camp_num', $val->parent_camp_num)->where('topic_num', $val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
                         'is_disabled' => $val->is_disabled,
                         'is_one_level' => $val->is_one_level,
                         'is_archive' => $val->is_archive
@@ -865,7 +871,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
-                    $statement['liveStatement']['parent_camp_name'] = Camp::where('camp_num', $liveStatement->parent_camp_num)->where('topic_num',$liveStatement->topic_num)->latest('submit_time')->first()->camp_name ?? "";
+                    $statement['liveStatement']['parent_camp_name'] = Camp::where('camp_num', $liveStatement->parent_camp_num)->where('topic_num', $liveStatement->topic_num)->latest('submit_time')->first()->camp_name ?? "";
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
@@ -885,7 +891,7 @@ class StatementController extends Controller
                 }
                 $statement['latestRevision'] = ($latestRevision->submit_time);
             }
-          
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
@@ -925,12 +931,10 @@ class StatementController extends Controller
         }
         try {
             $WikiParser = new wikiParser;
-            $parsedValue = $request->value;// $WikiParser->parse($request->value);
+            $parsedValue = $request->value; // $WikiParser->parse($request->value);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $parsedValue, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-   
-
 }
