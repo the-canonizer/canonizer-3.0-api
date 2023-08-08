@@ -143,7 +143,12 @@ class ActivityController extends Controller
                 $log = Util::getPaginatorResponse($log);
             }else{
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
+                $log['is_hide_show_all_btn'] = false;
+                if(count($log) > 10){
+                    $log['is_hide_show_all_btn'] = true;
+                }
             }
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
