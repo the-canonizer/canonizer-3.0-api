@@ -84,9 +84,9 @@ class ActivityController extends Controller
         $campNum = $request->camp_num ?? 1;
         try {
             $log = ActivityUser::whereHas('Activity', function ($query) use ($logType) {
-                    $query->where('log_name', $logType);
+                $query->where('log_name', $logType);
             })->with('Activity');
-            if(!$request->is_admin_show_all && !$topicNum){
+            if (!$request->is_admin_show_all && !$topicNum) {
                 $log->where('user_id', $request->user()->id);
             }
             $log = $log->latest()->paginate($perPage);
@@ -137,19 +137,26 @@ class ActivityController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            if($request->is_admin_show_all && $request->is_admin_show_all == 'all'){
+            if ($request->is_admin_show_all && $request->is_admin_show_all == 'all') {
                 $perPage = $request->per_page ?? config('global.per_page');
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
                 $log = Util::getPaginatorResponse($log);
-            }else{
+            } else {
+                $data = [];
+                $count = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->count();
+                // dd($count);
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
-                $log['is_hide_show_all_btn'] = false;
-                if(count($log) > 10){
-                    $log['is_hide_show_all_btn'] = true;
+                $is_show_all_btn = false;
+                if ($count > 10) {
+                    $is_show_all_btn = true;
                 }
+                $data = [
+                    'items' => $log,
+                    'is_show_all_btn' => $is_show_all_btn,
+                ];
             }
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
