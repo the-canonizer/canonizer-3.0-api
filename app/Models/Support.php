@@ -333,6 +333,14 @@ class Support extends Model
             ->where('end', '=', 0)
             ->get()->pluck('nick_name_id')->toArray();
         
+        //Check if the camp is Archived, then count its supporter too when camp is archiving 
+        $filter['topicNum'] = $topicNum;
+        $filter['campNum'] = $campNum;
+        $liveCamp = Camp::getLiveCamp($filter);
+        if($liveCamp->is_archive == 1 && $liveCamp->archive_action_time > 0) {
+           // Update total supporters count for archived supporters 
+           $totalSupporters[] = Support::getSupportToBeRevoked($filter['topicNum'])->pluck('nick_name_id')->toArray();
+        }
             
         // Also include explicit support count in total...
         if(count($additionalFilter)) {
