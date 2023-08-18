@@ -859,16 +859,13 @@ class TopicController extends Controller
                      if($camp->is_archive != $preLiveCamp->is_archive)
                      {
                         $revokableSupporter = Support::getSupportToBeRevoked($data['topic_num']);
-                       print_r($totalSupporters);
                         foreach($revokableSupporter as $k => $rs)
                         {
-                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) {
-                                echo 'yes';
-                                unset($revokableSupporter[$k]);
+                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            {
+                               unset($revokableSupporter[$k]);
                             }
                         }
-
-                       echo count($revokableSupporter);
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
                      }
 
