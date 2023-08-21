@@ -862,13 +862,15 @@ class TopicController extends Controller
                         $revokableSupporter = Support::getSupportToBeRevoked($data['topic_num']);
                         foreach($revokableSupporter as $k => $rs)
                         {
-                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false || $rs->delegate_nick_name_id != 0) 
+                           if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false && $rs->nick_name_id != $submitterNickId) 
                             {
                                unset($revokableSupporter[$k]);
                             }
                         }
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
                      }
+
+                    
 
                     if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
