@@ -448,7 +448,7 @@ class TopicController extends Controller
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
                     foreach ($archiveCampSupportNicknames as $key => $sp) {
-                        if (in_array($sp->nick_name_id, $nickNames)){
+                        if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
                             unset($archiveCampSupportNicknames[$key]);
                         }
                     }                    
@@ -538,7 +538,7 @@ class TopicController extends Controller
 
                 if ($ifIamSingleSupporter) {
                      /** Archive and restoration of archive camp #574 */
-                     if(!$archiveReviewPeriod){ echo 'rfre';
+                     if(!$archiveReviewPeriod){
                      Util::updateArchivedCampAndSupport($model, $model->is_archive);
                      }
 
@@ -857,18 +857,18 @@ class TopicController extends Controller
                     }
 
                      /** Archive and restoration of archive camp #574 */
-                    /* if($camp->is_archive != $preLiveCamp->is_archive)
+                     if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
                      {
                         $revokableSupporter = Support::getSupportToBeRevoked($data['topic_num']);
                         foreach($revokableSupporter as $k => $rs)
                         {
-                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false || $rs->delegate_nick_name_id != 0) 
                             {
                                unset($revokableSupporter[$k]);
                             }
                         }
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
-                     }*/ 
+                     }
 
                     if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
