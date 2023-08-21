@@ -596,8 +596,12 @@ class SupportController extends Controller
                 $preLiveCamp = Camp::getLiveCamp($filter);
                 if ($model->is_archive != $preLiveCamp->is_archive) {
                     $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps((int)$inputs['topic_num'], [$model->camp_num])->pluck('nick_name_id')->toArray();
+                    $revokableSupporters = array_diff($revokableSupporters, [$model->submitter_nick_id]); 
+                    
                     $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
+                    
                     $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters);
+                    $response['total_supporters_count'] += count($revokableSupporters);
                 } else {
                     $revokableSupporters = Support::getAllRevokedSupporters((int)$inputs['topic_num'])->pluck('nick_name_id')->toArray();
                     if ($revokableSupporters) {
