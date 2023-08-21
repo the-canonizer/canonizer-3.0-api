@@ -538,8 +538,9 @@ class TopicController extends Controller
 
                 if ($ifIamSingleSupporter) {
                      /** Archive and restoration of archive camp #574 */
-                     if(!$archiveReviewPeriod)
+                     if(!$archiveReviewPeriod){ echo 'rfre';
                      Util::updateArchivedCampAndSupport($model, $model->is_archive);
+                     }
 
                     $all['topic_num'] = $liveCamp->topic_num;
                     Util::checkParentCampChanged($all, false, $liveCamp);
@@ -856,7 +857,7 @@ class TopicController extends Controller
                     }
 
                      /** Archive and restoration of archive camp #574 */
-                     if($camp->is_archive != $preLiveCamp->is_archive)
+                    /* if($camp->is_archive != $preLiveCamp->is_archive)
                      {
                         $revokableSupporter = Support::getSupportToBeRevoked($data['topic_num']);
                         foreach($revokableSupporter as $k => $rs)
@@ -867,7 +868,7 @@ class TopicController extends Controller
                             }
                         }
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
-                     }
+                     }*/ 
 
                     if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
