@@ -571,7 +571,7 @@ class Support extends Model
 
         $query->where('topic_num', $filter['topicNum']);
 
-        if (count($childCamps) > 0)
+        // if (count($childCamps) > 0)
             $query->whereIn('camp_num', $childCamps);
 
         if (!$includeImplicitSupporters) {
