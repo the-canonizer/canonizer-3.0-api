@@ -661,7 +661,7 @@ class Util
     /**
      * camp Archive
      */
-    public function updateArchivedCampAndSupport($camp, $archiveFlag = null)
+    public function updateArchivedCampAndSupport($camp, $archiveFlag = null,  $preArchiveStatus = null)
     {
         $allchilds = Camp::getAllLiveChildCamps($camp, True);
         if($archiveFlag === 1){            
@@ -681,15 +681,18 @@ class Util
             //dispatch job
             Util::dispatchJob($camp->topic_num, 1, 1);
 
-            //timeline start
-            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
-            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
-            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            if($archiveFlag!=$preArchiveStatus){
+                //timeline start
+                $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
+                $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
 
-            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "archive_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+                $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "archive_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-            $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "archive_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
+                $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "archive_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
+                //end timeline 
+            }
         }
 
         if($archiveFlag === 0){
@@ -758,16 +761,17 @@ class Util
 
             //end old support permanently
             Support::setSupportToIrrevokable($camp->topic_num, $allchilds, true);
-            //timeline start
-            $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
-            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
-            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+            if($archiveFlag!=$preArchiveStatus){
+                //timeline start
+                $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+                $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
 
-            $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "unarchived_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+                $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "unarchived_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-            $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "unarchived_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
-            
+                $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "unarchived_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
+            }
         }
 
         return;
