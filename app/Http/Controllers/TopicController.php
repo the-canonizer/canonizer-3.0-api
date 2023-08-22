@@ -438,9 +438,10 @@ class TopicController extends Controller
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
             $archiveReviewPeriod = false;
+            $preliveCamp = Camp::getLiveCamp($filter);
+            $prevArchiveStatus = $preliveCamp->is_archive;
             if ($type == 'camp') {
-                $preliveCamp = Camp::getLiveCamp($filter);
-                $prevArchiveStatus = $preliveCamp->is_archive;
+               
                 $updatedArchiveStatus = $model->is_archive;
                 if ($prevArchiveStatus != $updatedArchiveStatus) {
 
@@ -538,9 +539,8 @@ class TopicController extends Controller
 
                 if ($ifIamSingleSupporter) {
                      /** Archive and restoration of archive camp #574 */
-                     if(!$archiveReviewPeriod){
-                     Util::updateArchivedCampAndSupport($model, $model->is_archive);
-                     }
+                     if(!$archiveReviewPeriod)
+                     Util::updateArchivedCampAndSupport($model, $model->is_archive, $prevArchiveStatus);
 
                     $all['topic_num'] = $liveCamp->topic_num;
                     Util::checkParentCampChanged($all, false, $liveCamp);
@@ -576,9 +576,9 @@ class TopicController extends Controller
 
                 //timeline start
                 if ($model->camp_num != null) {
-                    $old_camp = Camp::where('id', $model->camp_num)->first();
-                    if (Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
-                        $timelineMessage = $nickName->nick_name . " changed camp name from " . $old_camp['camp_name'] . " to " . $model->camp_name;
+                    //$old_camp = Camp::where('id', $model->camp_num)->first();
+                    if (Util::remove_emoji(strtolower(trim($preliveCamp->camp_name))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
+                        $timelineMessage = $nickName->nick_name . " changed camp name from " . $preliveCamp->camp_name . " to " . $model->camp_name;
 
                         $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
@@ -886,10 +886,10 @@ class TopicController extends Controller
 
                        /** Archive and restoration of archive camp #574 */
                         if($liveCamp->is_archive != $preLiveCamp->is_archive)
-                        {
+                        { 
                             $camp->archive_action_time = time();
                             $camp->update();
-                            util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive);
+                            util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                         }
                     }
                     DB::commit();
