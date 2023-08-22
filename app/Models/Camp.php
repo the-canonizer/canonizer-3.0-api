@@ -663,8 +663,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         $val->status = "in_review";
                         if($val->is_archive == 0 && $val->archive_action_time != 0){
                             $val->ifIamSupporter = Support::checkIfArchiveSupporter($filter['topicNum'], $nickNames);
-                           // update total supporters count for archived supporters 
-                            $revokableSupporter = count(Support::getSupportToBeRevoked( $filter['topicNum']));
+                            // update total supporters count for archived supporters 
+                            $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']])->pluck('nick_name_id')->toArray();
+                            $revokableSupporter = count(array_diff($revokableSupporter, [$val->submitter_nick_id]));
                             $val->total_supporters = $val->total_supporters + $revokableSupporter;
                         }
                         break;

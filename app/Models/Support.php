@@ -333,15 +333,6 @@ class Support extends Model
             ->where('end', '=', 0)
             ->get()->pluck('nick_name_id')->toArray();
         
-        //Check if the camp is Archived, then count its supporter too when camp is archiving 
-        $filter['topicNum'] = $topicNum;
-        $filter['campNum'] = $campNum;
-        $liveCamp = Camp::getLiveCamp($filter);
-        if($liveCamp->is_archive == 1 && $liveCamp->archive_action_time > 0) {
-           // Update total supporters count for archived supporters 
-           $totalSupporters[] = Support::getSupportToBeRevoked($filter['topicNum'])->pluck('nick_name_id')->toArray();
-        }
-            
         // Also include explicit support count in total...
         if(count($additionalFilter)) {
             $nickNames = Nickname::personNicknameArray();
@@ -580,7 +571,7 @@ class Support extends Model
 
         $query->where('topic_num', $filter['topicNum']);
 
-        if (count($childCamps) > 0)
+        // if (count($childCamps) > 0)
             $query->whereIn('camp_num', $childCamps);
 
         if (!$includeImplicitSupporters) {
@@ -762,4 +753,14 @@ class Support extends Model
         return !empty($support) ? $support->nick_name_id : 0;
     }
 
+    public static function getAllRevokedSupporters($toppicNum)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+            ->where('end', 0)
+            ->where('reason', '=', 'unarchived')
+            ->where('archive_support_flag', '=', 0)
+            ->orderBy('support_order', 'ASC')
+            // ->groupBy('camp_num')
+            ->get();
+    }
 }

@@ -449,7 +449,7 @@ class TopicController extends Controller
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
                     foreach ($archiveCampSupportNicknames as $key => $sp) {
-                        if (in_array($sp->nick_name_id, $nickNames)){
+                        if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
                             unset($archiveCampSupportNicknames[$key]);
                         }
                     }                    
@@ -857,11 +857,20 @@ class TopicController extends Controller
                     }
 
                      /** Archive and restoration of archive camp #574 */
-                     if($camp->is_archive != $preLiveCamp->is_archive)
+                    if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
                      {
-                        $revokableSupporter = count(Support::getSupportToBeRevoked($data['topic_num']));
-                        $totalSupportersCount = $totalSupportersCount + $revokableSupporter;
+                        $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']]);
+                        foreach($revokableSupporter as $k => $rs)
+                        {
+                           if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            {
+                               unset($revokableSupporter[$k]);
+                            }
+                        }
+                        $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
                      }
+
+                    
 
                     if ($agreeCount == $totalSupportersCount) {
                         $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
