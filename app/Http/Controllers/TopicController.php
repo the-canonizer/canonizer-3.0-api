@@ -857,12 +857,12 @@ class TopicController extends Controller
                     }
 
                      /** Archive and restoration of archive camp #574 */
-                     if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
+                    if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
                      {
-                        $revokableSupporter = Support::getSupportToBeRevoked($data['topic_num']);
+                        $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']]);
                         foreach($revokableSupporter as $k => $rs)
                         {
-                           if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false && $rs->nick_name_id != $submitterNickId) 
+                           if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
                             {
                                unset($revokableSupporter[$k]);
                             }
