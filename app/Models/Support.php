@@ -739,7 +739,7 @@ class Support extends Model
                                 ->where('reason','=','archived')
                                 ->where('archive_support_flag','=',0)
                                 ->orderBy('support_order', 'ASC')
-                                ->groupBy('camp_num')->get();
+                                ->get();
     }
 
     public static function checkIfArchiveSupporter($toppicNum, $nickNames)
