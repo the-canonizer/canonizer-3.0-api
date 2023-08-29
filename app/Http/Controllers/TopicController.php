@@ -439,6 +439,7 @@ class TopicController extends Controller
             $filter['campNum'] = $model->camp_num ?? 1;
             $archiveReviewPeriod = false;
             $preliveCamp = Camp::getLiveCamp($filter);
+            $preliveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             $prevArchiveStatus = $preliveCamp->is_archive;
             if ($type == 'camp') {
                
@@ -626,6 +627,20 @@ class TopicController extends Controller
 
                 $notification_type = config('global.notification_type.topicCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveTopic->topic_num, 1, 'topic-commit', null, $nickName->nick_name);
+                if ($ifIamSingleSupporter) {
+                    if ($id != null) {
+                        //timeline start
+                        if (Util::remove_emoji(strtolower(trim($preliveTopic->topic_name))) != Util::remove_emoji(strtolower(trim($liveTopic->topic_name)))) {
+
+                            $timelineMessage = $nickName->nick_name . " changed topic name from " . $preliveTopic->topic_name . " to " . $liveTopic->topic_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($liveTopic->topic_num, $liveTopic->topic_name, 1, "Agreement", $liveTopic->topic_name, "update_topic", null, $liveTopic->namespace_id, $liveTopic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($liveTopic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);
+                        }
+                        //end of timeline
+                    } 
+                }
             }
 
             $notificationData = [
@@ -756,7 +771,7 @@ class TopicController extends Controller
             'is_submitted' => 1
         ];
 
-        try {
+        //try {
 
             $where = [
                 'id' => $changeId,
@@ -806,6 +821,7 @@ class TopicController extends Controller
             $log->nick_name_id = $data['nick_name_id'];
             $log->change_for = $data['change_for'];
             $log->save();
+            
 
             /*
             *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
@@ -917,8 +933,10 @@ class TopicController extends Controller
                 }
             } else if ($data['change_for'] == 'topic') {
                 $topic = Topic::where('id', $changeId)->first();
+                $preliveTopic = Topic::getLiveTopic($topic->topic_num, 'default');
                 if ($topic) {
                     $submitterNickId = $topic->submitter_nick_id;
+                    $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     /*
                     *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
                     *   Now support at the time of submition will be count as total supporter. 
@@ -939,6 +957,16 @@ class TopicController extends Controller
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         if (isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
+                            //timeline start
+                            if (Util::remove_emoji(strtolower(trim($preliveTopic->topic_name))) != Util::remove_emoji(strtolower(trim($topic->topic_name)))) {
+    
+                                $timelineMessage = $nickName->nick_name . " changed topic name from " . $preliveTopic->topic_name . " to " . $topic->topic_name;
+    
+                                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "update_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
+    
+                                Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);
+                            }
+                            //end of timeline
                         }
                     }
                     $message = trans('message.success.topic_agree');
@@ -947,10 +975,10 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
-        } catch (Exception $e) {
+       // } catch (Exception $e) {
 
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
+           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        //}
     }
 
     private function updateTopicsInReview($topic)
@@ -1160,21 +1188,6 @@ class TopicController extends Controller
             } else if ($all['event_type'] == "update") {
 
                 Util::dispatchJob($topic, 1, 1);
-                //timeline start
-                if ($all['topic_id'] != null) {
-                    $old_topic = Topic::where('id', $all['topic_id'])->first();
-                    if (Util::remove_emoji(strtolower(trim($old_topic['topic_name']))) != Util::remove_emoji(strtolower(trim($all['topic_name'])))) {
-
-                        $nickName = Nickname::getNickName($topic->submitter_nick_id)->nick_name;
-
-                        $timelineMessage = $nickName . " changed topic name from " . $old_topic['topic_name'] . " to " . $topic->topic_name;
-
-                        $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "update_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
-
-                        Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);
-                    }
-                }
-                //end of timeline
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
                 $delayLiveTimeInSeconds = (24 * 60 * 60) + 10; // 24 hour commit time + 10 seconds for delay job
