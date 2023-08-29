@@ -763,4 +763,33 @@ class Support extends Model
             // ->groupBy('camp_num')
             ->get();
     }
+
+    public static function ifIamArchiveExplicitSupporters($filter, $returnKey = '')
+    {
+        Camp::clearChildCampArray();
+        $childCamps = [];
+        $liveCamp = Camp::getLiveCamp($filter);
+        $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+        $key = array_search($liveCamp->camp_num, $childCamps, true);
+        if ($key !== false) {
+            unset($childCamps[$key]);
+        }
+
+        $mysupports = Support::where('topic_num', $filter['topicNum'])
+                        ->whereIn('camp_num', $childCamps)
+                        ->where('end', '!=', 0)
+                        ->where('delegate_nick_name_id', '=', 0)
+                        ->where('reason','=','archived')
+                        ->where('archive_support_flag','=',0)->get();
+
+        $returnData = [
+            'supporters' => $mysupports,
+            'supporter_count' => count($mysupports) ?? 0,
+            'ifIamExplicitSupporter' => (count($mysupports)) ? true : false,
+        ];
+        
+        if (strlen($returnKey) > 0)
+            return $returnData[$returnKey];
+        return $returnData;
+    }
 }

@@ -1476,7 +1476,6 @@ class CampController extends Controller
             $preliveCamp = Camp::getLiveCamp($filter);
 
             $camp->save();
-           // echo "<pre>"; print_r($camp);
             $topic = $camp->topic;
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
