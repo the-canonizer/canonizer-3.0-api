@@ -449,15 +449,24 @@ class TopicController extends Controller
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
+                    $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,'supporters');
                     foreach ($archiveCampSupportNicknames as $key => $sp) {
                         if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
                             unset($archiveCampSupportNicknames[$key]);
                         }
-                    }                    
-                    if(count($archiveCampSupportNicknames) > 0)
+                    } 
+                    
+                    foreach ($explicitArchiveSupporters as $key => $sp) {
+                        if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
+                            unset($explicitArchiveSupporters[$key]);
+                        }
+                    } 
+                    if(count($archiveCampSupportNicknames) > 0 || count($explicitArchiveSupporters))
                     {
                         $archiveReviewPeriod = true;
                     }
+                   
+
                 }
             }
 
@@ -876,6 +885,8 @@ class TopicController extends Controller
                     if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
                      {
                         $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']]);
+                        $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,'supporters');
+                        
                         foreach($revokableSupporter as $k => $rs)
                         {
                            if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
@@ -883,7 +894,13 @@ class TopicController extends Controller
                                unset($revokableSupporter[$k]);
                             }
                         }
-                        $totalSupportersCount = $totalSupportersCount + count($revokableSupporter);
+                        foreach ($explicitArchiveSupporters as $k => $sp) {
+                            if(array_search($sp->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            {
+                               unset($explicitArchiveSupporters[$k]);
+                            }
+                        }
+                        $totalSupportersCount = $totalSupportersCount + count($revokableSupporter) + count($explicitArchiveSupporters);
                      }
 
                     
