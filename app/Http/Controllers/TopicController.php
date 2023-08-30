@@ -567,35 +567,34 @@ class TopicController extends Controller
                     // if ($prevArchiveStatus != $updatedArchiveStatus) {
                     //     Util::updateArchivedCampAndSupport($model, $updatedArchiveStatus);
                     // }
+
+                    //timeline start
+                    // $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
+                    if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
+                        $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name;
+
+                        $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                        Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);
+                    }
+                    //end of timeline
+                    //timeline start
+                    if ($model->camp_num != null) {
+                        //$old_camp = Camp::where('id', $model->camp_num)->first();
+                        if (Util::remove_emoji(strtolower(trim($preliveCamp->camp_name))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
+                            $timelineMessage = $nickName->nick_name . " changed camp name from " . $preliveCamp->camp_name . " to " . $model->camp_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, null, time(), $timeline_url);
+                        }
+                    }
+                    //end of timeline
                 }
 
                 if (isset($topic)) {
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
-
-                //timeline start
-                // $nickName = Nickname::getNickName($model->submitter_nick_id)->nick_name;
-                if ($all['parent_camp_num'] != $all['old_parent_camp_num']) {
-                    $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $model->camp_name;
-
-                    $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
-
-                    Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "parent_change", $model->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);
-                }
-                //end of timeline
-
-                //timeline start
-                if ($model->camp_num != null) {
-                    //$old_camp = Camp::where('id', $model->camp_num)->first();
-                    if (Util::remove_emoji(strtolower(trim($preliveCamp->camp_name))) != Util::remove_emoji(strtolower(trim($model->camp_name)))) {
-                        $timelineMessage = $nickName->nick_name . " changed camp name from " . $preliveCamp->camp_name . " to " . $model->camp_name;
-
-                        $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $model->camp_num, $model->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
-
-                        Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, null, time(), $timeline_url);
-                    }
-                }
-                //end of timeline
 
                 $currentTime = time();
                 $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
@@ -858,12 +857,12 @@ class TopicController extends Controller
                 }
             } else if ($data['change_for'] == 'camp') {
                 $camp = Camp::where('id', $changeId)->first();
+                $filter['topicNum'] = $data['topic_num'];
+                $filter['campNum'] = $data['camp_num'];
+                $preLiveCamp = Camp::getLiveCamp($filter);
+                $preLiveCamp2 = Camp::getLiveCamp($filter);
                 if ($camp) {
                     DB::beginTransaction();
-
-                    $filter['topicNum'] = $data['topic_num'];
-                    $filter['campNum'] = $data['camp_num'];
-                    $preLiveCamp = Camp::getLiveCamp($filter);
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
@@ -924,6 +923,25 @@ class TopicController extends Controller
                             $camp->update();
                             util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                         }
+                        $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
+                        //timeline start
+                        if ($data['parent_camp_num'] != $data['old_parent_camp_num']) {
+                            $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $liveCamp->camp_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $liveCamp->camp_num, $liveCamp->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "parent_change", $liveCamp->id, $data['old_parent_camp_num'], $data['parent_camp_num'], null, time(), $timeline_url);
+                        }
+                        //end of timeline
+                        //timeline start
+                        if (Util::remove_emoji(strtolower(trim($preLiveCamp->camp_name))) != Util::remove_emoji(strtolower(trim($liveCamp->camp_name)))) {
+                            $timelineMessage = $nickName->nick_name . " changed camp name from " . $preLiveCamp->camp_name . " to " . $liveCamp->camp_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $liveCamp->camp_num, $liveCamp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "update_camp", $liveCamp->id, null, null, null, time(), $timeline_url);
+                        }
+                        //end of timeline
                     }
                     DB::commit();
                     $message = trans('message.success.camp_agree');
