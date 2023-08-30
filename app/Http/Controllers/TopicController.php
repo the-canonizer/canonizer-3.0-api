@@ -761,7 +761,7 @@ class TopicController extends Controller
             'is_submitted' => 1
         ];
 
-        //try {
+        try {
 
             $where = [
                 'id' => $changeId,
@@ -976,10 +976,10 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
-       // } catch (Exception $e) {
+        } catch (Exception $e) {
 
-           // return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        //}
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 
     private function updateTopicsInReview($topic)
