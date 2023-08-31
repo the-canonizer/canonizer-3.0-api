@@ -1485,9 +1485,8 @@ class CampController extends Controller
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
-            } 
-            else if ($all['event_type'] == "update" && array_key_exists("from_test_case", $all)) {
-                if($ifIamSingleSupporter && $all['from_test_case']){
+            } else if ($all['event_type'] == "update") {
+                if ($ifIamSingleSupporter && array_key_exists("from_test_case", $all)) {
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     // $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
                     // $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
@@ -1539,6 +1538,13 @@ class CampController extends Controller
                 //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
                 //     }
                 // }
+
+                // Don't execute jobs in case of test cases.
+                $currentTime = time();
+                $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS');
+                if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
+                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
