@@ -417,6 +417,13 @@ class TopicController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+
+        $iscalledfromService = $request->called_from_service ?? false;
+
+        if ($iscalledfromService && $request->header('Authorization') != 'Bearer: ' . env('API_TOKEN')) {
+            return $this->resProvider->apiJsonResponse(401, 'Unauthorized', '', '');
+        }
+        
         $all = $request->all();
         $type = $all['type'];
         $id = $all['id'];
@@ -425,7 +432,11 @@ class TopicController extends Controller
         $archiveCampSupportNicknames = [];
         try {
             if ($type == 'statement') {
-                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+                $model = Statement::where('id', '=', $id)
+                    ->when(!$iscalledfromService, function ($query) use ($nickNames) {
+                        return $query->whereIn('submitter_nick_id', $nickNames);
+                    })
+                    ->first();
             } else if ($type == 'camp') {
                 $model = Camp::where('id', '=', $id)->first();
             } else if ($type == 'topic') {
@@ -433,6 +444,10 @@ class TopicController extends Controller
             }
             if (!$model) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+
+            if ($iscalledfromService) {
+                $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
 
             $filter['topicNum'] = $model->topic_num;
@@ -473,7 +488,8 @@ class TopicController extends Controller
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
 
             $model->submit_time = time();
-            $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if($ifIamSingleSupporter && !$archiveReviewPeriod) {
 
                 $model->go_live_time = time();
@@ -596,18 +612,6 @@ class TopicController extends Controller
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
 
-                $currentTime = time();
-                $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (24 * 60 * 60) + 10; // 24 hour commit time + 10 seconds for delay job
-                if (($currentTime < $model->go_live_time && $currentTime >= $model->submit_time) && $model->grace_period && $model->objector_nick_id == null) {
-                    Util::dispatchJob($topic, $model->camp_num, 1, $delayCommitTimeInSeconds);
-                    Util::dispatchJob($topic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
-                } else {
-                    if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
-                        Util::dispatchJob($topic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
-                    }
-                }
-
                 $notification_type = config('global.notification_type.campCommit');
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $liveCamp->topic_num, $liveCamp->camp_num, 'camp-commit', null, $nickName->nick_name);
             } else if ($type == 'topic') {
@@ -640,6 +644,12 @@ class TopicController extends Controller
                         //end of timeline
                     } 
                 }
+            }
+
+            $currentTime = time();
+            $delayLiveTimeInSeconds = env('LIVE_TIME_DELAY_IN_SECONDS');
+            if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
+                Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
             }
 
             $notificationData = [
@@ -1207,15 +1217,9 @@ class TopicController extends Controller
 
                 Util::dispatchJob($topic, 1, 1);
                 $currentTime = time();
-                $delayCommitTimeInSeconds = (1 * 60 * 60) + 10; // 1 hour commit time + 10 seconds for delay job
-                $delayLiveTimeInSeconds = (24 * 60 * 60) + 10; // 24 hour commit time + 10 seconds for delay job
+                $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS');
                 if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
                     Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
-                    Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
-                } else {
-                    if ($current_time < $topic->go_live_time && $topic->objector_nick_id == null) {
-                        Util::dispatchJob($topic, 1, 1, $delayLiveTimeInSeconds);
-                    }
                 }
             }
 
