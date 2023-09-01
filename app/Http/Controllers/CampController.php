@@ -1424,7 +1424,9 @@ class CampController extends Controller
             /*if(!$all['is_archive']){ //restore support
                $checkArchiveCampSupporter = Support::checkArchivedCampSupporter();
             }*/
-            
+            $filter['topicNum'] = $all['topic_num'];
+            $filter['campNum'] = $all['camp_num'];
+            $liveCamp = Camp::getLiveCamp($filter);
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
@@ -1462,7 +1464,19 @@ class CampController extends Controller
                 ];
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
+                /** #483 Direct supporter is unable to object the change in archive case */
+                $revokableSupporter = 0;
+                $explicitSupportersCount = 0;
+                if($camp->is_archive != $liveCamp->is_archive && $camp->archive_action_time != 0){
+                    $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$all['topic_num'], [(int)$all['camp_num']])->pluck('nick_name_id')->toArray();
+                    $revokableSupporter = count(array_diff($revokableSupporter, [$all['submitter']]));
+                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter);
+                    $filteredexplicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
+                    $explicitSupportersCount = count(array_diff($filteredexplicitSupporters, [$all['submitter']]));
+                     
+                }
+
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -1471,15 +1485,10 @@ class CampController extends Controller
                 $camp = $this->editCamp($all);
             } 
             
-            $filter['topicNum'] = $all['topic_num'];
-            $filter['campNum'] = $all['camp_num'];
-            $preliveCamp = Camp::getLiveCamp($filter);
+           
 
             $camp->save();
-            $topic = $camp->topic;
-            $filter['topicNum'] = $all['topic_num'];
-            $filter['campNum'] = $all['camp_num'];
-            $liveCamp = Camp::getLiveCamp($filter);
+            $topic = $camp->topic;           
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
