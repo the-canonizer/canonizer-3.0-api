@@ -459,20 +459,20 @@ class TopicController extends Controller
             if ($type == 'camp') {
                
                 $updatedArchiveStatus = $model->is_archive;
-                if ($prevArchiveStatus != $updatedArchiveStatus) {  //need to check if archive = 0 or 1 
+                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
 
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
-                    $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,$updatedArchiveStatus, $updatedArchiveStatus, 'supporters');
+                    $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,$updatedArchiveStatus, 'supporters');
                    foreach ($archiveCampSupportNicknames as $key => $sp) {
                         if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
                             unset($archiveCampSupportNicknames[$key]);
                         }
                     } 
                     
-                    foreach ($explicitArchiveSupporters as $key => $sp) {
-                        if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
+                    foreach ($explicitArchiveSupporters as $key => $xsp) {
+                        if (in_array($xsp->nick_name_id, $nickNames) || $xsp->delegate_nick_name_id != 0){
                             unset($explicitArchiveSupporters[$key]);
                         }
                     } 
