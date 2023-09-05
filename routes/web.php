@@ -151,4 +151,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/images','ImageController@getImages');
     $router->get('/global-search-uploaded-files', 'UploadController@getGlobalSearchUploadedFiles');
     $router->post('/sitemaps', 'SitemapXmlController@index');
+
+    $router->group(['prefix' => 'canonizer/api'], function() use ($router) {
+        $router->post('commit/change','TopicController@commitAndNotifyChange');
+    });
 });

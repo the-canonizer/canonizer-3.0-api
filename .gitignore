@@ -11,3 +11,4 @@ Homestead.yaml
 /storage/oauth-public.key
 /database/mysql-data/
 /public/canonizer_api.json
+.vscode
