@@ -1548,6 +1548,23 @@ class TopicController extends Controller
         
         try{
             $hotTopic= HotTopic::where('active', '1')->orderBy('id', 'DESC')->first();
+            $topicTitle = "";
+            $campTitle = "";
+            if (!empty($hotTopic)) {
+                $filter['topicNum'] = $hotTopic->topic_num;
+                $filter['campNum'] = $hotTopic->camp_num ?? 1;
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($hotTopic->topic_num, ['nofilter' => true]);
+                if (!empty($liveTopic)) {
+                    $topicTitle = $liveTopic->topic_name;
+                }
+                if (!empty ($liveCamp)) {
+                    $campTitle = $liveCamp->camp_name;
+                }
+            }
+            $hotTopic->topic_name = $topicTitle;
+            $hotTopic->camp_name = $campTitle;
+            $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopic, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
