@@ -595,13 +595,17 @@ class SupportController extends Controller
                 $filter['campNum'] = (int)$inputs['camp_num'];
                 $preLiveCamp = Camp::getLiveCamp($filter);
                 if ($model->is_archive != $preLiveCamp->is_archive) {
-                    $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps((int)$inputs['topic_num'], [$model->camp_num])->pluck('nick_name_id')->toArray();
+                    $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps((int)$inputs['topic_num'], [$model->camp_num], $model->is_archive)->pluck('nick_name_id')->toArray();
                     $revokableSupporters = array_diff($revokableSupporters, [$model->submitter_nick_id]); 
                     
+                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter,$model->is_archive, 'supporters')->pluck('nick_name_id')->toArray();
+                    $explicitSupporters = array_diff($explicitSupporters, [$model->submitter_nick_id]);
+
                     $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
-                    
-                    $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters);
-                    $response['total_supporters_count'] += count($revokableSupporters);
+                    $explicitSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $explicitSupporters)->get()->toArray();
+                   
+                    $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters, $explicitSupporters);
+                    $response['total_supporters_count'] = $response['total_supporters_count'] + count($revokableSupporters) + count($explicitSupporters);
                 } else {
                     $revokableSupporters = Support::getAllRevokedSupporters((int)$inputs['topic_num'])->pluck('nick_name_id')->toArray();
                     if ($revokableSupporters) {
