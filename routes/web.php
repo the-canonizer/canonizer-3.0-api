@@ -76,6 +76,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/meta-tags', 'MetaTagController@getMetaTags');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
 
+        //search routes
+        $router->get('/search','SearchController@getSearchResults');
+
     });
 
     //Route Group to access api with user access token
