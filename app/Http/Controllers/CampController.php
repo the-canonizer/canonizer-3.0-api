@@ -1468,9 +1468,9 @@ class CampController extends Controller
                 $revokableSupporter = 0;
                 $explicitSupportersCount = 0;
                 if($camp->is_archive != $liveCamp->is_archive && $camp->archive_action_time != 0){
-                    $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$all['topic_num'], [(int)$all['camp_num']])->pluck('nick_name_id')->toArray();
+                    $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$all['topic_num'], [(int)$all['camp_num']], $camp->is_archive)->pluck('nick_name_id')->toArray();
                     $revokableSupporter = count(array_diff($revokableSupporter, [$all['submitter']]));
-                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter);
+                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter, $camp->is_archive);
                     $filteredexplicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
                     $explicitSupportersCount = count(array_diff($filteredexplicitSupporters, [$all['submitter']]));
                      

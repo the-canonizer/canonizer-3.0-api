@@ -460,24 +460,26 @@ class TopicController extends Controller
             if ($type == 'camp') {
                
                 $updatedArchiveStatus = $model->is_archive;
-                if ($prevArchiveStatus != $updatedArchiveStatus) {
+                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
 
                     $model->archive_action_time = time();
                     // get supporters list
-                    $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num]);
-                    $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,'supporters');
-                    foreach ($archiveCampSupportNicknames as $key => $sp) {
+                    $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
+                    $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,$updatedArchiveStatus, 'supporters');
+                   foreach ($archiveCampSupportNicknames as $key => $sp) {
                         if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
                             unset($archiveCampSupportNicknames[$key]);
                         }
                     } 
                     
-                    foreach ($explicitArchiveSupporters as $key => $sp) {
-                        if (in_array($sp->nick_name_id, $nickNames) || $sp->delegate_nick_name_id != 0){
+                    foreach ($explicitArchiveSupporters as $key => $xsp) {
+                        if (in_array($xsp->nick_name_id, $nickNames) || $xsp->delegate_nick_name_id != 0){
                             unset($explicitArchiveSupporters[$key]);
                         }
                     } 
-                    if(count($archiveCampSupportNicknames) > 0 || count($explicitArchiveSupporters))
+
+                   // echo count($explicitArchiveSupporters);
+                    if(count($archiveCampSupportNicknames) > 0 || count($explicitArchiveSupporters) > 0)
                     {
                         $archiveReviewPeriod = true;
                     }
@@ -891,11 +893,11 @@ class TopicController extends Controller
                         $agreeCount++;
                     }
 
-                     /** Archive and restoration of archive camp #574 */
+                     /**Un-archive and restoration of archive camp and support #574 */
                     if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
                      {
-                        $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']]);
-                        $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,'supporters');
+                        $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']], $camp->is_archive);
+                        $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,$camp->is_archive, 'supporters');
                         
                         foreach($revokableSupporter as $k => $rs)
                         {

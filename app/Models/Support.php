@@ -694,14 +694,19 @@ class Support extends Model
                                 ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
     }
 
-    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps)
+    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps, $updatedArchiveStatus = 1)
     {
-        return self::where('topic_num', '=', $toppicNum)
+        $query = self::where('topic_num', '=', $toppicNum)
                                 ->whereIn('camp_num', $camps)
-                                ->where('end', '!=', 0)
-                                ->where('reason','=','archived')
-                                ->where('archive_support_flag','=',0)
-                                ->groupBy('nick_name_id')->get();
+                                ->where('end', '!=', 0);
+
+        if(!$updatedArchiveStatus){
+            $query = $query->where('reason','=','archived')
+                            ->where('archive_support_flag','=',0);
+        }
+        $supporters = $query->groupBy('nick_name_id')->get();
+
+        return $supporters;
     }
 
     public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
@@ -764,7 +769,7 @@ class Support extends Model
             ->get();
     }
 
-    public static function ifIamArchiveExplicitSupporters($filter, $returnKey = '')
+    public static function ifIamArchiveExplicitSupporters($filter, $updatedArchiveStatus = 1, $returnKey = '')
     {
         Camp::clearChildCampArray();
         $childCamps = [];
@@ -775,12 +780,18 @@ class Support extends Model
             unset($childCamps[$key]);
         }
 
-        $mysupports = Support::where('topic_num', $filter['topicNum'])
+       
+        $query = Support::where('topic_num', $filter['topicNum'])
                         ->whereIn('camp_num', $childCamps)
                         ->where('end', '!=', 0)
-                        ->where('delegate_nick_name_id', '=', 0)
-                        ->where('reason','=','archived')
-                        ->where('archive_support_flag','=',0)->get();
+                        ->where('delegate_nick_name_id', '=', 0);
+                    
+        if(!$updatedArchiveStatus){  // when un-archiving camp
+           $query =  $query->where('reason','=','archived')
+                            ->where('archive_support_flag','=',0);
+        }
+
+        $mysupports = $query->get();              
 
         $returnData = [
             'supporters' => $mysupports,
