@@ -63,7 +63,8 @@ class TimelineJob implements ShouldQueue, Uniqueable
             'old_parent_id'     => $this->canonizerData['old_parent_id'],
             'message'           => $this->canonizerData['message'],
             'type'              => $this->canonizerData['type'],
-            'new_parent_id'     => $this->canonizerData['new_parent_id']
+            'new_parent_id'     => $this->canonizerData['new_parent_id'],
+            'url'               => $this->canonizerData['url']
         ];
         Log::info(json_encode($requestBody));
         Log::info("requestBody");

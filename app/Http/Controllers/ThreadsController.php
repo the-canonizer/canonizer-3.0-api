@@ -199,7 +199,10 @@ class ThreadsController extends Controller
                     'camp_num' =>   $request->camp_num,
                     'user' => $request->user(),
                     'nick_name' => $nickName,
-                    'description' => $request->title
+                    'description' => $request->title,
+                    'topic_name' => $request->topic_name,
+                    'camp_name' => $request->camp_name,
+                    'thread_name' => Util::remove_emoji($request->title)
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Thread'), $thread->id, $nickName);
@@ -402,6 +405,11 @@ class ThreadsController extends Controller
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
             if ($request->type == config('global.thread_type.allThread')) {
                 $threads = $this->getAllThreads($request, $per_page);
+                $threads = Util::getPaginatorResponse($threads);
+                $this->updateThreadsInfo($threads);
+                $status = 200;
+                $message = trans('message.success.success');
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
 
             if (!$request->user()) {
@@ -683,7 +691,10 @@ class ThreadsController extends Controller
                     'camp_num' =>   $request->camp_num,
                     'user' => $request->user(),
                     'nick_name' => Nickname::getNickName($threads->user_id)->nick_name,
-                    'description' => $request->title
+                    'description' => $request->title,
+                    'topic_name' => Util::remove_emoji($request->title),
+                    'camp_name' => $request->camp_name,
+                    'thread_name' => Util::remove_emoji($request->title)
                 ];
                 dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
                 $status = 200;

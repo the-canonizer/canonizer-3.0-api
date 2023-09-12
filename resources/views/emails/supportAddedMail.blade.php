@@ -30,9 +30,15 @@
                         </td>
                     <?php }else{  ?>
                         <td style="padding-top: 0px;  font-weight:400;">
-                            <p> <a target="_blank"
+                            <p> 
+                                {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
+                                {{-- <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
-                                has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b>
+                                has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b> --}}
+
+                                <a target="_blank"
+                                    href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
+                                has added their support to this camp: {!! $data['object'] !!}</b>
                                 
                             </p>
                         </td>
@@ -47,11 +53,11 @@
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                     @foreach ($data['support_list'] as $support)
-                                        <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                        <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                     @endforeach
                                 @else
-                                    <li>You are subscribed to <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
-                                            {{ $data['camp_name'] }} </a></li>
+                                    <li>You are subscribed to <b><a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
+                                            {{ $data['camp_name'] }} </a></b></li>
                                 @endif
                             </ul>
                         @else
@@ -60,16 +66,16 @@
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                     @foreach ($data['support_list'] as $support)
-                                        <li>You are directly supporting {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                        <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                     @endforeach
                                 @else
-                                    <li>You are directly supporting <a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
-                                            {{ $data['camp_name'] }} </a></li>
+                                    <li>You are directly supporting <b><a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
+                                            {{ $data['camp_name'] }} </a></b></li>
                                 @endif
 
                                 @if (isset($data['also_subscriber']) && $data['also_subscriber'] == 1 && isset($data['sub_support_list']) && count($data['sub_support_list']) > 0)
                                     @foreach ($data['sub_support_list'] as $support)
-                                        <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                        <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                     @endforeach
                                 @endif
                             </ul>

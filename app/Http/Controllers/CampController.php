@@ -28,6 +28,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
 
 class CampController extends Controller
 {
@@ -262,7 +263,10 @@ class CampController extends Controller
                 //timeline start
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 $timelineMessage = $nickName . " created a new Camp ". $camp->camp_name;
-                Util::dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="create_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null);    
+
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "create_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+                        
+                Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "create_camp", $camp->camp_num, null, null, null, time(), $timeline_url);    
                 //end of timeline
 
                 $camp_id = $camp->camp_num ?? 1;
@@ -276,7 +280,8 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
+                        "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>'),
+                        // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
@@ -393,6 +398,11 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
+            }
+
+            if ($livecamp && $filter['asOf'] === 'default') {
+                $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
+                $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -591,19 +601,8 @@ class CampController extends Controller
             } else {
                 $asOfDate = time();
             }
-            $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
-            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
-            ->where('go_live_time', '>', $asOfDate)
-            ->where('objector_nick_id', NULL)
-            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
 
-            if(!empty($parentChangedInReviewCamps)){
-                foreach($result as $key => $parent){ 
-                    if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
-                        $parent->parent_change_in_review =  true;
-                    }
-                }
-            }
+            $result = $this->inReviewCampsFilter($result, $request, $asOfDate);            
 
             $data = $result;
             $status = 200;
@@ -1425,7 +1424,9 @@ class CampController extends Controller
             /*if(!$all['is_archive']){ //restore support
                $checkArchiveCampSupporter = Support::checkArchivedCampSupporter();
             }*/
-            
+            $filter['topicNum'] = $all['topic_num'];
+            $filter['campNum'] = $all['camp_num'];
+            $liveCamp = Camp::getLiveCamp($filter);
          
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
@@ -1449,7 +1450,7 @@ class CampController extends Controller
                 // }
             }
             if ($all['event_type'] == "objection") {
-                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
+                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 // // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 // $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
                 //     'topicNum' => $all['topic_num'],
@@ -1463,7 +1464,19 @@ class CampController extends Controller
                 ];
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if(!$checkIfIAmExplicitSupporter){
+                /** #483 Direct supporter is unable to object the change in archive case */
+                $revokableSupporter = 0;
+                $explicitSupportersCount = 0;
+                if($camp->is_archive != $liveCamp->is_archive && $camp->archive_action_time != 0){
+                    $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$all['topic_num'], [(int)$all['camp_num']], $camp->is_archive)->pluck('nick_name_id')->toArray();
+                    $revokableSupporter = count(array_diff($revokableSupporter, [$all['submitter']]));
+                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter, $camp->is_archive);
+                    $filteredexplicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
+                    $explicitSupportersCount = count(array_diff($filteredexplicitSupporters, [$all['submitter']]));
+                     
+                }
+
+                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
@@ -1472,24 +1485,17 @@ class CampController extends Controller
                 $camp = $this->editCamp($all);
             } 
             
-            $filter['topicNum'] = $all['topic_num'];
-            $filter['campNum'] = $all['camp_num'];
-            $preliveCamp = Camp::getLiveCamp($filter);
+           
 
             $camp->save();
-           // echo "<pre>"; print_r($camp);
-            $topic = $camp->topic;
-            $filter['topicNum'] = $all['topic_num'];
-            $filter['campNum'] = $all['camp_num'];
-            $liveCamp = Camp::getLiveCamp($filter);
+            $topic = $camp->topic;           
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
-            } 
-            else if ($all['event_type'] == "update" && array_key_exists("from_test_case", $all)) {
-                if($ifIamSingleSupporter && $all['from_test_case']){
+            } else if ($all['event_type'] == "update") {
+                if ($ifIamSingleSupporter && array_key_exists("from_test_case", $all)) {
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     // $beforeUpdateCamp = Util::getCampByChangeId($all['camp_id']);
                     // $before_parent_camp_num = $beforeUpdateCamp->parent_camp_num;
@@ -1510,7 +1516,10 @@ class CampController extends Controller
                 // //timeline start
                 // $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 // if($all['parent_camp_num']!=$all['old_parent_camp_num']){
-                //     Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll = 1, $message =$nickName . " changed the parent of camp   ". $camp->camp_name, $type="parent_change", $id=$camp->id, $old_parent_id=$all['old_parent_camp_num'], $new_parent_id=$all['parent_camp_num']);    
+
+                 //    $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                //     Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " changed the parent of camp   " . $camp->camp_name, "parent_change", $camp->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);    
                 // }
                 // //end of timeline
 
@@ -1519,7 +1528,10 @@ class CampController extends Controller
                 //     $old_camp = Camp::where('id', $all['camp_id'])->first();
                 //     if(Util::remove_emoji(strtolower(trim($old_camp['camp_name']))) != Util::remove_emoji(strtolower(trim($all['camp_name'])))){
                 //         $timelineMessage = $nickName . " changed camp name from ". $old_camp['camp_name']. " to ".$camp->camp_name;
-                //         Util::dispatchTimelineJob($topic, $camp->camp_num, $updateAll =1, $message =$timelineMessage, $type="update_camp", $id=$camp->id, $old_parent_id=null, $new_parent_id=null);   
+
+                //         $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+                
+                //         Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "update_camp", $camp->id, null, null, null, time(), $timeline_url);   
                 //     }
                 // }
                 // //end of timeline
@@ -1535,6 +1547,13 @@ class CampController extends Controller
                 //         Util::dispatchJob($topic, $camp->camp_num, 1, $delayLiveTimeInSeconds, $camp->id);
                 //     }
                 // }
+
+                // Don't execute jobs in case of test cases.
+                $currentTime = time();
+                $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS');
+                if (($currentTime < $camp->go_live_time && $currentTime >= $camp->submit_time) && $camp->grace_period && $camp->objector_nick_id == null) {
+                    Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -1613,7 +1632,8 @@ class CampController extends Controller
         $data['topic_link'] = $link;
         $data['type'] = "Camp";
         $data['object_type'] = "";
-        $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
+        // $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
+        $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, '>>');
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
@@ -1633,5 +1653,33 @@ class CampController extends Controller
         } catch (\Swift_TransportException $e) {
             throw new \Swift_TransportException($e);
         }
+    }
+
+    private function inReviewCampsFilter($result, $request, $asOfDate)
+    {
+        $parentChangedInReviewCamps = Camp::where('topic_num','=', $request->topic_num)
+            ->whereColumn('parent_camp_num', '!=', 'old_parent_camp_num')
+            ->where('go_live_time', '>', $asOfDate)
+            ->where('objector_nick_id', NULL)
+            ->where('submit_time', '<=', $asOfDate)->pluck('camp_num')->toArray();
+
+        if(!empty($parentChangedInReviewCamps)){
+            $childOfInReviewCampsList= [];
+            foreach($parentChangedInReviewCamps as $inReviewCampNum){
+                $camp = Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $inReviewCampNum, 'asOf' => 'default']);
+                $childOfInReviewCamps = array_unique(Camp::getAllLiveChildCamps($camp, $includeLiveCamps=true));
+                $childOfInReviewCampsList = array_merge($childOfInReviewCampsList, $childOfInReviewCamps);
+            }
+            foreach($result as $key => $parent){ 
+                if(in_array($parent->camp_num, $parentChangedInReviewCamps)){
+                    $parent->parent_change_in_review =  true;
+                }
+                if(in_array($parent->camp_num, $childOfInReviewCampsList)){
+                    $parent->parent_change_in_review =  true;
+                }
+            }
+        }
+
+        return $result;
     }
 }

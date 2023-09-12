@@ -589,6 +589,36 @@ class SupportController extends Controller
 
             $response = [];
             [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time, ['topicNum' => $inputs['topic_num'], 'campNum' => $inputs['camp_num']]);
+            
+            if ($inputs['type'] == 'camp') {
+                $filter['topicNum'] = (int)$inputs['topic_num'];
+                $filter['campNum'] = (int)$inputs['camp_num'];
+                $preLiveCamp = Camp::getLiveCamp($filter);
+                if ($model->is_archive != $preLiveCamp->is_archive) {
+                    $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps((int)$inputs['topic_num'], [$model->camp_num], $model->is_archive)->pluck('nick_name_id')->toArray();
+                    $revokableSupporters = array_diff($revokableSupporters, [$model->submitter_nick_id]); 
+                    
+                    $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter,$model->is_archive, 'supporters')->pluck('nick_name_id')->toArray();
+                    $explicitSupporters = array_diff($explicitSupporters, [$model->submitter_nick_id]);
+
+                    $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
+                    $explicitSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $explicitSupporters)->get()->toArray();
+                   
+                    $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters, $explicitSupporters);
+                    $response['total_supporters_count'] = $response['total_supporters_count'] + count($revokableSupporters) + count($explicitSupporters);
+                } else {
+                    $revokableSupporters = Support::getAllRevokedSupporters((int)$inputs['topic_num'])->pluck('nick_name_id')->toArray();
+                    if ($revokableSupporters) {
+                        $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
+                        $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters);
+
+                        $response['total_supporters'] = array_map("unserialize", array_unique(array_map("serialize", $response['total_supporters'])));
+
+                        $response['total_supporters_count'] = count($response['total_supporters']);
+                    }
+                }
+            }
+
             [$response['agreed_supporters'], $response['agreed_supporters_count']] = ChangeAgreeLog::getAgreedSupporter((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->id, $inputs['type'], $model->submitter_nick_id, $model->submit_time);
 
             $response = $this->checkAgreedSupporters($response, $isChangeLive);

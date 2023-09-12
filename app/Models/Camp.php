@@ -647,8 +647,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
-
-
+               
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -661,6 +660,19 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->where('change_id', '=', $val->id)
                         ->exists(); 
                         $val->status = "in_review";
+                        
+                        if($val->is_archive == 0 && ($val->archive_action_time != 0 || $liveCamp->is_archive === 1)){ 
+                            $val->ifIamSupporter = Support::checkIfArchiveSupporter($filter['topicNum'], $nickNames);
+                            $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter);
+                            $val->ifIAmExplicitSupporter =  $explicitSupporters['ifIamExplicitSupporter'];
+                            $filteredexplicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
+
+                            // update total supporters count for archived supporters 
+                            $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']])->pluck('nick_name_id')->toArray();
+                            $revokableSupporter = count(array_diff($revokableSupporter, [$val->submitter_nick_id]));
+                            $explicitSupportersCount = count(array_diff($filteredexplicitSupporters, [$val->submitter_nick_id]));
+                            $val->total_supporters = $val->total_supporters + $revokableSupporter + $explicitSupportersCount;
+                        }
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":
                         $val->status = "live";
@@ -898,6 +910,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->latest('submit_time')
                         ->first();
             $camp->is_archive = $isArchive;
+            $camp->archive_action_time = 0;    // when change is agreed, revert archive_action to default state
             $camp->direct_archive = $directArchive;
             $camp->update();
         }
