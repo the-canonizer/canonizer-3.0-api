@@ -41,7 +41,8 @@ class ActivityLoggerJob implements ShouldQueue
                 'url' => $this->data['url'],
                 'description' => $this->data['description'],
                 'topic_name' => $this->data['topic_name'] ?? null,
-                'camp_name' => $this->data['camp_name'] ?? null
+                'camp_name' => $this->data['camp_name'] ?? null,
+                'thread_name' => $this->data['thread_name'] ?? null
             ])
             ->log($this->data['activity']);
 

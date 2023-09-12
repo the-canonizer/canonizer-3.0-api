@@ -590,7 +590,7 @@ class Util
      * @param object $topic
      * @return void
      */
-    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null) {
+    public function dispatchTimelineJob($topic_num, $campNum = 1, $updateAll = 0, $message=null, $type=null,$id=null,$old_parent_id=null, $new_parent_id=null,$delay=null,$asOfDefaultDate=null, $timeline_url=null) {
 
       
         try{
@@ -611,20 +611,21 @@ class Util
                 'new_parent_id' => $new_parent_id,
                 'isUniqueJob' => false,
                 'endpointCSStore' => env('CS_STORE_TIMELINE'),
-                'id' => $id
+                'id' => $id,
+                'url'=>$timeline_url
             ];
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
                 $delayTime = Carbon::now()->addSeconds($delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
-            Log::info($canonizerServiceData);
-            Log::info("canonizerServiceData");
+            //Log::info($canonizerServiceData);
+            //Log::info("canonizerServiceData");
            
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
-            if($topic->topic_num == config('global.mind_expert_topic_num')) {
-                $camp = Camp::where('topic_num', $topic->topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
+            if($topic_num == config('global.mind_expert_topic_num')) {
+                $camp = Camp::where('topic_num', $topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
                 if(!empty($camp)) {
                     // Get submitter nick name id
                     $submitterNickNameID = $camp->camp_about_nick_id;
@@ -632,7 +633,7 @@ class Util
                     foreach($affectedTopicNums as $affectedTopicNum) {
                         $topic = Topic::where('topic_num', $affectedTopicNum)->get()->last();
                         $canonizerServiceData = [
-                            'topic_num' => $topic->topic_num,
+                            'topic_num' => $topic_num,
                             'algorithm' => $selectedAlgo,
                             'asOfDate'  => $asOfDefaultDate,
                             'asOf'      => $asOf,
@@ -643,7 +644,8 @@ class Util
                             'old_parent_id' => $old_parent_id,
                             'new_parent_id' => $new_parent_id,
                             'endpointCSStore' => env('CS_STORE_TIMELINE'),
-                            'id' => $id
+                            'id' => $id,
+                            'url'=>$timeline_url
                         ];
                         // Dispact job when create a camp
                         dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
@@ -651,7 +653,7 @@ class Util
                 }
             }
         } catch(Exception $ex) {
-            Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
+            Log::error("Util :: dispatchTimelineJob :: message: ".$ex->getMessage());
         }
         
     }
@@ -659,7 +661,7 @@ class Util
     /**
      * camp Archive
      */
-    public function updateArchivedCampAndSupport($camp, $archiveFlag = null)
+    public function updateArchivedCampAndSupport($camp, $archiveFlag = null,  $preArchiveStatus = null)
     {
         $allchilds = Camp::getAllLiveChildCamps($camp, True);
         if($archiveFlag === 1){            
@@ -679,12 +681,18 @@ class Util
             //dispatch job
             Util::dispatchJob($camp->topic_num, 1, 1);
 
-            //timeline start
-            $topic = Topic::getLiveTopic($camp->topic_num, 'default');
-            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
-            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="archive_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
+            if($archiveFlag!=$preArchiveStatus){
+                //timeline start
+                $topic = Topic::getLiveTopic($camp->topic_num, 'default');
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " archived a camp " . $camp->camp_name;
+                $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+
+                $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "archive_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "archive_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
+                //end timeline 
+            }
         }
 
         if($archiveFlag === 0){
@@ -694,7 +702,62 @@ class Util
             Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
             
-            if(count($supporterNickNames)){
+            if(count($supportToBeRevoked)){
+                foreach($supportToBeRevoked as $sp)
+                {   $supportOrder = 0;
+                    $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
+                    if(!empty($lastSupportOrder)){
+                            $supportOrder =  $lastSupportOrder->support_order + 1; 
+                    }else{
+                            $supportOrder =  1; 
+                    }
+                    $delegatedNickNameId = $sp->delegate_nick_name_id; 
+                    TopicSupport::addSupport($sp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
+                    Util::dispatchJob($camp->topic_num, 1, 1);
+                    
+                   //send email
+                    $user = Nickname::getUserByNickName($sp->nick_name_id);
+                    $nickname =  Nickname::getNickName($sp->nick_name_id);
+                    $topicNum = $camp->topic_num;
+                    $campNum = $camp->camp_num;
+                    $topicFilter = ['topicNum' => $topicNum];
+                    $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+                    $topic = Camp::getAgreementTopic($topicFilter);
+                                        
+                    $object = $topic->topic_name ." >> ".$camp->camp_name;
+                    $topicLink  =  Topic::topicLink($topic->topic_num, 1, $topic->title);
+                    $campLink   =  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
+                    $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
+                    $data['object']     = $object;
+                    $data['subject']    = "Camp Unarchived - " . $object. ".";
+                    $data['topic']      = $topic;
+                    $data['camp']       = $camp;
+                    $data['camp_name']  = $camp->camp_name;
+                    $data['topic_name'] = $topic->topic_name;
+                    $data['topic_num']  = $topic->topic_num;
+                    $data['camp_num']   = $camp->camp_num;
+                    $data['topic_link'] = $topicLink;
+                    $data['camp_link']  = $campLink;   
+                    $data['camp_url']   = $campLink;
+                    $data['url_portion'] =  $seoUrlPortion;
+                    $data['nick_name_id'] = $nickname->id;
+                    $data['nick_name'] = $nickname->nick_name;
+                    $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
+                    $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
+                    $data['support_action'] = 'add'; //default will be 'added'       
+
+
+                                      
+                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
+                    Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
+                }
+            }
+
+
+
+
+
+            /*if(count($supporterNickNames)){
                 foreach($supporterNickNames as $sp)
                 {
                     $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
@@ -749,16 +812,63 @@ class Util
                     $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
                 }
+            }*/
+
+            //end old support permanently
+            Support::setSupportToIrrevokable($camp->topic_num, $allchilds, true);
+            if($archiveFlag!=$preArchiveStatus){
+                //timeline start
+                $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
+                $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
+                $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
+                $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
+
+                $timeline_url = $this->getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "unarchived_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "unarchived_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
             }
-            //timeline start
-            $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
-            $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
-            $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
-            $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
-            $this->dispatchTimelineJob($topic_num = $topic->topic_num, $camp->camp_num, 1, $message =$timelineMessage, $type="unarchived_camp", $id=$camp->camp_num, $old_parent_id=null, $new_parent_id=null,$delayCommitTimeInSeconds);   
-            
         }
 
         return;
     } 
+
+     /**
+     * Get the url.
+     *
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     * @param boolean $isReview
+     *
+     * @return string url
+     */
+
+    public function getTimelineUrlgetTimelineUrl($topic_num, $topic_name, $camp_num, $camp_name, $topicTitle, $type, $rootUrl, $namespaceId, $topicCreatedByNickId)
+    {
+        try {
+            $topic_name =isset($topic_name)?$topic_name:$topicTitle;
+            $camp_num =isset($camp_num)?$camp_num:1;
+            $camp_name =isset($camp_name)?$camp_name:"Agreement";
+            if($type =="create_topic" || $type =="create_camp" || $type =="parent_change"){
+                $urlPortion =  '/topic/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name) . '/' . $camp_num . '-' . $this->replaceSpecialCharacters($camp_name);
+
+            }
+            else if($type =="update_topic"){
+                $urlPortion =  '/topic/history/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name);
+
+            }
+            else if($type =="update_camp"){
+                $urlPortion =  '/camp/history/' . $topic_num . '-' . $this->replaceSpecialCharacters($topic_name). '/' . $camp_num . '-' . $this->replaceSpecialCharacters($camp_name);
+
+            }
+            else{
+                $urlPortion = '/user/supports/' . $topicCreatedByNickId.'?topicnum='. $topic_num .'&campnum='. $camp_num .'&canon='.$namespaceId;
+
+            }
+            return $urlPortion;
+
+        } catch (CampURLException $th) {
+             throw new CampURLException("URL Exception");
+         }
+    }
 }

@@ -195,6 +195,8 @@ class ReplyController extends Controller
 
     private function createOrUpdatePostActivityLog($thread, $nickName, $link, $request, $update = false)
     {
+        $threadTitle = Thread::where("id", $request->thread_id)->pluck("title")->toArray();
+        
         $activitLogData = [
             'log_type' =>  "threads",
             'activity' => trans('message.activity_log_message.post_create', ['nick_name' => $nickName]),
@@ -205,6 +207,7 @@ class ReplyController extends Controller
             'user' => $request->user(),
             'nick_name' => $nickName,
             'description' =>  $request->body,
+            'thread_name' => $threadTitle[0] ?? null
         ];
 
         if($update) {

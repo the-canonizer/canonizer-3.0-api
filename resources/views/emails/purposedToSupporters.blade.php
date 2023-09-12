@@ -20,7 +20,8 @@
                 <tr>
                     <td style="padding:10px 0px 10px;">
                         <p>
-                            <a target="_blank"
+                            {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
+                            {{-- <a target="_blank"
                                 href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
                             has proposed a change to this {{ $data['type'] }} <a
                                 href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a>
@@ -31,7 +32,21 @@
                                 <a href="{{ \App\Facades\Util::linkForEmail($link) }}">{{ $data['object'] }} </a> object to this change,
                                 it will go live in one day / 24 hours
                                 <br>
+                            @endif --}}
+
+                            <a target="_blank"
+                                href="<?= \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') .'/user/supports/'. $data['nick_name_id'] . '?topicnum=&campnum=&canon=' . $data['namespace_id']) ?>">{{ $data['nick_name'] }}</a>
+                            has <a href="{{ \App\Facades\Util::linkForEmail($link) }}">proposed a change</a> to this {{ $data['type'] }} <b>{!! $data['object'] !!}</b>
+                            @if (empty($data['is_live']) || $data['is_live'] != 1)
+                                which you currently
+                                {{ isset($data['subscriber']) && $data['subscriber'] == 1 ? 'subscribed' : 'directly support' }}.
+                                If no supporters of this {{ $data['type'] }}
+                                {!! $data['object'] !!} object to this change,
+                                it will go live in one day / 24 hours
+                                <br>
                             @endif
+
+                            
                             @if (!empty($data['note']))
                                 <p>Edit summary : {{ $data['note'] }}</p>
                             @endif
@@ -42,11 +57,11 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @else
-                                        <li>You are subscribed to <a href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
-                                                {{ $data['camp_name'] }} </a></li>
+                                        <li>You are subscribed to <b><a href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
+                                                {{ $data['camp_name'] }} </a></b></li>
                                     @endif
 
                                 </ul>
@@ -55,12 +70,12 @@
                                 <ul style="margin-left: 45px;">
                                     @if (isset($data['support_list']) && count($data['support_list']) > 0)
                                         @foreach ($data['support_list'] as $support)
-                                            <li>You are directly supporting {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @else
-                                        <li>You are directly supporting <a
+                                        <li>You are directly supporting <b><a
                                                 href="{{ \App\Facades\Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/' . $data['camp_url']) }}">
-                                                {{ $data['camp_name'] }} </a></li>
+                                                {{ $data['camp_name'] }} </a></b></li>
                                     @endif
 
                                     @if (isset($data['also_subscriber']) &&
@@ -68,7 +83,7 @@
                                         isset($data['sub_support_list']) &&
                                         count($data['sub_support_list']) > 0)
                                         @foreach ($data['sub_support_list'] as $support)
-                                            <li>You are subscribed to {!!  \App\Facades\Util::linkForEmail($support) !!}</li>
+                                            <li>You are subscribed to <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                         @endforeach
                                     @endif
 

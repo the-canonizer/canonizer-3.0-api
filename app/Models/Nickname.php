@@ -107,6 +107,13 @@ class Nickname extends Model {
       return [];
    }
 
+    public static function personAllNicknamesByAnyNickId($nick_id)
+    {
+        $encode = Util::canon_encode($nick_id);
+
+        return DB::table('nick_name')->select('id', 'nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->get();
+    }
+
    public static function topicNicknameUsed($topic_num)
     {
         $personNicknameArray = self::personNicknameArray();

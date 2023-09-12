@@ -333,7 +333,6 @@ class Support extends Model
             ->where('end', '=', 0)
             ->get()->pluck('nick_name_id')->toArray();
         
-            
         // Also include explicit support count in total...
         if(count($additionalFilter)) {
             $nickNames = Nickname::personNicknameArray();
@@ -572,7 +571,7 @@ class Support extends Model
 
         $query->where('topic_num', $filter['topicNum']);
 
-        if (count($childCamps) > 0)
+        // if (count($childCamps) > 0)
             $query->whereIn('camp_num', $childCamps);
 
         if (!$includeImplicitSupporters) {
@@ -695,14 +694,19 @@ class Support extends Model
                                 ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
     }
 
-    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps)
+    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps, $updatedArchiveStatus = 1)
     {
-        return self::where('topic_num', '=', $toppicNum)
+        $query = self::where('topic_num', '=', $toppicNum)
                                 ->whereIn('camp_num', $camps)
-                                ->where('end', '!=', 0)
-                                ->where('reason','=','archived')
-                                ->where('archive_support_flag','=',0)
-                                ->groupBy('nick_name_id')->get();
+                                ->where('end', '!=', 0);
+
+        if(!$updatedArchiveStatus){
+            $query = $query->where('reason','=','archived')
+                            ->where('archive_support_flag','=',0);
+        }
+        $supporters = $query->groupBy('nick_name_id')->get();
+
+        return $supporters;
     }
 
     public static function getLastSupportOrderInTopicByNickId($topicNum, $nickId)
@@ -730,7 +734,8 @@ class Support extends Model
     }
 
     /**
-     * On Unarchive check which camps support needs to be revoked
+     *
+     *  On Unarchive check which camps support needs to be revoked
      */
     public static function getSupportToBeRevoked($toppicNum)
     {
@@ -738,7 +743,64 @@ class Support extends Model
                                 ->where('end', '!=', 0)
                                 ->where('reason','=','archived')
                                 ->where('archive_support_flag','=',0)
-                                ->groupBy('camp_num')->get();
+                                ->orderBy('support_order', 'ASC')
+                                ->get();
     }
 
+    public static function checkIfArchiveSupporter($toppicNum, $nickNames)
+    {
+        $support = self::where('topic_num', '=', $toppicNum)
+                                ->where('end', '!=', 0)
+                                ->whereIn('nick_name_id', $nickNames)
+                                ->where('reason','=','archived')
+                                ->where('archive_support_flag','=',0)->first();
+
+        return !empty($support) ? $support->nick_name_id : 0;
+    }
+
+    public static function getAllRevokedSupporters($toppicNum)
+    {
+        return self::where('topic_num', '=', $toppicNum)
+            ->where('end', 0)
+            ->where('reason', '=', 'unarchived')
+            ->where('archive_support_flag', '=', 0)
+            ->orderBy('support_order', 'ASC')
+            // ->groupBy('camp_num')
+            ->get();
+    }
+
+    public static function ifIamArchiveExplicitSupporters($filter, $updatedArchiveStatus = 1, $returnKey = '')
+    {
+        Camp::clearChildCampArray();
+        $childCamps = [];
+        $liveCamp = Camp::getLiveCamp($filter);
+        $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
+        $key = array_search($liveCamp->camp_num, $childCamps, true);
+        if ($key !== false) {
+            unset($childCamps[$key]);
+        }
+
+       
+        $query = Support::where('topic_num', $filter['topicNum'])
+                        ->whereIn('camp_num', $childCamps)
+                        ->where('end', '!=', 0)
+                        ->where('delegate_nick_name_id', '=', 0);
+                    
+        if(!$updatedArchiveStatus){  // when un-archiving camp
+           $query =  $query->where('reason','=','archived')
+                            ->where('archive_support_flag','=',0);
+        }
+
+        $mysupports = $query->get();              
+
+        $returnData = [
+            'supporters' => $mysupports,
+            'supporter_count' => count($mysupports) ?? 0,
+            'ifIamExplicitSupporter' => (count($mysupports)) ? true : false,
+        ];
+        
+        if (strlen($returnKey) > 0)
+            return $returnData[$returnKey];
+        return $returnData;
+    }
 }
