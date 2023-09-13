@@ -138,7 +138,7 @@ class ActivityController extends Controller
         }
         try {
             $data = [];
-            if ($request->is_admin_show_all && $request->is_admin_show_all == 'all') {
+            if ($request->is_admin_show_all && trim(strtolower($request->is_admin_show_all)) == 'all') {
                 $perPage = $request->per_page ?? config('global.per_page');
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
                 $data = Util::getPaginatorResponse($log);
