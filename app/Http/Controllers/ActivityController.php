@@ -137,14 +137,13 @@ class ActivityController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
+            $data = [];
             if ($request->is_admin_show_all && $request->is_admin_show_all == 'all') {
                 $perPage = $request->per_page ?? config('global.per_page');
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
-                $log = Util::getPaginatorResponse($log);
+                $data = Util::getPaginatorResponse($log);
             } else {
-                $data = [];
                 $count = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->count();
-                // dd($count);
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();
                 $is_show_all_btn = false;
                 if ($count > 10) {
