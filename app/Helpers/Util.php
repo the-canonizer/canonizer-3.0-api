@@ -351,6 +351,11 @@ class Util
             if(preg_match('/sandbox testing/i',$namespace->name)){
                 $subject = 'canon >> sandbox testing';
             }
+            if($subject == 'canon/sandbox testing'){
+                $subject = str_replace("canon/sandbox testing", "canon >> sandbox testing", $subject);
+            }else if($subject == 'canon/sandbox'){
+                $subject = str_replace("canon/sandbox", "canon >> sandbox", $subject);
+            }
             if(env('APP_ENV') == 'staging'){
                 return '[staging.' . $subject . ']';
             }
