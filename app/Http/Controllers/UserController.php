@@ -259,7 +259,7 @@ class UserController extends Controller
                 'remoteip' => $request->ip()
             ];
             $validateRecaptcha = Util::httpPost($postUrl, $payload);
-            if ($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) {
+            if (($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) && !app()->environment('testing')) {
                 $status = 406;
                 $message = "The reCAPTCHA verification failed, please try again.";
                 if ($validateRecaptcha->status_code != 200) {
