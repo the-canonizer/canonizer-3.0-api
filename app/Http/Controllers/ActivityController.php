@@ -89,6 +89,10 @@ class ActivityController extends Controller
             if (!$request->is_admin_show_all && !$topicNum) {
                 $log->where('user_id', $request->user()->id);
             }
+            if ($request->is_admin_show_all) {
+                if ($request->is_admin_show_all == 'all')
+                    $log->groupBy('activity_id');
+            }
             $log = $log->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
