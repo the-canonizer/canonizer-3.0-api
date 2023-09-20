@@ -25,7 +25,7 @@
                         <p style="margin-bottom: 15px;">
                             <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['nickname_url']) }}">{{ $data['nick_name']->nick_name }}</a> {{ $data['post_type'] }}
                             the following post to the Camp
-                            <a href="{{ \App\Facades\Util::linkForEmail($data['camp_url']) }}"> {{ $data['camp_name'] }} </a> forum:
+                            <a href="{{ \App\Facades\Util::linkForEmail($data['camp_url']) }}"> <b>{{ $data['camp_name'] }}</b> </a> forum:
 
                         </p>
 

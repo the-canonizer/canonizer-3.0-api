@@ -1488,7 +1488,8 @@ class CampController extends Controller
            
 
             $camp->save();
-            $topic = $camp->topic;           
+            $topic = $camp->topic;
+            $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update   
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
           
             if ($all['event_type'] == "objection") {
