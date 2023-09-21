@@ -444,13 +444,17 @@ class ProfileController extends Controller
      /**
      * @OA\Post(path="/user/supports/{id}",
      */
-    public function getUserSupports(Request $request, $id)
+    public function getUserSupports(Request $request, $id, Validate $validate)
     {
         $nickName = Nickname::find($id);
         $data = [];
         try{
             if(isset($nickName) && !empty($nickName))
             {
+                $validationErrors = $validate->validate($request, $this->rules->getUserSupportsValidationRules(), $this->validationMessages->getUserSupportsMessages());
+                if( $validationErrors ){
+                    return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+                }
                 $all = $request->all();
                 $topicNum = isset($all['topicnum']) ? $all['topicnum'] : '';
                 $campNum = isset($all['campnum']) ? $all['campnum'] : '';

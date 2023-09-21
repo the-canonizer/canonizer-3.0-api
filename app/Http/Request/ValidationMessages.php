@@ -672,4 +672,11 @@ class ValidationMessages
             'type.required' => trans('message.validation_change_supporters.type_in'),
         ];
     }
+
+    public function getUserSupportsMessages(): array
+    {
+        return ([
+            'namespace.integer' => trans('message.general.namespace_should_numeric'),
+        ]);
+    }
 }
