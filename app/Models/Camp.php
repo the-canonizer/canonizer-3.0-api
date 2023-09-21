@@ -630,7 +630,10 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 *   Now support at the time of submition will be count as total supporter. 
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
-                $val->total_supporters = Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
+                $supportersByTimeStamp =  Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter);
+                $val->total_supporters = $supportersByTimeStamp[1];
+
+                $supportersListByTimeStamp = $supportersByTimeStamp[0];
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)
@@ -660,18 +663,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                         ->where('change_id', '=', $val->id)
                         ->exists(); 
                         $val->status = "in_review";
-                        
-                        if($val->is_archive == 0 && ($val->archive_action_time != 0 || $liveCamp->is_archive === 1)){ 
+                        if($val->is_archive == 0 && ($val->archive_action_time != 0 || $liveCamp->is_archive === 1)){
                             $val->ifIamSupporter = Support::checkIfArchiveSupporter($filter['topicNum'], $nickNames);
                             $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter);
                             $val->ifIAmExplicitSupporter =  $explicitSupporters['ifIamExplicitSupporter'];
-                            $filteredexplicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
-
-                            // update total supporters count for archived supporters 
-                            $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']])->pluck('nick_name_id')->toArray();
-                            $revokableSupporter = count(array_diff($revokableSupporter, [$val->submitter_nick_id]));
-                            $explicitSupportersCount = count(array_diff($filteredexplicitSupporters, [$val->submitter_nick_id]));
-                            $val->total_supporters = $val->total_supporters + $revokableSupporter + $explicitSupportersCount;
+                            $explicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
+                            $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']], 1, true)->pluck('nick_name_id')->toArray();
+                            $archiveSupporters = Support::filterArchivedSupporters($revokableSupporter, $explicitSupporters, $val->submitter_nick_id, $supportersListByTimeStamp);
+                            $val->total_supporters = $val->total_supporters + count($archiveSupporters['direct_supporters']) + count($archiveSupporters['explicit_supporters']);
                         }
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":

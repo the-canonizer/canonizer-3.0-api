@@ -78,6 +78,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/hot-topic', 'TopicController@hotTopic');
 
 
+        //search routes
+        $router->get('/search','SearchController@getSearchResults');
+
     });
 
     //Route Group to access api with user access token
