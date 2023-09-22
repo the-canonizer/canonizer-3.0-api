@@ -697,14 +697,15 @@ class Support extends Model
     public static function getSupportersNickNameOfArchivedCamps($topicNum, $camps, $updatedArchiveStatus = 1, $directSupport = 0)
     {
         $query = self::where('topic_num', '=', $topicNum)
-                                ->whereIn('camp_num', $camps)
-                                ->where('end', '=', 0);
+                                ->whereIn('camp_num', $camps);
                                 
 
         if(!$updatedArchiveStatus){
             $query->where('reason','=','archived')
                    ->where('end', '!=', 0)
                    ->where('archive_support_flag','=',0);
+        }else{
+            $query->where('end', '=', 0);
         }
 
         if($directSupport)
@@ -789,13 +790,14 @@ class Support extends Model
 
        
         $query = Support::where('topic_num', $filter['topicNum'])
-                        ->whereIn('camp_num', $childCamps)
-                        ->where('end', '!=', 0)
+                        ->whereIn('camp_num', $childCamps)                       
                         ->where('delegate_nick_name_id', '=', 0);
                     
         if(!$updatedArchiveStatus){  // when un-archiving camp
            $query =  $query->where('reason','=','archived')
                             ->where('archive_support_flag','=',0);
+        }else{
+            $query->where('end', '!=', 0);
         }
 
         $mysupports = $query->get();              
