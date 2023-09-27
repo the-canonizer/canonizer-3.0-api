@@ -66,7 +66,8 @@ return [
         'support_added' => "Support added",
         'support_removed' => "Support removed",
         'support_delegated' => "Support delegated",
-        'default_support_added_reason' => "Default Support added on agreement"
+        'default_support_added_reason' => "Default Support added on agreement",
+        "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',

@@ -131,8 +131,13 @@ class StoreStatementApiTest extends TestCase
             "statement" => "statement",
             "event_type" => "objection",
             "objection_reason" => "reason",
-            "statement_id" => "1",
+            "statement_id" => "4952",
         ];
+
+        $statement = Statement::where([
+            ['topic_num', $validData['topic_num']],
+            ['camp_num', $validData['camp_num']]
+        ])->latest('submit_time')->first();
 
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
@@ -144,7 +149,7 @@ class StoreStatementApiTest extends TestCase
             'topic_num' => 47,
             'camp_num'  =>  1,
             'support_order' =>  1,
-            'start' => time(),
+            'start' => $statement->submit_time - 10,
             'end' => 0,
         ]);
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
