@@ -34,6 +34,7 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
 {
@@ -492,11 +493,16 @@ class TopicController extends Controller
 
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            Log::info('<===============================>');
+            Log::info('ifIamSingleSupporter => '. $ifIamSingleSupporter);
+            Log::info('archiveReviewPeriod => '. $archiveReviewPeriod);
+            Log::info('if => '. ($ifIamSingleSupporter && !$archiveReviewPeriod));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if($ifIamSingleSupporter && !$archiveReviewPeriod) {
-
+                Log::info('I am in go_live_time if.');
                 $model->go_live_time = time();
             }
+            Log::info('<===============================>');
 
             $model->grace_period = 0;
            
