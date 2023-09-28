@@ -448,9 +448,12 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
 
+            Log::info('?===============================?');
+            Log::info('$iscalledfromService =>' . $iscalledfromService);
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
+            Log::info('?===============================?');
 
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
