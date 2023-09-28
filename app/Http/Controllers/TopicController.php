@@ -496,7 +496,7 @@ class TopicController extends Controller
             Log::info('<===============================>');
             Log::info('ifIamSingleSupporter => '. $ifIamSingleSupporter);
             Log::info('ifIamSingleSupporter => '. $ifIamSingleSupporter);
-            Log::info('$nickNames => '. $nickNames);
+            Log::info('$nickNames => '. json_encode($nickNames));
             Log::info('if => '. ($ifIamSingleSupporter && !$archiveReviewPeriod));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if($ifIamSingleSupporter && !$archiveReviewPeriod) {
