@@ -34,7 +34,6 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
-use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
 {
@@ -448,12 +447,9 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
 
-            Log::info('?===============================?');
-            Log::info('$iscalledfromService =>' . $iscalledfromService);
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
-            Log::info('?===============================?');
 
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
@@ -496,17 +492,10 @@ class TopicController extends Controller
 
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-            Log::info('<===============================>');
-            Log::info('ifIamSingleSupporter => '. $ifIamSingleSupporter);
-            Log::info('ifIamSingleSupporter => '. $ifIamSingleSupporter);
-            Log::info('$nickNames => '. json_encode($nickNames));
-            Log::info('if => '. ($ifIamSingleSupporter && !$archiveReviewPeriod));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if($ifIamSingleSupporter && !$archiveReviewPeriod) {
-                Log::info('I am in go_live_time if.');
                 $model->go_live_time = time();
             }
-            Log::info('<===============================>');
 
             $model->grace_period = 0;
            
