@@ -91,10 +91,12 @@ class UpdateDelegateSupportOrderForATopic extends Command
                     $getSupportOfDelegator = Support::where($where)->first();
                     
                     // Update the item and log the item below that is updated
-                    $item->update(['support_order'=>$getSupportOfDelegator->support_order]);
-                    Log::info("Record that is updated by order is below");
-                    Log::info($item);
-                    Log::info("Update done");
+                    if (!empty($getSupportOfDelegator)) {
+                        $item->update(['support_order'=>$getSupportOfDelegator->support_order]);                        
+                        Log::info("Record that is updated by order is below");
+                        Log::info($item);
+                        Log::info("Update done");
+                    }
                 }
 
                 Log::info("UpdateDelegateSupportOrderCommandEnded command ended");
