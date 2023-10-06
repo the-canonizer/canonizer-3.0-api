@@ -16,12 +16,14 @@ use App\Library\wiki_parser\wikiParser as wikiParser;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Scout\Searchable;
+
 
 
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, HasApiTokens, Authorizable, HasFactory;
+    use Authenticatable, HasApiTokens, Authorizable, HasFactory,Searchable;
 
     protected $table = 'camp';
     public $timestamps = false;
