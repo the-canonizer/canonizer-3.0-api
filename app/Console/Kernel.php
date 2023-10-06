@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateNamespaceToCanon',
         'App\Console\Commands\UpdateUrlOfActivityOnCampUpdate',
         'App\Console\Commands\UpdateActivityUrlOnCampObject',
+        'App\Console\Commands\UpdateDelegateSupportOrderForATopic'
     ];
 
     /**
