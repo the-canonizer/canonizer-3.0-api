@@ -599,7 +599,7 @@ class Util
 
       
         try{
-            $selectedAlgo = 'blind_popularity';
+            $selectedAlgo = 'blind_popularity'; //blind_popularity
             $asOf = 'default';
             $asOfDefaultDate =isset($asOfDefaultDate)? $asOfDefaultDate : time();
           
@@ -624,8 +624,7 @@ class Util
                 $delayTime = Carbon::now()->addSeconds($delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
-            //Log::info($canonizerServiceData);
-            //Log::info("canonizerServiceData");
+
            
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
