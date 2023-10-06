@@ -49,7 +49,7 @@ class SearchController extends Controller
         return ($result);
     }
 
-
+/*
     public function importDataToElasticSearch()
     {
         //execute procedure
@@ -155,5 +155,5 @@ class SearchController extends Controller
         echo 'Records inserted in elastic search are: ' . ($key+1);
 
     }
-
+    */
 }
