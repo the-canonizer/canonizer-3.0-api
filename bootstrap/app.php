@@ -68,6 +68,8 @@ $app->configure('message');
 $app->configure('global');
 $app->configure('activitylog');
 $app->configure('database');
+$app->instance('path.config', app()->basePath() . DIRECTORY_SEPARATOR . 'config');
+$app->configure('scout');
 
 /*
 |--------------------------------------------------------------------------
@@ -131,6 +133,9 @@ $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 
 /* Uniqueable queue jobs */
 $app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
+
+$app->register(Laravel\Scout\ScoutServiceProvider::class);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
