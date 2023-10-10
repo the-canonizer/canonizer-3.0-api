@@ -59,8 +59,6 @@ class CreateElasticSearchTableProcedure extends Migration
                             
                             DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE ;
                             
-                            SET GLOBAL interactive_timeout=400;
-                            
                             -- DROP TABLE IF EXISTS
                             DROP TABLE IF EXISTS elasticsearch_data;
                             
@@ -475,29 +473,11 @@ class CreateElasticSearchTableProcedure extends Migration
                                 WHERE `end` = 0
                                 GROUP BY nick_name_id) b
                             ON a.id = b.nick_name_id
-                            WHERE private = 0;
-                            -- RETURN ALL ROWS FROM  TABLE
-                            
-                            SELECT
-                            `type`,
-                            id,
-                            type_value,
-                            topic_num,
-                            camp_num,
-                            DATE_FORMAT(FROM_UNIXTIME(go_live_time),'%d %M %Y, %h:%i:%s %p') AS go_live_time,
-                            statement_num,
-                            nick_name_id,
-                            namespace,
-                            link,
-                            breadcrumb_data,
-                            support_count
-                            FROM elasticsearch_data 
-                            ORDER BY `type`, topic_num, camp_num;
-                            
+                            WHERE private = 0;                            
                             SET SQL_SAFE_UPDATES = 1;
             
             
-        END;";
+                    END;";
 
         \DB::unprepared($procedure);
     }
