@@ -350,6 +350,9 @@ class TopicController extends Controller
             if (!$topic) {
                 $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
             }
+            if (!$topic)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_not_found'));
+                
             $namespace = Namespaces::find($topic->namespace_id);
             $namespaceLabel = '';
             if (!empty($namespace)) {
