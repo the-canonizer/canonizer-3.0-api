@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
 
 class Search extends Model
 {
    
-    use Searchable;
     protected $table = 'elasticsearch_data';
 
     protected $casts = [
