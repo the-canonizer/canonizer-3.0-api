@@ -68,7 +68,6 @@ $app->configure('message');
 $app->configure('global');
 $app->configure('activitylog');
 $app->configure('database');
-
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -131,6 +130,7 @@ $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 
 /* Uniqueable queue jobs */
 $app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

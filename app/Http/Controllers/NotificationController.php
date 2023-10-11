@@ -296,6 +296,7 @@ class NotificationController extends Controller
             $isExternal = strpos($request->url, 'http') === 0;
             $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END');
             $url = $baseUrl . $request->url;
+            $refererURL = $request->refererURL;
 
             switch ($request->is_type) {
                 case 'topic':
@@ -307,7 +308,7 @@ class NotificationController extends Controller
                     ]);
                     if (empty($topic) || empty($camp)) {
                         $data = ['is_exist' => false];
-                        Event::dispatch(new NotifyAdministratorEvent($url));
+                        Event::dispatch(new NotifyAdministratorEvent($url, $refererURL));
                     }
                     break;
                 case 'statement':
@@ -319,26 +320,26 @@ class NotificationController extends Controller
                     ]);
                     if (empty($campStatement)) {
                         $data = ['is_exist' => false];
-                        Event::dispatch(new NotifyAdministratorEvent($url));
+                        Event::dispatch(new NotifyAdministratorEvent($url, $refererURL));
                     }
                     break;
                 case 'nickname':
                     $nickname = Nickname::getNickName($request->nick_id);
                     if (empty($nickname)) {
                         $data = ['is_exist' => false];
-                        Event::dispatch(new NotifyAdministratorEvent($url));
+                        Event::dispatch(new NotifyAdministratorEvent($url, $refererURL));
                     }
                     break;
                 case 'thread':
                     $thread = Thread::find($request->thread_id);
                     if (empty($thread)) {
                         $data = ['is_exist' => false];
-                        Event::dispatch(new NotifyAdministratorEvent($url));
+                        Event::dispatch(new NotifyAdministratorEvent($url, $refererURL));
                     }
                     break;
                 default:
                     $data = ['is_exist' => false];
-                    Event::dispatch(new NotifyAdministratorEvent($url));
+                    Event::dispatch(new NotifyAdministratorEvent($url, $refererURL));
                     break;
             }
 

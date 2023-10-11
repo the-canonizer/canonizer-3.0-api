@@ -78,6 +78,9 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
 
+            if (count($news) < 1)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_news_feed_not_found'));
+
             if ($news->isEmpty() && !empty($camp) && $camp->parent_camp_num != null) {
                 $parentCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
@@ -222,7 +225,7 @@ class NewsFeedController extends Controller
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             $temp[] = $news;
-            $indexes =NewsFeed::apiResponseIndexes();
+            $indexes = NewsFeed::apiResponseIndexes();
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 
 
 
+
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;

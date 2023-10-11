@@ -196,8 +196,8 @@ class TopicController extends Controller
             if ($topic) {
 
                 Util::dispatchJob($topic, 1, 1);
-
-                $timelineMessage = $nickName . " created a new topic and also added their support on Camp " . $topic->topic_name;
+                // Eventline - topic create event saved
+                $timelineMessage = $nickName . " created a new topic " . $topic->topic_name;
 
                 $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "create_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
 
@@ -217,6 +217,13 @@ class TopicController extends Controller
                 ];
                 ## If topic is created then add default support to that topic ##
                 $support = Support::create($topicInput);
+                // Eventline - default support event saved
+                $timelineMessage = $nickName . " added their support on Camp Agreement";
+
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "direct_support_added", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                Util::dispatchTimelineJob($topic->topic_num, 1, 1, $timelineMessage, "direct_support_added", 1, null, null, null, time()+1, $timeline_url);
+
 
                 if (isset($request->namespace) && $request->namespace == 'other') {
 
@@ -343,6 +350,9 @@ class TopicController extends Controller
             if (!$topic) {
                 $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
             }
+            if (!$topic)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
+                
             $namespace = Namespaces::find($topic->namespace_id);
             $namespaceLabel = '';
             if (!empty($namespace)) {
@@ -494,7 +504,6 @@ class TopicController extends Controller
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if($ifIamSingleSupporter && !$archiveReviewPeriod) {
-
                 $model->go_live_time = time();
             }
 

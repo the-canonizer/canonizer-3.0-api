@@ -24,6 +24,8 @@ class CorsMiddleware
             $origin = 'https://canonizer3.canonizer.com';
         }
 
+        $SymfonyResopnse = 'Symfony\Component\HttpFoundation\Response';
+
         $headers = [
             'Access-Control-Allow-Origin'      => $origin,
             'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE',
@@ -45,12 +47,22 @@ class CorsMiddleware
         }
 
         $response = $next($request);
+
+        if($response instanceof $SymfonyResopnse) {
+            foreach ($headers as $key => $value) {
+                $response->headers->set($key, $value);
+            }
+            return $response;
+        }
+
         config(['database.connections.mysql' => $mysqlConfig]);
         foreach ($headers as $key => $value) {
             if (strpos($request->url(), 'api/v3')) {
                 $response->header($key, $value);
             }
         }
+
+       
 
         return $response;
     }
