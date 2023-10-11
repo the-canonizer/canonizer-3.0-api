@@ -1161,6 +1161,21 @@ class CampController extends Controller
         $data->subscribed_camp_name = null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
+
+            /* Handle the logic when asofdate is past and user create camp today, so in this scenario 
+            we need breadcrumb to include all parents of camp. And if it has no parent it will show Agreement
+            camp in breadcrumb.
+            */
+            if(empty($livecamp)) {
+                // Get the parent camp of current created one ...
+                $parentCampNum = Camp::select('parent_camp_num')->where('topic_num', $filter['topicNum'])
+                    ->where('camp_num', '=', $filter['campNum'])
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('go_live_time')->first();
+                $filterArray = array_merge([], $filter);
+                $filterArray['campNum'] = $parentCampNum->parent_camp_num ?? 1;
+                $livecamp = Camp::getLiveCamp($filterArray);
+            }
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
             $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
             if ($request->user()) {
