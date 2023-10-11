@@ -23,6 +23,7 @@ return [
         'record_not_found' => 'No record found.',
         'topic_not_found' => 'No topic found.',
         'camp_not_found' => 'No camp found.',
+        'topic_record_not_found' => 'No topic record found.',
         'camp_record_not_found' => 'No camp record found.',
         'camp_news_feed_not_found' => 'No camp news feed found.',
         'camp_live_statement_not_found' => 'No camp statement yet.',
