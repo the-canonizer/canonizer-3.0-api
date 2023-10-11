@@ -594,26 +594,26 @@ class SupportController extends Controller
                 $filter['topicNum'] = (int)$inputs['topic_num'];
                 $filter['campNum'] = (int)$inputs['camp_num'];
                 $preLiveCamp = Camp::getLiveCamp($filter);
-                if ($model->is_archive != $preLiveCamp->is_archive) {
-                    $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps((int)$inputs['topic_num'], [$model->camp_num], $model->is_archive)->pluck('nick_name_id')->toArray();
-                    $revokableSupporters = array_diff($revokableSupporters, [$model->submitter_nick_id]); 
-                    
+                if ($model->is_archive != $preLiveCamp->is_archive) { 
+                    $revokableSupporters = Support::getSupportersNickNameOfArchivedCamps($filter['topicNum'], [$filter['campNum']], $model->is_archive, 1)->pluck('nick_name_id')->toArray();
                     $explicitSupporters = Support::ifIamArchiveExplicitSupporters($filter,$model->is_archive, 'supporters')->pluck('nick_name_id')->toArray();
-                    $explicitSupporters = array_diff($explicitSupporters, [$model->submitter_nick_id]);
-
-                    $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
-                    $explicitSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $explicitSupporters)->get()->toArray();
+                    $archiveSupporters = Support::filterArchivedSupporters($revokableSupporters, $explicitSupporters, $model->submitter_nick_id, $response['total_supporters']);
+                    $archiveDirectSupporters = $archiveSupporters['direct_supporters'];
+                    $archiveExplicitSupporters = $archiveSupporters['explicit_supporters'];
                    
-                    $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters, $explicitSupporters);
-                    $response['total_supporters_count'] = $response['total_supporters_count'] + count($revokableSupporters) + count($explicitSupporters);
+                    
+                    $archiveDirectSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $archiveDirectSupporters)->get()->toArray();
+                    $archiveExplicitSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $archiveExplicitSupporters)->get()->toArray();
+                   
+                    $response['total_supporters'] = array_merge($response['total_supporters'], $archiveDirectSupporters, $archiveExplicitSupporters);
+                    $response['total_supporters_count'] = $response['total_supporters_count'] + count($archiveDirectSupporters) + count($archiveExplicitSupporters);
+
                 } else {
                     $revokableSupporters = Support::getAllRevokedSupporters((int)$inputs['topic_num'])->pluck('nick_name_id')->toArray();
                     if ($revokableSupporters) {
                         $revokableSupporters = Nickname::select('id', 'nick_name')->whereIn('id', $revokableSupporters)->get()->toArray();
                         $response['total_supporters'] = array_merge($response['total_supporters'], $revokableSupporters);
-
                         $response['total_supporters'] = array_map("unserialize", array_unique(array_map("serialize", $response['total_supporters'])));
-
                         $response['total_supporters_count'] = count($response['total_supporters']);
                     }
                 }

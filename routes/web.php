@@ -27,7 +27,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
    
     $router->post('/client-token','UserController@clientToken');
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
-
+    
+    $router->get('/search','SearchController@getSearchResults');
+    $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
@@ -78,8 +80,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/hot-topic', 'TopicController@hotTopic');
 
 
-        //search routes
-        $router->get('/search','SearchController@getSearchResults');
+       
 
     });
 

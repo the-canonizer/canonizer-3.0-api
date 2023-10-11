@@ -89,6 +89,10 @@ class ActivityController extends Controller
             if (!$request->is_admin_show_all && !$topicNum) {
                 $log->where('user_id', $request->user()->id);
             }
+            if ($request->is_admin_show_all) {
+                if ($request->is_admin_show_all == 'all')
+                    $log->groupBy('activity_id');
+            }
             $log = $log->latest()->paginate($perPage);
             $log = Util::getPaginatorResponse($log);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
@@ -137,12 +141,12 @@ class ActivityController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
+            $data = [];
             if ($request->is_admin_show_all && $request->is_admin_show_all == 'all') {
                 $perPage = $request->per_page ?? config('global.per_page');
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->paginate($perPage);
-                $log = Util::getPaginatorResponse($log);
+                $data = Util::getPaginatorResponse($log);
             } else {
-                $data = [];
                 $count = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->count();
                 // dd($count);
                 $log = ActivityLog::whereJsonContains('properties->topic_num', (int) $request->topic_num)->whereJsonContains('properties->camp_num', (int) $request->camp_num)->latest()->take(10)->get();

@@ -577,4 +577,11 @@ class ValidationRules
             'type' => 'required|in:topic,camp,statement',
         ];
     }
+
+    public function getUserSupportsValidationRules(): array
+    {
+        return ([
+            'namespace' => 'integer'
+        ]);
+    }
 }

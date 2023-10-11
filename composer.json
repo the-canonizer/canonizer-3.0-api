@@ -10,6 +10,7 @@
         "anik/form-request": "^4.3",
         "doctrine/dbal": "^3.3",
         "dusterio/lumen-passport": "^0.3.0",
+        "elasticsearch/elasticsearch": "^8.10",
         "flipbox/lumen-generator": "^8.2",
         "guzzlehttp/guzzle": "^7.0",
         "illuminate/mail": "^8.81",
@@ -40,7 +41,10 @@
     "config": {
         "preferred-install": "dist",
         "sort-packages": true,
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -400,12 +400,12 @@ class StatementController extends Controller
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
 
             if ($eventType == 'objection') {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
-                // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 $statement = Statement::where('id', $all['statement_id'])->first();
+                $checkUserDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $filters['campNum'], $nickNames, $statement->submit_time);
+                // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames, $statement->submit_time, null, false, 'ifIamExplicitSupporter');
 
-                if (!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter) {
+                if ($checkUserDirectSupportExists < 1 && !$checkIfIAmExplicitSupporter) {
                     $message = trans('message.support.not_authorized_for_objection');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
