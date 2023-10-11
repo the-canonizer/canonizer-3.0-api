@@ -12,10 +12,12 @@ class NotifyAdministratorMail extends Mailable {
     use Queueable, SerializesModels;
 
     public $url;
+    public $refererURL;
 
-    public function __construct($url)
+    public function __construct($url, $refererURL)
     {
         $this->url = $url;
+        $this->refererURL = $refererURL;
     }
     //build the message.
     public function build() {
