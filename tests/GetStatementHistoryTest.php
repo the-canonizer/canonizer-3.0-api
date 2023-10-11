@@ -134,4 +134,50 @@ class GetStatementHistoryTest extends TestCase
         //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
+
+    /**
+     * Check Api with as_of filter value bydate without as_of_date
+     * validation
+     */
+    public function testGetCampStatementHistoryApiWithoutFilterDate()
+    {
+        $invalidData = [
+            'topic_num' => 45,
+            'camp_num' => 1,
+            "type" => "all",
+            'as_of' => "bydate"
+        ];
+
+        print sprintf("Test with invalid values");
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
+        //  dd($this->response);
+        $this->assertEquals(400, $this->response->status());
+    } 
+    
+    public function testGetCampStatementHistoryApiNotFound()
+    {
+        $data = [
+            "topic_num" => 12345,
+            "camp_num" => 2,
+            "type" => "all",
+            "per_page" => 4,
+            "page" => 1
+        ];
+
+        print sprintf("Test if camp statement not found");
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(404, $this->response->status());
+    }
+
 }

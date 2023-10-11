@@ -133,6 +133,63 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
         $this->assertEquals(200, $this->response->status());
+    }
 
+    public function testIfNoBreadcrumbFound()
+    {
+        $data = [
+            'topic_num' => 1231233,
+            'camp_num' => 5,
+            "as_of" => "default",
+            "as_of_date" => 1696854130.086
+        ];
+
+        print sprintf("\n Test BreadCrumb not found ");
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $this->assertEquals(404, $this->response->status());
+        
+        $data = [
+            'topic_num' => 95,
+            'camp_num' => 123123,
+            "as_of" => "default",
+            "as_of_date" => 1696854130.086
+        ];
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $this->assertEquals(404, $this->response->status());
+    }
+
+    public function testToSeeApiStructure()
+    {
+        $data = [
+            'topic_num' => 95,
+            'camp_num' => 5,
+            "as_of" => "default",
+            "as_of_date" => 1696854130.086
+        ];
+
+        print sprintf("\n Test for correct api structure ");
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $this->seeJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data' => [
+                'bread_crumb' => [],
+                "flag",
+                "subscription_id",
+                "subscribed_camp_name",
+                "topic_name",
+            ]
+        ]);
     }
 }

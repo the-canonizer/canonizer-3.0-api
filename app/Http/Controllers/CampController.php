@@ -398,6 +398,8 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
+            } else { 
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
             }
 
             if ($livecamp && $filter['asOf'] === 'default') {
@@ -1177,7 +1179,11 @@ class CampController extends Controller
                 $livecamp = Camp::getLiveCamp($filterArray);
             }
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+            
+            if(count($data->bread_crumb) < 1) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_breadcrumb_not_found'));
+            }
+
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];

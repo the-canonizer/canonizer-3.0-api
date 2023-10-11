@@ -4,104 +4,85 @@ use App\Models\User;
 
 class GetTopicRecordApiTest extends TestCase
 {
-
-    /**
-     * Check Api with empty form data
-     * validation
-     */
-    public function testGetTopicRecordApiWithEmptyFormData()
+    public function testWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
+        $apiPayload = [];
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-record', [] ,$header);
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $apiPayload ,$header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api with empty values
-     * validation
-     */
-    public function testGetTopicRecordApiWithEmptyValues()
+    public function testWithEmptyValues()
     {
-        $emptyData = [
+        $apiPayload = [
             'topic_num' => '',
             'camp_num' => '',
             'as_of' => ''
         ];
-        print sprintf("Test with empty values");
+        print sprintf("\nTest with empty values");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-record', $emptyData ,$header);
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $apiPayload ,$header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api with Invalid as_of filter value
-     * validation
-     */
-    public function testGetTopicRecordApiWithInvalidData()
+    public function testWithInvalidData()
     {
-        $invalidData = [
+        $apiPayload = [
             'topic_num' => 45,
             'camp_num' => 1,
             'as_of' => "xyz",
             'as_of_date' => "12-12-2022"
         ];
 
-        print sprintf("Test with invalid values");
+        print sprintf("\nTest with invalid values");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-record', $invalidData ,$header);
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $apiPayload ,$header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api with as_of filter value bydate without as_of_date
-     * validation
-     */
-    public function testGetTopicRecordApiWithoutFilterDate()
+    public function testWithoutFilterDate()
     {
-        $invalidData = [
+        $apiPayload = [
             'topic_num' => 45,
             'camp_num' => 1,
             'as_of' => "bydate"
         ];
 
-        print sprintf("Test with invalid values");
+        print sprintf("\nTest with invalid values");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-record', $invalidData ,$header);
+        $this->actingAs($user)->post('/api/v3/get-topic-record', $apiPayload ,$header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api response code with correct data
-     */
-    public function testGetTopicRecordApiStatus() 
+    public function testWithValidData() 
     {
         $data = [
             'topic_num' => 45,
             'camp_num' => 1,
             'as_of' => 'default'
         ];
-        print sprintf("\n get topic record ", 200, PHP_EOL);
+        print sprintf("\nTest with valid data");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
@@ -112,18 +93,14 @@ class GetTopicRecordApiTest extends TestCase
         $this->assertEquals(200, $this->response->status());
     }
 
-    /**
-     * Check Api response structure
-     */
-    public function testGetTopicRecordApiResponse()
+    public function testIfNoTopicRecordFound()
     {
         $data = [
-            'topic_num' => 45,
+            'topic_num' => 123123,
             'camp_num' => 1,
             'as_of' => 'default'
         ];
-
-        print sprintf("\n Test GetTopicRecord API Response ", 200, PHP_EOL);
+        print sprintf("\nTest if no topic record found");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
@@ -131,6 +108,6 @@ class GetTopicRecordApiTest extends TestCase
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/get-topic-record', $data ,$header);
         //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $this->assertEquals(404, $this->response->status());
     }
 }
