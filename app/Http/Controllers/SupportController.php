@@ -400,9 +400,6 @@ class SupportController extends Controller
             $topic = Topic::getLiveTopic($topicNum);
             $data = Support::getSupportedCampsList($topicNum, $userId); 
 
-            if(count($data) < 1)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.support_list_not_found'));
-
             foreach($data as $key => $support){
                 $link = Camp::campLink($support['topic_num'], $support['camp_num'], $support['title'], $support['camp_name']);
                 $data[$key]['link'] = $link;
