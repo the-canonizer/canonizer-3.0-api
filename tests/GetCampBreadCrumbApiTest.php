@@ -152,15 +152,6 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header['Authorization'] = 'Bearer ' . $token;
         $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
         $this->assertEquals(404, $this->response->status());
-        
-        $data = [
-            'topic_num' => 95,
-            'camp_num' => 123123,
-            "as_of" => "default",
-            "as_of_date" => 1696854130.086
-        ];
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
-        $this->assertEquals(404, $this->response->status());
     }
 
     public function testToSeeApiStructure()

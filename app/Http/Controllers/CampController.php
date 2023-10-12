@@ -813,8 +813,8 @@ class CampController extends Controller
         try {
             $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
+                $status = 404;
+                $message = trans('message.error.record_not_found');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $status = 200;
