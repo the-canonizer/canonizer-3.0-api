@@ -208,7 +208,7 @@ class StatementController extends Controller
         if ($statements->count() < 1)
             return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
         
-            try {
+        try {
             $response->topic = Camp::getAgreementTopic($filter);
             $response->liveCamp = Camp::getLiveCamp($filter);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
