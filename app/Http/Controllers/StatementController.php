@@ -206,9 +206,6 @@ class StatementController extends Controller
             $statement_query = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])->latest('submit_time');
             $campLiveStatement =  Statement::getLiveStatement($filter);
 
-            if(!$campLiveStatement)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
-
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $submitTime = $statement_query->first() ? $statement_query->first()->submit_time : null;
