@@ -223,9 +223,8 @@ class StatementController extends Controller
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
 
-            if (count((array)$response->items) < 1) {
+            if (count((array)$response->items) < 1)
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.camp_live_statement_not_found'), null, 'statement');
-            }
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
