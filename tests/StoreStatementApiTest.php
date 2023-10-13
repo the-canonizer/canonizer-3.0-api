@@ -134,10 +134,7 @@ class StoreStatementApiTest extends TestCase
             "statement_id" => "4952",
         ];
 
-        $statement = Statement::where([
-            ['topic_num', $validData['topic_num']],
-            ['camp_num', $validData['camp_num']]
-        ])->latest('submit_time')->first();
+        $statement = Statement::find($validData['statement_id']);
 
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
@@ -152,6 +149,7 @@ class StoreStatementApiTest extends TestCase
             'start' => $statement->submit_time - 10,
             'end' => 0,
         ]);
+
         $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
         $this->assertEquals(200,  $this->response->status()); // Change 400 to 200 due to test objection
     }

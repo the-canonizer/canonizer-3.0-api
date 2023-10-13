@@ -105,6 +105,8 @@ class StatementController extends Controller
                 $statement[] = $campStatement;
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
+            } else { 
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
             }
 
             if ($filter['asOf'] === 'default') {
@@ -203,6 +205,10 @@ class StatementController extends Controller
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
             $statement_query = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])->latest('submit_time');
             $campLiveStatement =  Statement::getLiveStatement($filter);
+
+            if(!$campLiveStatement)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
+
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $submitTime = $statement_query->first() ? $statement_query->first()->submit_time : null;
