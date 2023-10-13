@@ -42,10 +42,9 @@ class AddExsistingDataToElasticSearch extends Command
     {
          //execute procedure
          DB::select("CALL sp_sync_data_to_elasticsearch");
-
          $indexName = 'canonizer_elastic_search';
          $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-         //$elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);
+         $elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);
  
          $body = Search::get();        
          $mapping = [
