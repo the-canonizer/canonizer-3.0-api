@@ -14,5 +14,8 @@
         <env name="CACHE_DRIVER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="DB_CONNECTION" value="mysql_testing"/>
+        <env name="MAIL_LOG_CHANNEL" value="mail_log_unit_testcase"/>
+        <env name="MAIL_DRIVER" value="log"/>
+        <env name="MAIL_MAILER" value="log"/>
     </php>
 </phpunit>
