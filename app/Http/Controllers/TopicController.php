@@ -662,7 +662,12 @@ class TopicController extends Controller
             $currentTime = time();
             $delayLiveTimeInSeconds = env('LIVE_TIME_DELAY_IN_SECONDS');
             if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
-                Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
+                $additionalInfo = [
+                    'model_id' => $model->id,
+                    'model_type' => $type,
+                    'job_type' => 'live-time-job'
+                ];
+                Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $additionalInfo);
             }
 
             $notificationData = [
@@ -874,6 +879,208 @@ class TopicController extends Controller
                         self::updateStatementsInReview($statement);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     }
+                    $message = trans('message.success.statement_agree');
+                } else {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+            } else if ($data['change_for'] == 'camp') {
+                $camp = Camp::where('id', $changeId)->first();
+                $filter['topicNum'] = $data['topic_num'];
+                $filter['campNum'] = $data['camp_num'];
+                $preLiveCamp = Camp::getLiveCamp($filter);
+                $preLiveCamp2 = Camp::getLiveCamp($filter);
+                if ($camp) {
+                    DB::beginTransaction();
+                    $data['parent_camp_num'] = $camp->parent_camp_num;
+                    $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
+                    // Util::checkParentCampChanged($data, true, $liveCamp);
+                    $submitterNickId = $camp->submitter_nick_id;
+
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
+                        $agreeCount++;
+                    }
+
+                     /**Un-archive and restoration of archive camp and support #574 */
+                    if($camp->is_archive != $preLiveCamp->is_archive && $camp->is_archive === 0)
+                     {
+                        $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps($data['topic_num'],[$data['camp_num']], $camp->is_archive);
+                        $explicitArchiveSupporters = Support::ifIamArchiveExplicitSupporters($filter,$camp->is_archive, 'supporters');
+                        
+                        foreach($revokableSupporter as $k => $rs)
+                        {
+                           if(array_search($rs->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            {
+                               unset($revokableSupporter[$k]);
+                            }
+                        }
+                        foreach ($explicitArchiveSupporters as $k => $sp) {
+                            if(array_search($sp->nick_name_id, array_column($totalSupporters, 'id')) !== false) 
+                            {
+                               unset($explicitArchiveSupporters[$k]);
+                            }
+                        }
+                        $totalSupportersCount = $totalSupportersCount + count($revokableSupporter) + count($explicitArchiveSupporters);
+                     }
+
+                    
+
+                    if ($agreeCount == $totalSupportersCount) {
+                        $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                        $camp->update();
+                        self::updateCampsInReview($camp);
+                        $liveCamp = Camp::getLiveCamp($filter);
+                        Util::checkParentCampChanged($data, true, $liveCamp);
+                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                        $topic = $camp->topic;
+                        if (isset($topic)) {
+                            Util::dispatchJob($topic, $camp->camp_num, 1);
+                        }
+
+                       /** Archive and restoration of archive camp #574 */
+                        if($liveCamp->is_archive != $preLiveCamp->is_archive)
+                        { 
+                            $camp->archive_action_time = time();
+                            $camp->update();
+                            util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
+                        }
+                        $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
+                        //timeline start
+                        if ($data['parent_camp_num'] != $data['old_parent_camp_num']) {
+                            $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $liveCamp->camp_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $liveCamp->camp_num, $liveCamp->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "parent_change", $liveCamp->id, $data['old_parent_camp_num'], $data['parent_camp_num'], null, time(), $timeline_url);
+                        }
+                        //end of timeline
+                        //timeline start
+                        if (Util::remove_emoji(strtolower(trim($preLiveCamp->camp_name))) != Util::remove_emoji(strtolower(trim($liveCamp->camp_name)))) {
+                            $timelineMessage = $nickName->nick_name . " changed camp name from " . $preLiveCamp->camp_name . " to " . $liveCamp->camp_name;
+
+                            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $liveCamp->camp_num, $liveCamp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+
+                            Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "update_camp", $liveCamp->id, null, null, null, time(), $timeline_url);
+                        }
+                        //end of timeline
+                    }
+                    DB::commit();
+                    $message = trans('message.success.camp_agree');
+                } else {
+                    DB::rollback();
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+                }
+            } else if ($data['change_for'] == 'topic') {
+                $topic = Topic::where('id', $changeId)->first();
+                $preliveTopic = Topic::getLiveTopic($topic->topic_num, 'default');
+                if ($topic) {
+                    $submitterNickId = $topic->submitter_nick_id;
+                    $nickName = Nickname::getNickName($topic->submitter_nick_id);
+                    /*
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    */
+                    // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
+                    // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+
+                    if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
+                        $agreeCount++;
+                    }
+
+                    if ($agreeCount == $totalSupportersCount) {
+                        $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                        $topic->update();
+                        self::updateTopicsInReview($topic);
+                        ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                        if (isset($topic)) {
+                            Util::dispatchJob($topic, $data['camp_num'], 1);
+                            //timeline start
+                            if (Util::remove_emoji(strtolower(trim($preliveTopic->topic_name))) != Util::remove_emoji(strtolower(trim($topic->topic_name)))) {
+    
+                                $timelineMessage = $nickName->nick_name . " changed topic name from " . $preliveTopic->topic_name . " to " . $topic->topic_name;
+    
+                                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, 1, "Agreement", $topic->topic_name, "update_topic", null, $topic->namespace_id, $topic->submitter_nick_id);
+    
+                                Util::dispatchTimelineJob($topic->topic_num, 1, 1, $message = $timelineMessage, "update_topic", 1, null, null, null, time(), $timeline_url);
+                            }
+                            //end of timeline
+                        }
+                    }
+                    $message = trans('message.success.topic_agree');
+                }
+            } else {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+            return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
+        } catch (Exception $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function agreeToChangeForLiveJob(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getAgreeToChangeForLiveJobValidationRules(), $this->validationMessages->getAgreeToChangeForLiveJobValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $iscalledfromService = $request->called_from_service ?? false;
+
+        if ($iscalledfromService && $request->header('Authorization') != 'Bearer: ' . env('API_TOKEN')) {
+            return $this->resProvider->apiJsonResponse(401, 'Unauthorized', '', '');
+        }
+
+        return $this->resProvider->apiJsonResponse(200, 'Data agya hai', $request->all(), '');
+
+        $data = $request->all();
+        $message = "";
+        $changeId = $data['record_id'];
+        $responseData = [
+            'is_submitted' => 1
+        ];
+
+        try {
+
+            $where = [
+                'id' => $changeId,
+                ['objector_nick_id', '!=', null],
+            ];
+            switch ($data['change_for']) {
+                case 'statement':
+                    $model = Statement::where($where)->first();
+                    break;
+                case 'camp':
+                    $model = Camp::where($where)->first();
+                    break;
+                case 'topic':
+                    $model = Topic::where($where)->first();
+                    break;
+
+                default:
+                    $model = null;
+                    break;
+            }
+            if (!is_null($model)) {
+                $responseData['is_submitted'] = 0;
+                $message = trans('message.error.disagree_objected_history_changed', ['history' => $data['change_for']]);
+                return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
+            }
+
+            if ($data['change_for'] == 'statement') {
+                $statement = Statement::where('id', $changeId)->first();
+                if ($statement) {
+                    self::updateStatementsInReview($statement);
+                    ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     $message = trans('message.success.statement_agree');
                 } else {
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
