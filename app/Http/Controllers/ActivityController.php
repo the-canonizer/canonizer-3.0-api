@@ -160,8 +160,8 @@ class ActivityController extends Controller
                 ];
             }
 
-            if(count($log) < 1) 
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.no_activity_logged'));
+            // if(count($log) < 1) 
+            //     return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.no_activity_logged'));
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
