@@ -1348,6 +1348,14 @@ class TopicController extends Controller
         $filter['type'] = $request->type;
         $response = new stdClass();
         $details = new stdClass();
+
+        $topics = Topic::where([
+            'topic_num' => $filter['topicNum'],
+        ])->get();
+
+        if ($topics->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
         try {
             $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
             $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery);
