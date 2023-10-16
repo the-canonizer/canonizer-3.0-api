@@ -34,6 +34,7 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
 {
@@ -661,11 +662,7 @@ class TopicController extends Controller
             $currentTime = time();
             $delayLiveTimeInSeconds = env('LIVE_TIME_DELAY_IN_SECONDS');
             if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
-                if($type == 'camp') {
-                    Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
-                } else {
-                    Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds);
-                }
+                Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $model->id);
             }
 
             $notificationData = [
