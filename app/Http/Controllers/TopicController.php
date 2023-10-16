@@ -34,6 +34,7 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
 {
