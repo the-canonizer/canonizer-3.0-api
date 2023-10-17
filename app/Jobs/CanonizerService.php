@@ -67,7 +67,8 @@ class CanonizerService implements ShouldQueue, Uniqueable
             'update_all'    => $updateAll,
             'model_id'      => $this->canonizerData['additional_info']['model_id'] ?? NULL,
             'model_type'    => $this->canonizerData['additional_info']['model_type'] ?? NULL,
-            'job_type'      => $this->canonizerData['additional_info']['job_type'] ?? NULL
+            'job_type'      => $this->canonizerData['additional_info']['job_type'] ?? NULL,
+            'camp_num'      => $this->canonizerData['camp_num']
         ];
         if(!empty($this->canonizerData['endpointCSStore'])) {
             $endpointCSStoreTree = $this->canonizerData['endpointCSStore'];
