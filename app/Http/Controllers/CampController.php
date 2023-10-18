@@ -1215,6 +1215,10 @@ class CampController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         $response->ifIAmExplicitSupporter = null;
+
+        if (Camp::where(['topic_num' => $filter['topicNum'], 'camp_num' => $filter['campNum']])->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
