@@ -708,9 +708,10 @@ class CampController extends Controller
                     DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+//                $status = 400;
+//                $message = trans('message.error.exception');
+//                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $status = 200;
