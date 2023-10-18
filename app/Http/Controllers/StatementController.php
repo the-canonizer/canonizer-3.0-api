@@ -199,15 +199,21 @@ class StatementController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         $response->ifIAmExplicitSupporter = null;
+
+        $statements = Statement::where([
+            'topic_num' => $filter['topicNum'],
+            'camp_num' => $filter['campNum'],
+        ])->get();
+
+        if ($statements->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
+        
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $response->liveCamp = Camp::getLiveCamp($filter);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
             $statement_query = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])->latest('submit_time');
             $campLiveStatement =  Statement::getLiveStatement($filter);
-
-            if(!$campLiveStatement)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
 
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
@@ -219,6 +225,7 @@ class StatementController extends Controller
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

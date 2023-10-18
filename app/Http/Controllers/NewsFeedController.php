@@ -78,9 +78,6 @@ class NewsFeedController extends Controller
                 ->where('end_time', '=', null)
                 ->orderBy('order_id', 'ASC')->get();
 
-            if (count($news) < 1)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_news_feed_not_found'));
-
             if ($news->isEmpty() && !empty($camp) && $camp->parent_camp_num != null) {
                 $parentCampNum = $camp->parent_camp_num;
                 $news = NewsFeed::where('topic_num', '=', $filter['topicNum'])
@@ -106,6 +103,10 @@ class NewsFeedController extends Controller
             }
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'owner_flag', 'manage_flag', 'parent_camp_name', 'parent_camp_url'];
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
+            
+            if (count($news) < 1)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_news_feed_not_found'));
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
