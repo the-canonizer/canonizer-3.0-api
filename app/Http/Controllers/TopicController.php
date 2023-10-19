@@ -1162,7 +1162,7 @@ class TopicController extends Controller
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
-                    $submitterNickId = $camp->submitter_nick_id;
+                    //$submitterNickId = $camp->submitter_nick_id;
                
                     self::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
@@ -1212,7 +1212,7 @@ class TopicController extends Controller
                 $topic = Topic::where('id', $changeId)->first();
                 $preliveTopic = Topic::where('id', $pre_LiveId)->first();
                 if ($topic) {
-                    $submitterNickId = $topic->submitter_nick_id;
+                    //$submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     // $topic->update();
