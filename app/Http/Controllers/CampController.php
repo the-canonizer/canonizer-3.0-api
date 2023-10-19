@@ -708,9 +708,10 @@ class CampController extends Controller
                     DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+//                $status = 400;
+//                $message = trans('message.error.exception');
+//                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $status = 200;
@@ -813,9 +814,10 @@ class CampController extends Controller
         try {
             $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+                // $status = 404;
+                // $message = trans('message.error.record_not_found');
+                // return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $status = 200;
             $message = trans('message.success.success');
@@ -1215,6 +1217,10 @@ class CampController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         $response->ifIAmExplicitSupporter = null;
+
+        if (Camp::where(['topic_num' => $filter['topicNum'], 'camp_num' => $filter['campNum']])->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);

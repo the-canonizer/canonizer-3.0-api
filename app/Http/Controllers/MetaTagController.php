@@ -87,7 +87,7 @@ class MetaTagController extends Controller
                     'page_name' => $page_name,
                 ])->first();
             if (!$metaTag) {
-                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
             }
 
             if ($metaTag && $metaTag->is_static == 1) {
@@ -111,12 +111,12 @@ class MetaTagController extends Controller
 
                 $topic = $this->getTopicById($topic_num);
                 if (is_null($topic)) {
-                    throw new Exception(trans('message.error.topic_not_found'), 404);
+                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_not_found'));
                 }
 
                 $camp = $this->getCampById($topic_num, $camp_num);
                 if (is_null($camp)) {
-                    throw new Exception(trans('message.error.camp_not_found'), 404);
+                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_not_found'));
                 }
                 $description = $this->getCampStatementById($topic_num, $camp_num);
                 $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
