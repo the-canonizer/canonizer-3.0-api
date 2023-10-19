@@ -304,6 +304,7 @@ class Util
                             'asOf'      => $asOf,
                             'updateAll' => 1,
                             'camp_num'  => $campNum,
+                            'additional_info' => $additionalInfo,
                             'endpointCSStore' => env('CS_STORE_TREE')
                         ];
                         // Dispact job when create a camp

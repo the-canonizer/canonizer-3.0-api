@@ -61,13 +61,15 @@ class CanonizerService implements ShouldQueue, Uniqueable
         }
 
         $requestBody = [
-            'topic_num'     => $this->canonizerData['topic_num'],
-            'asofdate'      => $this->canonizerData['asOfDate'],
-            'algorithm'     => $this->canonizerData['algorithm'],
-            'update_all'    => $updateAll,
-            'model_id'      => $this->canonizerData['additional_info']['model_id'] ?? NULL,
-            'model_type'    => $this->canonizerData['additional_info']['model_type'] ?? NULL,
-            'job_type'      => $this->canonizerData['additional_info']['job_type'] ?? NULL,
+            'topic_num'         => $this->canonizerData['topic_num'],
+            'asofdate'          => $this->canonizerData['asOfDate'],
+            'algorithm'         => $this->canonizerData['algorithm'],
+            'update_all'        => $updateAll,
+            'model_id'          => $this->canonizerData['additional_info']['model_id'] ?? NULL,
+            'model_type'        => $this->canonizerData['additional_info']['model_type'] ?? NULL,
+            'job_type'          => $this->canonizerData['additional_info']['job_type'] ?? NULL,
+            'event_type'        => $this->canonizerData['additional_info']['event_type'] ?? NULL,
+            'pre_LiveId'        => $this->canonizerData['additional_info']['pre_LiveId'] ?? NULL,
             'camp_num'      => $this->canonizerData['camp_num']
         ];
         if(!empty($this->canonizerData['endpointCSStore'])) {
