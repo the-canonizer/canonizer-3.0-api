@@ -590,10 +590,6 @@ class TopicController extends Controller
 
                 $pre_LiveId = $preliveCamp->id;
 
-                Log::info("ifIamSingleSupporter preliveTopic". $preliveCamp);
-                Log::info("ifIamSingleSupporter liveTopic". $liveCamp);
-                Log::info("ifIamSingleSupporter model". $model);
-
                 if ($ifIamSingleSupporter) {
                      /** Archive and restoration of archive camp #574 */
                      if(!$archiveReviewPeriod)
@@ -1174,9 +1170,9 @@ class TopicController extends Controller
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     $topic = $camp->topic;
                     
-                    if (isset($topic)) {
-                        Util::dispatchJob($topic, $camp->camp_num, 1);
-                    }
+                    //if (isset($topic)) {
+                       // Util::dispatchJob($topic, $camp->camp_num, 1);
+                    //}
 
                     /** Archive and restoration of archive camp #574 */
                     if($liveCamp->is_archive != $preLiveCamp->is_archive)
@@ -1223,7 +1219,7 @@ class TopicController extends Controller
                     self::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     if (isset($topic)) {
-                        Util::dispatchJob($topic, $data['camp_num'], 1);
+                        //Util::dispatchJob($topic, $data['camp_num'], 1);
                         
                         //timeline start
                         if ($data['event_type'] == "update_topic") { 
