@@ -260,7 +260,7 @@ class Util
      * @param boolean $updateAll
      * @return void
      */
-    public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $delay = null, $campChangeID = null) {
+    public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $delay = null, $additionalInfo = []) {
 
         try{
             $selectedAlgo = 'blind_popularity';
@@ -273,8 +273,8 @@ class Util
                 'asOf'      => $asOf,
                 'updateAll' => $updateAll,
                 'camp_num'  => $campNum,
-                'campChangeID' => $campChangeID,
                 'isUniqueJob' => true,
+                'additional_info' => $additionalInfo,
                 'endpointCSStore' => env('CS_STORE_TREE')
             ];
             // Dispatch job when create a camp/topic
@@ -304,6 +304,7 @@ class Util
                             'asOf'      => $asOf,
                             'updateAll' => 1,
                             'camp_num'  => $campNum,
+                            'additional_info' => $additionalInfo,
                             'endpointCSStore' => env('CS_STORE_TREE')
                         ];
                         // Dispact job when create a camp
