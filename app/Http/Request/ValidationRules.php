@@ -492,6 +492,17 @@ class ValidationRules
             'type' => 'in:objected,live,in_review,old,all',
         ]);
     }
+
+    public function getCampHistoryValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'type' => 'in:objected,live,in_review,old,all',
+            'per_page' => 'required',
+            'page' => 'required',
+        ]);
+    }
     
     public function getManageCampValidationRules(): array
     {
