@@ -271,7 +271,7 @@ class CreateElasticSearchTableProcedure extends Migration
                             elasticsearch_data
                             SELECT 
                                 CONCAT('statement-',a.topic_num,'-',a.camp_num,'-',a.id) AS id,
-                                a.VALUE AS type_name, 
+                                a.parsed_value AS type_name, 
                                 a.topic_num,
                                 a.camp_num,
                                 a.go_live_time,
