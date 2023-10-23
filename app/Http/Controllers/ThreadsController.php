@@ -409,6 +409,10 @@ class ThreadsController extends Controller
                 $this->updateThreadsInfo($threads);
                 $status = 200;
                 $message = trans('message.success.success');
+
+                if (count($threads->items) < 1)
+                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
 
@@ -431,7 +435,11 @@ class ThreadsController extends Controller
 
             $status = 200;
             $message = trans('message.success.success');
-            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            
+            if (count($threads->items) < 1)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            
+                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');
