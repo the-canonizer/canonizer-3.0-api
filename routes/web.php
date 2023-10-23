@@ -158,5 +158,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
     $router->group(['prefix' => 'canonizer/api'], function() use ($router) {
         $router->post('commit/change','TopicController@commitAndNotifyChange');
+        $router->post('agree-to-change','TopicController@agreeToChangeForLiveJob');
     });
 });

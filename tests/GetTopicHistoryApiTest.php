@@ -131,4 +131,22 @@ class GetTopicHistoryApiTest extends TestCase
         //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
+
+    public function testIfRecordNotFound()    
+    {
+        $data = [
+            "per_page" => "10",
+            "page" => "1",
+            "topic_num" => "12312312",
+            "type" => "all",
+        ];
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer '.$token;
+        $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
+        //  dd($this->response);
+        $this->assertEquals(404, $this->response->status());
+    }
 }

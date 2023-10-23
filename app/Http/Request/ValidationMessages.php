@@ -533,6 +533,17 @@ class ValidationMessages
         ];
     }
 
+    public function getAgreeToChangeForLiveJobValidationMessages(): array
+    {
+        return [
+            'record_id.required' => trans('message.validation_agree_to_change.record_id_required'),
+            'topic_num.required' => trans('message.validation_agree_to_change.topic_num_required'),
+            'camp_num.required' => trans('message.validation_agree_to_change.camp_num_required'),
+            'change_for.in' => trans('message.validation_agree_to_change.change_for_in'),
+            'change_for.required' => trans('message.validation_agree_to_change.change_for_required'),
+        ];
+    }
+
     public function getTopicHistoryValidationMessages(): array
     {
         return ([

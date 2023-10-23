@@ -54,16 +54,23 @@ class CanonizerService implements ShouldQueue, Uniqueable
             $updateAll = $this->canonizerData['updateAll'];
         }
 
-        if(!empty($this->canonizerData['campChangeID'])) {
-            Util::parentCampChangedBasedOnCampChangeId($this->canonizerData['campChangeID']);
-            sleep(1);
+        if(array_key_exists('model_id', $this->canonizerData['additional_info']) && array_key_exists('model_type', $this->canonizerData['additional_info']) ) {
+            if($this->canonizerData['additional_info']['model_type'] == 'camp')
+                Util::parentCampChangedBasedOnCampChangeId($this->canonizerData['additional_info']['model_id']);
+                sleep(1);
         }
-        
+
         $requestBody = [
-            'topic_num'     => $this->canonizerData['topic_num'],
-            'asofdate'      => $this->canonizerData['asOfDate'],
-            'algorithm'     => $this->canonizerData['algorithm'],
-            'update_all'    => $updateAll
+            'topic_num'         => $this->canonizerData['topic_num'],
+            'asofdate'          => $this->canonizerData['asOfDate'],
+            'algorithm'         => $this->canonizerData['algorithm'],
+            'update_all'        => $updateAll,
+            'model_id'          => $this->canonizerData['additional_info']['model_id'] ?? NULL,
+            'model_type'        => $this->canonizerData['additional_info']['model_type'] ?? NULL,
+            'job_type'          => $this->canonizerData['additional_info']['job_type'] ?? NULL,
+            'event_type'        => $this->canonizerData['additional_info']['event_type'] ?? NULL,
+            'pre_LiveId'        => $this->canonizerData['additional_info']['pre_LiveId'] ?? NULL,
+            'camp_num'      => $this->canonizerData['camp_num']
         ];
         if(!empty($this->canonizerData['endpointCSStore'])) {
             $endpointCSStoreTree = $this->canonizerData['endpointCSStore'];

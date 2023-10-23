@@ -473,6 +473,16 @@ class ValidationRules
         ]);
     }
 
+    public function getAgreeToChangeForLiveJobValidationRules(): array
+    {
+        return ([
+            'record_id' => 'required',
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'change_for' => 'required|in:topic,camp,statement',
+        ]);
+    }
+
     public function getTopicHistoryValidationRules(): array
     {
         return ([
