@@ -416,6 +416,13 @@ return [
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
     ],
+    'validation_get_camp_history' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required.",
+        'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+    ],
     'validation_manage_camp' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number number is required.",

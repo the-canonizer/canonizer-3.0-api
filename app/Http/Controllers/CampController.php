@@ -1205,6 +1205,11 @@ class CampController extends Controller
 
     public function getCampHistory(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getCampHistoryValidationRules(), $this->validationMessages->getCampHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
         $filter['type'] = $request->type;

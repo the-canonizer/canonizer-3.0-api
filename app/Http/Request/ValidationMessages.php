@@ -553,6 +553,17 @@ class ValidationMessages
             'page.required' => trans('message.validation_get_topic_history.page_required'),
         ]);
     }
+
+    public function getCampHistoryValidationMessages(): array
+    {
+        return ([
+            'topic_num.required' => trans('message.validation_get_camp_history.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_camp_history.camp_num_required'),
+            'type.in' => trans('message.validation_get_camp_history.type_in'),
+            'per_page.required' => trans('message.validation_get_camp_history.per_page_required'),
+            'page.required' => trans('message.validation_get_camp_history.page_required'),
+        ]);
+    }
     
     public function getManageCampValidationMessages(): array
     {
