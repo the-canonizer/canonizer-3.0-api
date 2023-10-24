@@ -1181,7 +1181,8 @@ class CampController extends Controller
                 $livecamp = Camp::getLiveCamp($filterArray);
             }
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+           
             if(count($data->bread_crumb) < 1) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_breadcrumb_not_found'));
             }
