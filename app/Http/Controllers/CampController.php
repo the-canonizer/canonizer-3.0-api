@@ -1181,7 +1181,8 @@ class CampController extends Controller
                 $livecamp = Camp::getLiveCamp($filterArray);
             }
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
-            
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+           
             if(count($data->bread_crumb) < 1) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_breadcrumb_not_found'));
             }
@@ -1482,7 +1483,7 @@ class CampController extends Controller
                 // }
             }
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 // // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 // $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
                 //     'topicNum' => $all['topic_num'],
@@ -1494,6 +1495,7 @@ class CampController extends Controller
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
                 ];
+                $checkUserDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $filters['campNum'], $nickNames, $camp->submit_time);
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
 
                 /** #483 Direct supporter is unable to object the change in archive case */
@@ -1508,7 +1510,7 @@ class CampController extends Controller
                      
                 }
 
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
+                if(($checkUserDirectSupportExists < 1) && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
