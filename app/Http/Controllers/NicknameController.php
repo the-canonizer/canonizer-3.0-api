@@ -167,7 +167,10 @@ class NicknameController extends Controller
         $user = $request->user();
         try {
             $allNicknames = Nickname::getNickSupportUser($user,$nick_id);
-
+            if ($allNicknames == 'not_found') {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+           
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $allNicknames, '');
 
         } catch (\Throwable $e) {
