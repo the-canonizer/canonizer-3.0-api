@@ -400,6 +400,10 @@ class ThreadsController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        if (!Topic::getLiveTopic($request->topic_num) || !Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num])) {
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+        }
+        
         try {
             $threads = null;
             $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
@@ -410,8 +414,8 @@ class ThreadsController extends Controller
                 $status = 200;
                 $message = trans('message.success.success');
 
-                if (count($threads->items) < 1)
-                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+                // if (count($threads->items) < 1)
+                //     return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
 
                 return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
