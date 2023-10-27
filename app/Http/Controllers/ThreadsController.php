@@ -735,10 +735,11 @@ class ThreadsController extends Controller
                 ->select('thread.*', 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
                 ->where('thread.id', $id)->first();
             if (!$threads) {
-                $threads = null;
-                $status = 400;
-                $message = trans('message.thread.id_not_exist');
-                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.thread.id_not_exist'));
+                // $threads = null;
+                // $status = 400;
+                // $message = trans('message.thread.id_not_exist');
+                // return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
             }
             $postCount =  Reply::where('c_thread_id', $threads->id)->where('post.is_delete', 0)->get();
             $namspaceId =  Topic::select('namespace_id')->where('topic_num', $threads->topic_id)->first();
