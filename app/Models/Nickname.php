@@ -321,9 +321,7 @@ class Nickname extends Model {
         //if(!empty($topic_num)){
            // $topic_num_cond = 'and u.topic_num = '.$topic_num;
        // }
-
-        $namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : $namespace;
-
+       
         if ((isset($filter['asof']) && $filter['asof'] == 'bydate')) {
                 $as_of_time = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
                 $as_of_clause = "and go_live_time < $as_of_time";   
