@@ -360,6 +360,10 @@ class SupportController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '','');
             }
 
+            if (!Topic::getLiveTopic($topicNum) || !Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $campNum])) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+
             $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
             $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId);
             
