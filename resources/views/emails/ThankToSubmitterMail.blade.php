@@ -27,6 +27,13 @@
                     </td>
                 </tr>
                 <tr>
+                    <td style="font-weight:400;">
+                        <br>
+                        {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
+                        <p><b>{{ ucfirst($data->type) }} Summary:</b> {{ $data->note }}</p>
+                    </td>
+                </tr>
+                <tr>
                     <td style="font-weight:400; color:#497BDF;">
                         @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->link)])
                             Click Here To View

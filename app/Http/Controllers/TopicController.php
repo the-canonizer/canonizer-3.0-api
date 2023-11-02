@@ -253,7 +253,8 @@ class TopicController extends Controller
                         "link" => $link,
                         "historylink" => $historylink,
                         "object" => $topic->topic_name,
-                        'namespace_id' => $topic->namespace_id
+                        'namespace_id' => $topic->namespace_id,
+                        'note' => $topic->note
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $nickName = Nickname::getNickName($request->nick_name)->nick_name;
@@ -714,6 +715,7 @@ class TopicController extends Controller
             }
 
             Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
+            
             $activityLogData = [
                 'log_type' =>  "topic/camps",
                 'activity' => trans('message.activity_log_message.commit_change', ['nick_name' =>  $nickName->nick_name, 'type' => $type]),
