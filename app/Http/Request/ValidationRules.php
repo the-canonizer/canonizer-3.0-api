@@ -605,4 +605,13 @@ class ValidationRules
             'namespace' => 'integer'
         ]);
     }
+
+    public function getThreadByIdValidationRules(): array
+    {
+        return ([
+            'camp_num' => 'required|numeric|gt:0',
+            'topic_num' => 'required|numeric|gt:0',
+            'thread_id' => 'exists:thread,id'
+        ]);
+    }
 }
