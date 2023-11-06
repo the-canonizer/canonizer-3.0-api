@@ -9,6 +9,7 @@ class Search extends Model
 {
    
     protected $table = 'elasticsearch_data';
+    public $timestamps = false;
 
     protected $casts = [
         'id' => 'string',
@@ -100,5 +101,64 @@ class Search extends Model
             return $data;
         }
 
+    }
+
+
+    public static function createOrUpdate($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
+    {       
+        if($type == 'nickname'){
+            $queryArray = ['type' => 'nickname','nick_name_id' => $nickNameId];  
+          }else if($type == 'statement'){
+              $queryArray = ['type' => 'statement','statement_num'=>$statementNum];   
+          }else{
+              $queryArray = ['type' => $type,'topic_num' => $topicNum, 'camp_num' => $campNum];   
+          }
+          $modelEvent = 'create';
+          $search = Search::updateOrCreate($queryArray);
+          if(!empty($search)){
+            $modelEvent = 'update';
+          }
+          $search->id = $id;
+          $search->type = $type;
+          $search->type_value = $typeValue;
+          $search->topic_num = $topicNum;
+          $search->camp_num = $campNum;
+          $search->statement_num = $statementNum;
+          $search->nick_name_id = $nickNameId;
+          $search->go_live_time = $goLiveTime;
+          $search->namespace = $namespace;
+          $search->link = $link;
+          $search->breadcrumb_data = $breadcrumb;
+          $search->support_count = $supportCount;
+          if($modelEvent == 'update'){
+            $data = [
+                'id' => $id,
+                'type' => $type,
+                'type_value' => $typeValue,
+                'topic_num' => $topicNum,
+                'camp_num' => $campNum,
+                'statement_num' => $statementNum,
+                'go_live_time' => $goLiveTime,
+                'namespace' => $namespace,
+                'link' => $link,
+                'breadcrumb_data' => json_encode($breadcrumb),
+                'nick_name_id' => $nickNameId,
+                'support_count' => $supportCount
+            ];
+            Search::where($queryArray)
+                    ->update($data);
+            return;
+
+          }
+          $search->save();
+          return;
+
+
+    }
+
+    public static function deleteRecordIfExist($id)
+    {
+        Search::where(['id'=>$id])->delete();
+        return;
     }
 }

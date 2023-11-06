@@ -1430,9 +1430,9 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+        /*if (! Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
-        }
+        }*/
 
         $all = $request->all();
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;

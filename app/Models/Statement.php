@@ -6,11 +6,49 @@ use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use App\Models\Nickname;
 use App\Facades\Util;
+use App\Helpers\ElasticSearch;
 
 class Statement extends Model
 {
     protected $table = 'statement';
     public $timestamps = false;
+
+
+    /**
+     * 
+     */ 
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) 
+        {
+            $liveTopic = Topic::getLiveTopic($item->topic_num);
+            $filter['topicNum'] = $item->topic_num;
+            $filter['asOf'] = '';
+            $filter['campNum'] = $item->camp_num;
+            $liveCamp = self::getLiveCamp($filter);
+            $id = "statement-" .$item->topic_num ."-" . $item->camp_num . "-" . $item->id;
+            $type = "statement";
+            $typeValue = $item->parse_value;
+            $goLiveTime = $item->go_live_time;
+            $namespaceLabel = 'no-namespace';
+            $campName = $liveCamp->camp_name;
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
+            }
+            $breadcrumb = '';
+            $link = self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+
+            if($item->go_live_time <= time()){
+                // then update table
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            }
+        });
+    }
+
+
     public static function getLiveStatement($filter = array())
     {
         $filterName = $filter['asOf'];

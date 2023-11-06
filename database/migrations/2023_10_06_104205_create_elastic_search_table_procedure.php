@@ -84,7 +84,7 @@ class CreateElasticSearchTableProcedure extends Migration
                             INSERT INTO
                             elasticsearch_data
                             SELECT
-                                CONCAT('camp-',a.topic_num,'-',a.camp_num,'-',a.id) AS id,
+                                CONCAT('camp-',a.topic_num,'-',a.camp_num) AS id,
                                 a.camp_name AS type_name,
                                 a.topic_num,
                                 a.camp_num,
@@ -237,7 +237,7 @@ class CreateElasticSearchTableProcedure extends Migration
                             INSERT INTO
                                 elasticsearch_data
                             SELECT
-                                CONCAT('topic-',a.topic_num,'-',a.id,'-',REPLACE(TRIM(BOTH '/' FROM IFNULL(c.label,'no-namespace')), '/', ' > ')) AS id,
+                                CONCAT('topic-',a.topic_num) AS id,
                                 a.topic_name AS type_name,
                                 a.topic_num,
                                 '1' AS camp_num,
@@ -270,7 +270,7 @@ class CreateElasticSearchTableProcedure extends Migration
                             INSERT INTO
                             elasticsearch_data
                             SELECT 
-                                CONCAT('statement-',a.topic_num,'-',a.camp_num,'-',a.id) AS id,
+                                CONCAT('statement-',a.topic_num,'-',a.camp_num) AS id,
                                 a.parsed_value AS type_name, 
                                 a.topic_num,
                                 a.camp_num,
