@@ -473,6 +473,16 @@ class ValidationRules
         ]);
     }
 
+    public function getAgreeToChangeForLiveJobValidationRules(): array
+    {
+        return ([
+            'record_id' => 'required',
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'change_for' => 'required|in:topic,camp,statement',
+        ]);
+    }
+
     public function getTopicHistoryValidationRules(): array
     {
         return ([
@@ -480,6 +490,17 @@ class ValidationRules
             'per_page' => 'required',
             'page' => 'required',
             'type' => 'in:objected,live,in_review,old,all',
+        ]);
+    }
+
+    public function getCampHistoryValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required',
+            'camp_num' => 'required',
+            'type' => 'in:objected,live,in_review,old,all',
+            'per_page' => 'required',
+            'page' => 'required',
         ]);
     }
     

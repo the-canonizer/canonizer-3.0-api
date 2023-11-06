@@ -6,154 +6,107 @@ use Illuminate\Http\Request;
 use App\Helpers\ElasticSearch;
 use App\Models\Search;
 use DB;
+use App\Helpers\ResponseInterface;
 
 class SearchController extends Controller
 {
     
+    public function __construct(ResponseInterface $respProvider)
+    {
+       $this->resProvider = $respProvider;
+    }
+
     public function getSearchResults(Request $request)
     {
         $term = $request->get('term');
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $query = [
-            'index' => 'canonizer_elastic_search',
-            'body'  => [
-                'query' => [
-                    "bool" => [
-                        "should" =>  [
-                            [
-                                "multi_match" => [
-                                "query" => ".$term.",
-                                "fields" => [
-                                            "type_value"
-                                        ]
-                                    ]
-                            ],
-                            [
-                                "multi_match" => [
-                                "query" =>  ".$term.",
-                                "type" => "phrase_prefix",
-                                "fields" =>  [
-                                            "type_value"
-                                        ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ],
-                'size' => 10,
-                'from' => 0
-            ],
-        ];
+        $type = $request->get('type') ?? '';
+        $size = $request->get('size') ?? 25;
+        $page = $request->get('page') ?? 1;
+        try{
 
-        $result = $elasticsearch->search($query);
+            if(isset($type) && empty(trim($type)))
+            {
+                //$type = ['topic','camp','statement','nickname'];
+                $topic = Search::getSearchData($term, ['topic'], $size, $page);
+                $camp = Search::getSearchData($term, ['camp'], $size, $page);
+                $statement = Search::getSearchData($term, ['statement'], $size, $page);
+                $nickName = Search::getSearchData($term, ['nickname'], $size, $page);  
+                
+                $data['topic'] = $topic['data'];
+                $data['camp'] = $camp['data'];
+                $data['statement'] = $statement['data'];
+                $data['nickname'] = $nickName['data'];
+                $total = count($topic['data']) + count($camp['data']) + count($statement['data']) + count($nickName['data']);
+
+                //$data =  self::optimizeResponse($searchData,'all',$page,$size);
+            
+            }else{
+                $searchData = Search::getSearchData($term, [$type], $size, $page);
+                $data[$type] = $searchData['data'];
+                $total = count($searchData['data']);
+
+              //  =  self::optimizeResponse($searchData, $type,$page,$size);
+            } 
+
+            $response = self::optimizeResponse($data, $total, $page, $size);
+
+            //$data = $data;
+            $status = 200;
+            $message =  trans('message.success.success');
+            
+            return $this->resProvider->apiJsonResponse($status, $message, $response, null);
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
+        }
+        
+        
+
         return ($result);
     }
 
-/*
-    public function importDataToElasticSearch()
-    {
-        //execute procedure
-        DB::select("CALL sp_sync_data_to_elasticsearch");
-
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);
-
-        $body = Search::get();
-        $indexName = 'canonizer_elastic_search';
-        $mapping = [
-            'index' => $indexName,
-            'body' => [
-                'mappings' => [
-                    'properties' => [
-                        'id' => [
-                            'type' => 'text',
-                        ],
-                        'type' => [
-                            'type' => 'keyword',
-                        ],
-                        'type_value' => [
-                            'type' => 'text',
-                        ],
-                        'topic_num' => [
-                            'type' => 'integer',
-                        ],
-                        'camp_num' => [
-                            'type' => 'integer',
-                        ],
-                        'statement_num' => [
-                            'type' => 'integer',
-                        ],
-                        'nick_name_id' => [
-                            'type' => 'integer',
-                        ],
-                        'go_live_time' => [
-                            'type' => 'text',
-                        ],
-                        'namespace' => [
-                            'type' => 'text',
-                        ],
-                        'link' => [
-                            'type' => 'text',
-                        ],
-                        'support_count' => [
-                            'type' => 'double',
-                        ],
-                        'breadcrumb' => [
-                            'type' => 'nested',
-                            'properties' => [
-                                'camp_num' => [
-                                    'type' => 'integer',
-                                ],
-                                'topic_num' => [
-                                    'type' => 'integer',
-                                ],
-                                'camp_name' => [
-                                    'type' => 'keyword',
-                                ],
-                                'topic_name' => [
-                                    'type' => 'keyword',
-                                ],
-                                'camp_link' => [
-                                    'type' => 'text',
-                                ],
-                                'go_live_time' => [
-                                    'type' => 'text',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
+    public static function optimizeResponse($data, $total, $page, $size)
+    { 
+        
+        
+       return $response = [
+                'data' => $data,
+                'meta_data' => [
+                    'total' => $total,
+                    'page' => $page,
+                    'size' => $size
+                ]
         ];
-
-        $elasticsearch->indices()->create($mapping);
-
-        foreach($body as $key => $val){
-           // echo "<pre>"; print_r((string)$val->id); exit;
-            $params = [
-                'index' => $indexName, // Replace with the name of your Elasticsearch index
-                'id'    => $val->id, // Replace with a unique identifier for the document
-                'body'  => [
-                    'id' => $val->id,
-                    'type_value' => $val->type_value,
-                    'type' => $val->type,
-                    'camp_num' => $val->camp_num,
-                    'topic_num' => $val->topic_num,
-                    'statement_num' =>$val->statement_num,
-                    'go_live_time' => $val->go_live_time,
-                    'nick_name_id' => $val->nick_name_id,
-                    'support_count' => $val->support_count,
-                    'namespace' => $val->namespace,
-                    'link' => $val->link,
-                    'breadcrumb_data' => $val->breadcrumb_data
-                ],
-            ];
-
-            $elasticsearch->index($params);  //insertion
-        }   
-
-        echo 'Records inserted in elastic search are: ' . ($key+1);
-
+        /*if(isset($type) && $type != 'all'){
+            $array[$type] = $data['data'];
+        }else{
+            $array =  [
+                'topic' => [],
+                'camp' => [],
+                'statement' => [],
+                'nickname' => []
+            ]; 
+            foreach($data['data'] as $es)
+            {
+                
+                switch ($es['type']) {
+                    case 'topic':
+                        array_push($array['topic'], $es);
+                        break;
+                    case 'camp':
+                        array_push($array['camp'], $es);
+                    break;
+                    case 'statement':
+                        array_push($array['statement'], $es);
+                    break;
+                    case 'nickname':
+                        array_push($array['nickname'], $es);
+                        break;
+                    
+                    default:
+                        break;
+                }
+            }
+        }*/
     }
-    */
+
 }

@@ -398,6 +398,8 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
+            } else { 
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
             }
 
             if ($livecamp && $filter['asOf'] === 'default') {
@@ -706,9 +708,10 @@ class CampController extends Controller
                     DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+//                $status = 400;
+//                $message = trans('message.error.exception');
+//                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
             $status = 200;
@@ -811,9 +814,10 @@ class CampController extends Controller
         try {
             $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
             if (empty($allNicknames)) {
-                $status = 400;
-                $message = trans('message.error.exception');
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+                // $status = 404;
+                // $message = trans('message.error.record_not_found');
+                // return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $status = 200;
             $message = trans('message.success.success');
@@ -1161,8 +1165,28 @@ class CampController extends Controller
         $data->subscribed_camp_name = null;
         try {
             $livecamp = Camp::getLiveCamp($filter);
+
+            /* Handle the logic when asofdate is past and user create camp today, so in this scenario 
+            we need breadcrumb to include all parents of camp. And if it has no parent it will show Agreement
+            camp in breadcrumb.
+            */
+            if(empty($livecamp)) {
+                // Get the parent camp of current created one ...
+                $parentCampNum = Camp::select('parent_camp_num')->where('topic_num', $filter['topicNum'])
+                    ->where('camp_num', '=', $filter['campNum'])
+                    ->where('objector_nick_id', '=', NULL)
+                    ->latest('go_live_time')->first();
+                $filterArray = array_merge([], $filter);
+                $filterArray['campNum'] = $parentCampNum->parent_camp_num ?? 1;
+                $livecamp = Camp::getLiveCamp($filterArray);
+            }
             $data->bread_crumb = Camp::campNameWithAncestors($livecamp, $filter);
             $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+           
+            if(count($data->bread_crumb) < 1) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_breadcrumb_not_found'));
+            }
+
             if ($request->user()) {
                 $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
                 $data->flag = $campSubscriptionData['flag'];
@@ -1182,6 +1206,11 @@ class CampController extends Controller
 
     public function getCampHistory(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getCampHistoryValidationRules(), $this->validationMessages->getCampHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        
         $filter['topicNum'] = $request->topic_num;
         $filter['campNum'] = $request->camp_num;
         $filter['type'] = $request->type;
@@ -1194,6 +1223,10 @@ class CampController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         $response->ifIAmExplicitSupporter = null;
+
+        if (Camp::where(['topic_num' => $filter['topicNum'], 'camp_num' => $filter['campNum']])->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $liveCamp = Camp::getLiveCamp($filter);
@@ -1397,9 +1430,9 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+        /*if (! Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
-        }
+        }*/
 
         $all = $request->all();
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;
@@ -1450,7 +1483,7 @@ class CampController extends Controller
                 // }
             }
             if ($all['event_type'] == "objection") {
-                $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
+                // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames, [$all['camp_num']]);
                 // // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 // $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporter([
                 //     'topicNum' => $all['topic_num'],
@@ -1462,6 +1495,7 @@ class CampController extends Controller
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
                 ];
+                $checkUserDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $filters['campNum'], $nickNames, $camp->submit_time);
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames , $camp->submit_time, null, false, 'ifIamExplicitSupporter');
 
                 /** #483 Direct supporter is unable to object the change in archive case */
@@ -1476,7 +1510,7 @@ class CampController extends Controller
                      
                 }
 
-                if(!$checkUserDirectSupportExists && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
+                if(($checkUserDirectSupportExists < 1) && !$checkIfIAmExplicitSupporter && !$revokableSupporter && !$explicitSupportersCount) {
                     $message = trans('message.support.not_authorized_for_objection_camp');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }

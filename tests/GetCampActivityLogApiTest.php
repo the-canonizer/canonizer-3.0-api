@@ -2,83 +2,105 @@
 
 use App\Models\User;
 
-class GetCampActivityLogApiTest extends TestCase  
+class GetCampActivityLogApiTest extends TestCase
 {
-    /**
-     * Check Api with empty form data
-     * validation
-     */
-    public function testGetCampActivityLogApiWithEmptyFormData()
+    public function testWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
+        $apiPayload = [];
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log',[],$header);
-        //  dd($this->response);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api with empty values
-     * validation
-     */
-    public function testGetCampActivityLogApiWithEmptyValues()
+    public function testWithEmptyValues()
     {
-        $emptyData = [
+        print sprintf("\nTest with empty values");
+        $apiPayload = [
             'topic_num' => '',
             'camp_num' => ''
         ];
-        print sprintf("Test with empty values");
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log',$emptyData,$header);
-        //  dd($this->response);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
         $this->assertEquals(400, $this->response->status());
     }
 
-    /**
-     * Check Api response code with valid data
-     */
-    public function testGetCampActivityLogApiStatus()
+    public function testWithInvaidTopicNum()
     {
-        $data = [
-            'topic_num' => 2,
+        print sprintf("\nTest with invalid topic_num");
+        $apiPayload = [
+            'topic_num' => 12312312,
             'camp_num' => 1
-        ];    
-        print sprintf("\n post camp activity log", 200, PHP_EOL);
+        ];
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log',$data,$header);
-        //  dd($this->response);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $this->assertEquals(404, $this->response->status());
+    }
+
+    public function testIfActivityIsNotLogged()
+    {
+        print sprintf("\nTest if activity is not logged");
+        $apiPayload = [
+            'topic_num' => 88,
+            'camp_num' => 2
+        ];
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $this->assertEquals(404, $this->response->status());
+    }
+
+    public function testWithValidValues()
+    {
+        print sprintf("\nTest with valid values");
+        $apiPayload = [
+            'topic_num' => 88,
+            'camp_num' => 1
+        ];
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
         $this->assertEquals(200, $this->response->status());
     }
 
-    /**
-     * Check Api response structure
-     */
-    public function testGetCampActivityLogApiResponse()
+    public function testApiStructureValidValues()
     {
-        $data = [
-            'topic_num' => 1,
+        print sprintf("\nTest api structure with valid values");
+        $apiPayload = [
+            'topic_num' => 88,
             'camp_num' => 1
-        ]; 
-        print sprintf("\n Test camp activity log API response ", 200, PHP_EOL);
+        ];
         $user = User::factory()->make();
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log',$data,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $this->seeJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data' => [
+                'items' => []
+            ]
+        ]);
     }
 }

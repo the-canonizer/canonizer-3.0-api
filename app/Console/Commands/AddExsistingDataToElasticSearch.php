@@ -41,12 +41,12 @@ class AddExsistingDataToElasticSearch extends Command
     public function handle()
     {
          //execute procedure
-         //DB::select("CALL sp_sync_data_to_elasticsearch");
+         DB::select("CALL sp_sync_data_to_elasticsearch");
          $indexName = 'canonizer_elastic_search';
          $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-
-         $elasticsearch->indices()->delete(['index' => $indexName]);
-         $body = Search::get();       
+         $elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);
+ 
+         $body = Search::get();    
          $mapping = [
              'index' => $indexName,
              'body' => [
@@ -115,41 +115,41 @@ class AddExsistingDataToElasticSearch extends Command
  
          $elasticsearch->indices()->create($mapping);
 
+ 
          $bulkData = []; // An array to accumulate data for bulk indexing
-
-        foreach ($body as $key => $val) {
-            $bulkData[] = [
-                'index' => [
-                    '_index' => $indexName,
-                    '_id' => $val->id,
-                ]
-            ];
-            $bulkData[] = [
-                'id' => $val->id,
-                'type_value' => $val->type_value,
-                'type' => $val->type,
-                'camp_num' => $val->camp_num,
-                'topic_num' => $val->topic_num,
-                'statement_num' => $val->statement_num,
-                'go_live_time' => $val->go_live_time,
-                'nick_name_id' => $val->nick_name_id,
-                'support_count' => $val->support_count,
-                'namespace' => $val->namespace,
-                'link' => $val->link,
-                'breadcrumb_data' => $val->breadcrumb_data
-            ];
-        }
-
-        // Use the Bulk API to send the data in a batch
-        $params = ['body' => $bulkData];
-        $response = $elasticsearch->bulk($params);
-
-        // Process the response if needed
-        if ($response['errors']) {
-            echo "Bulk indexing had errors.";
-        } else {
-            echo "Bulk indexing completed successfully.";
-        }
+         foreach ($body as $key => $val) {
+             $bulkData[] = [
+                 'index' => [
+                     '_index' => $indexName,
+                     '_id' => $val->id,
+                 ]
+             ];
+             $bulkData[] = [
+                 'id' => $val->id,
+                 'type_value' => $val->type_value,
+                 'type' => $val->type,
+                 'camp_num' => $val->camp_num,
+                 'topic_num' => $val->topic_num,
+                 'statement_num' => $val->statement_num,
+                 'go_live_time' => $val->go_live_time,
+                 'nick_name_id' => $val->nick_name_id,
+                 'support_count' => $val->support_count,
+                 'namespace' => $val->namespace,
+                 'link' => $val->link,
+                 'breadcrumb_data' => $val->breadcrumb_data
+             ];
+         }
+ 
+         // Use the Bulk API to send the data in a batch
+         $params = ['body' => $bulkData];
+         $response = $elasticsearch->bulk($params);
+ 
+         // Process the response if needed
+         if ($response['errors']) {
+             echo "Bulk indexing had errors.";
+         } else {
+             echo "Bulk indexing completed successfully.";
+         }
  
          echo 'Records inserted in elastic search are: ' . ($key+1);
     }
