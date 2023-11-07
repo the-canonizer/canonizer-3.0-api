@@ -280,7 +280,7 @@ return [
         'id_not_exist' => 'Given thread id does not exist in the database.',
         'update_success' => 'Thread title updated successfully.',
         'thread_not_exist' => 'Requested thread does not exist.',
-        'thread_not_related' => 'Thread not exist for requested camp.'
+        'thread_not_related' => "Thread doesn't exist for requested camp"
     ],
     'post' => [
         'nick_name_required' => 'Nick name field is required.',
