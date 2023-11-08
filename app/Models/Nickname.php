@@ -109,9 +109,11 @@ class Nickname extends Model {
 
     public static function personAllNicknamesByAnyNickId($nick_id)
     {
-        $encode = Util::canon_encode($nick_id);
-
-        return DB::table('nick_name')->select('id', 'nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->get();
+        $owner_code = self::find($nick_id);
+        if ($owner_code)
+            return self::select('id', 'nick_name')->where('owner_code', $owner_code->owner_code)->orderBy('nick_name', 'ASC')->get();
+        else
+            return [];
     }
 
    public static function topicNicknameUsed($topic_num)

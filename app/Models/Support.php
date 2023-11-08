@@ -694,18 +694,26 @@ class Support extends Model
                                 ->groupBy('nick_name_id')->pluck('nick_name_id')->toArray();
     }
 
-    public static function getSupportersNickNameOfArchivedCamps($toppicNum, $camps, $updatedArchiveStatus = 1)
+    public static function getSupportersNickNameOfArchivedCamps($topicNum, $camps, $updatedArchiveStatus = 1, $directSupport = 0)
     {
-        $query = self::where('topic_num', '=', $toppicNum)
-                                ->whereIn('camp_num', $camps)
-                                ->where('end', '!=', 0);
+        $query = self::where('topic_num', '=', $topicNum)
+                                ->whereIn('camp_num', $camps);
+                                
 
         if(!$updatedArchiveStatus){
-            $query = $query->where('reason','=','archived')
-                            ->where('archive_support_flag','=',0);
+            $query->where('reason','=','archived')
+                   ->where('end', '!=', 0)
+                   ->where('archive_support_flag','=',0);
+        }else{
+            $query->where('end', '=', 0);
         }
-        $supporters = $query->groupBy('nick_name_id')->get();
 
+        if($directSupport)
+        { 
+            $query->where('delegate_nick_name_id','=', 0);
+        }
+        
+        $supporters = $query->groupBy('nick_name_id')->get();
         return $supporters;
     }
 
@@ -782,13 +790,14 @@ class Support extends Model
 
        
         $query = Support::where('topic_num', $filter['topicNum'])
-                        ->whereIn('camp_num', $childCamps)
-                        ->where('end', '!=', 0)
+                        ->whereIn('camp_num', $childCamps)                       
                         ->where('delegate_nick_name_id', '=', 0);
                     
         if(!$updatedArchiveStatus){  // when un-archiving camp
            $query =  $query->where('reason','=','archived')
                             ->where('archive_support_flag','=',0);
+        }else{
+            $query->where('end', '!=', 0);
         }
 
         $mysupports = $query->get();              
@@ -802,5 +811,17 @@ class Support extends Model
         if (strlen($returnKey) > 0)
             return $returnData[$returnKey];
         return $returnData;
+    }
+
+    public static function filterArchivedSupporters($revokableSupporters, $explicitSupporters,$submitterNickId,$supportersListByTimeStamp)
+    {
+        $idsToExclude = array_unique(array_merge(array_column($supportersListByTimeStamp, 'id'),[$submitterNickId]));
+        $archiveDirectSupporters = array_diff($revokableSupporters,$idsToExclude);
+        $explicitSupporters = array_diff($explicitSupporters,$idsToExclude);
+
+        return $response = [
+            'direct_supporters' => $archiveDirectSupporters,
+            'explicit_supporters' => $explicitSupporters,
+        ];
     }
 }

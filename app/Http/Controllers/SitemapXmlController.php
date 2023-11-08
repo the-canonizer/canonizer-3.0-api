@@ -216,7 +216,7 @@ class SitemapXmlController extends Controller
         ];
         $siteMaps = array_map(function ($url) {
             $isExternal = strpos($url, 'http') === 0;
-            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END').'/videos/consciousness';
+            $baseUrl = $isExternal ? '' : env('APP_URL_FRONT_END') . '/videos/consciousness';
             $url = $baseUrl . $url;
             return [
                 'url' => $url,

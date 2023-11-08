@@ -447,14 +447,14 @@ class ThreadsController extends Controller
         })
             ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
             ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count, max(COALESCE(post.updated_at, thread.created_at)) as post_updated_at'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name')
             ->where('camp_id', $request->camp_num)
             ->where('topic_id', $request->topic_num)
             ->when(!empty($request->like), function ($query) use ($request) {
                 return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             })
             ->groupBy('thread.id')
-            ->orderByRaw('CASE WHEN post.updated_at > thread.created_at THEN post.updated_at ELSE thread.created_at END DESC')
+            ->orderBy('post_updated_at', 'DESC')
             ->paginate($per_page);
     }
 
@@ -468,7 +468,7 @@ class ThreadsController extends Controller
         })
             ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
             ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count, max(COALESCE(post.updated_at, thread.created_at)) as post_updated_at'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name')
             ->where('camp_id', $request->camp_num)
             ->where('topic_id', $request->topic_num)
             ->where('thread.user_id', $userNicknames[0]->id)
@@ -476,7 +476,7 @@ class ThreadsController extends Controller
                 return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             })
             ->groupBy('thread.id')
-            ->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')
+            ->orderBy('post_updated_at', 'DESC')
             ->paginate($per_page);
     }
 
@@ -490,7 +490,7 @@ class ThreadsController extends Controller
         })
             ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
             ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
+            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count, max(COALESCE(post.updated_at, thread.created_at)) as post_updated_at'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name')
             ->where('camp_id', $request->camp_num)
             ->where('topic_id', $request->topic_num)
             ->where('post.user_id', $userNicknames[0]->id)
@@ -498,7 +498,7 @@ class ThreadsController extends Controller
                 return $query->where('thread.title', 'LIKE', '%' . $request->like . '%');
             })
             ->groupBy('thread.id')
-            ->orderByRaw('CASE WHEN post_updated_at > thread.created_at THEN post_updated_at ELSE thread.created_at END DESC')
+            ->orderBy('post_updated_at', 'DESC')
             ->paginate($per_page);
     }
 

@@ -31,7 +31,7 @@
                 </tr>
                 <tr>
                     <td style="padding-top:10px; padding-bottom: 30px; font-weight:400; font-size:20px;">
-                        <p>Camp Name: <a style="color:#497BDF;" href="{{ \App\Facades\Util::linkForEmail($data['camp_url']) }}"> {{ $data['camp_name'] }} </a>
+                        <p>Camp Name: <a style="color:#497BDF;" href="{{ \App\Facades\Util::linkForEmail($data['camp_url']) }}"><b> {{ $data['camp_name'] }}</b> </a>
                         </p>
                     </td>
                 </tr>
