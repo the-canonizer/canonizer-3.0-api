@@ -75,7 +75,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             }else{
                 $link = self::campLink($topicNum, $campNum, $typeValue, $campName);
                 $id = "camp-". $topicNum . "-" . $campNum . "-" .$item->id;
-                $breadcrumb = '';   //camp breadcrumb
+                // breadcrumb
+                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
 
             if($item->go_live_time <= time()){

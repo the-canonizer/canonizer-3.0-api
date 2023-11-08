@@ -83,9 +83,7 @@ class ElasticSearch
                 $response = $elasticsearch->delete($delParam);
                 // Process the response if needed          
         }
-
         return;
-        
     }
 
 }

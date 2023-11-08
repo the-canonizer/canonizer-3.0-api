@@ -161,4 +161,26 @@ class Search extends Model
         Search::where(['id'=>$id])->delete();
         return;
     }
+
+    public static function getCampBreadCrumbData($liveTopic, $topicNum, $campNum)
+    {
+        $filter['topicNum'] = $topicNum;
+        $filter['campNum'] = $campNum;
+        $livecamp = Camp::getLiveCamp($filter);
+        $breadcrumb = array_reverse(Camp::campNameWithAncestors($livecamp, $filter));
+        $bData = [];
+        foreach($breadcrumb as $bd)
+        {
+            $temp = [
+                'camp_num' =>  $bd['camp_num'],
+                'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name']),
+                'camp_name' => $bd['camp_name'],
+                'topic_num' => $bd['topic_num'],
+                'topic_name' => $liveTopic->topic_name
+
+            ];
+            array_push($bData, $temp);
+        }
+        return $bData;
+    }
 }

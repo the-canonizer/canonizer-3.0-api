@@ -23,23 +23,26 @@ class Statement extends Model
             
         static::saved(function($item) 
         {
+            $topicNum  = $item->topic_num;
+            $campNum = $item->camp_num;
             $liveTopic = Topic::getLiveTopic($item->topic_num);
             $filter['topicNum'] = $item->topic_num;
             $filter['asOf'] = '';
             $filter['campNum'] = $item->camp_num;
-            $liveCamp = self::getLiveCamp($filter);
-            $id = "statement-" .$item->topic_num ."-" . $item->camp_num . "-" . $item->id;
+            $liveCamp = Camp::getLiveCamp($filter);
+            $id = "statement-" .$item->topic_num ."-" . $item->camp_num;
             $type = "statement";
             $typeValue = $item->parse_value;
             $goLiveTime = $item->go_live_time;
-            $namespaceLabel = 'no-namespace';
+            $namespace = '';
             $campName = $liveCamp->camp_name;
             if (!empty($namespace)) {
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
                 $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-            }
-            $breadcrumb = '';
-            $link = self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+            }            
+            $link = Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+            // breadcrumb
+            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
 
             if($item->go_live_time <= time()){
                 // then update table
