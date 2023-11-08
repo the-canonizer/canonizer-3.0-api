@@ -398,7 +398,7 @@ class StatementController extends Controller
         }
 
         if (!Gate::allows('nickname-check', $request->nick_name)) {
-            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            //return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
 
         $all = $request->all();

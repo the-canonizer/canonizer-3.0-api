@@ -824,4 +824,10 @@ class Support extends Model
             'explicit_supporters' => $explicitSupporters,
         ];
     }
+
+    public static function getTotalSupportedCamps($nicknames = array())
+    {
+        return self::whereIn('nick_name_id', $nicknames)
+            ->where('end', 0)->count();
+    }
 }

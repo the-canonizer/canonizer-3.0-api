@@ -8,13 +8,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\General;
 use Exception;
+use App\Helpers\ElasticSearch;
+use App\Models\Support;
 
 class Nickname extends Model {
 
     protected $table = 'nick_name';
     public $timestamps = false;
 
-/**
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -22,6 +24,36 @@ class Nickname extends Model {
     protected $fillable = [
         'nick_name'
     ];
+
+
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) 
+        {    
+            $type = "nickname";
+            $id = "nickname-" . $item->id;
+            $typeValue = $item->nick_name;
+            $topicNum = 0;
+            $campNum = 0;
+            $goLiveTime = '';
+            $namespace = '';
+            $breadcrumb = '';
+            $supportCount = Support::getTotalSupportedCamps([$item->id]);
+            $namespaceId = 1; //default
+            $userId = self::getUserIDByNickNameId($item->id);
+            $link = self::getNickNameLink($userId, $namespaceId);
+            $statementNum =  '';
+            
+            if($item->private){
+                ElasticSearch::deleteData($id);
+                return;
+            }
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+        
+        });
+    }
 
     public function getCreateTimeAttribute($value){
         return date("Y-m-d", strtotime($value));
