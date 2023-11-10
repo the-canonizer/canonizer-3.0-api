@@ -133,7 +133,14 @@ class ThreadsApiTest extends TestCase
         $this->assertEquals(200, $this->response->status());
     }
 
-    public function testIfRecordNotFound()
+    public function testIfThreadRecordNotFound(){
+        $thread = Thread::factory()->make();
+
+        $this->actingAs($thread)->get('/api/v3/thread/123123123/');
+        $this->assertEquals(404, $this->response->status());
+    }
+
+    public function testIfThreadListRecordNotFound()
     {
         print sprintf(" \n  Get Thread List Valid Data %d %s", 200, PHP_EOL);
         $Thread = Thread::factory()->make();
