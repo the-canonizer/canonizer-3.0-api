@@ -701,4 +701,19 @@ class ValidationMessages
             'namespace.integer' => trans('message.general.namespace_should_numeric'),
         ]);
     }
+
+    public function getThreadByIdValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
+            'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
+            
+            'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
+            'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
+            
+            'thread_id.exists' => trans('message.thread.thread_not_exist'),
+        ];
+    }
 }

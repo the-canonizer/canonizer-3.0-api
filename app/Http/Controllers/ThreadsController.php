@@ -437,10 +437,7 @@ class ThreadsController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             
-            if (count($threads->items) < 1)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
-            
-                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');
@@ -718,15 +715,23 @@ class ThreadsController extends Controller
     }
 
 
-    public function getThreadById(Request $request, $id)
+    public function getThreadById(Request $request, $id, Validate $validate)
     {
         try {
-            if (!$id) {
-                $threads = null;
-                $status = 400;
-                $message = trans('message.thread.thread_id_required');
-                return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+            request()->merge([ 'thread_id' => (int)$id ]);
+            $validationErrors = $validate->validate($request, $this->rules->getThreadByIdValidationRules(), $this->validationMessages->getThreadByIdValidationMessages());
+            if ($validationErrors) {
+                if ($validationErrors->error->has('thread_id')) {
+                    $statusCode = 404;
+                    $validationErrors->status_code = 404;
+                }
+                return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
             }
+            
+            if (!Topic::getLiveTopic($request->topic_num) || !Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num])) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+            
             $threads =  Thread::leftJoin('post', function ($join) {
                 $join->on('thread.id', '=', 'post.c_thread_id');
                 $join->where('post.is_delete', 0);
@@ -734,13 +739,12 @@ class ThreadsController extends Controller
                 ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
                 ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
                 ->select('thread.*', 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name', 'post.updated_at as post_updated_at')
-                ->where('thread.id', $id)->first();
+                ->where('thread.id', $id)
+                ->where('topic_id', $request->topic_num)
+                ->where('camp_id', $request->camp_num)
+                ->first();
             if (!$threads) {
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.thread.id_not_exist'));
-                // $threads = null;
-                // $status = 400;
-                // $message = trans('message.thread.id_not_exist');
-                // return $this->resProvider->apiJsonResponse($status, $message, $threads, null);
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.thread.thread_not_related'));
             }
             $postCount =  Reply::where('c_thread_id', $threads->id)->where('post.is_delete', 0)->get();
             $namspaceId =  Topic::select('namespace_id')->where('topic_num', $threads->topic_id)->first();
