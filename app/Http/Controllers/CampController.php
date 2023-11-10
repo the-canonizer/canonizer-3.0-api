@@ -283,6 +283,7 @@ class CampController extends Controller
                         "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>'),
                         // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
+                        "note" => $camp->note,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [

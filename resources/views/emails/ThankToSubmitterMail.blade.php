@@ -27,6 +27,12 @@
                     </td>
                 </tr>
                 <tr>
+                    <td style="font-weight:400;">
+                        <br>
+                        <p><b>{{ ucfirst($data->type) }} Summary:</b> {{ $data->note }}</p>
+                    </td>
+                </tr>
+                <tr>
                     <td style="font-weight:400; color:#497BDF;">
                         @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->link)])
                             Click Here To View
