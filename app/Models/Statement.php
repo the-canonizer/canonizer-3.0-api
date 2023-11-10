@@ -40,7 +40,7 @@ class Statement extends Model
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
                 $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
             }            
-            $link = Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+            $link = '';  //Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
             // breadcrumb
             $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
 

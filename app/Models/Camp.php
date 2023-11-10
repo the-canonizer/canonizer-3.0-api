@@ -67,13 +67,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $goLiveTime = $item->go_live_time;
             $namespace = $namespaceLabel; //fetch namespace
             $breadcrumb = '';
-            $link = self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+            $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
             if($item->camp_num == 1){               
                 $type = "topic";
                 $typeValue = $liveTopic->topic_name;
                 $id = "topic-". $topicNum . "-" . $item->id . "-" . $namespaceLabel;
-            }else{
-                $link = self::campLink($topicNum, $campNum, $typeValue, $campName);
+                $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
+            }else{               
                 $id = "camp-". $topicNum . "-" . $campNum . "-" .$item->id;
                 // breadcrumb
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
@@ -100,14 +100,21 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->orderBy('go_live_time', 'DESC');
     }
 
-    public static function campLink($topicNum, $campNum, $title, $campName)
+    public static function campLink($topicNum, $campNum, $title, $campName, $forSearch = false)
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
+        if($forSearch){
+            $link = 'topic/' . $topicId . '/' . $campId ;
+        }else{
+            $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
+        }
+
+        return $link;
+        
     }
 
     public static function getAgreementTopic($filter = array())
