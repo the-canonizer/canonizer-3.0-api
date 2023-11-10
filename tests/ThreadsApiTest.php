@@ -118,27 +118,53 @@ class ThreadsApiTest extends TestCase
         $this->assertEquals(200, $this->response->status());
     }
 
-    public function testGetThreadByIdInvalidData(){
-        print sprintf("\n Get Thread By Id Invalid Data %d %s",400, PHP_EOL);
+    public function testGetThreadByIdByWrongData() {
+
+        // Get thread by wrong id test
+        print sprintf("\n Get thread by invalid thread id %d %s",400, PHP_EOL);
         $response = $this->call('GET', '/api/v3/thread/0');
-        $this->assertEquals(400, $response->status()); 
+        $this->assertEquals(404, $response->status()); 
+
+        /// with wrong id and correct topic and camp num ...
+        $response = $this->call('GET', '/api/v3/thread/0?topic_num=88&camp_num=1');
+        $this->assertEquals(404, $response->status()); 
+
+        /// get thread by passing characters ...
+        $response = $this->call('GET', '/api/v3/thread/esfcsefc?topic_num=88&camp_num=1');
+        $this->assertEquals(404, $response->status()); 
     }
 
+    /// with correct id and wrong topic and camp...
+    public function testGetThreadByIdByWrongTopicCamp() {
+
+        // Get thread by wrong id of topic and camp that not exist in db...
+        $response = $this->call('GET', '/api/v3/thread/51?topic_num=234212&camp_num=221');
+        $this->assertEquals(404, $response->status());
+
+        // Test that thread exist in relavant topic/camp ...
+        $response = $this->call('GET', '/api/v3/thread/149?topic_num=88&camp_num=1');
+        $this->assertEquals(404, $response->status());
+    }
+
+    public function testGetThreadByIdByWrongKeys() {
+
+        // Get thread by wrong id of topic and camp that not exist in db...
+        $response = $this->call('GET', '/api/v3/thread/51?topc_num=234212&cam_num=221');
+        $this->assertEquals(400, $response->status());
+    
+    }
+    
     public function testGetThreadByIdValidData(){
         print sprintf(" \n  Get Thread By Id Valid Data %d %s", 200,PHP_EOL);
         $thread = Thread::factory()->make();
 
-        $this->actingAs($thread)
-        ->get('/api/v3/thread/51/');
+        $this->actingAs($thread)->get('/api/v3/thread/51?topic_num=88&camp_num=1');
         $this->assertEquals(200, $this->response->status());
     }
 
-    public function testIfRecordNotFound()
-    {
-        print sprintf(" \n  Get Thread List Valid Data %d %s", 200, PHP_EOL);
-        $Thread = Thread::factory()->make();
-
-        $this->actingAs($Thread)->get('/api/v3/thread/list?camp_num=1&topic_num=881&type=all&page=1&per_page=10&like=');
+    public function testIfThreadRecordNotFound(){
+        $thread = Thread::factory()->make();
+        $this->actingAs($thread)->get('/api/v3/thread/123123123/');
         $this->assertEquals(404, $this->response->status());
     }
 }

@@ -26,8 +26,8 @@ class ValidationRules
     public function getRegistrationValidationRules(): array
     {
         return ([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'first_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
+            'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
             'email' => 'required|string|email|max:225|unique:person',
             'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
@@ -603,6 +603,15 @@ class ValidationRules
     {
         return ([
             'namespace' => 'integer'
+        ]);
+    }
+
+    public function getThreadByIdValidationRules(): array
+    {
+        return ([
+            'camp_num' => 'required|numeric|gt:0',
+            'topic_num' => 'required|numeric|gt:0',
+            'thread_id' => 'exists:thread,id'
         ]);
     }
 }
