@@ -16,6 +16,9 @@ use App\Library\wiki_parser\wikiParser as wikiParser;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Search;
+use App\Helpers\ElasticSearch;
+
 
 
 
@@ -36,7 +39,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
     protected $parent_change_in_review;
-    
 
     /**
      * The attributes that should be hidden for arrays.
@@ -44,6 +46,46 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $hidden = [];
+
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) {
+            $liveTopic = Topic::getLiveTopic($item->topic_num);            
+            $namespace = Namespaces::find($liveTopic->namespace_id);            
+            $namespaceLabel = 'no-namespace';
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
+            }
+            $type = "camp";
+            $typeValue = $item->camp_name;
+            $topicNum = $item->topic_num;
+            $campNum = $item->camp_num;
+            $campName = $item->camp_name;
+            $goLiveTime = $item->go_live_time;
+            $namespace = $namespaceLabel; //fetch namespace
+            $breadcrumb = '';
+            $link = self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
+            if($item->camp_num == 1){               
+                $type = "topic";
+                $typeValue = $liveTopic->topic_name;
+                $id = "topic-". $topicNum . "-" . $item->id . "-" . $namespaceLabel;
+            }else{
+                $link = self::campLink($topicNum, $campNum, $typeValue, $campName);
+                $id = "camp-". $topicNum . "-" . $campNum . "-" .$item->id;
+                // breadcrumb
+                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            }
+
+            if($item->go_live_time <= time()){
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            }
+
+         });
+    }
+
 
     public function objectorNickName()
     {

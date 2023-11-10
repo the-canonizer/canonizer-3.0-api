@@ -46,10 +46,9 @@
                                 <br>
                             @endif
 
-                            
-                            @if (!empty($data['note']))
-                                <p>Edit summary : {{ $data['note'] }}</p>
-                            @endif
+                            <br>
+                            <p style="font-weight: bolder ">Summary : {{ $data['note'] }}</p>
+                            <br>
                         </p>
                         <p>
                             @if (isset($data['subscriber']) && $data['subscriber'] == 1)

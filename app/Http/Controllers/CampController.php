@@ -283,6 +283,7 @@ class CampController extends Controller
                         "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>'),
                         // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
+                        "note" => $camp->note,
                     ];
                     Event::dispatch(new ThankToSubmitterMailEvent($request->user(), $dataEmail));
                     $activitLogData = [
@@ -1430,9 +1431,9 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        if (! Gate::allows('nickname-check', $request->nick_name)) {
+        /*if (! Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
-        }
+        }*/
 
         $all = $request->all();
         $all['parent_camp_num'] = $all['parent_camp_num'] ?? null;

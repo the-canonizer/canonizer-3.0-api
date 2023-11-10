@@ -164,7 +164,6 @@ class ThreadsApiTest extends TestCase
 
     public function testIfThreadRecordNotFound(){
         $thread = Thread::factory()->make();
-
         $this->actingAs($thread)->get('/api/v3/thread/123123123/');
         $this->assertEquals(404, $this->response->status());
     }
