@@ -25,18 +25,36 @@ class ValidationMessages
     public function getRegistrationValidationMessages(): array
     {
         return ([
-            'password.regex' => trans('message.validation_registration.password_regex'),
             'first_name.regex' => trans('message.validation_registration.first_name_regex'),
             'first_name.required' => trans('message.validation_registration.first_name_required'),
+            'first_name.string' => trans('message.validation_registration.first_name_string'),
             'first_name.max' => trans('message.validation_registration.first_name_max'),
+
             'middle_name.regex' => trans('message.validation_registration.middle_name_regex'),
+            'middle_name.required' => trans('message.validation_registration.middle_name_required'),
+            'middle_name.string' => trans('message.validation_registration.middle_name_string'),
             'middle_name.max' => trans('message.validation_registration.middle_name_max'),
+
             'last_name.regex' => trans('message.validation_registration.last_name_regex'),
             'last_name.required' => trans('message.validation_registration.last_name_required'),
+            'last_name.string' => trans('message.validation_registration.last_name_string'),
             'last_name.max' => trans('message.validation_registration.last_name_max'),
+
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique'),
+
+            'password.required' => trans('message.validation_registration.password_required'),
+            'password.regex' => trans('message.validation_registration.password_regex'),
+            
             'password_confirmation.required' => trans('message.validation_registration.password_confirmation_required'),
             'password_confirmation.same' => trans('message.validation_registration.password_confirmation_same'),
-            'email.unique' => trans('message.validation_registration.email_unique'),
+            
+            'phone_number.unique' => trans('message.validation_registration.phone_number_unique'),
+
+            'country_code.required' => trans('message.validation_registration.country_code_required'),
         ]);
     }
 

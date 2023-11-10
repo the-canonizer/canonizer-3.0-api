@@ -78,18 +78,36 @@ return [
         "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
-        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
+        'first_name_string' => 'The first name should be string.',
+
         'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'middle_name_required' => 'The middle name field is required.',
         'middle_name_max' => 'The middle name can not be more than 100.',
+        'middle_name_string' => 'The middle name should be string.',
+
         'last_name_regex' => 'The last name must be in alphabets and space only.',
         'last_name_required' => 'The last name field is required.',
         'last_name_max' => 'The last name can not be more than 100.',
+        'last_name_string' => 'The last name should be string.',
+
+        'email_required' => 'The email field is required.',
+        'email_string' => 'The email should be string.',
+        'email_email' => 'The email should be a valid email.',
+        'email_max' => 'The email can not be more than 225.',
+        'email_unique' => 'The email is already used..',
+        
+        'password_required' => 'Password is required.',
+        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
+        
         'password_confirmation_required' => 'The confirm password field is required.',
         'password_confirmation_same' => 'The password confirmation does not match.',
-        'email_unique' => 'Email is already used.'
+        
+        'phone_number_unique' => 'Phone number is already used.',
+        
+        'country_code_required' => 'The country code is required.',
     ],
     'validation_change_password' => [
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
