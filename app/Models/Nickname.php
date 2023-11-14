@@ -43,7 +43,7 @@ class Nickname extends Model {
             $supportCount = Support::getTotalSupportedCamps([$item->id]);
             $namespaceId = 1; //default
             $userId = self::getUserIDByNickNameId($item->id);
-            $link = self::getNickNameLink($userId, $namespaceId);
+            $link = self::getNickNameLink($userId, $namespaceId,'','',true);
             $statementNum =  '';
             
             if($item->private){
@@ -106,8 +106,14 @@ class Nickname extends Model {
         return $nicknames;
     }
 
-    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum=''){
-        return config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId);
+    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum='', $forSearch = false){
+        if($forSearch){
+            $link = '/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId;
+        }else{
+            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId);
+        }
+
+        return $link;
     }
 
     public function camps() {
