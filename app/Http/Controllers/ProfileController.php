@@ -456,8 +456,6 @@ class ProfileController extends Controller
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
                 }
                 $all = $request->all();
-                $topicNum = isset($all['topicnum']) ? $all['topicnum'] : '';
-                $campNum = isset($all['campnum']) ? $all['campnum'] : '';
                 $namespace = (isset($all['namespace']) && !empty($all['namespace'])) ? $all['namespace'] : 1;
                 
                 $user = Nickname::getUserByNickName($id);
@@ -468,7 +466,7 @@ class ProfileController extends Controller
                     unset($userArray[$private]);
                 }               
 
-                $supportResponse = $nickName->getNicknameSupportedCampList($namespace,['nofilter' => true],$topicNum);
+                $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
                 $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
 
                 $data['profile'] = $userArray;
