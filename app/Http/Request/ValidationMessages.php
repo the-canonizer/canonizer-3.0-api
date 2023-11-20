@@ -156,6 +156,7 @@ class ValidationMessages
             'as_of.in' => trans('message.validation_get_statement.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statement.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_statement.topic_num_required'),
+            'topic_num.exists' => trans('message.error.camp_live_statement_not_found'),
             'camp_num.required' => trans('message.validation_get_statement.camp_num_required')
         ];
     }

@@ -89,7 +89,12 @@ class StatementController extends Controller
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStatementValidationMessages());
         if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            if ($validationErrors->error->has('topic_num')) {
+                $topicRules = $validationErrors->error->get('topic_num');
+                $statusCode = in_array(trans('message.error.camp_live_statement_not_found'), $topicRules) ? 404 : 400;
+                $validationErrors->status_code = $statusCode;
+            }
+            return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['asOf'] = $request->as_of;
@@ -105,15 +110,13 @@ class StatementController extends Controller
                 $statement[] = $campStatement;
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
-            } else { 
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
             }
-
+            
             if ($filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
-
+                
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
