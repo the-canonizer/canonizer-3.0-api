@@ -89,7 +89,11 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/user/logout','UserController@logoutUser');
         $router->post('change-password','ProfileController@changePassword');      
         $router->post('update-profile','ProfileController@updateProfile');
-        $router->get('user/profile','ProfileController@getProfile');
+        
+        $router->post('update-profile-picture','ProfileController@updateProfilePicture');
+        $router->delete('update-profile-picture','ProfileController@deleteProfilePicture');
+
+        $router->get('user/profile','ProfileController@getProfile');        
         $router->post('send-otp','ProfileController@sendOtp');
         $router->post('verify-otp','ProfileController@VerifyOtp');
         $router->post('add-nick-name','NicknameController@addNickName');

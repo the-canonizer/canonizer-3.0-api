@@ -114,6 +114,16 @@ class ValidationMessages
         ]);
     }
 
+    public function getUpdateProfilePictureValidationMessages(): array
+    {
+        return ([
+            'profile_picture.required' => trans('message.validation_update_profile.profile_picture_required'),
+            'profile_picture.file' => trans('message.validation_update_profile.profile_picture_file'),
+            'profile_picture.mime' => trans('message.validation_update_profile.profile_picture_mimes'),
+            'profile_picture.size' => trans('message.validation_update_profile.profile_picture_size'),
+        ]);
+    }
+
     public function getForgotPasswordSendOtpValidationMessages(): array
     {
         return ([

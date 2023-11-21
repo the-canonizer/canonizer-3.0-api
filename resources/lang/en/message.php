@@ -127,6 +127,11 @@ return [
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
         'postal_code_regex' => 'The postal code name must be in alphabets and space only.',
+        
+        'profile_picture_required' => 'Profile Picture is required.',
+        'profile_picture_file' => 'The :attribute must be a file.',
+        'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
+        'profile_picture_size' => 'The profile picture must not be greater than 1024KB.',
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',

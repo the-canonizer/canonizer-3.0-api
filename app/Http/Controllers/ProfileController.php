@@ -12,6 +12,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
 use App\Events\SendOtpEvent;
+use App\Helpers\Aws;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
 use App\Models\User;
@@ -485,6 +486,50 @@ class ProfileController extends Controller
 
         }catch(Exception $e){
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
+        }
+    }
+
+    public function updateProfilePicture(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+        $input = $request->all();
+
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        if (isset($input['profile_picture'])) {
+            $six_digit_random_number = random_int(100000, 999999);
+            $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
+
+            $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
+            $response = $result->toArray();
+
+            $user->profile_picture_path = str_replace(env('AWS_URL') . '/', "", $response['ObjectURL']);
+        }
+
+        try {
+            return ($user->save())
+                ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
+                : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
+
+    public function deleteProfilePicture(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+
+        $user->profile_picture_path = null;
+
+        try {
+            return ($user->save())
+                ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
+                : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
         }
     }
 }
