@@ -4,6 +4,7 @@ return [
     'error' => [
         'exception'      => 'Something went wrong',
         'update_profile' => 'Failed to update profile, please try again.',
+        'file_does_not_exists' => 'File does not exists.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',

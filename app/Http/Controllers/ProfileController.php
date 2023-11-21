@@ -510,9 +510,13 @@ class ProfileController extends Controller
         }
 
         try {
-            return ($user->save())
-                ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
-                : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+
+            if ($user->save()) {
+                $user->profile_picture_path = env('AWS_URL') . '/' . $user->profile_picture_path;
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $user, '');
+            }
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
         }
@@ -522,12 +526,19 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->profile_picture_path = null;
-
         try {
-            return ($user->save())
-                ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
-                : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            if (!is_null($user->profile_picture_path)) {
+                $user->profile_picture_path = urldecode($user->profile_picture_path);
+                $result = Aws::DeleteFile($user->profile_picture_path);
+
+                if ($result['@metadata']['statusCode'] === 204) {
+                    $user->profile_picture_path = null;
+                }
+
+                return ($user->save()) ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '') : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            } else {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.file_does_not_exists'), '', '');
+            }
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
         }

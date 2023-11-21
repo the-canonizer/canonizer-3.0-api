@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-
+use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,6 +50,24 @@ class Aws
             'Bucket' => env('AWS_BUCKET'),
             'Key'    => $filename
         ]);
+    }
+
+    public static function doesObjectExist($filename)
+    {
+        try {
+            $result = self::createS3Client()->headObject([
+                'Bucket' => env('AWS_BUCKET'),
+                'Key'    => $filename,
+            ]);
+
+            return true;
+        } catch (AwsException $e) {
+            if ($e->getAwsErrorCode() === 'NotFound') {
+                return false;
+            }
+
+            throw $e;
+        }
     }
 
 }
