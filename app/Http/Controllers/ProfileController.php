@@ -513,7 +513,7 @@ class ProfileController extends Controller
 
             if ($user->save()) {
                 $user->profile_picture_path = env('AWS_URL') . '/' . $user->profile_picture_path;
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $user, '');
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
             }
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
@@ -535,7 +535,7 @@ class ProfileController extends Controller
                     $user->profile_picture_path = null;
                 }
 
-                return ($user->save()) ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '') : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+                return ($user->save()) ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '') : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
             } else {
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.file_does_not_exists'), '', '');
             }

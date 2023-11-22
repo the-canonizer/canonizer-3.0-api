@@ -489,6 +489,11 @@ class UserController extends Controller
                 'password' => $password,
                 'scope' => '*',
             ];
+
+            if (!is_null($user->profile_picture_path)) {
+                $user->profile_picture_path = env('AWS_URL') . '/' . $user->profile_picture_path;
+            }
+
             $generateToken = Util::httpPost($postUrl, $payload);
             return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {
