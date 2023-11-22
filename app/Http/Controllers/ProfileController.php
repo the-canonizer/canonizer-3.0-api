@@ -187,6 +187,9 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
+        $user->profile_picture = !empty($user->profile_picture_path) ? env('AWS_URL') . '/' . $user->profile_picture_path : null;
+        unset($user->profile_picture_path);
+
         try{
             $res = (object)[
                 "status_code" => 200,
