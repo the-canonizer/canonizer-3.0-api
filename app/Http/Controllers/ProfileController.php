@@ -469,6 +469,9 @@ class ProfileController extends Controller
                 {
                     unset($userArray[$private]);
                 }               
+                
+                $userArray['profile_picture'] = $nickName->private ? null : env('AWS_URL') . '/' . $userArray['profile_picture_path'];
+                unset($userArray['profile_picture_path']);
 
                 $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
                 $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
