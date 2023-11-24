@@ -14,6 +14,9 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 
+use App\Models\Search;
+use App\Helpers\ElasticSearch;
+
 class Topic extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -64,6 +67,43 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $camp->save();
             }
         });
+
+        static::saved(function($item) {
+            $liveTopic = Topic::getLiveTopic($item->topic_num);            
+            $namespace = Namespaces::find($liveTopic->namespace_id);            
+            $namespaceLabel = 'no-namespace';
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
+            }
+            $type = "camp";
+            $typeValue = $item->topic_name;
+            $topicNum = $item->topic_num;
+            $campNum = 1;
+            $campName = 'Agreement';
+            $goLiveTime = $item->go_live_time;
+            $namespace = $namespaceLabel; //fetch namespace
+            $breadcrumb = '';
+            $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
+            if($campNum == 1){            
+                $type = "topic";
+                $typeValue = $liveTopic->topic_name;
+                $id = "topic-". $topicNum;
+                $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
+            }else{               
+                $id = "camp-". $topicNum . "-" . $campNum;
+                // breadcrumb
+                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            }
+
+            if($item->go_live_time <= time()){
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            }
+
+         });
+
+
+
         parent::boot();
     }
 
@@ -106,14 +146,23 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         }
     }
 
-    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Agreement')
+    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Agreement', $forSearch = false)
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
+        if($forSearch){
+            $link = 'topic/' . $topicId . '/' . $campId ;
+        }else{
+            $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
+        }
+
+        return $link;
+        
+        
+        //return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
     public static function getTopicHistory($filter, $request, $topicHistoryQuery )
