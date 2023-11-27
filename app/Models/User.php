@@ -108,7 +108,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type'
+       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path'
     ];
 
     /**
@@ -172,7 +172,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             'phone_number' => 'phone_number_bit',
             'mobile_carrier' => 'mobile_carrier_bit',
             'language' => 'language_bit',
-            'default_algo' => 'default_algo_bit'
+            'default_algo' => 'default_algo_bit',
+            'profile_picture_path' => 'profile_picture_path_bit'
         ];
     }
 

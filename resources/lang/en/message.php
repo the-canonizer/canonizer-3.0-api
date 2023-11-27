@@ -4,6 +4,7 @@ return [
     'error' => [
         'exception'      => 'Something went wrong',
         'update_profile' => 'Failed to update profile, please try again.',
+        'file_does_not_exists' => 'File does not exists.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',
@@ -127,6 +128,11 @@ return [
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
         'postal_code_regex' => 'The postal code name must be in alphabets and space only.',
+        
+        'profile_picture_required' => 'Profile Picture is required.',
+        'profile_picture_file' => 'The :attribute must be a file.',
+        'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
+        'profile_picture_size' => 'The profile picture must not be greater than 1024KB.',
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',

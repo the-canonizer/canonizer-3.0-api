@@ -85,6 +85,13 @@ class ValidationRules
             'postal_code' => 'nullable',
             'phone_number' => 'nullable|digits:10',
         ]);
+    }    
+    
+    public function getUpdateProfilePictureValidatonRules(): array
+    {
+        return ([
+            'profile_picture' => 'required|file|mimes:jpg,jpeg,png',
+        ]);
     }
 
     public function getForgotPasswordSendOtpValidationRules(): array
