@@ -68,13 +68,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $namespace = $namespaceLabel; //fetch namespace
             $breadcrumb = '';
             $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($item->camp_num == 1){               
+            if($item->camp_num == 1){          
                 $type = "topic";
                 $typeValue = $liveTopic->topic_name;
-                $id = "topic-". $topicNum . "-" . $item->id . "-" . $namespaceLabel;
+                $id = "topic-". $topicNum;
                 $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
             }else{               
-                $id = "camp-". $topicNum . "-" . $campNum . "-" .$item->id;
+                $id = "camp-". $topicNum . "-" . $campNum;
                 // breadcrumb
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
@@ -112,7 +112,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }else{
             $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
         }
-
         return $link;
         
     }
