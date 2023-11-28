@@ -423,7 +423,7 @@ class TopicSupport
             //timeline start
         
             $subjectStatement = "has just delegated their support to";
-            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
+            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
 
@@ -876,7 +876,7 @@ class TopicSupport
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
-        $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : $topic->topic_name ." >> ".$camp->camp_name;
+        $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? Nickname::getNickName($delegatedNickNameId)->nick_name : $topic->topic_name ." >> ".$camp->camp_name;
         $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>');
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
@@ -897,7 +897,13 @@ class TopicSupport
         $data['nick_name'] = $nickname->nick_name;
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
-        $data['support_action'] = $action; //default will be 'added'       
+        $data['support_action'] = $action; //default will be 'added'     
+        
+        if(isset($delegatedNickNameId) && $delegatedNickNameId) {
+            $data['delegated_nick_name_id'] = $delegatedNickNameId;
+            $data['delegated_nick_name'] = Nickname::getNickName($delegatedNickNameId)->nick_name;
+            $data['delegated_nick_name_link'] = Nickname::getNickNameLink($data['delegated_nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);
+        } 
 
         $notificationData = [
             "email" => [],
