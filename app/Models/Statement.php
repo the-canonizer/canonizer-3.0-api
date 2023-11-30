@@ -23,6 +23,7 @@ class Statement extends Model
             
         static::saved(function($item) 
         {
+            
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
             $liveTopic = Topic::getLiveTopic($item->topic_num);
@@ -32,7 +33,7 @@ class Statement extends Model
             $liveCamp = Camp::getLiveCamp($filter);
             $id = "statement-" .$item->topic_num ."-" . $item->camp_num;
             $type = "statement";
-            $typeValue = $item->parse_value;
+            $typeValue = $item->parsed_value;
             $goLiveTime = $item->go_live_time;
             $namespace = '';
             $campName = $liveCamp->camp_name;
@@ -43,8 +44,8 @@ class Statement extends Model
             $link = '';  //Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
             // breadcrumb
             $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-
-            if($item->go_live_time <= time()){
+            
+            if($item->go_live_time <= time()){ 
                 // then update table
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
