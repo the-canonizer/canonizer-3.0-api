@@ -187,7 +187,7 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
-        $user->profile_picture = !empty($user->profile_picture_path) ? env('AWS_URL') . '/' . $user->profile_picture_path : null;
+        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_URL') . '/' . $user->profile_picture_path) : null;
         unset($user->profile_picture_path);
 
         try{
@@ -512,10 +512,10 @@ class ProfileController extends Controller
                 $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
                 $response = $result->toArray();
 
-                $user->profile_picture_path = str_replace(env('AWS_URL') . '/', "", $response['ObjectURL']);
+                $user->profile_picture_path = urlencode('profile/' . $filename);
             }
             if ($user->save()) {
-                $user->profile_picture_path = env('AWS_URL') . '/' . $user->profile_picture_path;
+                $user->profile_picture_path = urldecode(env('AWS_URL') . '/' . $user->profile_picture_path);
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
             }
 
