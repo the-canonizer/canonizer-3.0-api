@@ -108,9 +108,9 @@ class Nickname extends Model {
 
     public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum='', $forSearch = false){
         if($forSearch){
-            $link = '/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId;
+            $link = '/user/supports/'.$userId .'?canon='.$namespaceId;
         }else{
-            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId);
+            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?canon='.$namespaceId);
         }
 
         return $link;
