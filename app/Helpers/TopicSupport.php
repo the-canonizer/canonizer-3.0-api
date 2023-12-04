@@ -102,6 +102,12 @@ class TopicSupport
                 $notifyDelegatedUser = true;
             }
 
+            $delegate_nick_name = '';
+            $delegateNickNameIdModel = Nickname::getNickName($delegateNickNameId);
+            if (!empty($delegateNickNameIdModel)) {
+                $delegate_nick_name = $delegateNickNameIdModel->nick_name;
+            }
+
             /* To update the Mongo Tree while remove all support */
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             if(count($removeCamps)) {
@@ -112,8 +118,14 @@ class TopicSupport
 
             //timeline start
             $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $campModel->camp_num, $campModel->camp_name, $topic->topic_name, $type . "_support_removed", null, $topic->namespace_id, $topic->submitter_nick_id);
-
-            Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nicknameModel->nick_name . " has removed "  . $type . " support in camp - " . $campModel->camp_name, $type . "_support_removed", $campModel->camp_num, null, null, null, time(), $timeline_url);
+            if($type=="direct"){
+                $removed_msg = $nicknameModel->nick_name . " has removed "  . $type . " support in camp - " . $campModel->camp_name;
+            }
+            else{
+                $removed_msg = $nicknameModel->nick_name . " has removed their delegated support from " . $delegate_nick_name;
+            }
+            
+            Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $removed_msg, $type . "_support_removed", $campModel->camp_num, null, null, null, time(), $timeline_url);
             //timeline end
 
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
@@ -313,7 +325,7 @@ class TopicSupport
                 Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " added direct support in camp - " . $campModel->camp_name, "direct_support_added", $campModel->camp_num, null, null, null, $asOfDefaultDate + 1, $timeline_url);
                 //timeline start
 
-                $subjectStatement = "has added their support to"; 
+                $subjectStatement = "has added their support to "; 
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
                 //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
@@ -400,6 +412,11 @@ class TopicSupport
             if (!empty($nicknameModel)) {
                 $nickName = $nicknameModel->nick_name;
             }
+            $delegate_nick_name = '';
+            $delegateNickNameIdModel = Nickname::getNickName($delegateNickNameId);
+            if (!empty($delegateNickNameIdModel)) {
+                $delegate_nick_name = $delegateNickNameIdModel->nick_name;
+            }
 
             self::insertDelegateSupport($delegateSupporters, $supportToAdd);  
 
@@ -419,10 +436,10 @@ class TopicSupport
 
             $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "delegated_support_added", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-            Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " has just delegated their support to camp - " . $camp->camp_name, "delegated_support_added", $camp->camp_num, null, null, null, time(), $timeline_url);
+            Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " has just delegated their support to " . $delegate_nick_name, "delegated_support_added", $camp->camp_num, null, null, null, time(), $timeline_url);
             //timeline start
         
-            $subjectStatement = "has just delegated their support to";
+            $subjectStatement = "has just delegated their support to ";
             self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add', $delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
