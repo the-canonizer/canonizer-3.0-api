@@ -187,7 +187,7 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
-        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_URL') . '/' . $user->profile_picture_path) : null;
+        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path) : null;
         unset($user->profile_picture_path);
 
         try{
@@ -470,7 +470,7 @@ class ProfileController extends Controller
                     unset($userArray[$private]);
                 }               
                 
-                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : env('AWS_URL') . '/' . $userArray['profile_picture_path']);
+                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : env('AWS_PUBLIC_URL') . '/' . $userArray['profile_picture_path']);
                 unset($userArray['profile_picture_path']);
 
                 $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
@@ -515,7 +515,7 @@ class ProfileController extends Controller
                 $user->profile_picture_path = urlencode('profile/' . $filename);
             }
             if ($user->save()) {
-                $user->profile_picture_path = urldecode(env('AWS_URL') . '/' . $user->profile_picture_path);
+                $user->profile_picture_path = urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path);
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
             }
 
