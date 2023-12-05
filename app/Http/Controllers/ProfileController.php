@@ -187,7 +187,7 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
-        $user->profile_picture = !empty($user->profile_picture_path) ? env('AWS_URL') . '/' . $user->profile_picture_path : null;
+        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_URL') . '/' . $user->profile_picture_path) : null;
         unset($user->profile_picture_path);
 
         try{
@@ -469,6 +469,9 @@ class ProfileController extends Controller
                 {
                     unset($userArray[$private]);
                 }               
+                
+                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : env('AWS_URL') . '/' . $userArray['profile_picture_path']);
+                unset($userArray['profile_picture_path']);
 
                 $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
                 $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
@@ -501,27 +504,24 @@ class ProfileController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-        if (isset($input['profile_picture'])) {
-            $six_digit_random_number = random_int(100000, 999999);
-            $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
-
-            $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
-            $response = $result->toArray();
-
-            $user->profile_picture_path = str_replace(env('AWS_URL') . '/', "", $response['ObjectURL']);
-        }
-
         try {
+            if (isset($input['profile_picture'])) {
+                $six_digit_random_number = random_int(100000, 999999);
+                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
 
+                $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
+                $response = $result->toArray();
+
+                $user->profile_picture_path = urlencode('profile/' . $filename);
+            }
             if ($user->save()) {
-                $user->profile_picture_path = env('AWS_URL') . '/' . $user->profile_picture_path;
+                $user->profile_picture_path = urldecode(env('AWS_URL') . '/' . $user->profile_picture_path);
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
             }
 
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), '', '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Upload Failed', '');
         }
     }
 
@@ -543,7 +543,7 @@ class ProfileController extends Controller
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.file_does_not_exists'), '', '');
             }
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Remove Failed', '');
         }
     }
 }

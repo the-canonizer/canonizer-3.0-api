@@ -67,7 +67,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $goLiveTime = $item->go_live_time;
             $namespace = $namespaceLabel; //fetch namespace
             $breadcrumb = '';
-            $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
+            $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
             if($item->camp_num == 1){          
                 $type = "topic";
                 $typeValue = $liveTopic->topic_name;
