@@ -895,7 +895,7 @@ class TopicSupport
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
         $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? Nickname::getNickName($delegatedNickNameId)->nick_name : $topic->topic_name ." >> ".$camp->camp_name;
-        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>');
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true);
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
