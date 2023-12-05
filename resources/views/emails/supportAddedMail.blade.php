@@ -46,7 +46,7 @@
                 </tr>
                 
                 <tr>
-                    <td style="padding-top: 0px;  font-weight:400;">
+                    <td style="padding-top: 20px;  font-weight:400;">
                         @if (isset($data['subscriber']) && $data['subscriber'] == 1)
                             <h4>You are receiving this e-mail because:</h4>
 
