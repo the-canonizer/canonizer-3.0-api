@@ -580,8 +580,8 @@ class TopicController extends Controller
                     'data' => [
                         [
                             'field' => 'statement',
-                            'live' => strip_tags($preLiveStatment->parsed_value),
-                            'change-in-review' => strip_tags($model->parsed_value),
+                            'live' => strip_tags($preLiveStatment->parsed_value ?? "-"),
+                            'change-in-review' => strip_tags($model->parsed_value ?? "-"),
                         ]
                     ],
                 ];
