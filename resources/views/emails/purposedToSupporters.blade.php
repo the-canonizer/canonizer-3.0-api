@@ -45,9 +45,8 @@
                                 <br>
                             @endif
 
-                            <br>
-
                             @isset($data['change_data'])
+                                <br>
                                 <table style="border: 1px solid #ECF3FA; border-radius: 8px; overflow: hidden; width: 100%;">
                                     <thead>
                                         <th style="padding: 18px 12px; background: #4484CE; color: white; text-align: left; min-width: 200px;">Fields</th>
