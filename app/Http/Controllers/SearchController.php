@@ -36,14 +36,14 @@ class SearchController extends Controller
                 $data['camp'] = $camp['data'];
                 $data['statement'] = $statement['data'];
                 $data['nickname'] = $nickName['data'];
-                $total = count($topic['data']) + count($camp['data']) + count($statement['data']) + count($nickName['data']);
+                $total = $topic['count'] + $camp['count'] + $statement['count'] + $nickName['count'];
 
                 //$data =  self::optimizeResponse($searchData,'all',$page,$size);
             
             }else{
                 $searchData = Search::getSearchData($term, [$type], $size, $page);
                 $data[$type] = $searchData['data'];
-                $total = count($searchData['data']);
+                $total = $searchData['count'];
 
               //  =  self::optimizeResponse($searchData, $type,$page,$size);
             } 

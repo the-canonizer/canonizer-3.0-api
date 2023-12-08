@@ -611,7 +611,7 @@ class StatementController extends Controller
         $data['type'] = "Camp";
 
         // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
-        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, '>>');
+        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, 'statement');
 
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;
