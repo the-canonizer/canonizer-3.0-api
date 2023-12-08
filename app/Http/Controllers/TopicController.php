@@ -565,6 +565,7 @@ class TopicController extends Controller
             $data['topic_num'] = $model->topic_num;
             $data['nick_name'] = $nickName->nick_name;
             $data['nick_name_id'] = $nickName->id;
+            $changeData = [];
             if ($type == 'statement') {
                 $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $model->topic_num . '/' . $model->camp_num;
                 $data['support_camp'] = $liveCamp->camp_name;
@@ -579,16 +580,18 @@ class TopicController extends Controller
                 $pre_LiveId = $model->id;
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
 
-                $changeData = [
-                    'type' => 'statement',
-                    'data' => [
-                        [
-                            'field' => 'statement',
-                            'live' => strip_tags($preLiveStatment->parsed_value ?? "-"),
-                            'change-in-review' => strip_tags($model->parsed_value ?? "-"),
-                        ]
-                    ],
-                ];
+                if (!$ifIamSingleSupporter) {
+                    $changeData = [
+                        'type' => 'statement',
+                        'data' => [
+                            [
+                                'field' => 'statement',
+                                'live' => strip_tags($preLiveStatment->parsed_value ?? "-"),
+                                'change-in-review' => strip_tags($model->parsed_value ?? "-"),
+                            ]
+                        ],
+                    ];
+                }
             } else if ($type == 'camp') {
                 $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
