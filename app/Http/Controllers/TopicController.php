@@ -475,7 +475,7 @@ class TopicController extends Controller
             $prevArchiveStatus = $preliveCamp->is_archive;
             $pre_LiveId = null;
             if ($type == 'camp') {
-               
+                
                 $updatedArchiveStatus = $model->is_archive;
                 if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
 
@@ -525,10 +525,14 @@ class TopicController extends Controller
                         self::updateStatementsInReview($model);
                         break;
                     case 'camp':
-                        self::updateCampsInReview($model);
+                        if (!$archiveReviewPeriod) {
+                            self::updateCampsInReview($model);
+                        }
                         break;
                     case 'topic':
-                        self::updateTopicsInReview($model);
+                        if (!$archiveReviewPeriod) {
+                            self::updateTopicsInReview($model);
+                        }
                         break;
 
                     default:
