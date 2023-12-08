@@ -18,10 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Search;
 use App\Helpers\ElasticSearch;
-
-
-
-
+use Illuminate\Database\Eloquent\Builder;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -173,55 +170,67 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->latest('topic.go_live_time')->first();
     }
 
-    public static function getLiveCamp($filter = array())
+    public static function getLiveCamp($filter = array(), $onlyColumns = [])
     {
         $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
             $filter['asOf'] = 'default';
         }
-        return self::liveCampAsOfFilter($filter);
+        return self::liveCampAsOfFilter($filter, $onlyColumns);
     }
 
-    private static function liveCampAsOfFilter($filter)
+    private static function liveCampAsOfFilter($filter, $onlyColumns = [])
     {
         $asOfFilter = [
-            'default' => self::liveCampDefaultAsOfFilter($filter),
-            'review'  => self::liveCampReviewAsOfFilter($filter),
-            'bydate'  => self::liveCampByDateFilter($filter),
-            'other'  => self::liveCampOtherAsOfFilter($filter),
+            'default' => self::liveCampDefaultAsOfFilter($filter, $onlyColumns),
+            'review'  => self::liveCampReviewAsOfFilter($filter, $onlyColumns),
+            'bydate'  => self::liveCampByDateFilter($filter, $onlyColumns),
+            'other'  => self::liveCampOtherAsOfFilter($filter, $onlyColumns),
         ];
         return $asOfFilter[$filter['asOf']];
     }
 
-    public static function liveCampOtherAsOfFilter($filter)
+    public static function liveCampOtherAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('objector_nick_id', '=', NULL)
             ->latest('submit_time')->first();
     }
 
-    public static function liveCampDefaultAsOfFilter($filter)
+    public static function liveCampDefaultAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', time())
             ->latest('go_live_time')->first();
     }
 
-    public static function liveCampReviewAsOfFilter($filter)
+    public static function liveCampReviewAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('grace_period', 0) 
             ->latest('go_live_time')->first();
     }
 
-    public static function liveCampByDateFilter($filter)
+    public static function liveCampByDateFilter($filter, $onlyColumns = [])
     {
         $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('go_live_time', '<=', $asOfDate)
             ->latest('go_live_time')->first();

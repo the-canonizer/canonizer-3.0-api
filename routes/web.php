@@ -80,7 +80,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/hot-topic', 'TopicController@hotTopic');
 
 
-       
+        $router->post('check-camp-status','CampController@checkCampStatus');
 
     });
 

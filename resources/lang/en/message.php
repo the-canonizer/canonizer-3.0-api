@@ -461,6 +461,16 @@ return [
         'objection_reason_required_if' => "Objection reason is required.",
         'camp_about_url_regex' => 'Camp about url is invalid.',
     ],
+    'validation_check_camp_status' => [
+        'topic_num_required' => "The topic num is required.",
+        'topic_num_integer' => "The topic num must be an integer.",
+        'topic_num_max_numeric' => "The topic num must not be greater than 9223372036854775807.",
+        'topic_num_exists' => "The topic not found.",
+
+        'camp_num_required' => "The camp num is required.",
+        'camp_num_integer' => "The camp num must be an integer.",
+        'camp_num_max_numeric' => "The camp num must not be greater than 9223372036854775807.",
+    ],
     'notification_title' => [
         "createTopic" => "Topic Create",
         "createCamp" => "New Camp Created!",
