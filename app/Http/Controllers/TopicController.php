@@ -466,7 +466,10 @@ class TopicController extends Controller
 
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
+            $filter['asOf'] = $all['asOf'] ?? "default";
+            $filter['asOfDate'] = $model->go_live_time;
             $archiveReviewPeriod = false;
+            $preLiveStatment = Statement::getLiveStatement($filter);
             $preliveCamp = Camp::getLiveCamp($filter);
             $preliveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             $prevArchiveStatus = $preliveCamp->is_archive;
@@ -545,13 +548,13 @@ class TopicController extends Controller
                 $data['namespace_id'] = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id)  ?  $liveTopic->namespace_id : 1;
 
                 // $data['object'] = $liveTopic->topic_name;
-                $data['object'] = Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, '>>');
+                $data['object'] = Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, 'topic');
             } else {
                 // $directSupporter =  Support::getAllDirectSupporters($model->topic_num, $model->camp_num);
                 // $subscribers = Camp::getCampSubscribers($model->topic_num, $model->camp_num);
                 // $data['object'] = $liveCamp->topic->topic_name . ' >> ' . $liveCamp->camp_name;
 
-                $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, '>>');
+                $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, 'camp');
 
                 $data['namespace_id'] = (isset($liveCamp->topic->namespace_id) && $liveCamp->topic->namespace_id)  ?  $liveCamp->topic->namespace_id : 1;
                 $data['camp_num'] = $model->camp_num;
@@ -562,6 +565,7 @@ class TopicController extends Controller
             $data['topic_num'] = $model->topic_num;
             $data['nick_name'] = $nickName->nick_name;
             $data['nick_name_id'] = $nickName->id;
+            $changeData = [];
             if ($type == 'statement') {
                 $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $model->topic_num . '/' . $model->camp_num;
                 $data['support_camp'] = $liveCamp->camp_name;
@@ -575,6 +579,19 @@ class TopicController extends Controller
                 $event_type ="statement";
                 $pre_LiveId = $model->id;
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
+
+                if (!$ifIamSingleSupporter) {
+                    $changeData = [
+                        'type' => 'statement',
+                        'data' => [
+                            [
+                                'field' => 'statement',
+                                'live' => strip_tags($preLiveStatment->parsed_value ?? "-"),
+                                'change-in-review' => strip_tags($model->parsed_value ?? "-"),
+                            ]
+                        ],
+                    ];
+                }
             } else if ($type == 'camp') {
                 $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
                 $data['support_camp'] = $model->camp_name;
@@ -636,8 +653,57 @@ class TopicController extends Controller
                         Util::dispatchTimelineJob($topic->topic_num, $model->camp_num, 1, $timelineMessage, "update_camp", $model->id, null, null, null, time(), $timeline_url);
                     }
                     //end of timeline
+                } else {
+                    $changeData = [];
+
+                    if ($preliveCamp->camp_name !== $model->camp_name) {
+                        $changeData[] =  [
+                            'field' => 'camp_name',
+                            'live' => $preliveCamp->camp_name,
+                            'change-in-review' => $model->camp_name,
+                        ];
+                    }
+
+                    if ($preliveCamp->parent_camp_num !== $model->parent_camp_num) {
+                        $changeData[] =  [
+                            'field' => 'parent_camp',
+                            'live' => isset($preliveCamp->parent_camp_num) && $preliveCamp->parent_camp_num != 0 ? Camp::getParentCamp($preliveCamp->topic_num, $preliveCamp->parent_camp_num, 'default')->camp_name : null,
+                            'change-in-review' => isset($model->parent_camp_num) && $model->parent_camp_num != 0 ? Camp::getParentCamp($model->topic_num, $model->parent_camp_num, 'default')->camp_name : null,
+                        ];
+                    }
+
+                    if ($preliveCamp->is_archive !== $model->is_archive) {
+                        $changeData[] =  [
+                            'field' => 'camp_archive',
+                            'live' => $preliveCamp->is_archive ? "Yes" : "No",
+                            'change-in-review' => $model->is_archive ? "Yes" : "No",
+                        ];
+                    }
+
+                    if ($preliveCamp->is_one_level !== $model->is_one_level) {
+                        $changeData[] =  [
+                            'field' => 'single_level_sub_camps_only',
+                            'live' => $preliveCamp->is_one_level ? "Enabled" : "Disabled",
+                            'change-in-review' => $model->is_one_level ? "Enabled" : "Disabled",
+                        ];
+                    }
+
+                    if ($preliveCamp->is_disabled !== $model->is_disabled) {
+                        $changeData[] =  [
+                            'field' => 'disable_additional_sub_camps',
+                            'live' => $preliveCamp->is_disabled ? "Enabled" : "Disabled",
+                            'change-in-review' => $model->is_disabled ? "Enabled" : "Disabled",
+                        ];
+                    }
+
+                    if (count($changeData) > 0) {
+                        $changeData = [
+                            'type' => 'camp',
+                            'data' => $changeData,
+                        ];
+                    }
                 }
-                
+
                 if (isset($topic)) {
                     Util::dispatchJob($topic, $model->camp_num, 1);
                 }
@@ -680,6 +746,44 @@ class TopicController extends Controller
                         }
                         //end of timeline
                     } 
+                } else {
+                    $changeData = [];
+
+                    if ($preliveTopic->topic_name !== $model->topic_name) {
+                        $changeData[] =  [
+                            'field' => 'topic_name',
+                            'live' => $preliveTopic->topic_name,
+                            'change-in-review' => $model->topic_name,
+                        ];
+                    }
+
+                    if ($preliveTopic->namespace_id !== $model->namespace_id) {
+                    
+                        $namespaceData = [
+                            'field' => 'topic_canon',
+                            'live' => $preliveTopic->namespace_id,
+                            'change-in-review' => $model->namespace_id,
+                        ];
+
+                        $namespace = Namespaces::find($namespaceData['live']);
+                        if (!empty($namespace)) {
+                            $namespaceData['live'] = Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name));
+                        }
+
+                        $namespace = Namespaces::find($namespaceData['change-in-review']);
+                        if (!empty($namespace)) {
+                            $namespaceData['change-in-review'] = Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name));
+                        }
+
+                        $changeData[] = $namespaceData;
+                    }
+
+                    if (count($changeData) > 0) {
+                        $changeData = [
+                            'type' => 'topic',
+                            'data' => $changeData,
+                        ];
+                    }
                 }
             }
 
@@ -695,6 +799,10 @@ class TopicController extends Controller
                 ];
                 
                 Util::dispatchJob($liveTopic, $model->camp_num, 1, $delayLiveTimeInSeconds, $additionalInfo);
+            }
+
+            if (count($changeData)) {
+                $data['change_data'] = $changeData;
             }
 
             $notificationData = [
@@ -717,8 +825,10 @@ class TopicController extends Controller
                     "thread_id" => !empty($threadId) ? $threadId : null,
                 ];
             }
-
-            Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
+            // Email
+            if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
+                Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
+            }
             
             $activityLogData = [
                 'log_type' =>  "topic/camps",
@@ -1485,7 +1595,7 @@ class TopicController extends Controller
         $data['type'] = "Topic";
         $data['namespace_id'] = $topic->namespace_id;
 
-        $data['object'] =  Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, '>>');
+        $data['object'] =  Helpers::renderParentCampLinks($liveTopic->topic_num, 1, $liveTopic->topic_name, true, 'topic');
         // $data['object'] = $liveTopic->topic_name;
 
         $data['object_type'] = "";
