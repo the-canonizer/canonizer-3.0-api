@@ -193,6 +193,12 @@ class TopicSupport
 
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
+                
+                //timeline start
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $campModel->camp_num, $campModel->camp_name, $topic->topic_name, $type . "_support_removed", null, $topic->namespace_id, $topic->submitter_nick_id);
+                
+                Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nicknameModel->nick_name . " has removed "  . $type . " support in camp - " . $campModel->camp_name, $type . "_support_removed", $campModel->camp_num, null, null, null, time(), $timeline_url);
+                //timeline end
             }
 
              //log activity
