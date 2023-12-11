@@ -1727,12 +1727,6 @@ class CampController extends Controller
     {
         $validationErrors = $validate->validate($request, $this->rules->checkCampStatusValidationRules(), $this->validationMessages->checkCampStatusValidationMessages());
         if ($validationErrors) {
-            if ($validationErrors->error->has('topic_num')) {
-                $topicRules = $validationErrors->error->get('topic_num');
-                $statusCode = in_array(trans('message.validation_check_camp_status.topic_num_exists'), $topicRules) ? 404 : 400;
-                $validationErrors->status_code = $statusCode;
-            }
-
             return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
         }
 
@@ -1743,8 +1737,16 @@ class CampController extends Controller
                 'asOf' => 'default'
             ];
 
-            $liveCamp = Camp::getLiveCamp($filter, ['is_disabled', 'is_one_level', 'is_archive']);
+            $liveTopic = Topic::getLiveTopic($filter['topicNum']);
+            if (!$liveTopic) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
+            }
 
+            $liveCamp = Camp::getLiveCamp($filter, ['is_disabled', 'is_one_level', 'is_archive']);
+            if (!$liveCamp) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $liveCamp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

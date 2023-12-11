@@ -529,7 +529,7 @@ class ValidationRules
     public function checkCampStatusValidationRules(): array
     {
         return [
-            'topic_num' => 'required|integer|max:' . PHP_INT_MAX . '|exists:topic,topic_num',
+            'topic_num' => 'required|integer|max:' . PHP_INT_MAX,
             'camp_num' => 'required|integer|max:' . PHP_INT_MAX,
         ];
     }
