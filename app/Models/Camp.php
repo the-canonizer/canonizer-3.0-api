@@ -965,6 +965,17 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return;
     }
 
+    public static function checkIfUnarchiveChangeIsSubmitted($liveCamp)
+    {
+        if (!$liveCamp->is_archive)
+            return false;
 
+        return self::where([
+            'topic_num' => $liveCamp->topic_num,
+            'camp_num' => $liveCamp->camp_num,
+            'objector_nick_id' => null,
+            'grace_period' => 0,
+        ])->where('go_live_time', '>', time())->exists();
+    }
     
 }

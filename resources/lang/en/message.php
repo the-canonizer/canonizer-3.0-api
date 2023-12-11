@@ -37,6 +37,7 @@ return [
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
         'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
+        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.'
     ],
     'success' => [
         'success'          => 'Success',
