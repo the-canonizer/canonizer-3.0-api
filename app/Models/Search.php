@@ -35,7 +35,7 @@ class Search extends Model
         $from = $size * ((intval($from) ?: 1) - 1);
 
         $searchFields = ['type_value'];
-        $excludesColumn = ["id","type","breadcrumb"];
+        //$excludesColumn = ["id","type","breadcrumb"];
 
 
         $indexName = 'canonizer_elastic_search';
