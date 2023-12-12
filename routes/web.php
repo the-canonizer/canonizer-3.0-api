@@ -78,6 +78,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/meta-tags', 'MetaTagController@getMetaTags');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
+      
+        $router->post('check-camp-status','CampController@checkCampStatus');
     });
 
     //Route Group to access api with user access token

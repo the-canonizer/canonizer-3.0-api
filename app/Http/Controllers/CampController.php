@@ -29,6 +29,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
+use Illuminate\Support\Arr; 
 
 class CampController extends Controller
 {
@@ -1720,5 +1721,35 @@ class CampController extends Controller
         }
 
         return $result;
+    }
+
+    public function checkCampStatus(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->checkCampStatusValidationRules(), $this->validationMessages->checkCampStatusValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
+        }
+
+        try {
+            $filter = [
+                'topicNum' => $request->topic_num,
+                'campNum' => $request->camp_num,
+                'asOf' => 'default'
+            ];
+
+            $liveTopic = Topic::getLiveTopic($filter['topicNum']);
+            if (!$liveTopic) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
+            }
+
+            $liveCamp = Camp::getLiveCamp($filter, ['is_disabled', 'is_one_level', 'is_archive']);
+            if (!$liveCamp) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+            
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $liveCamp, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }

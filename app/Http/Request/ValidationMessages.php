@@ -610,6 +610,23 @@ class ValidationMessages
         ];
     }
 
+    public function checkCampStatusValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_check_camp_status.topic_num_required'),
+            'topic_num.integer' => trans('message.validation_check_camp_status.topic_num_integer'),
+            'topic_num.exists' => trans('message.validation_check_camp_status.topic_num_exists'),
+            'topic_num.max' => [
+                'numeric' => trans('message.validation_check_camp_status.topic_num_max_numeric')
+            ],
+            'camp_num.required' => trans('message.validation_check_camp_status.camp_num_required'),
+            'camp_num.integer' => trans('message.validation_check_camp_status.camp_num_integer'),
+            'camp_num.max' => [
+                'numeric' => trans('message.validation_check_camp_status.camp_num_max_numeric')
+            ],
+        ];
+    }
+
     public function getManageTopicValidationMessages(): array
     {
         return [
