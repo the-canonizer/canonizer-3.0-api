@@ -1723,11 +1723,12 @@ class CampController extends Controller
         return $result;
     }
 
+    // This function is used to check camp_archive, is_disabled, is_one_level of live camp
     public function checkCampStatus(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->checkCampStatusValidationRules(), $this->validationMessages->checkCampStatusValidationMessages());
         if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
         try {
