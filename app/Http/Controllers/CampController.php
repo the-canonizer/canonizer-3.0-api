@@ -1240,6 +1240,9 @@ class CampController extends Controller
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
+
+                $response->unarchive_change_submitted = Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp);
+
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
@@ -1462,7 +1465,11 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-         
+
+            if (Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp)) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_archive_change_is_already_submitted'), '', '');
+            }
+
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
                 // /* Now every change have grace_period must , so due to this the change 
