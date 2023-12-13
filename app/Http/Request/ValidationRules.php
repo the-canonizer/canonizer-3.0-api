@@ -231,8 +231,8 @@ class ValidationRules
     public function getCampRecordValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
         ]);

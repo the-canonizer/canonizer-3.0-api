@@ -227,7 +227,9 @@ return [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
     ],
     'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",

@@ -289,7 +289,9 @@ class ValidationMessages
             'as_of.in' => trans('message.validation_get_camp_record.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_camp_record.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_camp_record.topic_num_required'),
-            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required')
+            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_record.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_record.camp_num_numeric')
         ];
     }
 
