@@ -339,8 +339,8 @@ class ValidationRules
     public function getStatementHistoryValidationRules(): array
     {
         return [
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'type' => 'in:objected,in_review,old,live,all',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate',
@@ -493,7 +493,7 @@ class ValidationRules
     public function getTopicHistoryValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
+            'topic_num' => 'required|numeric',
             'per_page' => 'required',
             'page' => 'required',
             'type' => 'in:objected,live,in_review,old,all',
@@ -503,8 +503,8 @@ class ValidationRules
     public function getCampHistoryValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'type' => 'in:objected,live,in_review,old,all',
             'per_page' => 'required',
             'page' => 'required',

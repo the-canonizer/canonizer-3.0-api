@@ -377,6 +377,8 @@ class ValidationMessages
         return ([
             'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_statementHistory.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_statementHistory.camp_num_numeric'),
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
@@ -579,6 +581,7 @@ class ValidationMessages
     {
         return ([
             'topic_num.required' => trans('message.validation_get_topic_history.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_topic_history.topic_num_numeric'),
             'type.in' => trans('message.validation_get_topic_history.type_in'),
             'per_page.required' => trans('message.validation_get_topic_history.per_page_required'),
             'page.required' => trans('message.validation_get_topic_history.page_required'),
@@ -590,6 +593,8 @@ class ValidationMessages
         return ([
             'topic_num.required' => trans('message.validation_get_camp_history.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_camp_history.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_history.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_history.camp_num_numeric'),
             'type.in' => trans('message.validation_get_camp_history.type_in'),
             'per_page.required' => trans('message.validation_get_camp_history.per_page_required'),
             'page.required' => trans('message.validation_get_camp_history.page_required'),
