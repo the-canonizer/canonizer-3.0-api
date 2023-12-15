@@ -253,12 +253,12 @@ class Support extends Model
     public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $reason = null,$reason_summary = null,$citation_link = null)
     {
         if (!empty($campNum)) {
-            $supports = self::where('topic_num', '=', $topicNum)
+            $supports = self::where('topic_num', '=', $topicNum)->where('end', 0)
                 ->whereIn('camp_num', $campNum)
                 ->whereIn('nick_name_id', $nickNames)
                 ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
         } else {
-            $supports = self::where('topic_num', '=', $topicNum)
+            $supports = self::where('topic_num', '=', $topicNum)->where('end', 0)
                 ->whereIn('nick_name_id', $nickNames)
                 ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
         }
@@ -268,11 +268,28 @@ class Support extends Model
 
     public static function promoteUpDelegates($topicNum, $nickNames, $delgateNickNameId = '')
     {
+        /* 
+        * In case of promotion of Delegate supporters, removing previous support and adding new support as direct supporter
+        * Ticket: https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/695
+        */
+
         $delgateNickNameId = (isset($delgateNickNameId) && !empty($delgateNickNameId)) ? $delgateNickNameId : 0;
-        $supports = self::where('topic_num', '=', $topicNum)
+
+        $delegatedSupporters = self::where('topic_num', '=', $topicNum)
             ->whereIn('delegate_nick_name_id', $nickNames)
             ->where('end', '=', 0)
-            ->update(['delegate_nick_name_id' => $delgateNickNameId]);
+            ->get();
+
+        foreach ($delegatedSupporters as $key => $delegatedSupporter) {
+            $newSupport = new self($delegatedSupporter->toArray());
+            $newSupport->start = time();
+            $newSupport->reason = "This old delegated supporter is now promoted as a direct supporter";
+            $newSupport->delegate_nick_name_id = $delgateNickNameId;
+            $newSupport->is_system_generated = 1;
+            $newSupport->save();
+
+            $delegatedSupporter->update(['end' => time()]);
+        }
     }
 
     public static function getAllSupporters($topic, $camp, $excludeNickID)

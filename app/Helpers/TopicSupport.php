@@ -108,6 +108,16 @@ class TopicSupport
                 $delegate_nick_name = $delegateNickNameIdModel->nick_name;
             }
 
+            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
+            {
+                Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
+                $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+
+                //push notification to promoted delegates
+                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+
+            }
+
             /* To update the Mongo Tree while remove all support */
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             if(count($removeCamps)) {
@@ -129,16 +139,6 @@ class TopicSupport
             //timeline end
 
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
-
-            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
-            {
-                Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
-                $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
-
-                //push notification to promoted delegates
-                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
-
-            }
 
             //log remove support activity
             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
