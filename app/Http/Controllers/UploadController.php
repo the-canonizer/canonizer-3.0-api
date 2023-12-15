@@ -152,7 +152,11 @@ class UploadController extends Controller
             }
             Upload::insert($uploadFiles);
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), '', '');
+            if($request->has('from_test_case')) {
+                $test_case_response = ["file_name" => $filename];
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), $test_case_response ?? '', '');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
