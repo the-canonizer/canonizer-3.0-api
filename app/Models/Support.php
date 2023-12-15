@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Facades\Util;
 use Carbon\Carbon;
 use DB;
+use App\Helpers\ElasticSearch;
+use App\Models\Nickname;
 
 class Support extends Model
 {
@@ -28,6 +30,40 @@ class Support extends Model
     public function getStartAttribute($value)
     {
         return date("Y-m-d", strtotime($value));
+    }
+
+    /** on adding or removing support it needs to be updated on elastic search agains nickname for support count */
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) 
+        {    
+            $type = "nickname";
+            $id = "nickname-" . $item->nick_name_id;
+            // get nickname
+            $nickNameId = $item->nick_name_id;
+            $nicknameModel = Nickname::getNickName($item->nick_name_id);
+    
+            $typeValue = $nicknameModel->nick_name;
+            $topicNum = 0;
+            $campNum = 0;
+            $goLiveTime = '';
+            $namespace = '';
+            $breadcrumb = '';
+            $supportCount = self::getTotalSupportedCamps([$item->nick_name_id]);
+            $namespaceId = 1; //default
+            $userId = Nickname::getUserIDByNickNameId($item->nick_name_id);
+            $link = Nickname::getNickNameLink($userId, $namespaceId,'','',true);
+            $statementNum =  '';
+            
+            if($nicknameModel->private){
+                return;
+            }
+            //echo $supportCount;
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $statementNum, $nickNameId, $supportCount);
+        
+        });
     }
 
     public static function getAllDirectSupporters($topic_num,$camp_num=1){
