@@ -638,7 +638,7 @@ class UserController extends Controller
 
             // Create nickname
             $nicknameObj = new Nickname();
-            $nicknameObj->owner_code = Util::canon_encode($userID);
+            $nicknameObj->user_id = $userID;
             $nicknameObj->nick_name = substr($nickname, 0, 50);
             $nicknameObj->private = 0;
             $nicknameObj->create_time = time();
@@ -1855,10 +1855,10 @@ class UserController extends Controller
             $user = User::where('id', '=', $user_to_deactivate)->first();
             $user->status = 0;
             $user->save();
-            // delete all user supports 
-            $encode = Util::canon_encode($user_to_deactivate);
-            //get nicknames
-            $nicknames = Nickname::where('owner_code', '=', $encode)->get();
+            // // delete all user supports 
+            // $encode = Util::canon_encode($user_to_deactivate);
+            // //get nicknames
+            // $nicknames = Nickname::where('owner_code', '=', $encode)->get();
             $userNickname = Nickname::personNicknameArray();
 
             $as_of_time = time() + 100;

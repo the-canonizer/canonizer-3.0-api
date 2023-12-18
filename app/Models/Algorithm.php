@@ -345,8 +345,7 @@ class Algorithm extends Model
 
         if (!empty($nickname) && count(array($nickname)) > 0) 
         {
-            $ownerCode = $nickname->owner_code;
-            $userId =  util::canon_decode($ownerCode);
+            $userId = $nickname->user_id;
         }
 
         $ethers = EtherAddresses::where('user_id', '=', $userId)->get();
