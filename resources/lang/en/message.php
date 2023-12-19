@@ -227,7 +227,9 @@ return [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
     ],
     'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
@@ -323,6 +325,8 @@ return [
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
         'type_in' => "Please enter a valid type value (objected, in_review, old, live, all) or leave it empty",
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
@@ -439,6 +443,7 @@ return [
     ],
     'validation_get_topic_history' => [
         'topic_num_required' => "Topic number is required.",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
         'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
@@ -446,6 +451,8 @@ return [
     'validation_get_camp_history' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required.",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
         'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
