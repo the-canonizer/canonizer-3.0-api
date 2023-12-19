@@ -162,6 +162,9 @@ class Search extends Model
         return;
     }
 
+    /**
+     * Return breadcrum data for elastic search 
+     */
     public static function getCampBreadCrumbData($liveTopic, $topicNum, $campNum)
     {
         $filter['topicNum'] = $topicNum;
@@ -173,7 +176,7 @@ class Search extends Model
         {
             $temp = [
                 'camp_num' =>  $bd['camp_num'],
-                'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name']),
+                'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name'], true),
                 'camp_name' => $bd['camp_name'],
                 'topic_num' => $bd['topic_num'],
                 'topic_name' => $liveTopic->topic_name
