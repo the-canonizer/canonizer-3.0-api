@@ -24,6 +24,12 @@
 				</td>
 			</tr>
 			<tr>
+				@if ($refererURL)
+				<td style=" font-weight:400;">Referer url <span style=" font-weight:800;">{{$refererURL}}</span>.
+				</td>
+				@endif
+			</tr>
+			<tr>
 				<td style="padding-top:10px;  font-weight:400; ">Sincerely,</td>
 			</tr>
 			<tr>

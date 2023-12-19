@@ -27,4 +27,9 @@ class Namespaces extends Model
    
         return $label;
     }
+
+    public static function stripAndChangeSlashes($namespace)
+    {
+        return str_replace("/", '>',(trim($namespace, '/\\')));
+    }
 }

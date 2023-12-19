@@ -8,13 +8,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\General;
 use Exception;
+use App\Helpers\ElasticSearch;
+use App\Models\Support;
 
 class Nickname extends Model {
 
     protected $table = 'nick_name';
     public $timestamps = false;
 
-/**
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -22,6 +24,36 @@ class Nickname extends Model {
     protected $fillable = [
         'nick_name'
     ];
+
+
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) 
+        {    
+            $type = "nickname";
+            $id = "nickname-" . $item->id;
+            $typeValue = $item->nick_name;
+            $topicNum = 0;
+            $campNum = 0;
+            $goLiveTime = '';
+            $namespace = '';
+            $breadcrumb = '';
+            $supportCount = Support::getTotalSupportedCamps([$item->id]);
+            $namespaceId = 1; //default
+            $userId = self::getUserIDByNickNameId($item->id);
+            $link = self::getNickNameLink($userId, $namespaceId,'','',true);
+            $statementNum =  '';
+            
+            if($item->private){
+                ElasticSearch::deleteData($id);
+                return;
+            }
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+        
+        });
+    }
 
     public function getCreateTimeAttribute($value){
         return date("Y-m-d", strtotime($value));
@@ -74,8 +106,14 @@ class Nickname extends Model {
         return $nicknames;
     }
 
-    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum=''){
-        return config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?topicnum='.$topicNum . '&campnum='.$campNum .'&canon='.$namespaceId);
+    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum='', $forSearch = false){
+        if($forSearch){
+            $link = '/user/supports/'.$userId .'?canon='.$namespaceId;
+        }else{
+            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?canon='.$namespaceId);
+        }
+
+        return $link;
     }
 
     public function camps() {
@@ -321,9 +359,7 @@ class Nickname extends Model {
         //if(!empty($topic_num)){
            // $topic_num_cond = 'and u.topic_num = '.$topic_num;
        // }
-
-        $namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : $namespace;
-
+       
         if ((isset($filter['asof']) && $filter['asof'] == 'bydate')) {
                 $as_of_time = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
                 $as_of_clause = "and go_live_time < $as_of_time";   
@@ -371,6 +407,10 @@ class Nickname extends Model {
     public static function getNickSupportUser($user, $nick_id)
     {
         $nickname = self::find($nick_id);
+
+        if (!$nickname)
+            return "not_found";
+
         $userByNickId = self::getUserByNickName($nick_id);
         if ($user && $user->id == $userByNickId->id) {
            return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('owner_code', $nickname->owner_code)->orderBy('nick_name', 'ASC')->get();

@@ -89,7 +89,12 @@ class StatementController extends Controller
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStatementValidationMessages());
         if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            if ($validationErrors->error->has('topic_num')) {
+                $topicRules = $validationErrors->error->get('topic_num');
+                $statusCode = in_array(trans('message.error.camp_live_statement_not_found'), $topicRules) ? 404 : 400;
+                $validationErrors->status_code = $statusCode;
+            }
+            return (new ErrorResource($validationErrors))->response()->setStatusCode($statusCode ?? 400);
         }
         $filter['topicNum'] = $request->topic_num;
         $filter['asOf'] = $request->as_of;
@@ -106,12 +111,12 @@ class StatementController extends Controller
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
-
+            
             if ($filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
-
+                
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -197,12 +202,22 @@ class StatementController extends Controller
         $response->ifIamSupporter = null;
         $response->ifSupportDelayed = null;
         $response->ifIAmExplicitSupporter = null;
+
+        $statements = Statement::where([
+            'topic_num' => $filter['topicNum'],
+            'camp_num' => $filter['campNum'],
+        ])->get();
+
+        if ($statements->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_live_statement_not_found'));
+        
         try {
             $response->topic = Camp::getAgreementTopic($filter);
             $response->liveCamp = Camp::getLiveCamp($filter);
             $response->parentCamp = Camp::campNameWithAncestors($response->liveCamp, $filter);
             $statement_query = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])->latest('submit_time');
             $campLiveStatement =  Statement::getLiveStatement($filter);
+
             if ($request->user()) {
                 $nickNames = Nickname::personNicknameArray();
                 $submitTime = $statement_query->first() ? $statement_query->first()->submit_time : null;
@@ -213,6 +228,7 @@ class StatementController extends Controller
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -385,7 +401,7 @@ class StatementController extends Controller
         }
 
         if (!Gate::allows('nickname-check', $request->nick_name)) {
-            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            //return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
 
         $all = $request->all();
@@ -595,7 +611,7 @@ class StatementController extends Controller
         $data['type'] = "Camp";
 
         // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
-        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, '>>');
+        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, 'statement');
 
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;

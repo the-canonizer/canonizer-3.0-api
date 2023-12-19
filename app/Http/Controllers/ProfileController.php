@@ -12,6 +12,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
 use App\Events\SendOtpEvent;
+use App\Helpers\Aws;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
 use App\Models\User;
@@ -186,6 +187,9 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
+        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path) : null;
+        unset($user->profile_picture_path);
+
         try{
             $res = (object)[
                 "status_code" => 200,
@@ -456,8 +460,6 @@ class ProfileController extends Controller
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
                 }
                 $all = $request->all();
-                $topicNum = isset($all['topicnum']) ? $all['topicnum'] : '';
-                $campNum = isset($all['campnum']) ? $all['campnum'] : '';
                 $namespace = (isset($all['namespace']) && !empty($all['namespace'])) ? $all['namespace'] : 1;
                 
                 $user = Nickname::getUserByNickName($id);
@@ -467,8 +469,11 @@ class ProfileController extends Controller
                 {
                     unset($userArray[$private]);
                 }               
+                
+                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : env('AWS_PUBLIC_URL') . '/' . $userArray['profile_picture_path']);
+                unset($userArray['profile_picture_path']);
 
-                $supportResponse = $nickName->getNicknameSupportedCampList($namespace,['nofilter' => true],$topicNum);
+                $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
                 $support = TopicSupport::groupCampsForNickId($supportResponse, $nickName, $namespace);
 
                 $data['profile'] = $userArray;
@@ -487,6 +492,58 @@ class ProfileController extends Controller
 
         }catch(Exception $e){
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), null, $e->getMessage());
+        }
+    }
+
+    public function updateProfilePicture(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+        $input = $request->all();
+
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            if (isset($input['profile_picture'])) {
+                $six_digit_random_number = random_int(100000, 999999);
+                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
+
+                $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
+                $response = $result->toArray();
+
+                $user->profile_picture_path = urlencode('profile/' . $filename);
+            }
+            if ($user->save()) {
+                $user->profile_picture_path = urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path);
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Upload Failed', '');
+        }
+    }
+
+    public function deleteProfilePicture(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+
+        try {
+            if (!is_null($user->profile_picture_path)) {
+                $user->profile_picture_path = urldecode($user->profile_picture_path);
+                $result = Aws::DeleteFile($user->profile_picture_path);
+
+                if ($result['@metadata']['statusCode'] === 204) {
+                    $user->profile_picture_path = null;
+                }
+
+                return ($user->save()) ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '') : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            } else {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.file_does_not_exists'), '', '');
+            }
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Remove Failed', '');
         }
     }
 }

@@ -103,6 +103,10 @@ class NewsFeedController extends Controller
             }
             $indexes = ['id', 'display_text', 'link', 'available_for_child', 'submitter_nick_name', 'submit_time', 'owner_flag', 'manage_flag', 'parent_camp_name', 'parent_camp_url'];
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
+            
+            if (count($news) < 1)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_news_feed_not_found'));
+            
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -222,7 +226,7 @@ class NewsFeedController extends Controller
             ];
             dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             $temp[] = $news;
-            $indexes =NewsFeed::apiResponseIndexes();
+            $indexes = NewsFeed::apiResponseIndexes();
             $news = $this->resourceProvider->jsonResponse($indexes, $temp);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '');
         } catch (Exception $e) {

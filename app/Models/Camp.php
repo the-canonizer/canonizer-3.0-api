@@ -16,8 +16,9 @@ use App\Library\wiki_parser\wikiParser as wikiParser;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
-
-
+use App\Models\Search;
+use App\Helpers\ElasticSearch;
+use Illuminate\Database\Eloquent\Builder;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -35,7 +36,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
     protected $parent_change_in_review;
-    
 
     /**
      * The attributes that should be hidden for arrays.
@@ -43,6 +43,46 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $hidden = [];
+
+    public static function boot() 
+    {
+        parent::boot();
+            
+        static::saved(function($item) {
+            $liveTopic = Topic::getLiveTopic($item->topic_num);            
+            $namespace = Namespaces::find($liveTopic->namespace_id);            
+            $namespaceLabel = 'no-namespace';
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
+            }
+            $type = "camp";
+            $typeValue = $item->camp_name;
+            $topicNum = $item->topic_num;
+            $campNum = $item->camp_num;
+            $campName = $item->camp_name;
+            $goLiveTime = $item->go_live_time;
+            $namespace = $namespaceLabel; //fetch namespace
+            $breadcrumb = '';
+            $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
+            if($item->camp_num == 1){          
+                $type = "topic";
+                $typeValue = $liveTopic->topic_name;
+                $id = "topic-". $topicNum;
+                $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
+            }else{               
+                $id = "camp-". $topicNum . "-" . $campNum;
+                // breadcrumb
+                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            }
+
+            if($item->go_live_time <= time()){
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            }
+
+         });
+    }
+
 
     public function objectorNickName()
     {
@@ -57,14 +97,20 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->orderBy('go_live_time', 'DESC');
     }
 
-    public static function campLink($topicNum, $campNum, $title, $campName)
+    public static function campLink($topicNum, $campNum, $title, $campName, $forSearch = false)
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
         $topicId = $topicNum . "-" . $title;
         $campId = $campNum . "-" . $campName;
         $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
-        return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
+        if($forSearch){
+            $link = 'topic/' . $topicId . '/' . $campId ;
+        }else{
+            $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId );
+        }
+        return $link;
+        
     }
 
     public static function getAgreementTopic($filter = array())
@@ -124,55 +170,67 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->latest('topic.go_live_time')->first();
     }
 
-    public static function getLiveCamp($filter = array())
+    public static function getLiveCamp($filter = array(), $onlyColumns = [])
     {
         $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
             $filter['asOf'] = 'default';
         }
-        return self::liveCampAsOfFilter($filter);
+        return self::liveCampAsOfFilter($filter, $onlyColumns);
     }
 
-    private static function liveCampAsOfFilter($filter)
+    private static function liveCampAsOfFilter($filter, $onlyColumns = [])
     {
         $asOfFilter = [
-            'default' => self::liveCampDefaultAsOfFilter($filter),
-            'review'  => self::liveCampReviewAsOfFilter($filter),
-            'bydate'  => self::liveCampByDateFilter($filter),
-            'other'  => self::liveCampOtherAsOfFilter($filter),
+            'default' => self::liveCampDefaultAsOfFilter($filter, $onlyColumns),
+            'review'  => self::liveCampReviewAsOfFilter($filter, $onlyColumns),
+            'bydate'  => self::liveCampByDateFilter($filter, $onlyColumns),
+            'other'  => self::liveCampOtherAsOfFilter($filter, $onlyColumns),
         ];
         return $asOfFilter[$filter['asOf']];
     }
 
-    public static function liveCampOtherAsOfFilter($filter)
+    public static function liveCampOtherAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('objector_nick_id', '=', NULL)
             ->latest('submit_time')->first();
     }
 
-    public static function liveCampDefaultAsOfFilter($filter)
+    public static function liveCampDefaultAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('go_live_time', '<=', time())
             ->latest('go_live_time')->first();
     }
 
-    public static function liveCampReviewAsOfFilter($filter)
+    public static function liveCampReviewAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('objector_nick_id', '=', NULL)
             ->where('grace_period', 0) 
             ->latest('go_live_time')->first();
     }
 
-    public static function liveCampByDateFilter($filter)
+    public static function liveCampByDateFilter($filter, $onlyColumns = [])
     {
         $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('go_live_time', '<=', $asOfDate)
             ->latest('go_live_time')->first();
@@ -916,6 +974,17 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return;
     }
 
+    public static function checkIfUnarchiveChangeIsSubmitted($liveCamp)
+    {
+        if (!$liveCamp->is_archive)
+            return false;
 
+        return self::where([
+            'topic_num' => $liveCamp->topic_num,
+            'camp_num' => $liveCamp->camp_num,
+            'objector_nick_id' => null,
+            'grace_period' => 0,
+        ])->where('go_live_time', '>', time())->exists();
+    }
     
 }

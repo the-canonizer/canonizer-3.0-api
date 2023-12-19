@@ -26,7 +26,7 @@ class UserProfileApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->get('/api/v3/user/supports/1?topicnum=&campnum&namespace=',$header);
+        $this->actingAs($user)->get('/api/v3/user/supports/1?canon=',$header);
         //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
