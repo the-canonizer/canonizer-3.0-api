@@ -131,6 +131,9 @@ $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 /* Uniqueable queue jobs */
 $app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
 
+/* Register Redis */
+$app->register(Illuminate\Redis\RedisServiceProvider::class);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\Algorithm;
+use Illuminate\Support\Facades\Cache;
 
 class AlgorithmController extends Controller
 {
@@ -18,8 +19,10 @@ class AlgorithmController extends Controller
     {
 
         try {
-            $algorithms = Algorithm::all();
-
+            $cacheKey = 'all_algorithm';
+            $algorithms = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () {
+                return Algorithm::all();
+            });
             if(count($algorithms) < 1)
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.algorithms_not_found'));
 
