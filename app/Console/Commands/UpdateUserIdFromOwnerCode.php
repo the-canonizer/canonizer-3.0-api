@@ -64,12 +64,12 @@ class UpdateUserIdFromOwnerCode extends Command
             $this->newLine();
     
             $this->newLine();
-            $this->info('Dropping owner_code from schema...');
+            $this->info('Making foreign key and dropping owner_code from schema...');
             $this->withProgressBar(1, function () {
                 if (Schema::hasColumn('nick_name', 'owner_code')) {
                     Schema::table('nick_name', function (Blueprint $table) {
                         $table->foreign('user_id')->references('id')->on('person');
-                        $table->dropColumn('owner_code');
+                        // $table->dropColumn('owner_code');
                     });
                 }
             });
