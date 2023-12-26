@@ -171,10 +171,12 @@ class Search extends Model
         $filter['campNum'] = $campNum;
         $livecamp = Camp::getLiveCamp($filter);
         $breadcrumb = array_reverse(Camp::campNameWithAncestors($livecamp, $filter));
-        $bData = [];
-        foreach($breadcrumb as $bd)
+        $data = [];
+        $tempdata = [];
+        foreach($breadcrumb as $k => $bd)
         {
-            $temp = [
+            
+            $temp[$k+1] = [
                 'camp_num' =>  $bd['camp_num'],
                 'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name'], true),
                 'camp_name' => $bd['camp_name'],
@@ -182,8 +184,14 @@ class Search extends Model
                 'topic_name' => $liveTopic->topic_name
 
             ];
-            array_push($bData, $temp);
+            $tempdata[$k] = $temp;
         }
-        return $bData;
+
+        // Convert the JSON object to a JSON array
+        $jsonArray = array_values($tempdata);
+
+        // Encode the resulting JSON array
+        $jsonString = json_encode($jsonArray, JSON_UNESCAPED_SLASHES);
+        return $jsonString;
     }
 }
