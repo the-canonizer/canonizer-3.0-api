@@ -13,7 +13,6 @@ class GetHotTopicApiTest extends TestCase
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->get('/api/v3/hot-topic',$header);
-        //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
     public function testGetHotTopicApiWithInvalidMetgod()
