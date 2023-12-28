@@ -507,7 +507,7 @@ class ProfileController extends Controller
         try {
             if (isset($input['profile_picture'])) {
                 $six_digit_random_number = random_int(100000, 999999);
-                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
+                $filename = $user->id . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
 
                 $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
                 $response = $result->toArray();

@@ -69,26 +69,26 @@ class Util
     }
 
 
-    /**
-     * @param $id
-     * @return String
-     */
-    public static function canon_encode($id=''):string
-    {
-        $code = 'Malia' . $id . 'Malia';
-        $code = base64_encode($code);
-        return $code;
-    }
+    // /**
+    //  * @param $id
+    //  * @return String
+    //  */
+    // public static function canon_encode($id=''):string
+    // {
+    //     $code = 'Malia' . $id . 'Malia';
+    //     $code = base64_encode($code);
+    //     return $code;
+    // }
 
-    /**
-     * @param $code
-     * @return int
-     */
-    public static function canon_decode($code = ''):int
-    {
-        $code = base64_decode($code);
-        return (int) $code=str_replace("Malia","",$code);
-    }
+    // /**
+    //  * @param $code
+    //  * @return int
+    //  */
+    // public static function canon_decode($code = ''):int
+    // {
+    //     $code = base64_decode($code);
+    //     return (int) $code=str_replace("Malia","",$code);
+    // }
 
     /**
      * @param $name

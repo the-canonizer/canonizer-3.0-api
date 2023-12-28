@@ -128,7 +128,7 @@ class UploadController extends Controller
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);
-                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
+                $filename = $user->id . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
                 /** Upload File to S3 */
                 $result = Aws::UploadFile($filename,$file);

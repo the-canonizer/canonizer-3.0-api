@@ -59,7 +59,7 @@ class NicknameController extends Controller
      *         type="integer"
      *     ),
      * 	    @OA\Property(
-     *         property="owner_code",
+     *         property="user_id",
      *         type="string"
      *      ),
      *      @OA\Property (

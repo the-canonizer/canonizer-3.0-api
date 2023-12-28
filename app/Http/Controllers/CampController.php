@@ -660,7 +660,7 @@ class CampController extends Controller
      *                         example=""
      *                      ),
      *                      @OA\Property(
-     *                         property="owner_code",
+     *                         property="user_id",
      *                         type="string",
      *                         example=""
      *                      ),
@@ -707,7 +707,7 @@ class CampController extends Controller
         try {
             $allNicknames = DB::table('nick_name')
                 ->select(
-                    DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
+                    DB::raw("id, user_id, TRIM(nick_name) nick_name, create_time , private")
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
@@ -813,7 +813,7 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        try {
+        // try {
             $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
             if (empty($allNicknames)) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
@@ -824,11 +824,11 @@ class CampController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
-        } catch (Exception $ex) {
-            $status = 400;
-            $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        }
+        // } catch (Exception $ex) {
+        //     $status = 400;
+        //     $message = trans('message.error.exception');
+        //     return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        // }
     }
 
     /**

@@ -522,9 +522,7 @@ class Support extends Model
                             AND c.nick_name_id IN 
                             (SELECT 
                                 id 
-                            FROM nick_name WHERE owner_code = 
-                                (SELECT 
-                                TO_BASE64 (CONCAT('Malia', $user_id, 'Malia')))) 
+                            FROM nick_name WHERE user_id = $user_id) 
                             AND c.end = 0) t2,
                         (SELECT
                                 a.topic_num,
