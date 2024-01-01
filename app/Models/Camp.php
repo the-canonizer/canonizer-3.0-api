@@ -583,7 +583,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
         if($checkArchive){
-            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->where('archive_support_flag', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
         }else{
             $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
         }
