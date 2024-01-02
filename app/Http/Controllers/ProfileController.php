@@ -506,12 +506,16 @@ class ProfileController extends Controller
         }
         try {
             if (isset($input['profile_picture'])) {
+                // For case of update the profile picture request
+                if($request->has('is_update') && $request?->is_update) {
+                    $user->profile_picture_path = urldecode($user->profile_picture_path);
+                    Aws::DeleteFile($user->profile_picture_path);
+                }
+                
                 $six_digit_random_number = random_int(100000, 999999);
                 $filename = $user->id . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
 
                 $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
-                $response = $result->toArray();
-
                 $user->profile_picture_path = urlencode('profile/' . $filename);
             }
             if ($user->save()) {
