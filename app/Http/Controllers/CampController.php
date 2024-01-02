@@ -1243,6 +1243,8 @@ class CampController extends Controller
 
                 $response->unarchive_change_submitted = Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp);
 
+                ['is_disabled' => $response->parent_is_disabled, 'is_one_level' => $response->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($liveCamp);
+
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
