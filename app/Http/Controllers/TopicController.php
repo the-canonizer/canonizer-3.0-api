@@ -614,9 +614,9 @@ class TopicController extends Controller
 
                 if ($ifIamSingleSupporter) {
                      /** Archive and restoration of archive camp #574 */
-                     if(!$archiveReviewPeriod)
-                     Util::updateArchivedCampAndSupport($model, $model->is_archive, $prevArchiveStatus);
-
+                     if(!$archiveReviewPeriod){ echo 'fcdc';
+                        Util::updateArchivedCampAndSupport($model, $model->is_archive, $prevArchiveStatus);
+                     }
                     $all['topic_num'] = $liveCamp->topic_num;
                     Util::checkParentCampChanged($all, false, $liveCamp);
                     $beforeUpdateCamp = Util::getCampByChangeId($filter['campNum']);
