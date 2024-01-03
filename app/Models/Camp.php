@@ -989,12 +989,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     
     public static function checkIfParentCampDisabledSubCampFunctionality($camp)
     {
+        $camp = self::getLiveCamp(['topicNum' => $camp->topic_num, 'campNum' => $camp->parent_camp_num]);
         if (is_null($camp->parent_camp_num)) {
             return ['is_disabled' => $camp->is_disabled, 'is_one_level' => $camp->is_one_level];
         }
 
-        $parentCamp = self::getLiveCamp(['topicNum' => $camp->topic_num, 'campNum' => $camp->parent_camp_num]);
-        ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($parentCamp);
+        ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($camp);
         return ['is_disabled' => $camp->is_disabled || $parentIsDisabled, 'is_one_level' => $camp->is_one_level || $parentIsOneLevel];
     }
 }
