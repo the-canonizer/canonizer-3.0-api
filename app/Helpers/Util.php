@@ -698,7 +698,7 @@ class Util
             }
         }
 
-        if($archiveFlag === 0){
+        if($archiveFlag === 0 && $archiveFlag!=$preArchiveStatus){
             $supportToBeRevoked = Support::getSupportToBeRevoked($camp->topic_num);
             //echo "<pre>"; print_r($allchilds);
             $directArchive = 0;

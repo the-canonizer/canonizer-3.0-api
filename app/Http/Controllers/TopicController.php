@@ -478,7 +478,6 @@ class TopicController extends Controller
                 
                 $updatedArchiveStatus = $model->is_archive;
                 if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
-
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
@@ -613,8 +612,9 @@ class TopicController extends Controller
                 $pre_LiveId = $preliveCamp->id;
 
                 if ($ifIamSingleSupporter) {
+
                      /** Archive and restoration of archive camp #574 */
-                     if(!$archiveReviewPeriod){ echo 'fcdc';
+                     if(!$archiveReviewPeriod){
                         Util::updateArchivedCampAndSupport($model, $model->is_archive, $prevArchiveStatus);
                      }
                     $all['topic_num'] = $liveCamp->topic_num;
