@@ -91,6 +91,7 @@ class ValidationRules
     {
         return ([
             'profile_picture' => 'required|file|mimes:jpg,jpeg,png',
+            'is_update' => 'boolean'
         ]);
     }
 

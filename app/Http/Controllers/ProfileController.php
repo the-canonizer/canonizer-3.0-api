@@ -495,6 +495,31 @@ class ProfileController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(path="/update-profile-picture",
+     *   tags={"profile-picture"},
+     *   summary="Upload and update user profile picture",
+     *   description="Upload and update user profile picture",
+     *   operationId="updateProfilePicture",
+     *   @OA\Parameter(
+     *     name="profile_picture",
+     *     required=true,
+     *     @OA\Schema(
+     *         type="image/binary"
+     *     )
+     *   ),
+     *   @OA\Parameter(
+     *     name="is_update",
+     *     required=false,
+     *     @OA\Schema(
+     *         type="boolean"
+     *     )
+     *   ),
+     *   @OA\Response(status_code=200, message="Profile updated successfully."),
+     *   @OA\Response(status_code=400, message="The given data was invalid")
+     *   @OA\Response(status_code=500, message="File upload failed.")
+     * )
+    */
     public function updateProfilePicture(Request $request, Validate $validate)
     {
         $user = $request->user();
@@ -506,12 +531,16 @@ class ProfileController extends Controller
         }
         try {
             if (isset($input['profile_picture'])) {
+                // For case of update the profile picture request
+                if($request->has('is_update') && $request?->is_update) {
+                    $user->profile_picture_path = urldecode($user->profile_picture_path);
+                    Aws::DeleteFile($user->profile_picture_path);
+                }
+                
                 $six_digit_random_number = random_int(100000, 999999);
                 $filename = $user->id . '_' . time() . '_' . $six_digit_random_number  . '.' . $input['profile_picture']->getClientOriginalExtension();
 
                 $result = Aws::UploadFile('profile/' . $filename, $input['profile_picture']);
-                $response = $result->toArray();
-
                 $user->profile_picture_path = urlencode('profile/' . $filename);
             }
             if ($user->save()) {
@@ -521,10 +550,22 @@ class ProfileController extends Controller
 
             return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), '', '');
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Upload Failed', '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
+
+    /**
+     * @OA\Delete(path="/update-profile-picture",
+     *   tags={"profile-picture"},
+     *   summary="Delete user profile picture",
+     *   description="Delete user profile picture",
+     *   operationId="deleteProfilePicture",
+     *   @OA\Response(status_code=200, message="Profile updated successfully."),
+     *   @OA\Response(status_code=400, message="Exception message"),
+     *   @OA\Response(status_code=404, message="File not found"),
+     * )
+    */
     public function deleteProfilePicture(Request $request, Validate $validate)
     {
         $user = $request->user();
@@ -543,7 +584,7 @@ class ProfileController extends Controller
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.file_does_not_exists'), '', '');
             }
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), 'File Remove Failed', '');
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }

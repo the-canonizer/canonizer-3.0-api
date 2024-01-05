@@ -122,5 +122,21 @@ class UploadFileApiTest extends TestCase
             $result = Aws::DeleteFile($uploaded_file_key[3] ?? "");
             $this->assertEquals(204, $result['@metadata']['statusCode']);
         }
+
+        // Run the test of update profile image without deleting above one
+        $rand = rand(1000,99999);
+        $input = [
+            'profile_picture' => UploadedFile::fake()->image($rand.'.jpeg'),
+            'is_update' => 1
+        ];
+
+        $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $this->assertEquals(200, $this->response->status());
+        
+        if($this->response->status() == 200) {
+            $uploaded_file_key = explode("/", $this->response->getData()->data->profile_picture, 4) ?? [];
+            $result = Aws::DeleteFile($uploaded_file_key[3] ?? "");
+            $this->assertEquals(204, $result['@metadata']['statusCode']);
+        }
     }
 }
