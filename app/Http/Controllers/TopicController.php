@@ -586,8 +586,8 @@ class TopicController extends Controller
                         'data' => [
                             [
                                 'field' => 'statement',
-                                'live' => strip_tags($preLiveStatment->parsed_value ?? "-"),
-                                'change-in-review' => strip_tags($model->parsed_value ?? "-"),
+                                'live' => '<p>' . trim(strip_tags($preLiveStatment->parsed_value ?? "-")) . '</p>',
+                                'change-in-review' => '<p>' . trim(strip_tags($model->parsed_value ?? "-")) . '</p>',
                             ]
                         ],
                     ];
@@ -659,16 +659,16 @@ class TopicController extends Controller
                     if ($preliveCamp->camp_name !== $model->camp_name) {
                         $changeData[] =  [
                             'field' => 'camp_name',
-                            'live' => $preliveCamp->camp_name,
-                            'change-in-review' => $model->camp_name,
+                            'live' => trim($preliveCamp->camp_name),
+                            'change-in-review' => trim($model->camp_name),
                         ];
                     }
 
                     if ($preliveCamp->parent_camp_num !== $model->parent_camp_num) {
                         $changeData[] =  [
                             'field' => 'parent_camp',
-                            'live' => isset($preliveCamp->parent_camp_num) && $preliveCamp->parent_camp_num != 0 ? Camp::getParentCamp($preliveCamp->topic_num, $preliveCamp->parent_camp_num, 'default')->camp_name : null,
-                            'change-in-review' => isset($model->parent_camp_num) && $model->parent_camp_num != 0 ? Camp::getParentCamp($model->topic_num, $model->parent_camp_num, 'default')->camp_name : null,
+                            'live' => trim(isset($preliveCamp->parent_camp_num) && $preliveCamp->parent_camp_num != 0 ? Camp::getParentCamp($preliveCamp->topic_num, $preliveCamp->parent_camp_num, 'default')->camp_name : null),
+                            'change-in-review' => trim(isset($model->parent_camp_num) && $model->parent_camp_num != 0 ? Camp::getParentCamp($model->topic_num, $model->parent_camp_num, 'default')->camp_name : null),
                         ];
                     }
 
@@ -683,16 +683,16 @@ class TopicController extends Controller
                     if ($preliveCamp->is_one_level !== $model->is_one_level) {
                         $changeData[] =  [
                             'field' => 'single_level_sub_camps_only',
-                            'live' => $preliveCamp->is_one_level ? "Enabled" : "Disabled",
-                            'change-in-review' => $model->is_one_level ? "Enabled" : "Disabled",
+                            'live' => $preliveCamp->is_one_level ? "Yes" : "No",
+                            'change-in-review' => $model->is_one_level ? "Yes" : "No",
                         ];
                     }
 
                     if ($preliveCamp->is_disabled !== $model->is_disabled) {
                         $changeData[] =  [
                             'field' => 'disable_additional_sub_camps',
-                            'live' => $preliveCamp->is_disabled ? "Enabled" : "Disabled",
-                            'change-in-review' => $model->is_disabled ? "Enabled" : "Disabled",
+                            'live' => $preliveCamp->is_disabled ? "Yes" : "No",
+                            'change-in-review' => $model->is_disabled ? "Yes" : "No",
                         ];
                     }
 
@@ -752,8 +752,8 @@ class TopicController extends Controller
                     if ($preliveTopic->topic_name !== $model->topic_name) {
                         $changeData[] =  [
                             'field' => 'topic_name',
-                            'live' => $preliveTopic->topic_name,
-                            'change-in-review' => $model->topic_name,
+                            'live' => trim($preliveTopic->topic_name),
+                            'change-in-review' => trim($model->topic_name),
                         ];
                     }
 
@@ -761,18 +761,18 @@ class TopicController extends Controller
                     
                         $namespaceData = [
                             'field' => 'topic_canon',
-                            'live' => $preliveTopic->namespace_id,
-                            'change-in-review' => $model->namespace_id,
+                            'live' => trim($preliveTopic->namespace_id),
+                            'change-in-review' => trim($model->namespace_id),
                         ];
 
                         $namespace = Namespaces::find($namespaceData['live']);
                         if (!empty($namespace)) {
-                            $namespaceData['live'] = Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name));
+                            $namespaceData['live'] = str_replace(">", " > ", trim(Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name))));
                         }
 
                         $namespace = Namespaces::find($namespaceData['change-in-review']);
                         if (!empty($namespace)) {
-                            $namespaceData['change-in-review'] = Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name));
+                            $namespaceData['change-in-review'] = str_replace(">", " > ", trim(Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name))));
                         }
 
                         $changeData[] = $namespaceData;
