@@ -54,7 +54,7 @@ class Support extends Model
             $supportCount = self::getTotalSupportedCamps([$item->nick_name_id]);
             $namespaceId = 1; //default
             $userId = Nickname::getUserIDByNickNameId($item->nick_name_id);
-            $link = Nickname::getNickNameLink($userId, $namespaceId,'','',true);
+            $link = Nickname::getNickNameLink($item->nick_name_id, $namespaceId,'','',true);
             $statementNum =  '';
             
             if($nicknameModel->private){

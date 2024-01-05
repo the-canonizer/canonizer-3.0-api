@@ -42,8 +42,8 @@ class Nickname extends Model {
             $breadcrumb = '';
             $supportCount = Support::getTotalSupportedCamps([$item->id]);
             $namespaceId = 1; //default
-            $userId = self::getUserIDByNickNameId($item->id);
-            $link = self::getNickNameLink($userId, $namespaceId,'','',true);
+           // $userId = self::getUserIDByNickNameId($item->id);
+            $link = self::getNickNameLink($item->id, $namespaceId,'','',true);
             $statementNum =  '';
             
             if($item->private){
