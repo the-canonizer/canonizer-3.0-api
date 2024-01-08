@@ -1698,6 +1698,7 @@ class TopicController extends Controller
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
             $details->ifIAmExplicitSupporter = null;
+            $response->liveCamp = Camp::getLiveCamp($filter);
             $details->topic = Camp::getAgreementTopic($filter);
             $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
             $submit_time = $topicHistoryQuery->first() ? $topicHistoryQuery->first()->submit_time : null;
