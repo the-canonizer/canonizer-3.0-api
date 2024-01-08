@@ -532,7 +532,7 @@ class ProfileController extends Controller
         try {
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
-                if($request->has('is_update') && $request?->is_update) {
+                if($request->has('is_update') && $request->get('is_update')) {
                     $user->profile_picture_path = urldecode($user->profile_picture_path);
                     Aws::DeleteFile($user->profile_picture_path);
                 }
