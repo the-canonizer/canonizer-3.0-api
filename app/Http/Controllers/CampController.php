@@ -1240,7 +1240,7 @@ class CampController extends Controller
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
-
+                $response->liveCamp = Camp::getLiveCamp($filter);
                 $response->unarchive_change_submitted = Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp);
 
                 ['is_disabled' => $response->parent_is_disabled, 'is_one_level' => $response->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($liveCamp);
