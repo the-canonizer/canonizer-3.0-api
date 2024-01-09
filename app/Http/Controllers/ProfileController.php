@@ -532,9 +532,11 @@ class ProfileController extends Controller
         try {
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
-                if($request->has('is_update') && $request?->is_update) {
-                    $user->profile_picture_path = urldecode($user->profile_picture_path);
-                    Aws::DeleteFile($user->profile_picture_path);
+                if ($request->has('is_update')) {
+                    if ($request->is_update) {
+                        $user->profile_picture_path = urldecode($user->profile_picture_path);
+                        Aws::DeleteFile($user->profile_picture_path);
+                    }
                 }
                 
                 $six_digit_random_number = random_int(100000, 999999);
