@@ -100,6 +100,7 @@ DROP PROCEDURE IF EXISTS `sp_sync_data_to_elasticsearch`;
             ) b
         ON a.topic_num = b.topic_num
         AND a.camp_num = b.camp_num
+        AND is_archive = 0
         AND a.go_live_time = b.live_time;
         -- LOOP TO UPDATE CAMP BREADCRUMB DATA IN  TABLE
         
