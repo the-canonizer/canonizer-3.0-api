@@ -580,16 +580,29 @@ class TopicController extends Controller
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $model->topic_num, $model->camp_num, "statement-commit", null, $nickName->nick_name);
 
                 if (!$ifIamSingleSupporter) {
-                    $changeData = [
-                        'type' => 'statement',
-                        'data' => [
-                            [
-                                'field' => 'statement',
-                                'live' => '<p>' . trim(strip_tags($preLiveStatment->parsed_value ?? "-")) . '</p>',
-                                'change-in-review' => '<p>' . trim(strip_tags($model->parsed_value ?? "-")) . '</p>',
-                            ]
-                        ],
-                    ];
+
+                    if (($preLiveStatment->parsed_value ?? "-") !== ($model->parsed_value ?? "-")) {
+                        $changeData[] =  [
+                            'field' => 'statement',
+                            'live' => '<p>' . trim(strip_tags($preLiveStatment->parsed_value ?? "-")) . '</p>',
+                            'change-in-review' => '<p>' . trim(strip_tags($model->parsed_value ?? "-")) . '</p>',
+                        ];
+                    }
+
+                    if (($preLiveStatment->note ?? "-") !== ($model->note ?? "-")) {
+                        $changeData[] =  [
+                            'field' => 'summary',
+                            'live' => trim($preLiveStatment->note ?? "-"),
+                            'change-in-review' => trim($model->note ?? "-"),
+                        ];
+                    }
+
+                    if (count($changeData) > 0) {
+                        $changeData = [
+                            'type' => 'camp',
+                            'data' => $changeData,
+                        ];
+                    }
                 }
             } else if ($type == 'camp') {
                 $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $liveCamp->topic_num . '/' . $liveCamp->camp_num;
@@ -696,6 +709,38 @@ class TopicController extends Controller
                         ];
                     }
 
+                    if ($preliveCamp->key_words !== $model->key_words) {
+                        $changeData[] =  [
+                            'field' => 'keywords',
+                            'live' => strlen($preliveCamp->key_words) > 0 ? $preliveCamp->key_words : '-',
+                            'change-in-review' => strlen($model->key_words) > 0 ? $model->key_words : '-',
+                        ];
+                    }
+
+                    if ($preliveCamp->note !== $model->note) {
+                        $changeData[] =  [
+                            'field' => 'summary',
+                            'live' => strlen($preliveCamp->note) > 0 ? $preliveCamp->note : '-',
+                            'change-in-review' => strlen($model->note) > 0 ? $model->note : '-',
+                        ];
+                    }
+
+                    if ($preliveCamp->camp_about_url !== $model->camp_about_url) {
+                        $changeData[] =  [
+                            'field' => 'camp_about_url',
+                            'live' => strlen($preliveCamp->camp_about_url) > 0 ? $preliveCamp->camp_about_url : '-',
+                            'change-in-review' => strlen($model->camp_about_url) > 0 ? $model->camp_about_url : '-',
+                        ];
+                    }
+
+                    if ($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) {
+                        $changeData[] =  [
+                            'field' => 'camp_about_nick_name',
+                            'live' => NickName::getNickName($preliveCamp->camp_about_nick_id)->nick_name ?? '-',
+                            'change-in-review' => NickName::getNickName($model->camp_about_nick_id)->nick_name ?? '-',
+                        ];
+                    }
+
                     if (count($changeData) > 0) {
                         $changeData = [
                             'type' => 'camp',
@@ -776,6 +821,14 @@ class TopicController extends Controller
                         }
 
                         $changeData[] = $namespaceData;
+                    }
+
+                    if ($preliveCamp->note !== $model->note) {
+                        $changeData[] =  [
+                            'field' => 'summary',
+                            'live' => strlen($preliveCamp->note) > 0 ? $preliveCamp->note : '-',
+                            'change-in-review' => strlen($model->note) > 0 ? $model->note : '-',
+                        ];
                     }
 
                     if (count($changeData) > 0) {
