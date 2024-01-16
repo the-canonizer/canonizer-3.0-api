@@ -4,6 +4,7 @@ return [
     'error' => [
         'exception'      => 'Something went wrong',
         'update_profile' => 'Failed to update profile, please try again.',
+        'file_does_not_exists' => 'File does not exists.',
         'verify_otp'     => 'Invalid One Time Verification Code.',
         'email_invalid'  => 'Invalid Email Id!',
         'account_not_verified'  => 'Error! Your account is not verified yet. You must have received the verification code in your registered email. If not then you can request for new code by clicking on the button below.',
@@ -23,11 +24,20 @@ return [
         'record_not_found' => 'No record found.',
         'topic_not_found' => 'No topic found.',
         'camp_not_found' => 'No camp found.',
+        'topic_record_not_found' => 'No topic record found.',
+        'camp_record_not_found' => 'No camp record found.',
+        'camp_news_feed_not_found' => 'No camp news feed found.',
+        'camp_live_statement_not_found' => 'No camp statement yet.',
+        'camp_breadcrumb_not_found' => 'No camp breadcrumb found.',
+        'algorithms_not_found' => 'No algorithms found.',
+        'support_list_not_found' => 'No support list found.',
+        'no_activity_logged' => 'No activity logged!',
         'forum_not_found' => 'No forum found.',
         'otp_lenth_match' => 'OTP should be min/max 6 characters long!',
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
         'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
+        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.'
     ],
     'success' => [
         'success'          => 'Success',
@@ -70,18 +80,36 @@ return [
         "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
-        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
         'first_name_regex' => 'The first name must be in alphabets and space only.',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
+        'first_name_string' => 'The first name should be string.',
+
         'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'middle_name_required' => 'The middle name field is required.',
         'middle_name_max' => 'The middle name can not be more than 100.',
+        'middle_name_string' => 'The middle name should be string.',
+
         'last_name_regex' => 'The last name must be in alphabets and space only.',
         'last_name_required' => 'The last name field is required.',
         'last_name_max' => 'The last name can not be more than 100.',
+        'last_name_string' => 'The last name should be string.',
+
+        'email_required' => 'The email field is required.',
+        'email_string' => 'The email should be string.',
+        'email_email' => 'The email should be a valid email.',
+        'email_max' => 'The email can not be more than 225.',
+        'email_unique' => 'The email is already used..',
+        
+        'password_required' => 'Password is required.',
+        'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
+        
         'password_confirmation_required' => 'The confirm password field is required.',
         'password_confirmation_same' => 'The password confirmation does not match.',
-        'email_unique' => 'Email is already used.'
+        
+        'phone_number_unique' => 'Phone number is already used.',
+        
+        'country_code_required' => 'The country code is required.',
     ],
     'validation_change_password' => [
         'new_password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..)',
@@ -101,6 +129,11 @@ return [
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
         'postal_code_regex' => 'The postal code name must be in alphabets and space only.',
+        
+        'profile_picture_required' => 'Profile Picture is required.',
+        'profile_picture_file' => 'The :attribute must be a file.',
+        'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
+        'profile_picture_size' => 'The profile picture must not be greater than 1024KB.',
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
@@ -271,6 +304,8 @@ return [
         'type_required' => 'Type field is required.',
         'id_not_exist' => 'Given thread id does not exist in the database.',
         'update_success' => 'Thread title updated successfully.',
+        'thread_not_exist' => 'Requested thread does not exist.',
+        'thread_not_related' => "Thread doesn't exist for requested camp"
     ],
     'post' => [
         'nick_name_required' => 'Nick name field is required.',
@@ -408,6 +443,13 @@ return [
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
     ],
+    'validation_get_camp_history' => [
+        'topic_num_required' => "Topic number is required.",
+        'camp_num_required' => "Camp number is required.",
+        'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+    ],
     'validation_manage_camp' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number number is required.",
@@ -419,6 +461,16 @@ return [
         'camp_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
         'camp_about_url_regex' => 'Camp about url is invalid.',
+    ],
+    'validation_check_camp_status' => [
+        'topic_num_required' => "The topic num is required.",
+        'topic_num_integer' => "The topic num must be an integer.",
+        'topic_num_max_numeric' => "The topic num must not be greater than 9223372036854775807.",
+        'topic_num_exists' => "The topic not found.",
+
+        'camp_num_required' => "The camp num is required.",
+        'camp_num_integer' => "The camp num must be an integer.",
+        'camp_num_max_numeric' => "The camp num must not be greater than 9223372036854775807.",
     ],
     'notification_title' => [
         "createTopic" => "Topic Create",

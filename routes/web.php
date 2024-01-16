@@ -27,7 +27,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
    
     $router->post('/client-token','UserController@clientToken');
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
-
+    
+    $router->get('/search','SearchController@getSearchResults');
+    $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
@@ -76,11 +78,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/meta-tags', 'MetaTagController@getMetaTags');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
-
-
-        //search routes
-        $router->get('/search','SearchController@getSearchResults');
-
+      
+        $router->post('check-camp-status','CampController@checkCampStatus');
     });
 
     //Route Group to access api with user access token
@@ -88,7 +87,11 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/user/logout','UserController@logoutUser');
         $router->post('change-password','ProfileController@changePassword');      
         $router->post('update-profile','ProfileController@updateProfile');
-        $router->get('user/profile','ProfileController@getProfile');
+        
+        $router->post('update-profile-picture','ProfileController@updateProfilePicture');
+        $router->delete('update-profile-picture','ProfileController@deleteProfilePicture');
+
+        $router->get('user/profile','ProfileController@getProfile');        
         $router->post('send-otp','ProfileController@sendOtp');
         $router->post('verify-otp','ProfileController@VerifyOtp');
         $router->post('add-nick-name','NicknameController@addNickName');
@@ -157,5 +160,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
     $router->group(['prefix' => 'canonizer/api'], function() use ($router) {
         $router->post('commit/change','TopicController@commitAndNotifyChange');
+        $router->post('agree-to-change','TopicController@agreeToChangeForLiveJob');
     });
 });

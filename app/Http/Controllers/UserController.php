@@ -489,6 +489,7 @@ class UserController extends Controller
                 'password' => $password,
                 'scope' => '*',
             ];
+
             $generateToken = Util::httpPost($postUrl, $payload);
             return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {

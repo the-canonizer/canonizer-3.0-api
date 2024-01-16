@@ -17,8 +17,8 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', [] ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', [], $header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
@@ -40,8 +40,8 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData, $header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
@@ -61,8 +61,8 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $data ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
         //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
     }
@@ -85,8 +85,8 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
@@ -108,8 +108,8 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
         //  dd($this->response);
         $this->assertEquals(400, $this->response->status());
     }
@@ -129,9 +129,27 @@ class GetCampRecordApiTest extends TestCase
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $data ,$header);
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
         //  dd($this->response);
         $this->assertEquals(200, $this->response->status());
+    }
+
+    public function testGetCampRecordApiNotFoundResponse()
+    {
+        $data = [
+            'topic_num' => 123123,
+            'camp_num' => 5,
+            'as_of' => "default"
+        ];
+        print sprintf("\n Test News Feed API Not Found Response ", 200, PHP_EOL);
+        $user = User::factory()->make();
+        $token = $user->createToken('TestToken')->accessToken;
+        $header = [];
+        $header['Accept'] = 'application/json';
+        $header['Authorization'] = 'Bearer ' . $token;
+        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($this->response);
+        $this->assertEquals(404, $this->response->status());
     }
 }
