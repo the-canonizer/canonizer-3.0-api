@@ -24,8 +24,7 @@ class UpdateGracePeriodForOldLiveTopics extends Command
      *
      * @var string
      */
-    protected $description = 'This command is useful only for updating the grace period of all 
-                            older topic that have older go live time than current time..';
+    protected $description = 'This command is useful only for updating the grace period of all older topic that have older go live time than current time.';
 
     /**
      * Create a new command instance.
