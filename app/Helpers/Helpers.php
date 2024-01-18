@@ -5,7 +5,6 @@ namespace App\Helpers;
 use App\Models\Camp;
 use App\Models\Topic;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\URL;
 
 class Helpers
 {
