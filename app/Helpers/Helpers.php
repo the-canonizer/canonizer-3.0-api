@@ -11,7 +11,7 @@ class Helpers
 {
     public static function renderParentCampLinks($topic_num, $camp_num, $topic_name, $withLinks = false, $change_type = null, $iteration = 0) // Always place $iteration as the last parameter
     {
-        $seprator = '<img src="' . URL::asset('assets/images/seprator.png') . '" alt="seprator" >';
+        $seprator = '<img src="' . env('APP_URL') . '/assets/images/seprator.png" alt="seprator" />';
         $filter['topicNum'] = $topic_num;
         $filter['campNum'] = $camp_num ?? 1;
         $camp = Camp::getLiveCamp($filter);
