@@ -667,6 +667,7 @@ class Util
     public function updateArchivedCampAndSupport($camp, $archiveFlag = null,  $preArchiveStatus = null)
     {
         $allchilds = Camp::getAllLiveChildCamps($camp, True);
+        $topic = Topic::getLiveTopic($camp->topic_num);  // live topic
         if($archiveFlag === 1){            
             $supporterNickNames = Support::getSupportersNickNameIdInCamps($camp->topic_num, $allchilds);
            
@@ -680,10 +681,9 @@ class Util
                 Support::reOrderSupport($camp->topic_num, $nickNames);
             }           
             Camp::archiveChildCamps($camp->topic_num, $allchilds);
-            
-            //dispatch job
-            $liveTopic = Topic::getLiveTopic($camp->topic_num, 'default');
-            Util::dispatchJob($liveTopic, 1, 1);
+
+            //job
+            Util::dispatchJob($topic, 1, 1);
 
             if($archiveFlag!=$preArchiveStatus){
                 //timeline start
@@ -717,7 +717,7 @@ class Util
                     }
                     $delegatedNickNameId = $sp->delegate_nick_name_id; 
                     TopicSupport::addSupport($sp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
-                    Util::dispatchJob($camp->topic_num, 1, 1);
+                    Util::dispatchJob($topic, 1, 1);
                     
                    //send email
                     $user = Nickname::getUserByNickName($sp->nick_name_id);
@@ -761,7 +761,7 @@ class Util
             Support::setSupportToIrrevokable($camp->topic_num, $allchilds, true);
             if($archiveFlag!=$preArchiveStatus){
                 //timeline start
-                $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
+                //$topic = Topic::getLiveTopic($camp->topic_num, 'default');            
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
                 $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job
