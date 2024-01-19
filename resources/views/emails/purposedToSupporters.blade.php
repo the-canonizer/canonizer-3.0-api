@@ -57,13 +57,8 @@
                                         @forelse ($data['change_data']['data'] as $key => $field)
                                             <tr>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ \Illuminate\Support\Str::of($field['field'])->replace('_', ' ')->title() }}</td>
-                                                @if ($data['change_data']['type'] === 'statement')
-                                                    <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['live'])->words(30, '...') !!}</td>
-                                                    <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['change-in-review'])->words(30, '...') !!}</td>
-                                                @else
-                                                    <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ $field['live'] }}</td>
-                                                    <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ $field['change-in-review'] }}</td>
-                                                @endif
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['live'])->words(30, '...') !!}</td>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['change-in-review'])->words(30, '...') !!}</td>
                                             </tr>
                                         @empty
                                         @endforelse
