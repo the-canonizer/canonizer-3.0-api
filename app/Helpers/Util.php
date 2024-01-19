@@ -717,9 +717,8 @@ class Util
                     }
                     $delegatedNickNameId = $sp->delegate_nick_name_id; 
                     TopicSupport::addSupport($sp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
-                    Util::dispatchJob($topic, 1, 1);
-                    
-                   //send email
+                   
+                     //send email
                     $user = Nickname::getUserByNickName($sp->nick_name_id);
                     $nickname =  Nickname::getNickName($sp->nick_name_id);
                     $topicNum = $camp->topic_num;
@@ -755,6 +754,7 @@ class Util
                     $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
                 }
+                Util::dispatchJob($topic, 1, 1);
             }
 
             //end old support permanently
