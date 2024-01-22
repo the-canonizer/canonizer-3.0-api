@@ -407,6 +407,14 @@ class CampController extends Controller
             if ($livecamp && $filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
                 $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
+            } else {
+                $liveCampFilter['topicNum'] = $request->topic_num;
+                $liveCampFilter['asOf'] = 'default';
+                $liveCampFilter['campNum'] = $request->camp_num;
+                $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
+                if (!empty($liveCampDefault)) {
+                    $camp['is_archive'] = $liveCampDefault->is_archive;
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
