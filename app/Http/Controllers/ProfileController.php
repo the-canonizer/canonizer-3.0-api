@@ -535,6 +535,7 @@ class ProfileController extends Controller
                 if($request->has('is_update') && $request->get('is_update')) {
                     $user->profile_picture_path = urldecode($user->profile_picture_path);
                     Aws::DeleteFile($user->profile_picture_path);
+
                 }
                 
                 $six_digit_random_number = random_int(100000, 999999);

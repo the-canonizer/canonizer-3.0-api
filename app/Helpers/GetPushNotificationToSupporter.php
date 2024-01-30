@@ -159,7 +159,7 @@ class GetPushNotificationToSupporter
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.addSupport', ['camp_name' => $camp->camp_name]);
                 $PushNotificationData->message_body = trans('message.notification_message.addSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
-                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)   . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)   . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
                 break;
             case config('global.notification_type.Thread'):
                 $PushNotificationData->notification_type = config('global.notification_type.Thread');
@@ -195,7 +195,7 @@ class GetPushNotificationToSupporter
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.addDelegateSupport', ['topic_name' => $topic->topic_name]);
                 $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupport', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
-                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
                 break;
             case config('global.notification_type.statementCommit'):
                 $PushNotificationData->notification_type = config('global.notification_type.Statement');
@@ -219,7 +219,7 @@ class GetPushNotificationToSupporter
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);
                 $PushNotificationData->message_body = trans('message.notification_message.removeSupport', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
-                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
         }
         return $PushNotificationData;
     }
@@ -240,7 +240,7 @@ class GetPushNotificationToSupporter
         $PushNotificationData->topic_num = $topic->topic_num;
         $PushNotificationData->camp_num = $camp->camp_num;
         $PushNotificationData->notification_type = config('global.notification_type.Support');
-        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);
+        $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
         if(isset($delegateNickNameId) && $delegateNickNameId){
             $delegatedUser = Nickname::getUserByNickName($delegateNickNameId);
             $delegatedToNickname =  Nickname::getNickName($delegateNickNameId);

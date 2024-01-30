@@ -96,6 +96,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
 
+            if($item->is_archive && $item->go_live_time <= time()){
+                ElasticSearch::deleteData($id);
+                return;
+            }
+
             if($item->go_live_time <= time()){
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
@@ -136,6 +141,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
                 return self::where('topic_num', $topicNum)
                     ->where('go_live_time', '<=', $asOfDate)
+                    ->where(function($query) use($asOfDate) {
+                        return $query->where('objector_nick_id', '=', NULL)
+                        ->orWhere('go_live_time', $asOfDate);
+                    })
                     ->latest('go_live_time')->first();
                 break;
             default:
@@ -299,7 +308,19 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         ->where('topic.go_live_time',">",time())
         ->first();
 
-        return (isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num']) || (isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num']);
+        if((isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num'])) {
+            $response['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+            $response['existed_topic_reference']["topic_name"] = $liveTopicData->topic_name ?? "";
+            $response['existed_topic_reference']["topic_num"] = $liveTopicData->topic_num ?? "";
+
+        } else if ((isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num'])) {
+            $response['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+            $response['existed_topic_reference']["topic_name"] = $nonLiveTopicData->topic_name ?? "";
+            $response['existed_topic_reference']["topic_num"] = $nonLiveTopicData->topic_num ?? "";
+            $response['existed_topic_reference']["under_review"] = 1;
+        }
+
+        return $response ?? [];
     }
 
     public static function getTopicFirstName($topicNumber) {

@@ -667,6 +667,7 @@ class Util
     public function updateArchivedCampAndSupport($camp, $archiveFlag = null,  $preArchiveStatus = null)
     {
         $allchilds = Camp::getAllLiveChildCamps($camp, True);
+        $topic = Topic::getLiveTopic($camp->topic_num);  // live topic
         if($archiveFlag === 1){            
             $supporterNickNames = Support::getSupportersNickNameIdInCamps($camp->topic_num, $allchilds);
            
@@ -680,9 +681,9 @@ class Util
                 Support::reOrderSupport($camp->topic_num, $nickNames);
             }           
             Camp::archiveChildCamps($camp->topic_num, $allchilds);
-            
-            //dispatch job
-            Util::dispatchJob($camp->topic_num, 1, 1);
+
+            //job
+            Util::dispatchJob($topic, 1, 1);
 
             if($archiveFlag!=$preArchiveStatus){
                 //timeline start
@@ -716,9 +717,8 @@ class Util
                     }
                     $delegatedNickNameId = $sp->delegate_nick_name_id; 
                     TopicSupport::addSupport($sp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
-                    Util::dispatchJob($camp->topic_num, 1, 1);
-                    
-                   //send email
+                   
+                     //send email
                     $user = Nickname::getUserByNickName($sp->nick_name_id);
                     $nickname =  Nickname::getNickName($sp->nick_name_id);
                     $topicNum = $camp->topic_num;
@@ -754,74 +754,14 @@ class Util
                     $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
                 }
+                Util::dispatchJob($topic, 1, 1);
             }
-
-
-
-
-
-            /*if(count($supporterNickNames)){
-                foreach($supporterNickNames as $sp)
-                {
-                    $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
-                    if(!empty($lastSupportOrder)){
-                            $supportOrder =  $lastSupportOrder->support_order + 1; 
-                    }else{
-                            $supportOrder =  1; 
-                    }
-                    $delegatedNickNameId = $sp->delegate_nick_name_id;
-
-                    foreach($supportToBeRevoked as $support)
-                    {
-                        TopicSupport::addSupport($support->topic_num, $support->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
-                        $supportOrder++;
-                    }                   
-                   //TopicSupport::addSupport($camp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
-                    Util::dispatchJob($camp->topic_num, 1, 1);
-
-                   //send email
-                    $user = Nickname::getUserByNickName($sp->nick_name_id);
-                    $nickname =  Nickname::getNickName($sp->nick_name_id);
-                    $topicNum = $camp->topic_num;
-                    $campNum = $camp->camp_num;
-                    $topicFilter = ['topicNum' => $topicNum];
-                    $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
-                    $topic = Camp::getAgreementTopic($topicFilter);
-                                        
-                    $object = $topic->topic_name ." >> ".$camp->camp_name;
-                    $topicLink  =  Topic::topicLink($topic->topic_num, 1, $topic->title);
-                    $campLink   =  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
-                    $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
-                    $data['object']     = $object;
-                    $data['subject']    = "Camp Unarchived - " . $object. ".";
-                    $data['topic']      = $topic;
-                    $data['camp']       = $camp;
-                    $data['camp_name']  = $camp->camp_name;
-                    $data['topic_name'] = $topic->topic_name;
-                    $data['topic_num']  = $topic->topic_num;
-                    $data['camp_num']   = $camp->camp_num;
-                    $data['topic_link'] = $topicLink;
-                    $data['camp_link']  = $campLink;   
-                    $data['camp_url']   = $campLink;
-                    $data['url_portion'] =  $seoUrlPortion;
-                    $data['nick_name_id'] = $nickname->id;
-                    $data['nick_name'] = $nickname->nick_name;
-                    $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
-                    $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
-                    $data['support_action'] = 'add'; //default will be 'added'       
-
-
-                                      
-                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
-                    Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
-                }
-            }*/
 
             //end old support permanently
             Support::setSupportToIrrevokable($camp->topic_num, $allchilds, true);
             if($archiveFlag!=$preArchiveStatus){
                 //timeline start
-                $topic = Topic::getLiveTopic($camp->topic_num, 'default');            
+                //$topic = Topic::getLiveTopic($camp->topic_num, 'default');            
                 $nickName = Nickname::getNickName($camp->submitter_nick_id)->nick_name;
                 $timelineMessage = $nickName . " unarchived a camp ". $camp->camp_name;
                 $delayCommitTimeInSeconds = (1*10); //  10 seconds for delay job

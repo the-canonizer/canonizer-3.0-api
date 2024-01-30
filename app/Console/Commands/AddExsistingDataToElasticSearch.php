@@ -41,7 +41,7 @@ class AddExsistingDataToElasticSearch extends Command
     public function handle()
     {
          //execute procedure
-        // DB::select("CALL sp_sync_data_to_elasticsearch");
+         DB::select("CALL sp_sync_data_to_elasticsearch");
          $indexName = 'canonizer_elastic_search';
          $elasticsearch = (new Elasticsearch())->elasticsearchClient;
          $elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);

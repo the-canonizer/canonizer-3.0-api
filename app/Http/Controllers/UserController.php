@@ -288,7 +288,7 @@ class UserController extends Controller
             $user = User::create($input);
 
             if ($user) {
-                $nickname = $user->first_name . "-" . $user->last_name;
+                $nickname = $user->first_name . (empty($user->last_name) ? '' : '-') . $user->last_name;
                 $this->createNickname($user->id, $nickname);
                 try {
                     Event::dispatch(new SendOtpEvent($user));
@@ -1229,7 +1229,7 @@ class UserController extends Controller
                         'status'        => 1,
                         'is_active'     => 1
                     ]);
-                    $nickname = $user->first_name . '-' . $user->last_name;
+                    $nickname = $user->first_name . (empty($user->last_name) ? '' : '-') . $user->last_name;
                     $this->createNickname($user->id, $nickname);
                 }
                 $this->createSocialUser($providerId, $providerEmail, $providerUserName, $provider, $user->id);
@@ -1937,7 +1937,7 @@ class UserController extends Controller
                         'status'        => 1,
                         'is_active'     => 1
                     ]);
-                    $nickname = $user->first_name . '-' . $user->last_name;
+                    $nickname = $user->first_name . (empty($user->last_name) ? '' : '-') . $user->last_name;
                     $this->createNickname($user->id, $nickname);
                 }
                 $this->createSocialUser($socialEmailVerify->provider_id, $socialEmailVerify->email, $providerUserName, $socialEmailVerify->provider, $user->id);

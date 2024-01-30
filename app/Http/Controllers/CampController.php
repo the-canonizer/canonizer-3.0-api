@@ -407,6 +407,14 @@ class CampController extends Controller
             if ($livecamp && $filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
                 $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
+            } else {
+                $liveCampFilter['topicNum'] = $request->topic_num;
+                $liveCampFilter['asOf'] = 'default';
+                $liveCampFilter['campNum'] = $request->camp_num;
+                $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
+                if (!empty($liveCampDefault)) {
+                    $camp['is_archive'] = $liveCampDefault->is_archive;
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -1240,7 +1248,7 @@ class CampController extends Controller
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
-
+                $response->liveCamp = Camp::getLiveCamp($filter);
                 $response->unarchive_change_submitted = Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp);
 
                 ['is_disabled' => $response->parent_is_disabled, 'is_one_level' => $response->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($liveCamp);
@@ -1730,36 +1738,5 @@ class CampController extends Controller
         }
 
         return $result;
-    }
-
-    // This function is used to check camp_archive, is_disabled, is_one_level of live camp
-    public function checkCampStatus(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->checkCampStatusValidationRules(), $this->validationMessages->checkCampStatusValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-
-        try {
-            $filter = [
-                'topicNum' => $request->topic_num,
-                'campNum' => $request->camp_num,
-                'asOf' => 'default'
-            ];
-
-            $liveTopic = Topic::getLiveTopic($filter['topicNum']);
-            if (!$liveTopic) {
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
-            }
-
-            $liveCamp = Camp::getLiveCamp($filter, ['is_disabled', 'is_one_level', 'is_archive']);
-            if (!$liveCamp) {
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
-            }
-            
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $liveCamp, '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
     }
 }

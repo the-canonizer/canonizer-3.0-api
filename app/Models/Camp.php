@@ -76,6 +76,12 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
 
+           
+            if($item->is_archive && $item->go_live_time <= time()){
+                ElasticSearch::deleteData($id);
+                return;
+            }
+
             if($item->go_live_time <= time()){
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
