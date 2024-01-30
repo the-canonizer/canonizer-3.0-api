@@ -18,12 +18,14 @@ class PushNotification
         $url = env('FCM_URL');
         $serverKey = env('FCM_SERVER_KEY');
         $fcmToken[] = $request->fcm_token;
+        $queryString = parse_url($request->link, PHP_URL_QUERY);
+        $link = (empty($queryString)) ? $request->link.'?from=notify_'.$saveNotificationData->id : $request->link.'&from=notify_'.$saveNotificationData->id;
         $data = [
             "registration_ids" => $fcmToken,
             "notification" => [
                 "title" => $request->title,
                 "body" => $request->message_body,
-                "url" => $request->link.'?from=notify_'.$saveNotificationData->id,
+                "url" => $link,
             ]
         ];
         $encodedData = json_encode($data);
