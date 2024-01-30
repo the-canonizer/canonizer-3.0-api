@@ -162,6 +162,8 @@ class TopicController extends Controller
                 $status = 400;
                 $result->if_exist = true;
                 $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+                $error['existed_topic_reference']["topic_name"] = $liveTopicData->topic_name ?? "";
+                $error['existed_topic_reference']["topic_num"] = $liveTopicData->topic_num ?? "";
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
@@ -171,7 +173,10 @@ class TopicController extends Controller
             if ($nonLiveTopicData && isset($nonLiveTopicData['topic_name'])) {
                 $status = 400;
                 $result->if_exist = true;
-                $error['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+                $error['topic_name'][] = trans('message.validation_topic_store.topic_name_under_review');
+                $error['existed_topic_reference']["topic_name"] = $nonLiveTopicData->topic_name ?? "";
+                $error['existed_topic_reference']["topic_num"] = $nonLiveTopicData->topic_num ?? "";
+                $error['existed_topic_reference']["under_review"] = 1;
                 $message = trans('message.error.invalid_data');
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
@@ -1543,8 +1548,8 @@ class TopicController extends Controller
             if (!in_array($request->nick_name, $nickNameIds)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.general.nickname_association_absence'), '', '');
             }
-            if (Topic::ifTopicNameAlreadyTaken($all)) {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', '');
+            if (!empty(Topic::ifTopicNameAlreadyTaken($all))) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.topic_name_alreday_exist'), '', Topic::ifTopicNameAlreadyTaken($all));
             }
             DB::beginTransaction();
             if ($all['event_type'] == "objection") {

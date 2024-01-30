@@ -304,7 +304,19 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         ->where('topic.go_live_time',">",time())
         ->first();
 
-        return (isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num']) || (isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num']);
+        if((isset($liveTopicData) && $liveTopicData->topic_num != $data['topic_num'])) {
+            $response['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+            $response['existed_topic_reference']["topic_name"] = $liveTopicData->topic_name ?? "";
+            $response['existed_topic_reference']["topic_num"] = $liveTopicData->topic_num ?? "";
+
+        } else if ((isset($nonLiveTopicData) && $nonLiveTopicData->topic_num != $data['topic_num'])) {
+            $response['topic_name'][] = trans('message.validation_topic_store.topic_name_unique');
+            $response['existed_topic_reference']["topic_name"] = $nonLiveTopicData->topic_name ?? "";
+            $response['existed_topic_reference']["topic_num"] = $nonLiveTopicData->topic_num ?? "";
+            $response['existed_topic_reference']["under_review"] = 1;
+        }
+
+        return $response ?? [];
     }
 
     public static function getTopicFirstName($topicNumber) {

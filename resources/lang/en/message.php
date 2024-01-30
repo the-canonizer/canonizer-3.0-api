@@ -164,6 +164,7 @@ return [
         'topic_name_max' => 'Topic name can not be more than 30 characters.',
         'topic_name_regex' => 'Topic name can only contain space and alphanumeric characters.',
         'topic_name_unique' => 'The topic name has already been taken.',
+        'topic_name_under_review' => 'The topic name has already taken and under processing.',
         'namespace_required' => 'Namespace is required.',
         'create_namespace_required_if' => 'The Other Namespace Name field is required when namespace is other.',
         'create_namespace_max' => 'The Other Namespace Name can not be more than 100 characters.',
