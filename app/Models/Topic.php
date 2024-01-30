@@ -141,6 +141,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
                 return self::where('topic_num', $topicNum)
                     ->where('go_live_time', '<=', $asOfDate)
+                    ->where(function($query) use($asOfDate) {
+                        return $query->where('objector_nick_id', '=', NULL)
+                        ->orWhere('go_live_time', $asOfDate);
+                    })
                     ->latest('go_live_time')->first();
                 break;
             default:
