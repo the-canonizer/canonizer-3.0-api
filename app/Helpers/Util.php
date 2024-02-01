@@ -391,14 +391,13 @@ class Util
                     $supportData['also_subscriber'] = 1;
                     $supportData['sub_support_list'] = Camp::getSubscriptionList($user->id, $supportData['topic_num'], $supportData['camp_num']);
                 }
-                $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
                 try {
                     if($action == 'add'){
                         Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $supportData));
                     }else if($action=='remove'){
                         Event::dispatch(new SupportRemovedMailEvent($user->email ?? null, $user, $supportData));
                     }else{
-                        dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                        dispatch(new PurposedToSupportersMailJob($user, $link, $supportData,$user->email ?? null))->onQueue(env('QUEUE_SERVICE_NAME'));
                     }
                 } catch (Throwable $e) {
                     echo  $e->getMessage();
@@ -413,7 +412,6 @@ class Util
                     $alreadyMailed[] = $userSub->id;
                     $subscriptions_list = Camp::getSubscriptionList($userSub->id, $subscriberData['topic_num'], $subscriberData['camp_num']);
                     $subscriberData['support_list'] = $subscriptions_list;
-                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $userSub->email : env('ADMIN_EMAIL');
                     $subscriberData['subscriber'] = 1;
                     $topic = Topic::getLiveTopic($subscriberData['topic_num']);
                     $data['namespace_id'] = $topic->namespace_id;
@@ -423,7 +421,7 @@ class Util
                         }else if($action =='remove'){
                             Event::dispatch(new SupportRemovedMailEvent($userSub->email ?? null, $userSub, $subscriberData));
                         }else{
-                            dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$receiver))->onQueue(env('QUEUE_SERVICE_NAME'));
+                            dispatch(new PurposedToSupportersMailJob($userSub, $link, $subscriberData,$userSub->email ?? null))->onQueue(env('QUEUE_SERVICE_NAME'));
                         }
                     } catch (Throwable $e) {
                         echo  $e->getMessage();
@@ -747,11 +745,7 @@ class Util
                     $data['nick_name'] = $nickname->nick_name;
                     $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
                     $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
-                    $data['support_action'] = 'add'; //default will be 'added'       
-
-
-                                      
-                    $receiver = (env('APP_ENV') == "production" || env('APP_ENV') == "staging") ? $user->email : env('ADMIN_EMAIL');
+                    $data['support_action'] = 'add'; //default will be 'added'                                         
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
                 }
                 Util::dispatchJob($topic, 1, 1);
