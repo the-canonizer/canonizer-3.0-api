@@ -79,11 +79,13 @@ class ElasticSearch
                     'index' => self::$indexName,
                     'id'    => $id
                 ];
-                
+
+                $delParam['ignore'] = 404;
                 $response = $elasticsearch->delete($delParam);
+                
+               // $response = $elasticsearch->delete($delParam);
                 // Process the response if needed          
         }
         return;
     }
-
 }

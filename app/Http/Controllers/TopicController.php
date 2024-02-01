@@ -1138,9 +1138,11 @@ class TopicController extends Controller
                         if($liveCamp->is_archive != $preLiveCamp->is_archive)
                         { 
                             $camp->archive_action_time = time();
-                            $camp->update();
+                            //$camp->update();
                             util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                         }
+
+                        $camp->update();
                         $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
                         //timeline start
                         if ($data['parent_camp_num'] != $data['old_parent_camp_num']) {
