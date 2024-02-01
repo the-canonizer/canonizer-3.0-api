@@ -1122,6 +1122,7 @@ class TopicController extends Controller
                                unset($explicitArchiveSupporters[$k]);
                             }
                         }
+                        $explicitArchiveSupporters = array_unique($explicitArchiveSupporters->pluck(['nick_name_id'])->toArray());
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter) + count($explicitArchiveSupporters);
                      }
 
