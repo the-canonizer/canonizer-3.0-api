@@ -1128,7 +1128,11 @@ class TopicController extends Controller
                     
 
                     if ($agreeCount == $totalSupportersCount) {
-                        $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                        $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));                        
+                        if($camp->is_archive != $preLiveCamp->is_archive)
+                        { 
+                            $camp->archive_action_time = time();                            
+                        }
                         $camp->update();
                         self::updateCampsInReview($camp);
                         $liveCamp = Camp::getLiveCamp($filter);
@@ -1142,12 +1146,10 @@ class TopicController extends Controller
                        /** Archive and restoration of archive camp #574 */
                         if($liveCamp->is_archive != $preLiveCamp->is_archive)
                         { 
-                            $camp->archive_action_time = time();
-                            //$camp->update();
+                           // $camp->archive_action_time = time();
+                           // $camp->update();
                             util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                         }
-
-                        $camp->update();
                         $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
                         //timeline start
                         if ($data['parent_camp_num'] != $data['old_parent_camp_num']) {

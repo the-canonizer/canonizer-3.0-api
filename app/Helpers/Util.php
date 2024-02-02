@@ -668,7 +668,7 @@ class Util
     {
         $allchilds = Camp::getAllLiveChildCamps($camp, True);
         $topic = Topic::getLiveTopic($camp->topic_num);  // live topic
-        if($archiveFlag === 1){            
+        if($archiveFlag === 1){ 
             $supporterNickNames = Support::getSupportersNickNameIdInCamps($camp->topic_num, $allchilds);
            
             if (($key = array_search($camp->camp_num, $allchilds)) !== false) {
