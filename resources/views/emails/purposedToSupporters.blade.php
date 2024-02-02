@@ -55,11 +55,19 @@
                                     </thead>
                                     <tbody>
                                         @forelse ($data['change_data']['data'] as $key => $field)
+                                            @if ($field['field'] == 'camp_about_url')
+                                            <tr>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">Camp About URL</td>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['live'] !!}</td>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['change-in-review'] !!}</td>
+                                            </tr>
+                                            @else  
                                             <tr>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ \Illuminate\Support\Str::of($field['field'])->replace('_', ' ')->title() }}</td>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['live'])->words(30, '...') !!}</td>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! \Illuminate\Support\Str::of($field['change-in-review'])->words(30, '...') !!}</td>
                                             </tr>
+                                            @endif
                                         @empty
                                         @endforelse
                                     </tbody>

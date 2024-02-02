@@ -733,8 +733,8 @@ class TopicController extends Controller
                     if ($preliveCamp->camp_about_url !== $model->camp_about_url) {
                         $changeData[] =  [
                             'field' => 'camp_about_url',
-                            'live' => strlen($preliveCamp->camp_about_url) > 0 ? $preliveCamp->camp_about_url : '-',
-                            'change-in-review' => strlen($model->camp_about_url) > 0 ? $model->camp_about_url : '-',
+                            'live' => strlen($preliveCamp->camp_about_url) > 0 ? '<a href="' . $preliveCamp->camp_about_url . '" target="_blank">' . $preliveCamp->camp_about_url . '</a>' : '-',
+                            'change-in-review' => strlen($model->camp_about_url) > 0 ? '<a href="' . $model->camp_about_url . '" target="_blank">' . $model->camp_about_url . '</a>' : '-',
                         ];
                     }
 
@@ -1122,6 +1122,7 @@ class TopicController extends Controller
                                unset($explicitArchiveSupporters[$k]);
                             }
                         }
+                        $explicitArchiveSupporters = array_unique($explicitArchiveSupporters->pluck(['nick_name_id'])->toArray());
                         $totalSupportersCount = $totalSupportersCount + count($revokableSupporter) + count($explicitArchiveSupporters);
                      }
 

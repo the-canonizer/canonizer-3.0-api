@@ -734,7 +734,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                             $explicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
                             $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']], $val->is_archive, 1)->pluck('nick_name_id')->toArray();
                             $archiveSupporters = Support::filterArchivedSupporters($revokableSupporter, $explicitSupporters, $val->submitter_nick_id, $supportersListByTimeStamp);
-                            $val->total_supporters = $val->total_supporters + count($archiveSupporters['direct_supporters']) + count($archiveSupporters['explicit_supporters']);
+                            $val->total_supporters = $val->total_supporters + count(array_unique($archiveSupporters['direct_supporters'])) + count(array_unique($archiveSupporters['explicit_supporters']));
                         }
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":

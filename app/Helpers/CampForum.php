@@ -232,7 +232,7 @@ class CampForum
      */
     public static function getReceiver($user_email)
     {
-        return (config('app.env') == "production" || config('app.env') == "staging") ? $user_email : config('app.admin_email');
+        return $user_email ?? null;
     }
 
     /**
