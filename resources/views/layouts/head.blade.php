@@ -30,7 +30,7 @@
     }
     .main {
         width: 100%;
-        max-width: 600px;
+        max-width: 1000px;
         border-spacing: 0;
         border-radius: 15px 15px 0px 0px;
         margin-top: 50px;

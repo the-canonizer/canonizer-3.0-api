@@ -91,6 +91,7 @@ class ValidationRules
     {
         return ([
             'profile_picture' => 'required|file|mimes:jpg,jpeg,png',
+            'is_update' => 'boolean'
         ]);
     }
 
@@ -231,8 +232,8 @@ class ValidationRules
     public function getCampRecordValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
         ]);
@@ -339,8 +340,8 @@ class ValidationRules
     public function getStatementHistoryValidationRules(): array
     {
         return [
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'type' => 'in:objected,in_review,old,live,all',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate',
@@ -493,7 +494,7 @@ class ValidationRules
     public function getTopicHistoryValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
+            'topic_num' => 'required|numeric',
             'per_page' => 'required',
             'page' => 'required',
             'type' => 'in:objected,live,in_review,old,all',
@@ -503,8 +504,8 @@ class ValidationRules
     public function getCampHistoryValidationRules(): array
     {
         return ([
-            'topic_num' => 'required',
-            'camp_num' => 'required',
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
             'type' => 'in:objected,live,in_review,old,all',
             'per_page' => 'required',
             'page' => 'required',
@@ -523,6 +524,14 @@ class ValidationRules
             'camp_about_url' => ['regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/','nullable'],
             'event_type' => 'required|in:update,edit,objection', 
             'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
+
+    public function checkCampStatusValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'camp_num' => 'required|integer|max:' . PHP_INT_MAX,
         ];
     }
 

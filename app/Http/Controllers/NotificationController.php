@@ -206,7 +206,7 @@ class NotificationController extends Controller
                         $value->url = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                         break;
                     case config('global.notification_type.Support'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/support/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                        $value->url = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
                         break;
                     case config('global.notification_type.objectCamp'):
                         $value->url = config('global.APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);

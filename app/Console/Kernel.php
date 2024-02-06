@@ -24,7 +24,11 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateUrlOfActivityOnCampUpdate',
         'App\Console\Commands\UpdateActivityUrlOnCampObject',
         // 'App\Console\Commands\UpdateDelegateSupportOrderForATopic' // Disable this command because this command is for specific issue occured on production #784.
-        'App\Console\Commands\AddExsistingDataToElasticSearch'
+        'App\Console\Commands\AddExsistingDataToElasticSearch',
+        'App\Console\Commands\UpdateGracePeriodForOldLiveTopics',
+        'App\Console\Commands\UpdateUserIdFromOwnerCode',
+        'App\Console\Commands\UpdateUserLastNameFromFullName',
+        'App\Console\Commands\UpdateFilePathsToRelativePaths'
     ];
 
     /**

@@ -20,6 +20,7 @@ use App\Models\Search;
 use App\Helpers\ElasticSearch;
 use App\Jobs\ForgetCacheKeyJob;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -69,15 +70,21 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $namespace = $namespaceLabel; //fetch namespace
             $breadcrumb = '';
             $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($item->camp_num == 1){          
+            if($item->camp_num == 1){
                 $type = "topic";
                 $typeValue = $liveTopic->topic_name;
                 $id = "topic-". $topicNum;
                 $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
-            }else{               
+            }else{             
                 $id = "camp-". $topicNum . "-" . $campNum;
                 // breadcrumb
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            }
+
+           
+            if($item->is_archive && $item->go_live_time <= time()){
+                ElasticSearch::deleteData($id);
+                return;
             }
 
             if($item->go_live_time <= time()){
@@ -189,27 +196,27 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->latest('topic.go_live_time')->first();
     }
 
-    public static function getLiveCamp($filter = array())
+    public static function getLiveCamp($filter = array(), $onlyColumns = [])
     {
         $filterName = isset($filter['asOf']) ?  $filter['asOf'] : '';
         if (!$filterName) {
             $filter['asOf'] = 'default';
         }
-        return self::liveCampAsOfFilter($filter);
+        return self::liveCampAsOfFilter($filter, $onlyColumns);
     }
 
-    private static function liveCampAsOfFilter($filter)
+    private static function liveCampAsOfFilter($filter, $onlyColumns = [])
     {
         $asOfFilter = [
-            'default' => self::liveCampDefaultAsOfFilter($filter),
-            'review'  => self::liveCampReviewAsOfFilter($filter),
-            'bydate'  => self::liveCampByDateFilter($filter),
-            'other'  => self::liveCampOtherAsOfFilter($filter),
+            'default' => self::liveCampDefaultAsOfFilter($filter, $onlyColumns),
+            'review'  => self::liveCampReviewAsOfFilter($filter, $onlyColumns),
+            'bydate'  => self::liveCampByDateFilter($filter, $onlyColumns),
+            'other'  => self::liveCampOtherAsOfFilter($filter, $onlyColumns),
         ];
         return $asOfFilter[$filter['asOf']];
     }
 
-    public static function liveCampOtherAsOfFilter($filter)
+    public static function liveCampOtherAsOfFilter($filter, $onlyColumns = [])
     {
         $cacheKey = 'live_camp_other-' . $filter['topicNum'];
         $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
@@ -220,7 +227,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $camp;
     }
 
-    public static function liveCampDefaultAsOfFilter($filter)
+    public static function liveCampDefaultAsOfFilter($filter, $onlyColumns = [])
     {
         $cacheKey = 'live_camp_default-' . $filter['topicNum'] . '-' . $filter['campNum'];
         $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
@@ -233,7 +240,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $camp;
     }
 
-    public static function liveCampReviewAsOfFilter($filter)
+    public static function liveCampReviewAsOfFilter($filter, $onlyColumns = [])
     {
         $cacheKey = 'live_camp_review-' . $filter['topicNum'] . '-' . $filter['campNum'];
         $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
@@ -246,10 +253,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $camp;
     }
 
-    public static function liveCampByDateFilter($filter)
+    public static function liveCampByDateFilter($filter, $onlyColumns = [])
     {
         $asOfDate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
-        return self::where('topic_num', $filter['topicNum'])
+        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
+                return $query->select($onlyColumns);
+            })
+            ->where('topic_num', $filter['topicNum'])
             ->where('camp_num', '=', $filter['campNum'])
             ->where('go_live_time', '<=', $asOfDate)
             ->latest('go_live_time')->first();
@@ -602,7 +612,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         $childCamps = array_unique(self::getAllChildCamps($oneCamp,$includeLiveCamps=true));        
         if($checkArchive){
-            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
+            $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '!=', 0)->where('reason','=','archived')->where('archive_support_flag', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
         }else{
             $mysupports = Support::where('topic_num', $topicNum)->whereIn('camp_num', $childCamps)->whereIn('nick_name_id', $userNicknames)->where('end', '=', 0)->orderBy('support_order', 'ASC')->groupBy('camp_num')->get();
         }
@@ -747,7 +757,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                             $explicitSupporters =   (count( $explicitSupporters['supporters'])) ? $explicitSupporters['supporters']->pluck('nick_name_id')->toArray() : [];
                             $revokableSupporter = Support::getSupportersNickNameOfArchivedCamps((int)$filter['topicNum'], [(int)$filter['campNum']], $val->is_archive, 1)->pluck('nick_name_id')->toArray();
                             $archiveSupporters = Support::filterArchivedSupporters($revokableSupporter, $explicitSupporters, $val->submitter_nick_id, $supportersListByTimeStamp);
-                            $val->total_supporters = $val->total_supporters + count($archiveSupporters['direct_supporters']) + count($archiveSupporters['explicit_supporters']);
+                            $val->total_supporters = $val->total_supporters + count(array_unique($archiveSupporters['direct_supporters'])) + count(array_unique($archiveSupporters['explicit_supporters']));
                         }
                         break;
                     case $liveCamp->id == $val->id && $filter['type'] != "old":
@@ -993,6 +1003,27 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return;
     }
 
+    public static function checkIfUnarchiveChangeIsSubmitted($liveCamp)
+    {
+        if (!$liveCamp->is_archive)
+            return false;
 
+        return self::where([
+            'topic_num' => $liveCamp->topic_num,
+            'camp_num' => $liveCamp->camp_num,
+            'objector_nick_id' => null,
+            'grace_period' => 0,
+        ])->where('go_live_time', '>', time())->exists();
+    }
     
+    public static function checkIfParentCampDisabledSubCampFunctionality($camp)
+    {
+        if (is_null($camp->parent_camp_num)) {
+            return ['is_disabled' => $camp->is_disabled, 'is_one_level' => $camp->is_one_level];
+        }
+        $camp = self::getLiveCamp(['topicNum' => $camp->topic_num, 'campNum' => $camp->parent_camp_num]);
+
+        ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($camp);
+        return ['is_disabled' => $camp->is_disabled || $parentIsDisabled, 'is_one_level' => $camp->is_one_level || $parentIsOneLevel];
+    }
 }

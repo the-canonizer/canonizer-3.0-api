@@ -37,6 +37,7 @@ return [
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
         'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
+        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.'
     ],
     'success' => [
         'success'          => 'Success',
@@ -133,6 +134,7 @@ return [
         'profile_picture_file' => 'The :attribute must be a file.',
         'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
         'profile_picture_size' => 'The profile picture must not be greater than 1024KB.',
+        'profile_pic_update_flag' => 'The update flag should be boolean.',
     ],
     'validation_forgot_password' => [
         'username_required' => 'The User Name field is required.',
@@ -162,6 +164,7 @@ return [
         'topic_name_max' => 'Topic name can not be more than 30 characters.',
         'topic_name_regex' => 'Topic name can only contain space and alphanumeric characters.',
         'topic_name_unique' => 'The topic name has already been taken.',
+        'topic_name_under_review' => 'The topic name has already taken and under processing.',
         'namespace_required' => 'Namespace is required.',
         'create_namespace_required_if' => 'The Other Namespace Name field is required when namespace is other.',
         'create_namespace_max' => 'The Other Namespace Name can not be more than 100 characters.',
@@ -226,7 +229,9 @@ return [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
     ],
     'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
@@ -322,6 +327,8 @@ return [
     'validation_get_statementHistory' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
         'type_in' => "Please enter a valid type value (objected, in_review, old, live, all) or leave it empty",
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
@@ -438,6 +445,7 @@ return [
     ],
     'validation_get_topic_history' => [
         'topic_num_required' => "Topic number is required.",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
         'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
@@ -445,6 +453,8 @@ return [
     'validation_get_camp_history' => [
         'topic_num_required' => "Topic number is required.",
         'camp_num_required' => "Camp number is required.",
+        'topic_num_numeric' => "Topic Num should be a numeric.",
+        'camp_num_numeric' => "Camp Num should be a numeric.",
         'type_in' => "Please enter a valid type value (live ,objected, in_review, old, all) or leave it empty",
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
@@ -460,6 +470,16 @@ return [
         'camp_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
         'camp_about_url_regex' => 'Camp about url is invalid.',
+    ],
+    'validation_check_camp_status' => [
+        'topic_num_required' => "The topic num is required.",
+        'topic_num_integer' => "The topic num must be an integer.",
+        'topic_num_max_numeric' => "The topic num must not be greater than 9223372036854775807.",
+        'topic_num_exists' => "The topic not found.",
+
+        'camp_num_required' => "The camp num is required.",
+        'camp_num_integer' => "The camp num must be an integer.",
+        'camp_num_max_numeric' => "The camp num must not be greater than 9223372036854775807.",
     ],
     'notification_title' => [
         "createTopic" => "Topic Create",

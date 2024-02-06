@@ -76,7 +76,7 @@ class NickNameApiTest extends TestCase
 
     public function testAddNickNameWithValidData(){
         print sprintf(" \n Add Nickname with valid data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::find(rand(10,50));
 
         $parameter = [
             'nick_name' => "test-" . rand(1,5),

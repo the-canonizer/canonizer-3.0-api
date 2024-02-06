@@ -48,70 +48,95 @@ class AddExsistingDataToElasticSearch extends Command
  
          $body = Search::get();        
          $mapping = [
-             'index' => $indexName,
-             'body' => [
-                 'mappings' => [
-                     'properties' => [
-                         'id' => [
-                             'type' => 'text',
-                         ],
-                         'type' => [
-                             'type' => 'keyword',
-                         ],
-                         'type_value' => [
-                             'type' => 'text',
-                         ],
-                         'topic_num' => [
-                             'type' => 'integer',
-                         ],
-                         'camp_num' => [
-                             'type' => 'integer',
-                         ],
-                         'statement_num' => [
-                             'type' => 'integer',
-                         ],
-                         'nick_name_id' => [
-                             'type' => 'integer',
-                         ],
-                         'go_live_time' => [
-                             'type' => 'text',
-                         ],
-                         'namespace' => [
-                             'type' => 'text',
-                         ],
-                         'link' => [
-                             'type' => 'text',
-                         ],
-                         'support_count' => [
-                             'type' => 'double',
-                         ],
-                         'breadcrumb' => [
-                             'type' => 'nested',
-                             'properties' => [
-                                 'camp_num' => [
-                                     'type' => 'integer',
-                                 ],
-                                 'topic_num' => [
-                                     'type' => 'integer',
-                                 ],
-                                 'camp_name' => [
-                                     'type' => 'keyword',
-                                 ],
-                                 'topic_name' => [
-                                     'type' => 'keyword',
-                                 ],
-                                 'camp_link' => [
-                                     'type' => 'text',
-                                 ],
-                                 'go_live_time' => [
-                                     'type' => 'text',
-                                 ],
-                             ],
-                         ],
-                     ],
-                 ],
-             ],
-         ];
+                'index' => $indexName,
+                'body' => [
+                    "settings" => [
+                        "analysis" => [
+                          "tokenizer" => [
+                            "my_tokenizer" => [
+                                "type" =>  "whitespace"
+                            ],
+                          ],
+                          "char_filter" => [
+                            "replace_special_chars" => [
+                              "type" => "pattern_replace",
+                              "pattern"  => "[^\\p{L}\\p{N}]+", //"[^\\p{ASCII}]", //"[^a-zA-Z0-9]",
+                              "replacement"  => " "
+                            ]
+                          ],
+                          "analyzer" => [
+                            "my_analyzer" => [
+                              "type" => "custom",
+                              "tokenizer" => "my_tokenizer",
+                              "char_filter" =>["replace_special_chars"],
+                              "filter" =>  ["lowercase"]
+                            ]
+                          ],
+                        ],
+                      ],
+                    'mappings' => [
+                        'properties' => [
+                            'id' => [
+                                'type' => 'text',
+                            ],
+                            'type' => [
+                                'type' => 'keyword',
+                            ],
+                            'type_value' => [
+                                'type' => 'text',
+                                'analyzer' => 'my_analyzer',
+                            ],
+                            'topic_num' => [
+                                'type' => 'integer',
+                            ],
+                            'camp_num' => [
+                                'type' => 'integer',
+                            ],
+                            'statement_num' => [
+                                'type' => 'integer',
+                            ],
+                            'nick_name_id' => [
+                                'type' => 'integer',
+                            ],
+                            'go_live_time' => [
+                                'type' => 'text',
+                            ],
+                            'namespace' => [
+                                'type' => 'text',
+                            ],
+                            'link' => [
+                                'type' => 'text',
+                            ],
+                            'support_count' => [
+                                'type' => 'double',
+                            ],
+                            'breadcrumb' => [
+                                'type' => 'nested',
+                                'properties' => [
+                                    'camp_num' => [
+                                        'type' => 'integer',
+                                    ],
+                                    'topic_num' => [
+                                        'type' => 'integer',
+                                    ],
+                                    'camp_name' => [
+                                        'type' => 'keyword',
+                                    ],
+                                    'topic_name' => [
+                                        'type' => 'keyword',
+                                    ],
+                                    'camp_link' => [
+                                        'type' => 'text',
+                                    ],
+                                    'go_live_time' => [
+                                        'type' => 'text',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
  
          $elasticsearch->indices()->create($mapping);
  

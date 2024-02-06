@@ -108,6 +108,16 @@ class TopicSupport
                 $delegate_nick_name = $delegateNickNameIdModel->nick_name;
             }
 
+            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
+            {
+                Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
+                $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+
+                //push notification to promoted delegates
+                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
+
+            }
+
             /* To update the Mongo Tree while remove all support */
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
             if(count($removeCamps)) {
@@ -129,16 +139,6 @@ class TopicSupport
             //timeline end
 
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
-
-            if(isset($allDirectDelegates) && count($allDirectDelegates) > 0)
-            {
-                Support::promoteUpDelegates($topicNum, $allNickNames, $delegateNickNameId);
-                $promotedDelegatesIds = TopicSupport::sendEmailToPromotedDelegates($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
-
-                //push notification to promoted delegates
-                self::sendNotification($topicNum, $campNum, $nickNameId, $allDirectDelegates, $delegateNickNameId);
-
-            }
 
             //log remove support activity
             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
@@ -193,6 +193,12 @@ class TopicSupport
 
                 self::supportRemovalEmail($topicModel, $campModel, $nicknameModel);
                 // GetPushNotificationToSupporter::pushNotificationToSupporter($user, $topicNum, $camp, 'remove', null, $nickName);
+                
+                //timeline start
+                $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $campModel->camp_num, $campModel->camp_name, $topic->topic_name, $type . "_support_removed", null, $topic->namespace_id, $topic->submitter_nick_id);
+                
+                Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nicknameModel->nick_name . " has removed "  . $type . " support in camp - " . $campModel->camp_name, $type . "_support_removed", $campModel->camp_num, null, null, null, time(), $timeline_url);
+                //timeline end
             }
 
              //log activity
@@ -895,7 +901,7 @@ class TopicSupport
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
         $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? Nickname::getNickName($delegatedNickNameId)->nick_name : $topic->topic_name ." >> ".$camp->camp_name;
-        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>');
+        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, 'camp');
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);

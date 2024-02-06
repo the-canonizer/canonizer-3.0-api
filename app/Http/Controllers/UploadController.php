@@ -128,7 +128,7 @@ class UploadController extends Controller
             $uploadFiles = [];
             foreach($all['file'] as $k => $file){ 
                 $six_digit_random_number = random_int(100000, 999999);
-                $filename = User::ownerCode($user->id) . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
+                $filename = $user->id . '_' . time() . '_' . $six_digit_random_number  .'.' . $file->getClientOriginalExtension(); 
               
                 /** Upload File to S3 */
                 $result = Aws::UploadFile($filename,$file);
@@ -143,7 +143,7 @@ class UploadController extends Controller
                     'file_id' => $fileShortCode,
                     'file_type'=> $file->getMimeType(),
                     'folder_id'=> (isset($all['folder_id']) && !empty($all['folder_id'])) ? $all['folder_id'] : null,
-                    'file_path' => $response['ObjectURL'],
+                    'file_path' => $filename,
                     'created_at' => time(),
                     'updated_at' => time()
                 ];
@@ -152,7 +152,11 @@ class UploadController extends Controller
             }
             Upload::insert($uploadFiles);
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), '', '');
+            if($request->has('from_test_case')) {
+                $test_case_response = ["file_name" => $filename];
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), $test_case_response ?? '', '');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -8,9 +8,9 @@ use Carbon\Carbon;
 
 class Helpers
 {
-    public static function renderParentCampLinks($topic_num, $camp_num, $topic_name, $withLinks = false, $seprator = '>>')
+    public static function renderParentCampLinks($topic_num, $camp_num, $topic_name, $withLinks = false, $change_type = null, $iteration = 0) // Always place $iteration as the last parameter
     {
-
+        $seprator = '<img src="' . env('APP_URL') . '/assets/images/seprator.png" alt="seprator" />';
         $filter['topicNum'] = $topic_num;
         $filter['campNum'] = $camp_num ?? 1;
         $camp = Camp::getLiveCamp($filter);
@@ -21,12 +21,12 @@ class Helpers
 
         if (is_null($camp->parent_camp_num)) {
             $topicLink = Topic::topicLink($topic_num, 1, $topic_name);
-            return self::createLink($topic_name . ' ' . $seprator . ' ' . $camp->camp_name, $topicLink) ?? $camp->camp_name;
+            return self::createLink($topic_name . ($change_type === 'camp' && $camp_num === 1 && $iteration == 0 ? ' ' . $seprator . ' ' . $camp->camp_name : ''), $topicLink) ?? $camp->camp_name;
         }
 
         $campLink = Topic::topicLink($topic_num, $camp->camp_num, $topic_name, $camp->camp_name);
 
-        return self::renderParentCampLinks($topic_num, $camp->parent_camp_num, $topic_name, $withLinks, $seprator) . ' ' . $seprator . ' ' . self::createLink($camp->camp_name, $campLink);
+        return self::renderParentCampLinks($topic_num, $camp->parent_camp_num, $topic_name, $withLinks, $change_type, ++$iteration) . ' ' . $seprator . ' ' . self::createLink($camp->camp_name, $campLink);
     }
 
     private static function createLink($text, $link)

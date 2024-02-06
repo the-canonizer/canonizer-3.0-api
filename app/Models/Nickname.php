@@ -42,8 +42,8 @@ class Nickname extends Model {
             $breadcrumb = '';
             $supportCount = Support::getTotalSupportedCamps([$item->id]);
             $namespaceId = 1; //default
-            $userId = self::getUserIDByNickNameId($item->id);
-            $link = self::getNickNameLink($userId, $namespaceId,'','',true);
+           // $userId = self::getUserIDByNickNameId($item->id);
+            $link = self::getNickNameLink($item->id, $namespaceId,'','',true);
             $statementNum =  '';
             
             if($item->private){
@@ -74,7 +74,7 @@ class Nickname extends Model {
     public static function createNickname($userID, $input) {
         // Create nickname
         $nickname = new Nickname();
-        $nickname->owner_code = Util::canon_encode($userID);
+        $nickname->user_id = $userID;
         $nickname->nick_name = substr($input['nick_name'], 0, 50);
         $nickname->private = $input['visibility_status'];
         $nickname->create_time = time();
@@ -83,27 +83,22 @@ class Nickname extends Model {
         return $nickname;
     }
 
-    public static function getAllNicknames($userID, $private='')
+    public static function getAllNicknames($userID, $private = '')
     {
-        $ownerCode = Util::canon_encode($userID);
-
         if(isset($private) && $private != '')
         {
-            $nicknames = self::where('owner_code', $ownerCode)->where('private','=',$private)->orderBy('nick_name', 'ASC')->get();
+            $nicknames = self::where('user_id', $userID)->where('private','=',$private)->orderBy('nick_name', 'ASC')->get();
         }else
         {
-            $nicknames = self::where('owner_code', $ownerCode)->orderBy('nick_name', 'ASC')->get();
+            $nicknames = self::where('user_id', $userID)->orderBy('nick_name', 'ASC')->get();
         }
         
         return $nicknames;
     }
-    
+
     public static function getNicknamesIdsByUserId($userID)
     {
-        $ownerCode = Util::canon_encode($userID);
-
-        $nicknames = self::where('owner_code', $ownerCode)->pluck('id')->toArray();
-        return $nicknames;
+        return self::where('user_id', $userID)->pluck('id')->toArray();
     }
 
     public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum='', $forSearch = false){
@@ -135,21 +130,19 @@ class Nickname extends Model {
         return $userNickname;
     }
 
-    public static function personNickname() {
+    public static function personNickname()
+    {
         if (Auth::check()) {
-           $userid = Auth::user()->id;
-           $encode = Util::canon_encode($userid);
-
-       return DB::table('nick_name')->select('id', 'nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->get();
-      }
-      return [];
-   }
+            return self::select('id', 'nick_name')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->get();
+        }
+        return [];
+    }
 
     public static function personAllNicknamesByAnyNickId($nick_id)
     {
-        $owner_code = self::find($nick_id);
-        if ($owner_code)
-            return self::select('id', 'nick_name')->where('owner_code', $owner_code->owner_code)->orderBy('nick_name', 'ASC')->get();
+        $nickName = self::find($nick_id);
+        if ($nickName)
+            return self::select('id', 'nick_name')->where('user_id', $nickName->user_id)->orderBy('nick_name', 'ASC')->get();
         else
             return [];
     }
@@ -245,8 +238,7 @@ class Nickname extends Model {
 
     public static function getUserByNickName($nick_id) {
         $nickname = self::find($nick_id);
-        $userId = Util::canon_decode($nickname->owner_code);
-        return User::find($userId);
+        return User::find($nickname->user_id);
     }
 
     public function getSupportCampList($namespace = 1,$filter = array(),$topic_num = null) {
@@ -329,8 +321,7 @@ class Nickname extends Model {
 
         $nickname = self::find($nick_id);
         if (!empty($nickname)) {
-            $ownerCode = $nickname->owner_code;
-            return General::canon_decode($ownerCode);
+            return $nickname->user_id;
         }
 
         return null;
@@ -390,11 +381,7 @@ class Nickname extends Model {
     
     public static function personNicknameIds() {
         if (Auth::check()) {
-            $userid = Auth::user()->id;
-
-            $encode = General::canon_encode($userid);
-
-            return DB::table('nick_name')->where('owner_code', $encode)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();
+            return DB::table('nick_name')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();
         }
         return [];
     }
@@ -413,13 +400,11 @@ class Nickname extends Model {
 
         $userByNickId = self::getUserByNickName($nick_id);
         if ($user && $user->id == $userByNickId->id) {
-           return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('owner_code', $nickname->owner_code)->orderBy('nick_name', 'ASC')->get();
+           return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('user_id', $nickname->user_id)->orderBy('nick_name', 'ASC')->get();
         } else if ($nickname->private == 1) {
             return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('id', $nick_id)->orderBy('nick_name', 'ASC')->get();
         } else if ($nickname->private == 0) {
-            return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('owner_code', $nickname->owner_code)->where('private', 0)->orderBy('nick_name', 'ASC')->get();
+            return DB::table('nick_name')->select('id', 'nick_name', 'private')->where('user_id', $nickname->user_id)->where('private', 0)->orderBy('nick_name', 'ASC')->get();
         }
     }
-
-    
 }

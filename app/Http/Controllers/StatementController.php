@@ -224,6 +224,9 @@ class StatementController extends Controller
                 $response->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime,  true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
+
+                ['is_disabled' => $response->parent_is_disabled, 'is_one_level' => $response->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($response->liveCamp);
+
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
@@ -611,7 +614,7 @@ class StatementController extends Controller
         $data['type'] = "Camp";
 
         // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
-        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, '>>');
+        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, 'statement');
 
         $data['object_type'] = "statement";
         $data['nick_name'] = $nickName->nick_name;

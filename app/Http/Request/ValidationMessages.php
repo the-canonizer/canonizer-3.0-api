@@ -121,6 +121,7 @@ class ValidationMessages
             'profile_picture.file' => trans('message.validation_update_profile.profile_picture_file'),
             'profile_picture.mime' => trans('message.validation_update_profile.profile_picture_mimes'),
             'profile_picture.size' => trans('message.validation_update_profile.profile_picture_size'),
+            'is_update.boolean' => trans("message.validation_update_profile.profile_pic_update_flag")
         ]);
     }
 
@@ -289,7 +290,9 @@ class ValidationMessages
             'as_of.in' => trans('message.validation_get_camp_record.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_camp_record.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_camp_record.topic_num_required'),
-            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required')
+            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_record.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_record.camp_num_numeric')
         ];
     }
 
@@ -375,6 +378,8 @@ class ValidationMessages
         return ([
             'topic_num.required' => trans('message.validation_get_statementHistory.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_statementHistory.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_statementHistory.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_statementHistory.camp_num_numeric'),
             'type.in' => trans('message.validation_get_statementHistory.type_in'),
             'as_of.in' => trans('message.validation_get_statementHistory.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_statementHistory.as_of_date_required_if'),
@@ -577,6 +582,7 @@ class ValidationMessages
     {
         return ([
             'topic_num.required' => trans('message.validation_get_topic_history.topic_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_topic_history.topic_num_numeric'),
             'type.in' => trans('message.validation_get_topic_history.type_in'),
             'per_page.required' => trans('message.validation_get_topic_history.per_page_required'),
             'page.required' => trans('message.validation_get_topic_history.page_required'),
@@ -588,6 +594,8 @@ class ValidationMessages
         return ([
             'topic_num.required' => trans('message.validation_get_camp_history.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_camp_history.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_history.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_history.camp_num_numeric'),
             'type.in' => trans('message.validation_get_camp_history.type_in'),
             'per_page.required' => trans('message.validation_get_camp_history.per_page_required'),
             'page.required' => trans('message.validation_get_camp_history.page_required'),
@@ -607,6 +615,23 @@ class ValidationMessages
             'camp_name.required' => trans('message.validation_manage_camp.camp_name_required'),
             'camp_about_url.regex' => trans('message.validation_manage_camp.camp_about_url_regex'),
             'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
+        ];
+    }
+
+    public function checkCampStatusValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_check_camp_status.topic_num_required'),
+            'topic_num.integer' => trans('message.validation_check_camp_status.topic_num_integer'),
+            'topic_num.exists' => trans('message.validation_check_camp_status.topic_num_exists'),
+            'topic_num.max' => [
+                'numeric' => trans('message.validation_check_camp_status.topic_num_max_numeric')
+            ],
+            'camp_num.required' => trans('message.validation_check_camp_status.camp_num_required'),
+            'camp_num.integer' => trans('message.validation_check_camp_status.camp_num_integer'),
+            'camp_num.max' => [
+                'numeric' => trans('message.validation_check_camp_status.camp_num_max_numeric')
+            ],
         ];
     }
 

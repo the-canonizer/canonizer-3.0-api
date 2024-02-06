@@ -29,6 +29,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
+use Illuminate\Support\Arr; 
 
 class CampController extends Controller
 {
@@ -280,7 +281,7 @@ class CampController extends Controller
                         "type" => "camp",
                         "link" =>  $link,
                         "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
-                        "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, '>>'),
+                        "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, 'camp'),
                         // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
                         "note" => $camp->note,
@@ -406,6 +407,14 @@ class CampController extends Controller
             if ($livecamp && $filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
                 $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
+            } else {
+                $liveCampFilter['topicNum'] = $request->topic_num;
+                $liveCampFilter['asOf'] = 'default';
+                $liveCampFilter['campNum'] = $request->camp_num;
+                $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
+                if (!empty($liveCampDefault)) {
+                    $camp['is_archive'] = $liveCampDefault->is_archive;
+                }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
@@ -659,7 +668,7 @@ class CampController extends Controller
      *                         example=""
      *                      ),
      *                      @OA\Property(
-     *                         property="owner_code",
+     *                         property="user_id",
      *                         type="string",
      *                         example=""
      *                      ),
@@ -706,7 +715,7 @@ class CampController extends Controller
         try {
             $allNicknames = DB::table('nick_name')
                 ->select(
-                    DB::raw("id, owner_code, TRIM(nick_name) nick_name, create_time , private")
+                    DB::raw("id, user_id, TRIM(nick_name) nick_name, create_time , private")
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
@@ -812,7 +821,7 @@ class CampController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        try {
+        // try {
             $allNicknames = Nickname::topicNicknameUsed($request->topic_num);
             if (empty($allNicknames)) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
@@ -823,11 +832,11 @@ class CampController extends Controller
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
-        } catch (Exception $ex) {
-            $status = 400;
-            $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        }
+        // } catch (Exception $ex) {
+        //     $status = 400;
+        //     $message = trans('message.error.exception');
+        //     return $this->resProvider->apiJsonResponse($status, $message, null, null);
+        // }
     }
 
     /**
@@ -1239,6 +1248,11 @@ class CampController extends Controller
                 $response->ifIAmImplicitSupporter = Support::ifIamImplicitSupporter($filter, $nickNames, $submitTime);
                 $response->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], $filter['campNum'], $nickNames, $submitTime, true);
                 $response->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames);
+                $response->liveCamp = Camp::getLiveCamp($filter);
+                $response->unarchive_change_submitted = Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp);
+
+                ['is_disabled' => $response->parent_is_disabled, 'is_one_level' => $response->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($liveCamp);
+
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
@@ -1461,7 +1475,11 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-         
+
+            if (Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp)) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_archive_change_is_already_submitted'), '', '');
+            }
+
             if ($all['event_type'] == "update") {                
                 $camp = $this->updateCamp($all);
                 // /* Now every change have grace_period must , so due to this the change 
@@ -1672,7 +1690,7 @@ class CampController extends Controller
         $data['type'] = "Camp";
         $data['object_type'] = "";
         // $data['object'] = $liveCamp->topic->topic_name . " >> " . $liveCamp->camp_name;
-        $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, '>>');
+        $data['object'] = Helpers::renderParentCampLinks($liveCamp->topic->topic_num, $liveCamp->camp_num, $liveCamp->topic->topic_name, true, 'camp');
         $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' .  General::getDealingWithDisagreementUrl();
         $activityLogData = [
             'log_type' =>  "topic/camps",
