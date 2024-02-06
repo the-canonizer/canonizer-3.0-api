@@ -4,18 +4,21 @@ namespace App\Models;
 
 use App\Models\Camp;
 use App\Facades\Util;
+use App\Models\Search;
+use App\Helpers\ElasticSearch;
+use App\Jobs\ForgetCacheKeyJob;
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
 use Laravel\Lumen\Auth\Authorizable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
+
+use App\Library\wiki_parser\wikiParser as wikiParser;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use App\Library\wiki_parser\wikiParser as wikiParser;
-
-use App\Models\Search;
-use App\Helpers\ElasticSearch;
 
 class Topic extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -69,6 +72,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         });
 
         static::saved(function($item) {
+            //forget cache
+            self::forgetCache($item);
+
             $liveTopic = Topic::getLiveTopic($item->topic_num);            
             $namespace = Namespaces::find($liveTopic->namespace_id);            
             $namespaceLabel = 'no-namespace';
@@ -112,6 +118,20 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         parent::boot();
     }
 
+    public static function forgetCache($item)
+    {
+        $cacheKeysToRemove = [
+            'live_topic_default-' . $item->topic_num,
+            'live_topic_review-' . $item->topic_num
+        ];
+        foreach ($cacheKeysToRemove as $key) {
+            Cache::forget($key);
+        }
+        if ($item->go_live_time > time()) {
+            dispatch(new ForgetCacheKeyJob($cacheKeysToRemove, Carbon::createFromTimestamp($item->go_live_time)));
+        }
+    }
+
     public function objectorNickName()
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
@@ -124,18 +144,26 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
 
     public static function getLiveTopic($topicNum, $filter = array(), $asofdate = null)
     {
+        $liveTopicCacheKey = 'live_topic_default-' . $topicNum;
+        $reviewTopicCacheKey = 'live_topic_review-' . $topicNum;
         switch ($filter) {
             case "default":
-                return self::where('topic_num', $topicNum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', time())
-                    ->latest('submit_time')->first();
+                $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
+                    return self::where('topic_num', $topicNum)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time', '<=', time())
+                        ->latest('submit_time')->first();
+                });
+                return $topic;
                 break;
             case "review":
-                return self::where('topic_num', $topicNum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('grace_period', 0) 
-                    ->latest('submit_time')->first();
+                $topic = Cache::remember($reviewTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
+                    return self::where('topic_num', $topicNum)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('grace_period', 0) 
+                        ->latest('submit_time')->first();
+                });
+                return $topic;
                 break;
             case "bydate":
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
@@ -148,10 +176,13 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                     ->latest('go_live_time')->first();
                 break;
             default:
-                return self::where('topic_num', $topicNum)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', time())
-                    ->latest('submit_time')->first();
+                $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
+                    return self::where('topic_num', $topicNum)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time', '<=', time())
+                        ->latest('submit_time')->first();
+                });
+                return $topic;
         }
     }
 

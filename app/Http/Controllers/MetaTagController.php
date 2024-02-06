@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MetaTag;
-use Illuminate\Http\Request;
-use App\Http\Resources\ErrorResource;
-use App\Http\Request\Validate;
-use App\Helpers\{ResourceInterface, ResponseInterface};
-use App\Http\Request\{ValidationRules, ValidationMessages};
-use App\Library\wiki_parser\wikiParser;
+use Exception;
+use Carbon\Carbon;
 use App\Models\Camp;
+use App\Models\Topic;
+use App\Models\Thread;
+use App\Models\MetaTag;
 use App\Models\Nickname;
 use App\Models\Statement;
-use App\Models\Thread;
-use App\Models\Topic;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Request\Validate;
+use App\Http\Resources\ErrorResource;
+use Illuminate\Support\Facades\Cache;
+use App\Library\wiki_parser\wikiParser;
+use App\Helpers\{ResourceInterface, ResponseInterface};
+use App\Http\Request\{ValidationRules, ValidationMessages};
 
 class MetaTagController extends Controller
 {
@@ -81,11 +82,13 @@ class MetaTagController extends Controller
             }
 
             $page_name = (string)Str::of($request->post('page_name'))->trim();
-
-            $metaTag = (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'is_static')
-                ->where([
-                    'page_name' => $page_name,
-                ])->first();
+            $cacheKey = 'meta_tags-' . $page_name;
+            $metaTag = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($page_name) {
+                return (new MetaTag())->select('id', 'page_name', 'title', 'description', 'submitter_nick_id as author', 'is_static')
+                    ->where([
+                        'page_name' => $page_name,
+                    ])->first();
+            });
             if (!$metaTag) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
             }
@@ -176,55 +179,60 @@ class MetaTagController extends Controller
 
     private function getTopicById($topic_num)
     {
-        $topic = (new Topic())->select('topic_name', 'note', 'submitter_nick_id')
-            ->where([
-                'topic_num' => $topic_num,
-                'objector_nick_id' => null,
-                'grace_period' => '0'
-            ])->where('go_live_time', '<=', Carbon::now()->timestamp)
-            ->orderBy('submit_time', 'desc')->first();
-
+        $cacheKey = 'live_topic_default-' . $topic_num;
+        $topic = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topic_num) {
+            return (new Topic())->where([
+                    'topic_num' => $topic_num,
+                    'objector_nick_id' => null,
+                    'grace_period' => '0'
+                ])->where('go_live_time', '<=', Carbon::now()->timestamp)
+                ->orderBy('submit_time', 'desc')->first();
+        });
         return $topic;
     }
 
     private function getCampById($topic_num, $camp_num)
     {
-        $camp = (new Camp())->select('id', 'camp_name')
-            ->where([
-                'topic_num' => $topic_num,
-                'camp_num' => $camp_num,
-                'objector_nick_id' => null,
-                'grace_period' => '0'
-            ])
-            ->where('go_live_time', '<=', Carbon::now()->timestamp)
-            ->orderBy('submit_time', 'desc')->first();
-
-
+        $cacheKey = 'live_camp_default-' . $topic_num . '-' . $camp_num;
+        $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topic_num, $camp_num) {
+            return (new Camp())->where([
+                    'topic_num' => $topic_num,
+                    'camp_num' => $camp_num,
+                    'objector_nick_id' => null,
+                    'grace_period' => '0'
+                ])
+                ->where('go_live_time', '<=', Carbon::now()->timestamp)
+                ->orderBy('submit_time', 'desc')->first();
+        });
         return $camp;
     }
 
     private function getCampStatementById($topic_num, $camp_num)
     {
-        $campStatement = (new Statement())->select('id', 'value')
-            ->where([
-                'topic_num' => $topic_num,
-                'camp_num' => $camp_num,
-                'objector_nick_id' => null,
-                'grace_period' => '0'
-            ])->where('go_live_time', '<=', Carbon::now()->timestamp)
-            ->orderBy('submit_time', 'desc')->first();
+        $cacheKey = 'live_statement_default-' . $topic_num . '-' . $camp_num;
+        $campStatement = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topic_num, $camp_num) {
+            $campStatement = (new Statement())->where([
+                    'topic_num' => $topic_num,
+                    'camp_num' => $camp_num,
+                    'objector_nick_id' => null,
+                    'grace_period' => '0'
+                ])->where('go_live_time', '<=', Carbon::now()->timestamp)
+                ->orderBy('submit_time', 'desc')->first();
 
-        $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
-        $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
-        $campStatement = Str::of($campStatement)->trim()->limit(160);
-
+            $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
+            $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
+            $campStatement = Str::of($campStatement)->trim()->limit(160);
+            return $campStatement;
+        });
         return $campStatement;
     }
 
     private function getSubmitterById($submitter_nick_id)
     {
-        $submitterNick = (new Nickname())->select('nick_name')->find($submitter_nick_id);
-
+        $cacheKey = 'get_submitter_by_id-' . $submitter_nick_id;
+        $submitterNick = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($submitter_nick_id) {
+            return (new Nickname())->select('nick_name')->find($submitter_nick_id);
+        });
         return $submitterNick;
     }
 }

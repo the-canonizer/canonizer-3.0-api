@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Search;
 use App\Helpers\ElasticSearch;
+use App\Jobs\ForgetCacheKeyJob;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
@@ -49,6 +51,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         parent::boot();
             
         static::saved(function($item) {
+            //forget cache
+            self::forgetCache($item);
+
             $liveTopic = Topic::getLiveTopic($item->topic_num);            
             $namespace = Namespaces::find($liveTopic->namespace_id);            
             $namespaceLabel = 'no-namespace';
@@ -87,6 +92,21 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             }
 
          });
+    }
+
+    public static function forgetCache($item)
+    {
+        $cacheKeysToRemove = [
+            'live_camp_default-' . $item->topic_num . '-' . $item->camp_num,
+            'live_camp_review-' . $item->topic_num . '-' . $item->camp_num,
+            'live_camp_other-' . $item->topic_num
+        ];
+        foreach ($cacheKeysToRemove as $key) {
+            Cache::forget($key);
+        }
+        if ($item->go_live_time > time()) {
+            dispatch(new ForgetCacheKeyJob($cacheKeysToRemove, Carbon::createFromTimestamp($item->go_live_time)));
+        }
     }
 
 
@@ -198,36 +218,39 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function liveCampOtherAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
-                return $query->select($onlyColumns);
-            })
-            ->where('topic_num', $filter['topicNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->latest('submit_time')->first();
+        $cacheKey = 'live_camp_other-' . $filter['topicNum'];
+        $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
+            return self::where('topic_num', $filter['topicNum'])
+                ->where('objector_nick_id', '=', NULL)
+                ->latest('submit_time')->first();
+        });
+        return $camp;
     }
 
     public static function liveCampDefaultAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
-                return $query->select($onlyColumns);
-            })
-            ->where('topic_num', $filter['topicNum'])
-            ->where('camp_num', '=', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->where('go_live_time', '<=', time())
-            ->latest('go_live_time')->first();
+        $cacheKey = 'live_camp_default-' . $filter['topicNum'] . '-' . $filter['campNum'];
+        $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
+            return self::where('topic_num', $filter['topicNum'])
+                ->where('camp_num', '=', $filter['campNum'])
+                ->where('objector_nick_id', '=', NULL)
+                ->where('go_live_time', '<=', time())
+                ->latest('go_live_time')->first();
+        });
+        return $camp;
     }
 
     public static function liveCampReviewAsOfFilter($filter, $onlyColumns = [])
     {
-        return self::when($onlyColumns, function (Builder $query, $onlyColumns) {
-                return $query->select($onlyColumns);
-            })
-            ->where('topic_num', $filter['topicNum'])
-            ->where('camp_num', '=', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->where('grace_period', 0) 
-            ->latest('go_live_time')->first();
+        $cacheKey = 'live_camp_review-' . $filter['topicNum'] . '-' . $filter['campNum'];
+        $camp = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
+            return self::where('topic_num', $filter['topicNum'])
+                ->where('camp_num', '=', $filter['campNum'])
+                ->where('objector_nick_id', '=', NULL)
+                ->where('grace_period', 0) 
+                ->latest('go_live_time')->first();
+        });
+        return $camp;
     }
 
     public static function liveCampByDateFilter($filter, $onlyColumns = [])

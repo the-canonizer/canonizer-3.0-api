@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use App\Facades\Util;
+use App\Models\Nickname;
+use App\Helpers\ElasticSearch;
+use App\Jobs\ForgetCacheKeyJob;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
-use App\Models\Nickname;
-use App\Facades\Util;
-use App\Helpers\ElasticSearch;
 
 class Statement extends Model
 {
@@ -23,6 +26,8 @@ class Statement extends Model
             
         static::saved(function($item) 
         {
+            //forget cache
+            self::forgetCache($item);
             
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
@@ -52,6 +57,20 @@ class Statement extends Model
         });
     }
 
+    public static function forgetCache($item)
+    {
+        $cacheKeysToRemove = [
+            'live_statement_default-' . $item->topic_num . '-' . $item->camp_num,
+            'live_statement_review-' . $item->topic_num . '-' . $item->camp_num
+        ];
+        foreach ($cacheKeysToRemove as $key) {
+            Cache::forget($key);
+        }
+        if ($item->go_live_time > time()) {
+            dispatch(new ForgetCacheKeyJob($cacheKeysToRemove, Carbon::createFromTimestamp($item->go_live_time)));
+        }
+    }
+
 
     public static function getLiveStatement($filter = array())
     {
@@ -64,22 +83,30 @@ class Statement extends Model
 
     public static function defaultAsOfFilter($filter)
     {
-        return self::where('topic_num', $filter['topicNum'])
-            ->where('camp_num', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->where('go_live_time', '<=', time())
-            ->orderBy('submit_time', 'desc')
-            ->first();
+        $cacheKey = 'live_statement_default-' . $filter['topicNum'] . '-' . $filter['campNum'];
+        $statement = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
+            return self::where('topic_num', $filter['topicNum'])
+                ->where('camp_num', $filter['campNum'])
+                ->where('objector_nick_id', '=', NULL)
+                ->where('go_live_time', '<=', time())
+                ->orderBy('submit_time', 'desc')
+                ->first();
+        });
+        return $statement;
     }
 
     public static function reviewAsofFilter($filter)
     {
-        return self::where('topic_num', $filter['topicNum'])
-            ->where('camp_num', $filter['campNum'])
-            ->where('objector_nick_id', '=', NULL)
-            ->where('grace_period', 0) 
-            ->orderBy('go_live_time', 'desc')
-            ->first();
+        $cacheKey = 'live_statement_review-' . $filter['topicNum'] . '-' . $filter['campNum'];
+        $statement = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($filter) {
+            return self::where('topic_num', $filter['topicNum'])
+                ->where('camp_num', $filter['campNum'])
+                ->where('objector_nick_id', '=', NULL)
+                ->where('grace_period', 0) 
+                ->orderBy('go_live_time', 'desc')
+                ->first();
+        });
+        return $statement;
     }
 
     public static function byDateFilter($filter)
