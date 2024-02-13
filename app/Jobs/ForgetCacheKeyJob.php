@@ -20,6 +20,7 @@ class ForgetCacheKeyJob extends Job
      */
     public function __construct(array $cacheKeys, $deleteTimestamp)
     {
+        $this->queue = env('CACHE_QUEUE', 'cache-queue');
         $this->cacheKeys = $cacheKeys;
         $this->delay = $deleteTimestamp;
     }
