@@ -23,6 +23,8 @@ class Statement extends Model
             
         static::saved(function($item) 
         {
+            //forget cache
+            self::forgetCache($item);
             
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
@@ -50,6 +52,20 @@ class Statement extends Model
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
         });
+    }
+
+    public static function forgetCache($item)
+    {
+        $cacheKeysToRemove = [
+            'live_statement_default-' . $item->topic_num . '-' . $item->camp_num,
+            'live_statement_review-' . $item->topic_num . '-' . $item->camp_num
+        ];
+        foreach ($cacheKeysToRemove as $key) {
+            Cache::forget($key);
+        }
+        if ($item->go_live_time > time()) {
+            dispatch(new ForgetCacheKeyJob($cacheKeysToRemove, Carbon::createFromTimestamp($item->go_live_time)));
+        }
     }
 
 

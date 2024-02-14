@@ -69,6 +69,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         });
 
         static::saved(function($item) {
+            //forget cache
+            self::forgetCache($item);
+
             $liveTopic = Topic::getLiveTopic($item->topic_num);            
             $namespace = Namespaces::find($liveTopic->namespace_id);            
             $namespaceLabel = 'no-namespace';
@@ -96,6 +99,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
 
+            if($item->is_archive && $item->go_live_time <= time()){
+                ElasticSearch::deleteData($id);
+                return;
+            }
+
             if($item->go_live_time <= time()){
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
@@ -105,6 +113,20 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
 
 
         parent::boot();
+    }
+
+    public static function forgetCache($item)
+    {
+        $cacheKeysToRemove = [
+            'live_topic_default-' . $item->topic_num,
+            'live_topic_review-' . $item->topic_num
+        ];
+        foreach ($cacheKeysToRemove as $key) {
+            Cache::forget($key);
+        }
+        if ($item->go_live_time > time()) {
+            dispatch(new ForgetCacheKeyJob($cacheKeysToRemove, Carbon::createFromTimestamp($item->go_live_time)));
+        }
     }
 
     public function objectorNickName()

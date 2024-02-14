@@ -43,7 +43,7 @@ class ElasticSearch
                  'support_count' => $supportCount,
                  'namespace' => $namespace,
                  'link' => $link,
-                 'breadcrumb_data' => json_encode($breadcrumb)
+                 'breadcrumb_data' => $breadcrumb,
              ];
  
          // Use the Bulk API to send the data in a batch
@@ -85,5 +85,4 @@ class ElasticSearch
         }
         return;
     }
-
 }
