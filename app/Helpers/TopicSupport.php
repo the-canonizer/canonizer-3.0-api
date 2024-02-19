@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-use DB;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
@@ -19,7 +18,8 @@ use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
-
+use Exception;
+use Illuminate\Support\Facades\DB;
 
 class TopicSupport
 {
@@ -420,6 +420,12 @@ class TopicSupport
                 self::removeSupport($topicNum, [], $allNickNames);  
             }
 
+            // Remove user as camp leader if delegate support to someone
+            $camp_leader = Camp::getCampLeaderNickId($topicNum, $campNum);
+            if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
+                $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $campNum);
+                Camp::updateCampLeaderFromLiveCamp($topicNum, $campNum, $oldest_direct_supporter->nick_name_id ?? null);
+            }
 
             $delegateSupporters = array(
                     ['nick_name_id' => $nickNameId, 'delegate_nick_name_id' => $delegateNickNameId]
