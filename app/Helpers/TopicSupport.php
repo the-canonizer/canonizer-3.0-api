@@ -1715,7 +1715,6 @@ class TopicSupport
         $oldest_direct_supporter = collect($direct_supporters)->last();
         if ($oldest_direct_supporter) {
             // Delegate user support to oldest direct supporter
-            dd($oldest_direct_supporter->nick_name_id != $nick_name_id);
             if ($oldest_direct_supporter->nick_name_id != $nick_name_id) { // Cannot delegate support to itself
                 TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $oldest_direct_supporter->nick_name_id);
             }
@@ -1725,6 +1724,5 @@ class TopicSupport
             return "oldest_supporter_as_camp_leader";
         }
         return "oldest_supporter_as_camp_leader_failed";
-        
     }
 }
