@@ -394,9 +394,10 @@ class CampController extends Controller
                 }
                 $livecamp->camp_about_nick_name = NickName::getNickName($livecamp->camp_about_nick_id)->nick_name ?? null;
                 $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
+                $livecamp->camp_leader_nick_name = NickName::getNickName($livecamp->camp_leader_nick_id)->nick_name ?? '';
                 $livecamp->parent_camp_name = $parentCampName;
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id','note', 'camp_about_url', 'is_archive' , 'direct_archive', 'submit_time' ,'go_live_time'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name','is_disabled','is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id','note', 'camp_about_url', 'is_archive' , 'direct_archive', 'submit_time' ,'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -1328,8 +1329,9 @@ class CampController extends Controller
                 $data->nick_name = Nickname::topicNicknameUsed($camp->topic_num);
                 $data->camp = $camp;
                 $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
+                $data->eligible_camp_leaders = self::getEligibleCampLeaders($camp->topic_num, $camp->camp_num);
                 $response[0] = $data;
-                $indexes = ['camp', 'nick_name', 'parent_camp', 'topic'];
+                $indexes = ['camp', 'nick_name', 'parent_camp', 'topic', 'eligible_camp_leaders'];
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
@@ -1461,6 +1463,12 @@ class CampController extends Controller
         }
         if (strtolower(trim($all['camp_name'])) != 'agreement' && $all['camp_num'] == 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_name'), '', '');
+        }
+        if (isset($all['camp_leader_nick_id']) && !empty($all['camp_leader_nick_id'])) {            
+            $checkDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $all['camp_num'],[$all['camp_leader_nick_id']], time());
+            if(!$checkDirectSupportExists) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_leader'), '', '');
+            }
         }
         try {
             if (Camp::IfTopicCampNameAlreadyExists($all)) {
@@ -1655,6 +1663,7 @@ class CampController extends Controller
         $camp->is_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
         $camp->direct_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
         $camp->camp_num = $all['camp_num'];
+        $camp->camp_leader_nick_id = (isset($all['camp_leader_nick_id']) && !empty($all['camp_leader_nick_id'])) ? $all['camp_leader_nick_id'] : null;
         if ($all['topic_num'] == '81' && !isset($all['camp_about_nick_id'])) {
             $camp->camp_about_nick_id = $all['nick_name'];
         }
@@ -1738,5 +1747,18 @@ class CampController extends Controller
         }
 
         return $result;
+    }
+
+    public function getEligibleCampLeaders($topic_num, $camp_num)
+    {
+        $liveCamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
+
+        return collect(Support::getDirectSupporter($topic_num, $camp_num))
+            ->map(function ($eligibleCampLeader) use ($liveCamp) {
+                $eligibleCampLeader->nick_name = NickName::getNickName($eligibleCampLeader->nick_name_id)->nick_name ?? '';
+                $eligibleCampLeader->camp_leader = $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $eligibleCampLeader->nick_name_id;
+                return $eligibleCampLeader;
+            })
+            ->all();
     }
 }

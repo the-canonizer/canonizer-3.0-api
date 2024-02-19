@@ -746,6 +746,14 @@ class TopicController extends Controller
                         ];
                     }
 
+                    if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                        $changeData[] =  [
+                            'field' => 'camp_leader_nick_name',
+                            'live' => NickName::getNickName($preliveCamp->camp_leader_nick_id)->nick_name ?? '-',
+                            'change-in-review' => NickName::getNickName($model->camp_leader_nick_id)->nick_name ?? '-',
+                        ];
+                    }
+
                     if (count($changeData) > 0) {
                         $changeData = [
                             'type' => 'camp',

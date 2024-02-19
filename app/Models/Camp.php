@@ -36,7 +36,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
+    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name', 'camp_leader_nick_id'];
     protected $parent_change_in_review;
 
     /**
@@ -738,6 +738,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
                
+                $val->camp_leader_nick_name = NickName::getNickName($val->camp_leader_nick_id)->nick_name ?? '';
+
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
