@@ -335,7 +335,7 @@ class TopicSupport
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
                 //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
-                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, $reason, $reason_summary, $citation_link);
+                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, null, $reason, $reason_summary, $citation_link);
 
             }catch (Throwable $e) 
             {
