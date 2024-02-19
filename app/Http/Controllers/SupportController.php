@@ -655,7 +655,6 @@ class SupportController extends Controller
 
             $topicNum = isset($data['topic_num']) ? $data['topic_num'] : '';
             $campNum =  isset($data['camp_num']) ? $data['camp_num'] : '';
-            $nick_name_id = isset($data['nick_name_id']) ? $data['nick_name_id'] : 0;
             
             $nickNames = Nickname::getNicknamesIdsByUserId($userId);
             

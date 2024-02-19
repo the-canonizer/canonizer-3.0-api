@@ -1039,8 +1039,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         // Replicate live camp with minor tweaks.
         $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate();
-        $nickNameIdForActivity = is_null($new_camp_leader_nick_id) ? $camp->camp_leader_nick_id : $new_camp_leader_nick_id;
+        $old_camp_leader_nick_id = $camp->camp_leader_nick_id;
         if ($new_camp_leader_nick_id !== $camp->camp_leader_nick_id) {
+
             $camp->fill([
                 'submit_time' => time(),
                 'go_live_time' => time(),
@@ -1052,19 +1053,39 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $topic = Topic::getLiveTopic($topic_num);
             Util::dispatchJob($topic, $camp_num, 1);
 
-            // Log of system assigned camp leader
-            self::dispatchCampLeaderActivityLogJob($topic, $camp, $nickNameIdForActivity, request()->user());
+            // Log of system assigned/remove camp leader
+            if(!is_null($new_camp_leader_nick_id)) {
+                self::dispatchCampLeaderActivityLogJob($topic, $camp, $new_camp_leader_nick_id, request()->user(), 'assigned');
+            }
+
+            if(!is_null($old_camp_leader_nick_id)) {
+                self::dispatchCampLeaderActivityLogJob($topic, $camp, $old_camp_leader_nick_id, request()->user(), 'removed');
+            }
         }
     }
 
-    private static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user)
+    private static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user, $action = 'others')
     {
         $nickName = Nickname::getNickName($nick_name_id)->nick_name;
         $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $camp, time());
 
+        switch ($action) {
+            case 'assigned':
+                $activityMessage = trans('message.activity_log_message.assigned_as_camp_leader', ['nick_name' => $nickName]);
+                break;
+
+            case 'removed':
+                $activityMessage = trans('message.activity_log_message.removed_as_camp_leader', ['nick_name' => $nickName]);
+                break;
+
+            default:
+                $activityMessage = '';
+                break;
+        }
+
         $activitLogData = [
             'log_type' => 'topic/camps',
-            'activity' => $camp->camp_leader_nick_id > 0 ? trans('message.activity_log_message.assigned_as_camp_leader', ['nick_name' => $nickName]) : trans('message.activity_log_message.removed_as_camp_leader', ['nick_name' => $nickName]),
+            'activity' => $activityMessage,
             'url' => $link,
             'model' => $camp,
             'topic_num' => $topic->topic_num,
