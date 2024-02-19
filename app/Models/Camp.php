@@ -1096,4 +1096,15 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         ];
         dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
+
+    public static function getNominatedCampLeaderInReviewChanges($topic_num, $camp_num, $camp_leader_nick_id, $submit_time = null) {
+        $submit_time = !is_null($submit_time) ? $submit_time : time();
+        return self::where([
+            ['topic_num', '=', $topic_num],
+            ['camp_num', '=', $camp_num],
+            ['camp_leader_nick_id', '=', $camp_leader_nick_id],
+            ['submit_time', '<', $submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp]
+        ])->whereNull('objector_nick_id')->get();
+    }
 }

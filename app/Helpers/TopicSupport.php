@@ -90,6 +90,15 @@ class TopicSupport
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
 
+            // Get Nominated Camp Leader In review Changes
+            $inReviewChanges = Camp::getNominatedCampLeaderInReviewChanges($topicNum, $campNum, $nickNameId);
+            foreach ($inReviewChanges as $camp) {
+                $camp->objector_nick_id = 0;
+                $camp->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
+                $camp->object_time = time();
+                $camp->save();
+            }
+
             // Check camp leader remove his support
             foreach ($removeCamps as $camp_num) {
                 $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
@@ -418,6 +427,14 @@ class TopicSupport
             if(count($delegatorPrevSupport)){
                 $allDelegates =  self::getAllDelegates($topicNum, $nickNameId);
                 self::removeSupport($topicNum, [], $allNickNames);  
+            }
+
+            $inReviewChanges = Camp::getNominatedCampLeaderInReviewChanges($topicNum, $campNum, $nickNameId);
+            foreach ($inReviewChanges as $camp) {
+                $camp->objector_nick_id = 0;
+                $camp->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
+                $camp->object_time = time();
+                $camp->save();
             }
 
             // Remove user as camp leader if delegate support to someone

@@ -655,7 +655,10 @@ return [
     ],
     'camp_leader' => [
         'error' => [
-            'cannot_delegate_itslef' => 'The camp leader cannot delegate support to itself.'
+            'cannot_delegate_itslef' => 'The camp leader cannot delegate support to itself.',
+            'system_generated' => [
+                'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
+            ]
         ]
     ]
 ];
