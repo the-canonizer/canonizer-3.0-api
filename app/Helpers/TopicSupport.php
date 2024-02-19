@@ -90,6 +90,15 @@ class TopicSupport
             $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
             $campModel  = self::getLiveCamp($campFilter);
 
+            // Check camp leader remove his support
+            foreach ($removeCamps as $camp_num) {
+                $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
+                
+                if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
+                    Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, null);
+                }
+            }
+
             $supportRemovedFrom = Support::getActiveSupporInTopicWithAllNicknames($topicNum, [$delegateNickNameId]);
             $notifyDelegatedUser = false;  
             
@@ -274,6 +283,8 @@ class TopicSupport
                 foreach($removeCamps as $key => $camp) {     
                     $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                     $campModel  = self::getLiveCamp($campFilter);
+                    Camp::updateCampLeaderFromLiveCamp($topicNum, $campModel->camp_num, null);
+
                     /* To update the Mongo Tree while removing at add support */
                     /* Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) */
                     Util::dispatchJob($topic, $camp, 1);
@@ -1601,5 +1612,119 @@ class TopicSupport
         }
 
         return $returnData;
+    }
+
+    public static function checkIfUserSignAnotherCamp($topicNum, $campNum, $nickNames)
+    {
+        $returnData = [];
+        $supportedCamps = [];
+        $supports = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
+        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $campsToemoved = [];
+
+        if (count($supports) && $supports[0]->delegate_nick_name_id) {
+            $delegataedNickNameId = $supports[0]->delegate_nick_name_id;
+            $alreadyDelegatedTo = NickName::getNickName($delegataedNickNameId);
+            foreach($supports as $support){
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $support->camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $temp = [
+                    'camp_num' => $support->camp_num,
+                    'support_order' => $support->support_order,
+                    'camp_name' => $livecamp->camp_name,
+                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                ];
+                array_push($campsToemoved, $temp);
+            }
+
+            $returnData['warning'] = "You have already delegated your support for this camp to user " . $alreadyDelegatedTo->nick_name . ". If you continue, your support will be delegated to the camp leader of this camp.";
+            $returnData['topic_num'] = $topicNum;
+            $returnData['camp_num'] = $campNum;
+            $returnData['is_confirm'] = 1;
+            $returnData['is_delegator'] = 1;
+            $returnData['remove_camps'] = $campsToemoved;
+            $returnData['delegated_nick_name_id'] = $delegataedNickNameId;
+            $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
+        }
+
+        return $returnData;
+    }
+
+    public static function signPetition($user, $topic_num, $camp_num, $nick_name_id)
+    {
+        // Ticket: https://github.com/the-canonizer/canonizer-3.0-api/issues/862
+        $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
+
+        /**
+         * Case 1: If camp leader exists then delegate support to camp leader.
+         */
+        $camp_leader_nick_id = Camp::getCampLeaderNickId($topic_num, $camp_num);
+        if (!is_null($camp_leader_nick_id) && count($direct_supporters) > 0) {
+            if ($camp_leader_nick_id !== $nick_name_id) {
+                TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $camp_leader_nick_id);
+            } else {
+                return "cannot_delegate_itself";
+            }
+            return;
+        }
+
+        /**
+         * Case 2: If there are one or more direct supports but there is no camp leader then delegate support to the oldest direct supporter and set as camp leader.
+         */
+        $returnValue = self::findOldestSupporterAndMakeCampLeader($user, $topic_num, $camp_num, $nick_name_id);
+        if($returnValue === 'oldest_supporter_as_camp_leader') {
+            return;
+        }
+
+        /**
+         * Case 3: If there are no supporters of the camp then add user as a direct supporter and make it a camp leader.
+         */
+        $nickNames = Nickname::getNicknamesIdsByUserId($user->id);
+
+        // Getting camps to remove support if User sign child camp of any parent, so the support will be transfered from parent to child. 
+        $removeCamps = TopicSupport::checkSupportValidaionAndWarning($topic_num, $camp_num, $nickNames, 0);
+        if (count($removeCamps) > 0) {
+            $removeCamps = collect($removeCamps['remove_camps'])->pluck('camp_num')->toArray();
+        }
+
+        // Getting & calculating User's support order
+        $supportList = collect(Support::getSupportedCampsList($topic_num, $user->id))->transform(function ($item) use ($removeCamps) {
+            if (!in_array($item['camp_num'], $removeCamps)) {
+                return [
+                    "camp_num" => $item['camp_num'],
+                    "order" => $item['support_order']
+                ];
+            }
+        });
+        $maxSupportOrder = ($supportList->max('order') ?? 0) + 1;
+        $supportList[] = ['camp_num' => $camp_num, "order" => $maxSupportOrder];
+        $supportList = array_values(array_filter($supportList->all(), fn($value) => !is_null($value) && $value !== ''));
+        
+        TopicSupport::addDirectSupport($topic_num, $nick_name_id, ['camp_num' => $camp_num, "support_order" => $maxSupportOrder], $user, $removeCamps, $supportList);
+
+        // Submits a new change from live camp to assign User as camp leader. Also, Log it
+        Camp::updateCampLeaderFromLiveCamp($topic_num, $camp_num, $nick_name_id);
+        return;
+    }
+    
+    public static function findOldestSupporterAndMakeCampLeader($user, $topic_num, $camp_num, $nick_name_id) 
+    {
+        $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
+        $oldest_direct_supporter = collect($direct_supporters)->last();
+        if ($oldest_direct_supporter) {
+            // Delegate user support to oldest direct supporter
+            dd($oldest_direct_supporter->nick_name_id != $nick_name_id);
+            if ($oldest_direct_supporter->nick_name_id != $nick_name_id) { // Cannot delegate support to itself
+                TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $oldest_direct_supporter->nick_name_id);
+            }
+
+            // Submits a new change from live camp to assign User as camp leader. Also, Log it
+            Camp::updateCampLeaderFromLiveCamp($topic_num, $camp_num, $oldest_direct_supporter->nick_name_id);
+            return "oldest_supporter_as_camp_leader";
+        }
+        return "oldest_supporter_as_camp_leader_failed";
+        
     }
 }

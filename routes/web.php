@@ -143,6 +143,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/support-reason-list','SupportController@getSupportReason');
         
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
+        $router->post('camp/sign','CampController@signPetition');
+        $router->get('camp/sign/check','SupportController@checkIfUserAlreadySignCamp');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

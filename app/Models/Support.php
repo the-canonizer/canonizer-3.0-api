@@ -92,7 +92,7 @@ class Support extends Model
         return $directSupporter;
     }
 
-    public static function getDirectSupporter($topic_num, $camp_num = 1)
+    public static function getDirectSupporter($topic_num, $camp_num = 1, $addition_columns = [])
     {
         $as_of_time = time();
         return Support::where('topic_num', '=', $topic_num)
@@ -101,7 +101,7 @@ class Support extends Model
             ->whereRaw("(start <= $as_of_time) and ((end = 0) or (end > $as_of_time))")
             ->orderBy('start', 'DESC')
             ->groupBy('nick_name_id')
-            ->select(['nick_name_id', 'support_order', 'topic_num', 'camp_num'])
+            ->select(array_merge(['nick_name_id', 'support_order', 'topic_num', 'camp_num'], $addition_columns))
             ->get();
     }
 

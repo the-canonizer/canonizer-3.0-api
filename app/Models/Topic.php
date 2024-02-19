@@ -66,6 +66,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $camp->go_live_time = $model->go_live_time;
                 $camp->title = $model->topic_name;
                 $camp->camp_name = Camp::AGREEMENT_CAMP;
+                $camp->camp_leader_nick_id = $model->submitter_nick_id;
 
                 $camp->save();
             }

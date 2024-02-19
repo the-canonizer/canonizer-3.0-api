@@ -630,4 +630,13 @@ class ValidationRules
             'thread_id' => 'exists:thread,id'
         ]);
     }
+
+    public function getSignPetitionRules(): array
+    {
+        return [
+            'camp_num' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+            'topic_num' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+            'nick_name_id' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+        ];
+    }
 }

@@ -770,4 +770,30 @@ class ValidationMessages
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
         ];
     }
+
+    public function getSignPetitionMessages(): array
+    {
+        return ([
+            'topic_num.required' => trans('message.sign_petition_validation.topic_num_required'),
+            'topic_num.numeric' => trans('message.sign_petition_validation.topic_num_numeric'),
+            'topic_num.gt' => trans('message.sign_petition_validation.topic_num_gt'),
+            'topic_num.max' => [
+                'numeric' => trans('message.sign_petition_validation.topic_num_max_numeric')
+            ],
+            
+            'camp_num.required' => trans('message.sign_petition_validation.camp_num_required'),
+            'camp_num.numeric' => trans('message.sign_petition_validation.camp_num_numeric'),
+            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),    
+            'camp_num.max' => [
+                'numeric' => trans('message.sign_petition_validation.camp_num_max_numeric')
+            ],
+
+            'nick_name_id.required' => trans('message.sign_petition_validation.nick_name_id_required'),
+            'nick_name_id.numeric' => trans('message.sign_petition_validation.nick_name_id_numeric'),
+            'nick_name_id.gt' => trans('message.sign_petition_validation.nick_name_id_gt'),
+            'nick_name_id.max' => [
+                'numeric' => trans('message.sign_petition_validation.nick_name_id_max_numeric')
+            ],
+        ]);
+    }
 }

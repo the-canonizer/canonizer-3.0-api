@@ -643,4 +643,46 @@ class SupportController extends Controller
 
         return $response;
     }
+
+    public function checkIfUserAlreadySignCamp(Request $request)
+    {
+
+        $data = $request->all();
+        $user = $request->user();
+        $userId = $user->id;
+
+        try {
+
+            $topicNum = isset($data['topic_num']) ? $data['topic_num'] : '';
+            $campNum =  isset($data['camp_num']) ? $data['camp_num'] : '';
+            $nick_name_id = isset($data['nick_name_id']) ? $data['nick_name_id'] : 0;
+            
+            $nickNames = Nickname::getNicknamesIdsByUserId($userId);
+            
+            if (!$topicNum || !$campNum) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', '');
+            }
+
+            if (!Topic::getLiveTopic($topicNum) || !Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $campNum])) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+            
+            $support = Support::checkIfSupportExists($topicNum, $nickNames, [$campNum]);
+
+            $data = TopicSupport::checkIfUserSignAnotherCamp($topicNum, $campNum, $nickNames);
+
+            if ($support) {
+                $data['support_flag'] = 1;
+                $message = trans('message.support.support_exist');
+            } else {
+                $message = trans('message.support.support_not_exist');
+                $data['support_flag'] = 0;
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, $data, '');
+        } catch (\Throwable $e) {
+
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }

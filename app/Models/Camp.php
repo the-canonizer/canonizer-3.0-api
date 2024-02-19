@@ -21,6 +21,7 @@ use App\Helpers\ElasticSearch;
 use App\Jobs\ForgetCacheKeyJob;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use App\Jobs\ActivityLoggerJob;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -1027,5 +1028,51 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($camp);
         return ['is_disabled' => $camp->is_disabled || $parentIsDisabled, 'is_one_level' => $camp->is_one_level || $parentIsOneLevel];
+    }
+
+    public static function getCampLeaderNickId($topic_num, $camp_num, $as_of = 'default') {
+        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => $as_of], ['camp_leader_nick_id']);
+        return $camp && $camp->camp_leader_nick_id > 0 ? $camp->camp_leader_nick_id : null;
+    }
+
+    public static function updateCampLeaderFromLiveCamp(int $topic_num, int $camp_num, ?int $new_camp_leader_nick_id)
+    {
+        // Replicate live camp with minor tweaks.
+        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate();
+        $nickNameIdForActivity = is_null($new_camp_leader_nick_id) ? $camp->camp_leader_nick_id : $new_camp_leader_nick_id;
+        if ($new_camp_leader_nick_id !== $camp->camp_leader_nick_id) {
+            $camp->fill([
+                'submit_time' => time(),
+                'go_live_time' => time(),
+                'camp_leader_nick_id' => $new_camp_leader_nick_id,
+            ]);
+            $camp->save();
+
+            // Dispatch job to update mongoDB cache.
+            $topic = Topic::getLiveTopic($topic_num);
+            Util::dispatchJob($topic, $camp_num, 1);
+
+            // Log of system assigned camp leader
+            self::dispatchCampLeaderActivityLogJob($topic, $camp, $nickNameIdForActivity, request()->user());
+        }
+    }
+
+    private static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user)
+    {
+        $nickName = Nickname::getNickName($nick_name_id)->nick_name;
+        $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $camp, time());
+
+        $activitLogData = [
+            'log_type' => 'topic/camps',
+            'activity' => $camp->camp_leader_nick_id > 0 ? trans('message.activity_log_message.assigned_as_camp_leader', ['nick_name' => $nickName]) : trans('message.activity_log_message.removed_as_camp_leader', ['nick_name' => $nickName]),
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $topic->topic_num,
+            'camp_num' => $camp->camp_num,
+            'user' => $user,
+            'nick_name' => $nickName,
+            'description' =>  $camp->camp_name
+        ];
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
     }
 }

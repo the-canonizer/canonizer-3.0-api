@@ -29,6 +29,7 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
+use App\Helpers\TopicSupport;
 use Illuminate\Support\Arr; 
 
 class CampController extends Controller
@@ -1638,7 +1639,8 @@ class CampController extends Controller
         $camp->is_one_level =  !empty($all['is_one_level']) ? $all['is_one_level'] : 0;
         $camp->is_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
         $camp->direct_archive =  (isset($all['is_archive']) && !empty($all['is_archive'])) ? $all['is_archive'] : 0;
-       
+        $camp->camp_leader_nick_id = (isset($all['camp_leader_nick_id']) && !empty($all['camp_leader_nick_id'])) ? $all['camp_leader_nick_id'] : null;
+
         return $camp;
     }
 
@@ -1760,5 +1762,31 @@ class CampController extends Controller
                 return $eligibleCampLeader;
             })
             ->all();
+    }
+
+    public function signPetition(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSignPetitionRules(), $this->validationMessages->getSignPetitionMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        if (!Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
+        $all = $request->post();
+
+        try {
+            // Sign Petition
+            $returnValue = TopicSupport::signPetition($request->user(), $all['topic_num'], $all['camp_num'], $all['nick_name_id']);
+            if ($returnValue === 'cannot_delegate_itself') {
+                return $this->resProvider->apiJsonResponse(400, trans('message.camp_leader.error.cannot_delegate_itslef'), '', '');
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '', '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }
