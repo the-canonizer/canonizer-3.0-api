@@ -730,7 +730,7 @@ class TopicController extends Controller
                         ];
                     }
 
-                    if ($preliveCamp->camp_about_url !== $model->camp_about_url) {
+                    if (($preliveCamp->camp_about_url !== $model->camp_about_url)  && !(empty($preliveCamp->camp_about_url) && empty($model->camp_about_url))) {
                         $changeData[] =  [
                             'field' => 'camp_about_url',
                             'live' => strlen($preliveCamp->camp_about_url) > 0 ? '<a href="' . $preliveCamp->camp_about_url . '" target="_blank">' . $preliveCamp->camp_about_url . '</a>' : '-',
@@ -738,7 +738,7 @@ class TopicController extends Controller
                         ];
                     }
 
-                    if ($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) {
+                    if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_url) && empty($model->camp_about_url))) {
                         $changeData[] =  [
                             'field' => 'camp_about_nick_name',
                             'live' => NickName::getNickName($preliveCamp->camp_about_nick_id)->nick_name ?? '-',
