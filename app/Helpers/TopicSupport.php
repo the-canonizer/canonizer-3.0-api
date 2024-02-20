@@ -93,7 +93,7 @@ class TopicSupport
             // Get Nominated Camp Leader In review Changes
             $inReviewChanges = Camp::getNominatedCampLeaderInReviewChanges($topicNum, $campNum, $nickNameId);
             foreach ($inReviewChanges as $camp) {
-                $camp->objector_nick_id = 0;
+                $camp->objector_nick_id = $nickNameId;
                 $camp->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
                 $camp->object_time = time();
                 $camp->save();
@@ -293,9 +293,20 @@ class TopicSupport
                     $campFilter = ['topicNum' => $topicNum, 'campNum' => $camp];
                     $campModel  = self::getLiveCamp($campFilter);
                     
-                    $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp);                
+                    // Get Nominated Camp Leader In review Changes
+                    $inReviewChanges = Camp::getNominatedCampLeaderInReviewChanges($topicNum, $camp, $nickNameId);
+                    foreach ($inReviewChanges as $campChange) {
+                        $campChange->objector_nick_id = $nickNameId;
+                        $campChange->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
+                        $campChange->object_time = time();
+                        $campChange->save();
+                    }
+                    
+                    // Check camp leader remove his support
+                    $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp);
                     if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
-                        Camp::updateCampLeaderFromLiveCamp($topicNum, $campModel->camp_num, null);
+                        $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $camp);
+                        Camp::updateCampLeaderFromLiveCamp($topicNum, $camp, $oldest_direct_supporter->nick_name_id ?? null);
                     }
 
                     /* To update the Mongo Tree while removing at add support */

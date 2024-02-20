@@ -188,7 +188,7 @@ class SupportController extends Controller
         $reason = $all['reason'] ?? null; 
         $reason_summary = $all['reason_summary'] ?? null; 
         $citation_link = $all['citation_link'] ?? null; 
-
+        // dd($all);
         try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
