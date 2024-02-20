@@ -86,6 +86,7 @@ class SitemapXmlController extends Controller
             ->where('go_live_time', '<=', time())
             ->whereNotIn('namespace_id', $namespaceIds)
             ->latest('submit_time')
+            ->groupBy('topic_num')
             ->get();
         $topicUrls = [];
         $urlTopicSet = [];
@@ -124,6 +125,7 @@ class SitemapXmlController extends Controller
                 $query->whereNotIn('topic.namespace_id', $namespaceIds);
             })
             ->latest('go_live_time')
+            ->groupBy('topic_num','camp_num')
             ->get();
         $campUrls = [];
         $urlSet = [];
