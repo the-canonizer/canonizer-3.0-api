@@ -718,7 +718,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 *   Now support at the time of submition will be count as total supporter. 
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
-                $supportersByTimeStamp =  Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter);
+                $supportersByTimeStamp =  Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter + ['change_id' => $val->id], false);
                 $val->total_supporters = $supportersByTimeStamp[1];
 
                 $supportersListByTimeStamp = $supportersByTimeStamp[0];
@@ -738,7 +738,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
-               
+
+                /**
+                 * Camp Leader: Camp leader can't object to that change.
+                 */
+                $campLeaderNickId = Camp::getCampLeaderNickId($filter['topicNum'], $filter['campNum']);
+                $val->ifICanAgreeAndObject = !in_array($campLeaderNickId, $nickNames);
+
                 $val->camp_leader_nick_name = NickName::getNickName($val->camp_leader_nick_id)->nick_name ?? '';
 
                 switch ($val) {

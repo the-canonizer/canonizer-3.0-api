@@ -592,7 +592,7 @@ class SupportController extends Controller
             $isChangeLive = $model->grace_period == 0 && $model->go_live_time < time() && is_null($model->objector_nick_id);
 
             $response = [];
-            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time, ['topicNum' => $inputs['topic_num'], 'campNum' => $inputs['camp_num']]);
+            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp($inputs['type'], (int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time, ['topicNum' => $inputs['topic_num'], 'campNum' => $inputs['camp_num'], 'change_id' => $inputs['change_id']], $inputs['type'] === 'camp' ? false : true);
             
             if ($inputs['type'] == 'camp') {
                 $filter['topicNum'] = (int)$inputs['topic_num'];
