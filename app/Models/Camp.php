@@ -742,8 +742,10 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 /**
                  * Camp Leader: Camp leader can't object to that change.
                  */
-                $campLeaderNickId = Camp::getCampLeaderNickId($filter['topicNum'], $filter['campNum']);
-                $val->ifICanAgreeAndObject = !in_array($campLeaderNickId, $nickNames);
+                $val->ifICanAgreeAndObject = true;
+                if(in_array($liveCamp->camp_leader_nick_id, $nickNames) && $liveCamp->camp_leader_nick_id !== $val->camp_leader_nick_id) {
+                    $val->ifICanAgreeAndObject = false;
+                }
 
                 $val->camp_leader_nick_name = NickName::getNickName($val->camp_leader_nick_id)->nick_name ?? '';
 

@@ -1779,6 +1779,9 @@ class CampController extends Controller
             if ($returnValue === 'cannot_delegate_itself') {
                 return $this->resProvider->apiJsonResponse(400, trans('message.camp_leader.error.cannot_delegate_itslef'), '', '');
             }
+            if ($returnValue === 'already_signed_camp') {
+                return $this->resProvider->apiJsonResponse(400, trans('message.camp_leader.error.already_signed_camp'), '', '');
+            }
 
             return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '', '');
         } catch (\Throwable $e) {

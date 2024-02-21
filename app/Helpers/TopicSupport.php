@@ -103,7 +103,7 @@ class TopicSupport
             foreach ($removeCamps as $camp_num) {
                 $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
                 if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
-                    $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $camp_num);
+                    $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $camp_num, $nickNameId);
                     Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null);
                 }
             }
@@ -305,7 +305,7 @@ class TopicSupport
                     // Check camp leader remove his support
                     $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp);
                     if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
-                        $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $camp);
+                        $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $camp, $nickNameId);
                         Camp::updateCampLeaderFromLiveCamp($topicNum, $camp, $oldest_direct_supporter->nick_name_id ?? null);
                     }
 
@@ -451,7 +451,7 @@ class TopicSupport
             // Remove user as camp leader if delegate support to someone
             $camp_leader = Camp::getCampLeaderNickId($topicNum, $campNum);
             if (!is_null($camp_leader) && $camp_leader == $nickNameId) {
-                $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $campNum);
+                $oldest_direct_supporter = self::findOldestDirectSupporter($topicNum, $campNum, $nickNameId);
                 Camp::updateCampLeaderFromLiveCamp($topicNum, $campNum, $oldest_direct_supporter->nick_name_id ?? null);
             }
 
@@ -1701,7 +1701,17 @@ class TopicSupport
         $camp_leader_nick_id = Camp::getCampLeaderNickId($topic_num, $camp_num);
         if (!is_null($camp_leader_nick_id) && count($direct_supporters) > 0) {
             if ($camp_leader_nick_id !== $nick_name_id) {
-                TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $camp_leader_nick_id);
+                $support = Support::where([
+                    ['topic_num', '=', $topic_num],
+                    ['camp_num', '=', $camp_num],
+                    ['nick_name_id', '=', $nick_name_id],
+                    ['delegate_nick_name_id', '=', $camp_leader_nick_id],
+                ])->orderBy('start', 'desc')->exists();
+                if(!$support) {
+                    TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $camp_leader_nick_id);
+                } else {
+                    return "already_signed_camp";
+                }
             } else {
                 return "cannot_delegate_itself";
             }
@@ -1711,7 +1721,7 @@ class TopicSupport
         /**
          * Case 2: If there are one or more direct supports but there is no camp leader then delegate support to the oldest direct supporter and set as camp leader.
          */
-        $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
+        $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id);
         if ($oldest_direct_supporter) {
             // Delegate user support to oldest direct supporter
             if ($oldest_direct_supporter->nick_name_id != $nick_name_id) { // Cannot delegate support to itself
@@ -1743,7 +1753,7 @@ class TopicSupport
             }
         });
         $maxSupportOrder = ($supportList->max('order') ?? 0) + 1;
-        $supportList[] = ['camp_num' => $camp_num, "order" => $maxSupportOrder];
+        $supportList[] = ['camp_num' => (int)$camp_num, "order" => (int)$maxSupportOrder];
         $supportList = array_values(array_filter($supportList->all(), function ($value) {
             return !is_null($value) && $value !== '';
         }));
@@ -1755,10 +1765,10 @@ class TopicSupport
         return;
     }
 
-    public static function findOldestSupporterAndMakeCampLeader($topic_num, $camp_num)
+    public static function findOldestSupporterAndMakeCampLeader($topic_num, $camp_num, $nick_name_id)
     {
         // Submits a new change from live camp to assign User as camp leader. Also, Log it
-        $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
+        $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id);
         if ($oldest_direct_supporter) {
             Camp::updateCampLeaderFromLiveCamp($topic_num, $camp_num, $oldest_direct_supporter->nick_name_id);
         } else {
@@ -1766,9 +1776,14 @@ class TopicSupport
         }
     }
 
-    public static function findOldestDirectSupporter($topic_num, $camp_num) 
+    public static function findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id) 
     {
+        $support = Support::where([
+            ['topic_num', '=', $topic_num],
+            ['camp_num', '=', $camp_num],
+            ['nick_name_id', '=', $nick_name_id],
+        ])->orderBy('support_id', 'desc')->first();
         $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-        return collect($direct_supporters)->last();
+        return collect($direct_supporters)->where('start', '<', $support->start)->last();
     }
 }

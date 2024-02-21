@@ -365,7 +365,7 @@ class Support extends Model
             $liveCamp = Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $campNum], ['camp_leader_nick_id']);
             $theChange = Camp::where(['topic_num' => $topicNum, 'camp_num' => $campNum, 'id' => $additionalFilter['change_id']])->first();
 
-            if (!is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id !== $theChange->camp_leader_nick_id) {
+            if (!is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id !== $theChange->camp_leader_nick_id && $liveCamp->camp_leader_nick_id !== $submitterNickId) {
                 $totalSupporters = array_values(array_filter($totalSupporters, function ($value) use ($liveCamp) {
                     return (int)$value > 0 && $value !== $liveCamp->camp_leader_nick_id;
                 }));
