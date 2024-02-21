@@ -1732,6 +1732,10 @@ class TopicSupport
             Camp::updateCampLeaderFromLiveCamp($topic_num, $camp_num, $oldest_direct_supporter->nick_name_id);
             return;
         }
+        else if (count(Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end'])) === 1) {
+            Camp::updateCampLeaderFromLiveCamp($topic_num, $camp_num, $nick_name_id);
+            return;
+        }
 
         /**
          * Case 3: If there are no supporters of the camp then add user as a direct supporter and make it a camp leader.
