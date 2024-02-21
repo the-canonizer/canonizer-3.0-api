@@ -1652,42 +1652,112 @@ class TopicSupport
         return $returnData;
     }
 
+    public static function checkSignValidaionAndWarning($topicNum, $campNum, $nickNames) 
+    {
+
+        /**
+         * Case 0: If the user already signed another camp.
+         */
+        $data = self::checkIfUserSignAnotherCamp($topicNum, $campNum, $nickNames);
+        if($data) 
+        {
+            return $data;
+        }
+
+        /**
+         * Case 1: If there is only one direct supporter and also camp leader.
+         */
+        $camp_leader = Camp::getCampLeaderNickId($topicNum, $campNum);
+        $livecamp = Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $campNum]);
+        $directSupporters = collect(Support::getDirectSupporter($topicNum, $campNum));
+        $directSupporterNickIds = $directSupporters->pluck('nick_name_id')->all();
+        /**
+         * Case 1: If there not any direct supporter.
+         */
+        if($directSupporters->count() === 0) 
+        {
+            $warning = "There is no camp leader of this camp ". $livecamp->camp_name .". If you continue, you will be added as direct supporter and assigned as camp leader.";
+            return self::checkSignCampInfo($topicNum, $campNum, $warning, 'info', $camp_leader);
+        }
+
+        /**
+         * Case 2: If there is only one direct supporter and also camp leader.
+         */
+        else if($directSupporters->count() === 1 && in_array($camp_leader, $directSupporterNickIds)) 
+        {
+            $nickName = Nickname::getNickName($camp_leader);
+            $warning = "The camp leader of this camp is " . $nickName->nick_name . ". If you continue, your support will be delegated to camp leader.";
+            return self::checkSignCampInfo($topicNum, $campNum, $warning, 'info', $camp_leader);
+        } 
+
+        /**
+         * Case 3: If there are more than one direct supporters, but no camp leader.
+         */
+        else if($directSupporters->count() > 0 && !in_array($camp_leader, $directSupporterNickIds)) 
+        {
+            $warning = "There is no camp leader of this camp ". $livecamp->camp_name .". If you continue, the oldest direct supporter will assigned as camp leader and your support will be delegated to him.";
+            return self::checkSignCampInfo($topicNum, $campNum, $warning, 'info', $camp_leader);
+        }
+        
+        /**
+         * Case 4: If there is only one direct supporter and also camp leader.
+         */
+        else if($directSupporters->count() > 0 && !in_array($camp_leader, $directSupporterNickIds)) 
+        {
+            $nickName = Nickname::getNickName($camp_leader);
+            $warning = "The camp leader of this camp is " . $nickName->nick_name . ". If you continue, your support will be delegated to camp leader.";
+            return self::checkSignCampInfo($topicNum, $campNum, $warning, 'info', $camp_leader);
+        }
+    }
+
     public static function checkIfUserSignAnotherCamp($topicNum, $campNum, $nickNames)
     {
         $returnData = [];
-        $supportedCamps = [];
         $supports = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
         $liveTopic = Topic::getLiveTopic($topicNum, ['nofilter' => true]);
         $campsToemoved = [];
-
+        $camp_leader = Camp::getCampLeaderNickId($topicNum, $campNum);
         if (count($supports) && $supports[0]->delegate_nick_name_id) {
             $delegataedNickNameId = $supports[0]->delegate_nick_name_id;
-            $alreadyDelegatedTo = NickName::getNickName($delegataedNickNameId);
             foreach ($supports as $support) {
-                $filter['topicNum'] = $topicNum;
-                $filter['asOf'] = '';
-                $filter['campNum'] =  $support->camp_num;
-                $livecamp = Camp::getLiveCamp($filter);
-                $temp = [
-                    'camp_num' => $support->camp_num,
-                    'support_order' => $support->support_order,
-                    'camp_name' => $livecamp->camp_name,
-                    'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
-                ];
-                array_push($campsToemoved, $temp);
+                if ($camp_leader === $delegataedNickNameId) {
+                    $filter['topicNum'] = $topicNum;
+                    $filter['asOf'] = '';
+                    $filter['campNum'] =  $support->camp_num;
+                    $livecamp = Camp::getLiveCamp($filter);
+                    $temp = [
+                        'camp_num' => $support->camp_num,
+                        'support_order' => $support->support_order,
+                        'camp_name' => $livecamp->camp_name,
+                        'link' => Camp::campLink($topicNum, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
+                    ];
+                    array_push($campsToemoved, $temp);
+                }
             }
 
             $returnData['warning'] = "You have already signed another camp. If you continue, your support will be delegated to the camp leader of this camp.";
+            $returnData['warning_type'] = "warning";
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
-            $returnData['is_confirm'] = 1;
-            $returnData['is_delegator'] = 1;
             $returnData['remove_camps'] = $campsToemoved;
             $returnData['delegated_nick_name_id'] = $delegataedNickNameId;
             $returnData['nick_name_link'] = Nickname::getNickNameLink($delegataedNickNameId, '1', $topicNum, $campNum);
         }
 
         return $returnData;
+    }
+
+    public static function checkSignCampInfo($topic_num, $camp_num, $warning, $warning_type = 'info', $delegated_nick_name_id = 0, $remove_camps = []) 
+    {
+        return [
+            'warning' => $warning,
+            'topic_num' => $topic_num,
+            'camp_num' => $camp_num,
+            'delegated_nick_name_id' => $delegated_nick_name_id,
+            'nick_name_link' => Nickname::getNickNameLink($delegated_nick_name_id, '1', $topic_num, $camp_num),
+            'remove_camps' => $remove_camps,
+            'warning_type' => $warning_type,
+        ];
     }
 
     public static function signPetition($user, $topic_num, $camp_num, $nick_name_id)

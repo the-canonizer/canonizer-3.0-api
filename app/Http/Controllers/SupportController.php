@@ -667,8 +667,7 @@ class SupportController extends Controller
             }
             
             $support = Support::checkIfSupportExists($topicNum, $nickNames, [$campNum]);
-
-            $data = TopicSupport::checkIfUserSignAnotherCamp($topicNum, $campNum, $nickNames);
+            $data = TopicSupport::checkSignValidaionAndWarning($topicNum, $campNum, $nickNames);
 
             if ($support) {
                 $data['support_flag'] = 1;
