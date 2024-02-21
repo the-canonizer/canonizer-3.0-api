@@ -518,10 +518,12 @@ class TopicController extends Controller
                 $model->go_live_time = time();
             }
             
-            $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-            if(count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()))
-            {
-                $model->go_live_time = time();
+            if($type == 'camp') {
+                $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
+                if(count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()))
+                {
+                    $model->go_live_time = time();
+                }
             }
 
             $model->grace_period = 0;
