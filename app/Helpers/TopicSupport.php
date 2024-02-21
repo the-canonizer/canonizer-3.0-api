@@ -1776,14 +1776,18 @@ class TopicSupport
         }
     }
 
-    public static function findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id) 
+    public static function findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id)
     {
         $support = Support::where([
             ['topic_num', '=', $topic_num],
             ['camp_num', '=', $camp_num],
             ['nick_name_id', '=', $nick_name_id],
         ])->orderBy('support_id', 'desc')->first();
-        $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-        return collect($direct_supporters)->where('start', '<', $support->start)->last();
+        if ($support) {
+            $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
+            return collect($direct_supporters)->where('start', '<', $support->start)->last();
+        } else {
+            return null;
+        }
     }
 }
