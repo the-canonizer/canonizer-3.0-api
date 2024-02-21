@@ -1657,13 +1657,13 @@ class TopicSupport
         $returnData = [];
         $supportedCamps = [];
         $supports = Support::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
-        $liveTopic = Topic::getLiveTopic($topicNum,['nofilter'=>true]);
+        $liveTopic = Topic::getLiveTopic($topicNum, ['nofilter' => true]);
         $campsToemoved = [];
 
         if (count($supports) && $supports[0]->delegate_nick_name_id) {
             $delegataedNickNameId = $supports[0]->delegate_nick_name_id;
             $alreadyDelegatedTo = NickName::getNickName($delegataedNickNameId);
-            foreach($supports as $support){
+            foreach ($supports as $support) {
                 $filter['topicNum'] = $topicNum;
                 $filter['asOf'] = '';
                 $filter['campNum'] =  $support->camp_num;
@@ -1677,7 +1677,7 @@ class TopicSupport
                 array_push($campsToemoved, $temp);
             }
 
-            $returnData['warning'] = "You have already delegated your support for this camp to user " . $alreadyDelegatedTo->nick_name . ". If you continue, your support will be delegated to the camp leader of this camp.";
+            $returnData['warning'] = "You have already signed another camp. If you continue, your support will be delegated to the camp leader of this camp.";
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
             $returnData['is_confirm'] = 1;
