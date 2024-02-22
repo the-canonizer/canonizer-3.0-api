@@ -1774,6 +1774,8 @@ class TopicSupport
                 $support = Support::where([
                     ['topic_num', '=', $topic_num],
                     ['camp_num', '=', $camp_num],
+                    ['start', '<', time()],
+                    ['end', '=', 0],
                     ['nick_name_id', '=', $nick_name_id],
                     ['delegate_nick_name_id', '=', $camp_leader_nick_id],
                 ])->orderBy('start', 'desc')->exists();
