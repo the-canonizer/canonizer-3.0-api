@@ -669,6 +669,10 @@ class SupportController extends Controller
             $support = Support::checkIfSupportExists($topicNum, $nickNames, [$campNum]);
             $data = TopicSupport::checkSignValidaionAndWarning($topicNum, $campNum, $nickNames);
 
+            if($data === 'cannot_delegate_itslef') {
+                $data = null;
+            }
+
             if ($support) {
                 $data['support_flag'] = 1;
                 $message = trans('message.support.support_exist');
@@ -677,9 +681,8 @@ class SupportController extends Controller
                 $data['support_flag'] = 0;
             }
 
-            return $this->resProvider->apiJsonResponse(200, $message, $data, '');
+            return $this->resProvider->apiJsonResponse(200, $message ?? '', $data, '');
         } catch (\Throwable $e) {
-
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
