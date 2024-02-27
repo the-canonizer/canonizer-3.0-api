@@ -1339,7 +1339,7 @@ class TopicSupport
             $model = new Support();
             $description = trans('message.general.support_added');
 
-            if($delegateNickNameId){
+            if(!empty($delegateNickNameId)){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = trans('message.activity_log_message.delegate_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name]);
                 $description = trans('message.general.support_delegated');
