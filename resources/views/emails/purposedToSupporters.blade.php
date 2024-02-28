@@ -61,6 +61,12 @@
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['live'] !!}</td>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['change-in-review'] !!}</td>
                                             </tr>
+                                            @elseif ($field['field'] == 'camp_about_nick_name')
+                                            <tr>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ \Illuminate\Support\Str::of($field['field'])->replace('_', ' ')->title() }}</td>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['live'] !!}</td>
+                                                <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{!! $field['change-in-review'] !!}</td>
+                                            </tr>
                                             @else  
                                             <tr>
                                                 <td style="padding: 8px 12px; border: 1px solid #ECF3FA; min-width: 200px;">{{ \Illuminate\Support\Str::of($field['field'])->replace('_', ' ')->title() }}</td>
