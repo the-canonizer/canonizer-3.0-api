@@ -513,6 +513,7 @@ class TopicController extends Controller
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
+                $changeGoneLive = true;
             }
 
             $model->grace_period = 0;
@@ -914,7 +915,11 @@ class TopicController extends Controller
 
             dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
             // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $data);
-            return $this->resProvider->apiJsonResponse(200, $message, $archiveCampSupportNicknames, '');
+            $responseData = [
+                "archive_camp_support_nicknames" => $archiveCampSupportNicknames,
+                "change_gone_live" => $changeGoneLive ?? false
+            ]; 
+            return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -988,7 +993,8 @@ class TopicController extends Controller
         $message = "";
         $changeId = $data['record_id'];
         $responseData = [
-            'is_submitted' => 1
+            'is_submitted' => 1,
+            'change_gone_live' => false
         ];
 
         try {
@@ -1071,6 +1077,8 @@ class TopicController extends Controller
                         $statement->update();
                         self::updateStatementsInReview($statement);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
+                        /** Update check to send status of change */
+                        $responseData["change_gone_live"] = true;
                     }
                     $message = trans('message.success.statement_agree');
                 } else {
@@ -1161,6 +1169,9 @@ class TopicController extends Controller
                             Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "update_camp", $liveCamp->id, null, null, null, time(), $timeline_url);
                         }
                         //end of timeline
+
+                        /** Update check to send status of change */
+                        $responseData["change_gone_live"] = true;
                     }
                     DB::commit();
                     $message = trans('message.success.camp_agree');
@@ -1207,6 +1218,8 @@ class TopicController extends Controller
                             //end of timeline
 
                         }
+                        /** Update check to send status of change */
+                        $responseData["change_gone_live"] = true;
                     }
                     $message = trans('message.success.topic_agree');
                 }
