@@ -623,7 +623,7 @@ class Util
                 $delayTime = Carbon::now()->addSeconds($delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
-            dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
+            dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('EVENTLINE_QUEUE_SERVICE_NAME'));
             // Incase the topic is mind expert then find all the affected topics 
             if($topic_num == config('global.mind_expert_topic_num')) {
                 $camp = Camp::where('topic_num', $topic_num)->where('camp_num', '=', $campNum)->where('go_live_time', '<=', time())->latest('submit_time')->first();
@@ -649,7 +649,7 @@ class Util
                             'url'=>$timeline_url
                         ];
                         // Dispact job when create a camp
-                        dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('QUEUE_SERVICE_NAME'));
+                        dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('EVENTLINE_QUEUE_SERVICE_NAME'));
                     }
                 }
             }
