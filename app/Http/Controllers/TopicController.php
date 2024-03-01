@@ -736,10 +736,24 @@ class TopicController extends Controller
                     }
 
                     if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_url) && empty($model->camp_about_url))) {
+                        $liveNickname = NickName::getNickName($preliveCamp->camp_about_nick_id);
+                        $currentNickname = NickName::getNickName($model->camp_about_nick_id);
+                        $liveUrl = Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/user/supports/' . $preliveCamp->camp_about_nick_id . '?topicnum=&campnum=&canon=' . $data['namespace_id']);
+                        $currentUrl = Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/user/supports/' . $model->camp_about_nick_id . '?topicnum=&campnum=&canon=' . $data['namespace_id']);
+                        $live = '-';
+                        $current = '-';
+                        if (!empty($liveNickname) && !empty($liveNickname->nick_name)) {
+                            $live = '<a href="' . $liveUrl . '" target="_blank">' . $liveNickname->nick_name . '</a>';
+                        }
+
+                        if (!empty($currentNickname) && !empty($currentNickname->nick_name)) {
+                            $current = '<a href="' . $currentUrl . '" target="_blank">' . $currentNickname->nick_name . '</a>';
+                        }
+                        
                         $changeData[] =  [
                             'field' => 'camp_about_nick_name',
-                            'live' => NickName::getNickName($preliveCamp->camp_about_nick_id)->nick_name ?? '-',
-                            'change-in-review' => NickName::getNickName($model->camp_about_nick_id)->nick_name ?? '-',
+                            'live' => $live,
+                            'change-in-review' => $current,
                         ];
                     }
 
