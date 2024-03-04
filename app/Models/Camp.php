@@ -1072,7 +1072,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         }
     }
 
-    private static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user, $action = 'others')
+    public static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user, $action = 'others')
     {
         $nickName = Nickname::getNickName($nick_name_id)->nick_name;
         $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $camp, time());

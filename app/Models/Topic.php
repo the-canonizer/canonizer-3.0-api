@@ -69,6 +69,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $camp->camp_leader_nick_id = $model->submitter_nick_id;
 
                 $camp->save();
+
+                Camp::dispatchCampLeaderActivityLogJob($model, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
             }
         });
 
