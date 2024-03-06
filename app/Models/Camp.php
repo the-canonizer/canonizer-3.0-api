@@ -50,7 +50,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             
         static::saved(function($item) {
             //forget cache
-            self::forgetCache($item);
+            // self::forgetCache($item);
 
             $liveTopic = Topic::getLiveTopic($item->topic_num);            
             $namespace = Namespaces::find($liveTopic->namespace_id);            

@@ -24,7 +24,7 @@ class Statement extends Model
         static::saved(function($item) 
         {
             //forget cache
-            self::forgetCache($item);
+            // self::forgetCache($item);
             
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
