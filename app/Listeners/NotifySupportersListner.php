@@ -128,6 +128,13 @@ class NotifySupportersListner implements ShouldQueue
                         $data['email']['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                     }
 
+                    if (!is_null($camp->camp_leader_nick_id) && $camp->camp_leader_nick_id !== $data['email']['previous_camp_leader_nick_id']) {
+                        $newCampLeaderNickNames = Nickname::getNicknamesIdsByUserId($user->id);
+                        $nickname = Nickname::getNickName($camp->camp_leader_nick_id);
+                        $nicknameLink = Nickname::getNickNameLink($camp->camp_leader_nick_id, $data['email']['namespace_id'], $data['email']['topic_num'], $data['email']['camp_num']);
+                        $data['email']['new_camp_leader_statement'] = (in_array($camp->camp_leader_nick_id, $newCampLeaderNickNames) ? 'You are' : '<a href="' . $nicknameLink . '">' . $nickname->nick_name . '</a> is') . ' assigned as the new camp leader.';
+                    }
+
                     switch ($channel) {
                         case config('global.notify.email'):
                             $this->dispatchEmail($user->email ?? null, $user, $data['email'], $type, $link);

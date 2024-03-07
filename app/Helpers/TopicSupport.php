@@ -99,6 +99,7 @@ class TopicSupport
                 $camp->save();
             }
 
+            $previousCampLeaderNickId = $campModel->camp_leader_nick_id;
             // Check camp leader remove his support
             foreach ($removeCamps as $camp_num) {
                 $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
@@ -156,7 +157,7 @@ class TopicSupport
             Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $removed_msg, $type . "_support_removed", $campModel->camp_num, null, null, null, time(), $timeline_url);
             //timeline end
 
-            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser);
+            self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser, $previousCampLeaderNickId);
 
             //log remove support activity
             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
@@ -920,7 +921,7 @@ class TopicSupport
      * @param $camp is object of camp model
      * @param $nnickname is object of nickname model
      */
-    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='', $notifyDelegatedUser = false)
+    public static function supportRemovalEmail($topic, $camp, $nickname, $delegateNickNameId='', $notifyDelegatedUser = false, $previousCampLeaderNickId = null)
     {
         if(isset($delegateNickNameId) && !empty($delegateNickNameId))
         {
@@ -932,7 +933,7 @@ class TopicSupport
             $subjectStatement = "has removed their support from";
         }
 
-        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId);
+        self::SendEmailToSubscribersAndSupporters($topic->topic_num, $camp->camp_num, $nickname->id, $subjectStatement, config('global.notification_type.removeSupport'), $delegateNickNameId, $previousCampLeaderNickId);
         return;
     }
 
@@ -942,7 +943,7 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='')
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null)
     {
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
@@ -968,6 +969,7 @@ class TopicSupport
         $data['url_portion'] =  $seoUrlPortion;
         $data['nick_name_id'] = $nickname->id;
         $data['nick_name'] = $nickname->nick_name;
+        $data['previous_camp_leader_nick_id'] = $previousCampLeaderNickId;
         $data['namespace_id'] = isset($topic->namespace_id) ? $topic->namespace_id : 1;
         $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
         $data['support_action'] = $action; //default will be 'added'     
