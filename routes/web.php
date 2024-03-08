@@ -24,12 +24,13 @@ $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallba
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
-   
+
     $router->post('/client-token','UserController@clientToken');
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
-    
+
     $router->get('/search','SearchController@getSearchResults');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
+    $router->post('/meta-tags', 'MetaTagController@getMetaTags');
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
@@ -75,7 +76,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/get-privacy-policy-content','PrivacyPolicyController@getPrivacyPolicyContent');
         $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
         $router->get('/videos', 'VideoController@getVideos');
-        $router->post('/meta-tags', 'MetaTagController@getMetaTags');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
     });
@@ -83,13 +83,13 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
-        $router->post('change-password','ProfileController@changePassword');      
+        $router->post('change-password','ProfileController@changePassword');
         $router->post('update-profile','ProfileController@updateProfile');
-        
+
         $router->post('update-profile-picture','ProfileController@updateProfilePicture');
         $router->delete('update-profile-picture','ProfileController@deleteProfilePicture');
 
-        $router->get('user/profile','ProfileController@getProfile');        
+        $router->get('user/profile','ProfileController@getProfile');
         $router->post('send-otp','ProfileController@sendOtp');
         $router->post('verify-otp','ProfileController@VerifyOtp');
         $router->post('add-nick-name','NicknameController@addNickName');
@@ -141,7 +141,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
         $router->get('/support-reason-list','SupportController@getSupportReason');
-        
+
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
