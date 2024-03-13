@@ -90,7 +90,8 @@ class ValidationRules
     public function getUpdateProfilePictureValidatonRules(): array
     {
         return ([
-            'profile_picture' => 'required|file|mimes:jpg,jpeg,png',
+            'profile_picture' => 'required|file|mimes:jpg,jpeg,png|max:5120',
+            'is_update' => 'boolean'
         ]);
     }
 
