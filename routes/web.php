@@ -29,6 +29,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
 
     $router->get('/search','SearchController@getSearchResults');
+    $router->post('/search-filter','SearchController@advanceSearchFilter');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
     //Route Group to access api with client token

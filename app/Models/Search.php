@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\ElasticSearch;
+use DB;
+use App\Models\Topic;
+use App\Models\Camp;
 
 class Search extends Model
 {
@@ -193,5 +196,121 @@ class Search extends Model
         // Encode the resulting JSON array
         $jsonString = json_encode($jsonArray, JSON_UNESCAPED_SLASHES);
         return $jsonString;
+    }
+
+    /**
+     * 
+     */
+    public static function advanceTopicFilterByNickname($nickIds, $query)
+    {
+        $results = DB::table('topic as t')
+            ->select('t.topic_num', 't.topic_name', 't.id')
+            ->join(DB::raw('(
+                    SELECT topic_num 
+                    FROM support 
+                    WHERE nick_name_id IN (' . implode(',', $nickIds) . ')
+                    AND end = 0 
+                    AND camp_num = 1
+                ) AS s'), 't.topic_num', '=', 's.topic_num')
+            ->join(DB::raw('(
+                    SELECT topic_num,
+                        MAX(go_live_time) AS live_time
+                    FROM topic
+                    WHERE objector_nick_id IS NULL
+                    AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                    GROUP BY topic_num
+                ) AS b'), function ($join) use ($query) {
+                    $join->on('t.topic_num', '=', 'b.topic_num')
+                        ->where('t.go_live_time', '=', DB::raw('b.live_time'))
+                        ->where('t.topic_name', 'like', '%' . $query . '%');
+                })
+            ->get();
+
+            $topic = self::processResults($results,'topic');
+
+        return $topic;
+
+
+
+       /* $sql = "SELECT t.topic_num, t.topic_name,t.id
+        FROM topic t
+        INNER JOIN (
+            SELECT topic_num 
+            FROM support 
+            WHERE nick_name_id in (357) 
+            AND end = 0 
+            AND camp_num = 1
+        ) s ON t.topic_num = s.topic_num
+        INNER JOIN (
+            SELECT topic_num,
+                   MAX(go_live_time) AS live_time
+            FROM topic
+            WHERE objector_nick_id IS NULL
+            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+            GROUP BY topic_num
+        ) b ON t.topic_num = b.topic_num AND t.go_live_time = b.live_time AND t.topic_name like '%algo%'";*/
+    }
+
+    public static function processResults($data,$type)
+    {
+        $topic = [];
+        foreach($data as $dt)
+        {
+
+            $temp['title'] = $dt->topic_name;
+            $temp['topic_num'] = $dt->topic_num;
+            $temp['camp_num'] = 1;
+            $temp['camp_name'] = 'Agreement';
+            $temp['link'] = Topic::topicLink($dt->topic_num, 1, $dt->topic_name, 'Agreement', true);
+            array_push($topic, $temp);
+        }
+
+        return $topic;
+    }
+
+    public static function advanceCampFilterByNickname($nickIds, $query)
+    {
+        $results = DB::table('camp as a')
+                    ->select('a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
+                    ->join(DB::raw('(SELECT topic_num, camp_num
+                                    FROM support 
+                                    WHERE nick_name_id IN (' . implode(',', $nickIds) . ')
+                                    AND end = 0 
+                                    AND camp_num != 1) as s'), function ($join) {
+                        $join->on('a.topic_num', '=', 's.topic_num')
+                            ->on('a.camp_num', '=', 's.camp_num');
+                    })
+                    ->join(DB::raw('(SELECT topic_num, camp_num, MAX(go_live_time) AS live_time
+                                    FROM camp
+                                    WHERE objector_nick_id IS NULL
+                                    AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                                    AND grace_period = 0
+                                    GROUP BY topic_num, camp_num) as b'), function ($join) {
+                        $join->on('a.topic_num', '=', 'b.topic_num')
+                            ->on('a.camp_num', '=', 'b.camp_num');
+                    })
+                    ->where('a.is_archive', 0)
+                    ->where('a.go_live_time', DB::raw('b.live_time'))
+                    ->where('a.camp_name', 'like', '%' . $query . '%')
+                    ->get();
+
+         $camps = [];
+
+         foreach($results as $result)
+         {
+            $topicNum = $result->topic_num;
+            $campNum  = $result->camp_num;
+            $liveTopic = Topic::getLiveTopic($topicNum);  
+            $temp['camp_num'] = $result->camp_num;
+            $temp['topic_num'] = $topicNum;
+            $temp['title'] = $result->camp_name;
+            $temp['link'] = Camp::campLink($topicNum, $result->camp_num, $liveTopic->topic_name, $result->camp_name, true);
+            $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            $temp['breadcrumb'] = $breadcrumb;
+            array_push($camps, $temp);
+         }
+
+
+        return $camps;
     }
 }
