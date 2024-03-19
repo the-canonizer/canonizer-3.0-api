@@ -28,7 +28,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateGracePeriodForOldLiveTopics',
         'App\Console\Commands\UpdateUserIdFromOwnerCode',
         'App\Console\Commands\UpdateUserLastNameFromFullName',
-        'App\Console\Commands\UpdateFilePathsToRelativePaths'
+        'App\Console\Commands\UpdateFilePathsToRelativePaths',
+        'App\Console\Commands\ReplaceBetaURLWithCanonizerURLForStatements'
     ];
 
     /**
