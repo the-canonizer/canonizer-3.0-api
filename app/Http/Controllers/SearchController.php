@@ -88,15 +88,17 @@ class SearchController extends Controller
         $asof   = $all['asof'] ??  '';   //search type
         $score  = $all['score'] ??  0;
         $query = $all['query'] ?? '';
-
+        $campIds = $all['camp_ids'] ?? '';
+        $topicIds = $all['topic_ids'] ?? '';
+        
         switch ($type) {
             case 'nickname':
                 $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
                 $response['camp'] = Search::advanceCampFilterByNickname($nickIds, $query);
                 
                 break;
-            case 'option2':
-                // Do something for option 2
+            case 'camp':
+                 $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algo, $score, $asof); 
                 break;
             case 'option3':
                 // Do something for option 3

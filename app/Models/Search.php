@@ -7,6 +7,7 @@ use App\Helpers\ElasticSearch;
 use DB;
 use App\Models\Topic;
 use App\Models\Camp;
+use App\Helpers\SupportAndScoreCount;
 
 class Search extends Model
 {
@@ -313,4 +314,66 @@ class Search extends Model
 
         return $camps;
     }
+
+
+    public static function advanceCampSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default')
+    {
+        $asofdate = time();
+        $query = DB::table('camp as a')
+                ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
+                ->join(DB::raw('(SELECT
+                            topic_num,
+                            camp_num,
+                            MAX(go_live_time) AS live_time
+                        FROM
+                            camp
+                        WHERE
+                            objector_nick_id IS NULL
+                            AND grace_period = 0
+                            AND is_archive = 0
+                            AND topic_num IN (' . implode(',', $topicIds) . ')
+                            AND camp_num IN (' . implode(',', $campIds) . ')
+                        GROUP BY
+                            topic_num,
+                            camp_num) b'), function ($join) {
+                    $join->on('a.topic_num', '=', 'b.topic_num')
+                        ->on('a.camp_num', '=', 'b.camp_num')
+                        ->on('a.go_live_time', '=', 'b.live_time');
+                });
+
+                if ($asof != 'review') {
+                    $query->where('b.live_time', '<=', $asofdate);
+                }else{
+                    $query->where('b.live_time', '>=', $asofdate);
+                }
+                $results = $query->get();
+
+                $data = [];
+                $algorithm = 'blind_popularity';
+                foreach($results as $result)
+                {
+                   
+                    $topicNum = $result->topic_num;
+                    $campNum = $result->camp_num;
+                   
+                    $supportCount = new SupportAndScoreCount();
+                    $scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
+                    $scoreCount = $scoreData['score'];
+                    if($scoreCount < $score){
+                        continue;
+                    }
+                    $liveTopic = Topic::getLiveTopic($topicNum);
+                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                    $temp['topic_num'] = $topicNum;
+                    $temp['camp_num'] = $campNum;
+                    $temp['camp_name'] = $result->camp_name;
+                    $temp['breadcrumb'] = $breadcrumb;
+                    $temp['score'] = $scoreCount;
+
+                    array_push($data,$temp);
+                }
+
+            return $data;
+    }
+
 }
