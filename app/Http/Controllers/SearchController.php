@@ -76,37 +76,42 @@ class SearchController extends Controller
                     'size' => $size
                 ]
         ];
-        /*if(isset($type) && $type != 'all'){
-            $array[$type] = $data['data'];
-        }else{
-            $array =  [
-                'topic' => [],
-                'camp' => [],
-                'statement' => [],
-                'nickname' => []
-            ]; 
-            foreach($data['data'] as $es)
-            {
+    }
+
+    public function advanceSearchFilter(Request $request)
+    {
+        $all    = $request->all();
+        $type   = $all['type'];
+        $nickIds  = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
+        $search = $all['search'];
+        $algo   = $all['algo'] ??  '';
+        $asof   = $all['asof'] ??  '';   //search type
+        $score  = $all['score'] ??  0;
+        $query = $all['query'] ?? '';
+        $campIds = $all['camp_ids'] ?? '';
+        $topicIds = $all['topic_ids'] ?? '';
+        
+        switch ($type) {
+            case 'nickname':
+                $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
+                $response['camp'] = Search::advanceCampFilterByNickname($nickIds, $query);
                 
-                switch ($es['type']) {
-                    case 'topic':
-                        array_push($array['topic'], $es);
-                        break;
-                    case 'camp':
-                        array_push($array['camp'], $es);
-                    break;
-                    case 'statement':
-                        array_push($array['statement'], $es);
-                    break;
-                    case 'nickname':
-                        array_push($array['nickname'], $es);
-                        break;
-                    
-                    default:
-                        break;
-                }
-            }
-        }*/
+                break;
+            case 'camp':
+                 $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algo, $score, $asof); 
+                break;
+            case 'option3':
+                // Do something for option 3
+                break;
+            default:
+                // Do something if none of the above cases match
+                break;
+        }
+
+        $status = 200;
+        $message =  trans('message.success.success');
+        
+        return $this->resProvider->apiJsonResponse($status, $message, $response, null);
     }
 
 }
