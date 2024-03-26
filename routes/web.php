@@ -96,8 +96,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('add-nick-name','NicknameController@addNickName');
         $router->post('update-nick-name/{id}','NicknameController@UpdateNickName');
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
-        $router->post('camp/save','CampController@store');
-        $router->post('topic/save','TopicController@store');
+        $router->post('camp/save', ['uses' => 'CampController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->post('topic/save', ['uses' => 'TopicController@store', 'middleware' => 'throttle:1,0.05']);
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/all-parent','CampController@getAllParentCamp');
