@@ -84,13 +84,17 @@ class SearchController extends Controller
         $type   = $all['type'];
         $nickIds  = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
         $search = $all['search'];
-        $algo   = $all['algo'] ??  '';
+        $algorithm   = $all['algo'] ??  '';
         $asof   = $all['asof'] ??  '';   //search type
         $score  = $all['score'] ??  0;
         $query = $all['query'] ?? '';
         $campIds = $all['camp_ids'] ?? '';
         $topicIds = $all['topic_ids'] ?? '';
-        
+        $pageNumber = $all['page_number'] ?? 1;
+        $pageSize = $all['page_size'] ?? 2;
+
+        $status = 200;
+        $message =  trans('message.success.success');
         switch ($type) {
             case 'nickname':
                 $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
@@ -98,18 +102,20 @@ class SearchController extends Controller
                 
                 break;
             case 'camp':
-                 $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algo, $score, $asof); 
+                 $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algorithm, $score, $asof); 
                 break;
-            case 'option3':
-                // Do something for option 3
+            case 'topic':
+                $data = Search::advanceTopicSearch($search, $algorithm, $asof, $score, $pageNumber, $pageSize);
+                $status = $data['code'];
+                $message = $data['message'];
+                $response['topic'] = $data['data'];
                 break;
             default:
                 // Do something if none of the above cases match
                 break;
         }
 
-        $status = 200;
-        $message =  trans('message.success.success');
+        
         
         return $this->resProvider->apiJsonResponse($status, $message, $response, null);
     }
