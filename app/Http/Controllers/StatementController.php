@@ -111,9 +111,12 @@ class StatementController extends Controller
                 $indexes = ['id', 'value', 'parsed_value', 'note', 'go_live_time', 'submit_time', 'submitter_nick_name'];
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
-            
+
             if ($filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
+                if (!$campStatement && !$inReviewChangesCount) {
+                    return $this->resProvider->apiJsonResponse(404, trans('message.error.camp_live_statement_not_found'), '', '');
+                }
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
                 
