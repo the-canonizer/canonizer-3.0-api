@@ -8,6 +8,7 @@ use DB;
 use App\Models\Topic;
 use App\Models\Camp;
 use App\Helpers\SupportAndScoreCount;
+use App\Facades\Util;
 
 class Search extends Model
 {
@@ -374,6 +375,74 @@ class Search extends Model
                 }
 
             return $data;
+    }
+
+
+    public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $page_number = 1, $page_size = 5)
+    {
+        $requestBody = [
+            'algorithm'     =>  $algorithm,
+            'search'        =>  $search,
+            'asof'          =>  $asof,
+            'asofdate'      =>  time(),
+            'filter'        =>  $filter,
+            'page_number'   =>  $page_number,
+            'page_size'     =>  $page_size,
+            'namespace_id'  =>  "",
+        ];
+        
+        $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
+        $appURL = env('CS_APP_URL');
+        $apiToken = env('API_TOKEN');
+
+        if(empty($appURL) || empty($endpointCSGetdata) || empty($apiToken)) {
+            Log::error("App url or endpoints or API Token of store tree is not defined");
+            return;
+        }
+        $endpoint = $appURL."/".$endpointCSGetdata;
+        $headers = []; // Prepare headers for request
+        $headers[] = 'Content-Type:multipart/form-data';
+        $headers[] = 'X-Api-Token:'.$apiToken.'';
+        $response = Util::execute('POST', $endpoint, $headers, $requestBody);
+
+        // Check the unauthorized request here...
+        if(isset($response)) {
+            $checkRes = json_decode($response, true);
+            if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
+                Log::error("Unauthorized action.");
+                throw new ServiceAuthenticationException('Authentication Issue!');
+                return;
+            }
+        }
+        if(isset($response)) {
+            $responseData = json_decode($response, true)['data'];
+            $responseMessage = json_decode($response, true)['message'];
+            $responseCode = json_decode($response, true)['status_code'] ? json_decode($response, true)['status_code'] : 404;
+            //echo "<pre>"; print_r($response); exit;
+            //process the respponse
+            $topics = [];
+            foreach($responseData['topic'] as $topic){
+                $namespace = Namespaces::find($topic['namespace_id']);
+                //$liveTopic = Topic::getLiveTopic($topic['topic_id']);
+                $temp['topic_num']     = $topic['topic_id'];
+                $temp['topic_name']    = $topic['topic_name'];
+                $temp['camp_num']      = 1; 
+                $temp['namespace']     = $namespace->name;
+                $temp['link']          = Topic::topicLink($topic['topic_id'], 1, $topic['topic_name'], 'Agreement', true);
+
+
+                array_push($topics, $temp);
+
+            }
+            return $data = [ 
+                'data' => $topics,
+                'code' => $responseCode,
+                'message' => $responseMessage
+            ];
+            return $data;
+        } else {
+            Log::error("Empty response, something went wrong");
+        }
     }
 
 }
