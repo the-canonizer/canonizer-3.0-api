@@ -1485,11 +1485,11 @@ class CampController extends Controller
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
 
-            if (Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp)) {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_archive_change_is_already_submitted'), '', '');
-            }
-
+            
             if ($all['event_type'] == "update") {                
+                if (Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp)) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_archive_change_is_already_submitted'), '', '');
+                }
                 $camp = $this->updateCamp($all);
                 // /* Now every change have grace_period must , so due to this the change 
                 //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all 

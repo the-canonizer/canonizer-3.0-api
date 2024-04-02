@@ -133,7 +133,7 @@ return [
         'profile_picture_required' => 'Profile Picture is required.',
         'profile_picture_file' => 'The :attribute must be a file.',
         'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
-        'profile_picture_size' => 'The profile picture must not be greater than 1024KB.',
+        'profile_picture_size' => 'The profile picture must not be greater than 5MB.',
         'profile_pic_update_flag' => 'The update flag should be boolean.',
     ],
     'validation_forgot_password' => [

@@ -160,7 +160,7 @@ class TopicSupport
             self::supportRemovalEmail($topicModel, $campModel, $nicknameModel,$delegateNickNameId, $notifyDelegatedUser, $previousCampLeaderNickId);
 
             //log remove support activity
-            self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId);
+            self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId, $reason, $reason_summary, $citation_link);
             return;
             
         }
@@ -221,7 +221,7 @@ class TopicSupport
             }
 
              //log activity
-             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
+             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId,  $reason, $reason_summary, $citation_link);
         }
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
@@ -329,7 +329,7 @@ class TopicSupport
                     // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
-                self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId);
+                self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId,$reason,$reason_summary,$citation_link);
                 
             }catch (Throwable $e) 
             {
@@ -371,7 +371,7 @@ class TopicSupport
                 self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
                 //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
-                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId);
+                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, null, $reason, $reason_summary, $citation_link);
 
             }catch (Throwable $e) 
             {
@@ -1302,7 +1302,7 @@ class TopicSupport
      * @param string $nickName is nick name is nickname of user
      * @param string $description is description
      */
-    public static function logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nickName, $description)
+    public static function logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nickName, $description, $reason = null ,$reason_summary = null,$citation_link = null)
     {
         
         $activitLogData = [
@@ -1314,7 +1314,10 @@ class TopicSupport
             'camp_num' =>  $campNum,
             'user' => $user,
             'nick_name' => $nickName,
-            'description' => $description
+            'description' => $description,
+            'reason' => $reason,
+            'reason_summary' => $reason_summary,
+            'citation_link' => $citation_link
         ];
 
         dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
@@ -1328,7 +1331,7 @@ class TopicSupport
      * 
      * @return void
      */
-    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId = '')
+    public static function logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, $delegateNickNameId = '', $reason = null,$reason_summary = null,$citation_link = null)
     {
         if(!empty($removeCamps) || !empty($delegateNickNameId))
         {         
@@ -1356,7 +1359,7 @@ class TopicSupport
                     //$activity = "Delegated support removed from " . $delegatedTo->nick_name . " under topic - " . $topicModel->title . "/" . $campModel->camp_name; 
                 }
 
-                self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description);
+                self::logActivity($logType, $activity, $link, $model, $topicNum, $camp, $user, $nicknameModel->nick_name, $description, $reason,$reason_summary,$citation_link);
             }
         }
         return;
@@ -1370,7 +1373,7 @@ class TopicSupport
      * 
      * @return void
      */
-    public static function logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId = '')
+    public static function logActivityForAddSupport($topicNum, $campNum, $nickNameId, $delegateNickNameId = '', $reason = null, $reason_summary = null, $citation_link = null)
     {
         if($campNum){ 
             $nicknameModel = Nickname::getNickName($nickNameId);
@@ -1387,13 +1390,13 @@ class TopicSupport
             $model = new Support();
             $description = trans('message.general.support_added');
 
-            if($delegateNickNameId){
+            if(!empty($delegateNickNameId)){
                 $delegatedTo = Nickname::getNickName($delegateNickNameId);
                 $activity = trans('message.activity_log_message.delegate_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name]);
                 $description = trans('message.general.support_delegated');
             }
 
-            return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description);
+            return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description, $reason, $reason_summary, $citation_link);
         }
         
         return;

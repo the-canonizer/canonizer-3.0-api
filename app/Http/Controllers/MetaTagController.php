@@ -219,11 +219,11 @@ class MetaTagController extends Controller
                 ])->where('go_live_time', '<=', Carbon::now()->timestamp)
                 ->orderBy('submit_time', 'desc')->first();
 
-            $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
-            $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
-            $campStatement = Str::of($campStatement)->trim()->limit(160);
             return $campStatement;
         });
+        $campStatement = (new wikiParser())->parse($campStatement->value ?? "");
+        $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', strip_tags($campStatement));
+        $campStatement = Str::of($campStatement)->trim()->limit(160);
         return $campStatement;
     }
 

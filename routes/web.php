@@ -24,12 +24,14 @@ $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallba
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
-   
+
     $router->post('/client-token','UserController@clientToken');
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
-    
+
     $router->get('/search','SearchController@getSearchResults');
+    $router->post('/search-filter','SearchController@advanceSearchFilter');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
+    $router->post('/meta-tags', 'MetaTagController@getMetaTags');
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
@@ -75,7 +77,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/get-privacy-policy-content','PrivacyPolicyController@getPrivacyPolicyContent');
         $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
         $router->get('/videos', 'VideoController@getVideos');
-        $router->post('/meta-tags', 'MetaTagController@getMetaTags');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
     });
@@ -83,20 +84,20 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Route Group to access api with user access token
     $router->group(['middleware' => 'auth'], function() use ($router) {
         $router->get('/user/logout','UserController@logoutUser');
-        $router->post('change-password','ProfileController@changePassword');      
+        $router->post('change-password','ProfileController@changePassword');
         $router->post('update-profile','ProfileController@updateProfile');
-        
+
         $router->post('update-profile-picture','ProfileController@updateProfilePicture');
         $router->delete('update-profile-picture','ProfileController@deleteProfilePicture');
 
-        $router->get('user/profile','ProfileController@getProfile');        
+        $router->get('user/profile','ProfileController@getProfile');
         $router->post('send-otp','ProfileController@sendOtp');
         $router->post('verify-otp','ProfileController@VerifyOtp');
         $router->post('add-nick-name','NicknameController@addNickName');
         $router->post('update-nick-name/{id}','NicknameController@UpdateNickName');
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
-        $router->post('camp/save','CampController@store');
-        $router->post('topic/save','TopicController@store');
+        $router->post('camp/save', ['uses' => 'CampController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->post('topic/save', ['uses' => 'TopicController@store', 'middleware' => 'throttle:1,0.05']);
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/all-parent','CampController@getAllParentCamp');
@@ -110,8 +111,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
         $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
-        $router->post('thread/save','ThreadsController@store');
-        $router->put('thread/update/{id}','ThreadsController@update');
+        $router->post('thread/save', ['uses' => 'ThreadsController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->put('thread/update/{id}', ['uses' => 'ThreadsController@update', 'middleware' => 'throttle:1,0.05']);
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
         $router->post('support/add', 'SupportController@addDirectSupport');
@@ -141,7 +142,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
         $router->get('/support-reason-list','SupportController@getSupportReason');
-        
+
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
         $router->post('camp/sign','CampController@signPetition');
         $router->get('camp/sign/check','SupportController@checkIfUserAlreadySignCamp');
