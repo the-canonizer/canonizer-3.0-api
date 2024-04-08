@@ -18,6 +18,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_camp_leader' => 'Only direct supporter can be a camp leader',
         'invalid_camp_name' => 'Invalid camp name.',
         'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
