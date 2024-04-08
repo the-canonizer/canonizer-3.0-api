@@ -133,7 +133,7 @@ $app->register(Spatie\Activitylog\ActivitylogServiceProvider::class);
 $app->register(\Mingalevme\Illuminate\UQueue\LumenUQueueServiceProvider::class);
 
 /* Register Redis */
-$app->register(Illuminate\Redis\RedisServiceProvider::class);
+//$app->register(Illuminate\Redis\RedisServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
