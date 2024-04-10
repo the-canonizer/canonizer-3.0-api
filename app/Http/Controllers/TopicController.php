@@ -1355,11 +1355,16 @@ class TopicController extends Controller
                 $filter['campNum'] = $data['camp_num'];
                 $preLiveCamp = Camp::where('id', $pre_LiveId)->first();
                 if ($camp) {
-                    DB::beginTransaction();
+                   // DB::beginTransaction();
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     //$submitterNickId = $camp->submitter_nick_id;
+                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                    if ($camp->is_archive != $preLiveCamp->is_archive) {
+                        $camp->archive_action_time = time();
+                        $camp->update();
+                    }
 
                     self::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
@@ -1373,8 +1378,8 @@ class TopicController extends Controller
 
                     /** Archive and restoration of archive camp #574 */
                     if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
-                        $camp->archive_action_time = time();
-                        $camp->update();
+                       // $camp->archive_action_time = time();
+                      //  $camp->update();
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
@@ -1397,10 +1402,10 @@ class TopicController extends Controller
                     }
                     //end of timeline
 
-                    DB::commit();
+                   // DB::commit();
                     $message = trans('message.success.camp_agree');
                 } else {
-                    DB::rollback();
+                   // DB::rollback();
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
                 }
             } else if ($data['change_for'] == 'topic') {

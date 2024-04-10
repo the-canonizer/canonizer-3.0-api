@@ -704,7 +704,10 @@ class Util
             Camp::archiveChildCamps($camp->topic_num, $allchilds, $archiveFlag, $directArchive);
             $supporterNickNames = Support::getSupportersNickNameOfArchivedCamps($camp->topic_num, $allchilds);
             
+           
+
             if(count($supportToBeRevoked)){
+                //echo "<pre>"; print_r($supportToBeRevoked);
                 foreach($supportToBeRevoked as $sp)
                 {   $supportOrder = 0;
                     $lastSupportOrder = Support::getLastSupportOrderInTopicByNickId($camp->topic_num, $sp->nick_name_id);
@@ -713,6 +716,7 @@ class Util
                     }else{
                             $supportOrder =  1; 
                     }
+
                     $delegatedNickNameId = $sp->delegate_nick_name_id; 
                     TopicSupport::addSupport($sp->topic_num, $sp->camp_num, $supportOrder, $sp->nick_name_id, $delegatedNickNameId, trans('message.camp.camp_unarchived'), trans('message.camp.camp_unarchived_summary'),null);
                    
@@ -747,8 +751,7 @@ class Util
                     $data['nick_name_link'] = Nickname::getNickNameLink($data['nick_name_id'], $data['namespace_id'], $data['topic_num'], $data['camp_num']);;
                     $data['support_action'] = 'add'; //default will be 'added'                                         
                     Event::dispatch(new UnarchiveCampMailEvent($user->email ?? null, $user, $data));
-                }
-                Util::dispatchJob($topic, 1, 1);
+                }                
             }
 
             //end old support permanently
@@ -764,6 +767,8 @@ class Util
 
                 $this->dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "unarchived_camp", $camp->camp_num, null, null, $delayCommitTimeInSeconds, time(), $timeline_url);
             }
+
+            Util::dispatchJob($topic, 1, 1);
         }
 
         return;
