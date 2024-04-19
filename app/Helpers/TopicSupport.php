@@ -370,9 +370,8 @@ class TopicSupport
 
                     //Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " has changed the order preference of camp - " . $campModel->camp_name, "reorder_support", $campModel->id, null, null, null, $asOfDefaultDate + 1, $timeline_url);
                     //timeline end
-
+                    self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
                 }
-
             }catch (Throwable $e) 
             {
                 DB::rollback();
@@ -1344,6 +1343,37 @@ class TopicSupport
                 $activity = trans('message.activity_log_message.delegate_support', ['nick_name' => $nicknameModel->nick_name, 'delegate_to' => $delegatedTo->nick_name]);
                 $description = trans('message.general.support_delegated');
             }
+
+            return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description, $reason, $reason_summary, $citation_link);
+        }
+        
+        return;
+    }
+
+    /**
+     * [activity logger on update support order]
+     * @param integer $campNum is camp number to which support is added
+     * @param integer $topicNum is topic number
+     * @param integer $nickNameId is nick name id of user adding support
+     * 
+     * @return void
+     */
+    public static function logActivityForUpdateSupport($topicNum, $campNum, $nickNameId, $reason = null, $reason_summary = null, $citation_link = null)
+    {
+        if($campNum){ 
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter);
+            $user = Nickname::getUserByNickName($nickNameId);
+
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+
+            $logType = "support";
+            $activity = trans('message.activity_log_message.support_order_updated', ['nick_name' => $nicknameModel->nick_name]);
+            $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
+            $model = new Support();
+            $description = trans('message.general.support_order_updated');
 
             return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description, $reason, $reason_summary, $citation_link);
         }
