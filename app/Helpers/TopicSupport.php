@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use DB;
 use Throwable;
+use Exception;
 use App\Models\Camp;
 use App\Models\User;
 use App\Facades\Util;
@@ -172,9 +173,7 @@ class TopicSupport
             }catch (Throwable $e) 
             {
                 DB::rollback();
-                $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }
 
             $topicFilter = ['topicNum' => $topicNum];
@@ -222,9 +221,7 @@ class TopicSupport
             }catch (Throwable $e) 
             {
                 DB::rollback();
-                $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }
         }
 
@@ -298,9 +295,7 @@ class TopicSupport
             }catch (Throwable $e) 
             {
                 DB::rollback();
-                $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }
         }
 
@@ -340,9 +335,7 @@ class TopicSupport
             }catch (Throwable $e) 
             {
                 DB::rollback();
-                $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }            
 
         }
@@ -376,9 +369,7 @@ class TopicSupport
             }catch (Throwable $e) 
             {
                 DB::rollback();
-                $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }
         }
     }
@@ -466,9 +457,7 @@ class TopicSupport
         }catch (Throwable $e) 
         {
             DB::rollback();
-            $data = null;
-            $status = 403;
-            echo  $message = $e->getMessage();
+            throw new Exception($e->getMessage());
         }
         
         
@@ -576,8 +565,7 @@ class TopicSupport
             } catch (Throwable $e) 
             {
                 $data = null;
-                $status = 403;
-                echo  $message = $e->getMessage();
+                throw new Exception($e->getMessage());
             }
         }
     }
