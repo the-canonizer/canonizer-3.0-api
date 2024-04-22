@@ -221,7 +221,7 @@ class TopicSupport
             }
 
              //log activity
-             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId,  $reason, $reason_summary, $citation_link);
+             self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, '' , $reason, $reason_summary, $citation_link);
         }
 
         if(isset($orderUpdate) && !empty($orderUpdate)){
@@ -329,7 +329,7 @@ class TopicSupport
                     // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $camp, 'remove', null, $nickName);
                 }
                 //log activity
-                self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId,$reason,$reason_summary,$citation_link);
+                self::logActivityForRemoveCamps($removeCamps, $topicNum, $nickNameId, '', $reason, $reason_summary, $citation_link);
                 
             }catch (Throwable $e) 
             {
