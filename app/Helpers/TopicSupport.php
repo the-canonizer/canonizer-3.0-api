@@ -1676,7 +1676,7 @@ class TopicSupport
          */
         if ($directSupporters->count() === 1 && in_array($livecamp->camp_leader_nick_id, $nickNames)) {
             $warning = "You are the camp leader of this camp <b>" . $livecamp->camp_name . "</b>. You cannot sign the camp.";
-            $warning = "<span><b>Info!</b> ". $warning . "</span>";
+            $warning = "<span><b>Warning!</b> ". $warning . "</span>";
             return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id);
         }
 
