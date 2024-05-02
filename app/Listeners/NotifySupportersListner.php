@@ -192,11 +192,12 @@ class NotifySupportersListner implements ShouldQueue
                 dispatch(new PurposedToSupportersMailJob($user, $link, $data, $user->email ?? null))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
                 break;
             case config('global.notification_type.addSupport'):
-                
-                // here check the current user that is doing action ...
-                // compare it with the nick_names of user whome we are sending email ...
-                // if both users are same then override the subject and nickname link in data and also add some flag 
-                // to pass in email for identification of current user...
+                /**
+                 * This switch case is dispatching email to each user in case of add support.
+                 * We need to check the supporters of this camp and compare it with user that is adding support in camp.
+                 * If the supporter nick ids match with the action user then on base of this we are handling the subject and 
+                 * message body text... 
+                 */
 
                 $sendingMailToActionUser = in_array($data['nick_name_id'], $user->nick_ids ?? []);
                 if($sendingMailToActionUser) {
