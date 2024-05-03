@@ -1356,56 +1356,16 @@ class TopicController extends Controller
                 $preLiveCamp = Camp::where('id', $pre_LiveId)->first();
                 if ($camp) {
                     DB::beginTransaction();
+                    // DB::beginTransaction();
                     $data['parent_camp_num'] = $camp->parent_camp_num;
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
-
+                    // Util::checkParentCampChanged($data, true, $liveCamp);
+                    //$submitterNickId = $camp->submitter_nick_id;
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     if ($camp->is_archive != $preLiveCamp->is_archive) {
                         $camp->archive_action_time = time();
+                        $camp->update();
                     }
-                    $camp->update();
-                    self::updateCampsInReview($camp);
-                    $liveCamp = Camp::getLiveCamp($filter);
-                    Util::checkParentCampChanged($data, true, $liveCamp);
-                    ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
-                    $topic = $camp->topic;
-                    if (isset($topic)) {
-                        Util::dispatchJob($topic, $camp->camp_num, 1);
-                    }
-
-                    /** Archive and restoration of archive camp #574 */
-                    if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
-                        // $camp->archive_action_time = time();
-                        // $camp->update();
-                        util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
-                    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    /*
-
-                    // Util::checkParentCampChanged($data, true, $liveCamp);
-                    //$submitterNickId = $camp->submitter_nick_id;
 
                     self::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
@@ -1417,12 +1377,12 @@ class TopicController extends Controller
                     // Util::dispatchJob($topic, $camp->camp_num, 1);
                     //}
 
-                    /* Archive and restoration of archive camp #574 
+                    /** Archive and restoration of archive camp #574 */
                     if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
-                        $camp->archive_action_time = time();
-                        $camp->update();
+                       // $camp->archive_action_time = time();
+                      //  $camp->update();
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
-                    }*/
+                    }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
                     //timeline start
                     if ($data['event_type'] == "parent_change") {
