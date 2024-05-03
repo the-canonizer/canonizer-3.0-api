@@ -20,6 +20,7 @@ use App\Events\CampForumPostMailEvent;
 use App\Events\SupportRemovedMailEvent;
 use App\Events\CampForumThreadMailEvent;
 use App\Events\SendPushNotificationEvent;
+use App\Helpers\TopicSupport;
 use App\Jobs\PurposedToSupportersMailJob;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -95,6 +96,8 @@ class NotifySupportersListner implements ShouldQueue
                     $support_list_data = Camp::getSubscriptionList($user_id, $camp->topic_num, $camp->camp_num);
                     $supporter_and_subscriber[$user_id] = ['also_subscriber' => 1, 'sub_support_list' => $support_list_data];
                 }
+
+                $user->nick_ids = TopicSupport::getAllNickNamesOfNickID($supporter->nick_name_id) ?? [];
                 $bcc_user[] = $user;
                 $userExist[] = $user_id;
             }
@@ -173,7 +176,7 @@ class NotifySupportersListner implements ShouldQueue
 
     private function dispatchEmail($email, $user, $data, $type, $link)
     {
-        Util::logMessage('dispatching email ==> '. $email);
+        Util::logMessage('dispatching email ==> '. $email. ' using type =>'. $type);
         switch ($type) {
             case config('global.notification_type.Thread'):
                 Event::dispatch(new CampForumThreadMailEvent($email, $user, $link, $data));
@@ -189,6 +192,20 @@ class NotifySupportersListner implements ShouldQueue
                 dispatch(new PurposedToSupportersMailJob($user, $link, $data, $user->email ?? null))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
                 break;
             case config('global.notification_type.addSupport'):
+                /**
+                 * This switch case is dispatching email to each user in case of add support.
+                 * We need to check the supporters of this camp and compare it with user that is adding support in camp.
+                 * If the supporter nick ids match with the action user then on base of this we are handling the subject and 
+                 * message body text... 
+                 */
+
+                $sendingMailToActionUser = in_array($data['nick_name_id'], $user->nick_ids ?? []);
+                if($sendingMailToActionUser) {
+                    $extractCampFromSubject = preg_match('/\bto\b\s*(.*)/', $data['subject'], $matches);
+                    $data['subject']    =  ($extractCampFromSubject) ? 'Thank you for adding your support for this camp : '. $matches[1] : 'Thank you for adding your support.';
+                    $data['sending_mail_to_action_user'] = true;
+                }
+                
                 Event::dispatch(new SupportAddedMailEvent($user->email ?? null, $user, $data));
                 break;
             case config('global.notification_type.addDelegate'):
