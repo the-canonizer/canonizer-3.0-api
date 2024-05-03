@@ -363,7 +363,10 @@ class TopicSupport
 
                     //Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " has changed the order preference of camp - " . $campModel->camp_name, "reorder_support", $campModel->id, null, null, null, $asOfDefaultDate + 1, $timeline_url);
                     //timeline end
-                    self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                    // #917 : When adding support remove activity log for support order update
+                    if (empty($addCamp)) {
+                        self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                    }
                 }
             }catch (Throwable $e) 
             {
