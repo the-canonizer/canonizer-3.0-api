@@ -29,8 +29,7 @@ class VideoController extends Controller
     public function getVideos(Request $request)
     {
         try {
-            $videos = (new Video())->with('resolutions', 'categories')->get();
-
+            
             $categories = Category::with(['videos.resolutions'])->get();
             
             $categories = collect($categories)->map(function ($category) {
@@ -44,17 +43,6 @@ class VideoController extends Controller
                 });
                 return $category;
             });
-            // dd($categories);
-            
-            // $videos = collect($videos)->map(function ($video) {
-            //     $video->resolutions = collect($video->resolutions)->map(function ($resolution) use ($video) {
-            //         $resolution->link = $video->link . '_' . $resolution->resolution . '.' . $video->extension;
-            //         unset($resolution->resolution);
-            //         return $resolution;
-            //     });
-            //     unset($video->link, $video->extension);
-            //     return $video;
-            // });
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $categories, '');
         } catch (\Throwable $e) {
