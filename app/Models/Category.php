@@ -17,19 +17,7 @@ class Category extends Model {
     protected $hidden = ['pivot', 'created_at', 'updated_at'];
 
     protected $guarded = [];
-
-    /**
-     * Videos table (Add thumbnails in video table as well)
-     * Resoulution table
-     * video_resolutions table
-     * category_table
-     * category table seeder
-     * video_category table 
-     * video_category seeder
-     * Thumbnail seeder
-     */
-
-
+    
     public function getCreatedAtAttribute($date)
     {
         return Util::convertDateFormatToUnix($date);
