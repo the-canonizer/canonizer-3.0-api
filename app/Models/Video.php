@@ -17,4 +17,8 @@ class Video extends Model
     public function resolutions() {
         return $this->belongsToMany(Resolution::class, 'video_resolutions', 'video_id', 'resolution_id');
     }
+
+    public function categories() {
+        return $this->belongsToMany(Category::class, 'video_categories', 'video_id', 'category_id');
+    }
 }

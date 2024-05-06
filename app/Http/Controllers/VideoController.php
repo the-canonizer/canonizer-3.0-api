@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ResponseInterface;
 use App\Http\Resources\ErrorResource;
 use App\Http\Request\Validate;
+use App\Models\Category;
 use App\Models\Video;
 
 class VideoController extends Controller
@@ -28,19 +29,34 @@ class VideoController extends Controller
     public function getVideos(Request $request)
     {
         try {
-            $videos = (new Video())->with('resolutions')->get();
+            $videos = (new Video())->with('resolutions', 'categories')->get();
 
-            $videos = collect($videos)->map(function ($video) {
-                $video->resolutions = collect($video->resolutions)->map(function ($resolution) use ($video) {
-                    $resolution->link = $video->link . '_' . $resolution->resolution . '.' . $video->extension;
-                    unset($resolution->resolution);
-                    return $resolution;
+            $categories = Category::with(['videos.resolutions'])->get();
+            
+            $categories = collect($categories)->map(function ($category) {
+                $category->videos = collect($category->videos)->map(function ($video) {
+                    $video->resolutions = collect($video->resolutions)->map(function ($resolution) use ($video) {
+                        $resolution->link = $video->link . '_' . $resolution->resolution . '.' . $video->extension;
+                        unset($resolution->resolution);
+                        return $resolution;
+                    });
+                    unset($video->link, $video->extension);
                 });
-                unset($video->link, $video->extension);
-                return $video;
+                return $category;
             });
+            // dd($categories);
+            
+            // $videos = collect($videos)->map(function ($video) {
+            //     $video->resolutions = collect($video->resolutions)->map(function ($resolution) use ($video) {
+            //         $resolution->link = $video->link . '_' . $resolution->resolution . '.' . $video->extension;
+            //         unset($resolution->resolution);
+            //         return $resolution;
+            //     });
+            //     unset($video->link, $video->extension);
+            //     return $video;
+            // });
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $videos, '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $categories, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
