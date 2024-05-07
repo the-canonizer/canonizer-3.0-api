@@ -29,6 +29,6 @@ class Category extends Model {
     }
 
     public function videos() {
-        return $this->belongsToMany(Video::class, 'video_categories', 'category_id', 'video_id')->as('videos');
+        return $this->belongsToMany(Video::class, 'video_categories', 'category_id', 'video_id');
     }
 }
