@@ -212,6 +212,7 @@ class TopicSupport
                 DB::commit();
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 foreach($orderUpdate as $order) {
+                    self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
                     // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
                     if($topicNum == config('global.mind_expert_topic_num')) {
                         Util::dispatchJob($topic, $order['camp_num'], 1);
