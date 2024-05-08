@@ -60,7 +60,7 @@ class AddExsistingDataToElasticSearch extends Command
                           "char_filter" => [
                             "replace_special_chars" => [
                               "type" => "pattern_replace",
-                              "pattern"  => "[^\\p{L}\\p{N}#@$]+", //"[^\\p{L}\\p{N}]+", //"[^\\p{ASCII}]", //"[^a-zA-Z0-9]",
+                              "pattern"  => "[^\\p{L}\\p{N}#@$\\(\\)]+", //"[^\\p{L}\\p{N}#@$]+", //"[^\\p{L}\\p{N}]+", //"[^\\p{ASCII}]", //"[^a-zA-Z0-9]",
                               "replacement"  => " "
                             ]
                           ],
