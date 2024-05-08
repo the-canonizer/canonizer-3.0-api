@@ -94,6 +94,7 @@ $app->routeMiddleware([
     'Xss' => \App\Http\Middleware\Xss::class,
     'admin' => \App\Http\Middleware\IsAdmin::class,
     'checkstatus' => \App\Http\Middleware\CheckStatus::class,
+    'throttle' => \App\Http\Middleware\ThrottleRequests::class,
 ]);
 
 /*

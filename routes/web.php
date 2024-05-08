@@ -29,6 +29,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
 
     $router->get('/search','SearchController@getSearchResults');
+    $router->post('/search-filter','SearchController@advanceSearchFilter');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
     //Route Group to access api with client token
@@ -95,8 +96,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('add-nick-name','NicknameController@addNickName');
         $router->post('update-nick-name/{id}','NicknameController@UpdateNickName');
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
-        $router->post('camp/save','CampController@store');
-        $router->post('topic/save','TopicController@store');
+        $router->post('camp/save', ['uses' => 'CampController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->post('topic/save', ['uses' => 'TopicController@store', 'middleware' => 'throttle:1,0.05']);
         $router->get('get-direct-supported-camps','SupportController@getDirectSupportedCamps');
         $router->get('get-delegated-supported-camps','SupportController@getDelegatedSupportedCamps');
         $router->post('camp/all-parent','CampController@getAllParentCamp');
@@ -110,8 +111,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
         $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
-        $router->post('thread/save','ThreadsController@store');
-        $router->put('thread/update/{id}','ThreadsController@update');
+        $router->post('thread/save', ['uses' => 'ThreadsController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->put('thread/update/{id}', ['uses' => 'ThreadsController@update', 'middleware' => 'throttle:1,0.05']);
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
         $router->post('support/add', 'SupportController@addDirectSupport');

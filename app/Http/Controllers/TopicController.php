@@ -1360,7 +1360,13 @@ class TopicController extends Controller
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     //$submitterNickId = $camp->submitter_nick_id;
+                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                    if ($camp->is_archive != $preLiveCamp->is_archive) {
+                        $camp->archive_action_time = time();
+                       
+                    }
 
+                    $camp->update();
                     self::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
                     Util::checkParentCampChanged($data, true, $liveCamp);
@@ -1373,9 +1379,11 @@ class TopicController extends Controller
 
                     /** Archive and restoration of archive camp #574 */
                     if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
-                        $camp->archive_action_time = time();
-                        $camp->update();
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
+                    }
+
+                    if(isset($topic)) {
+                     Util::dispatchJob($topic, $camp->camp_num, 1);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
                     //timeline start
