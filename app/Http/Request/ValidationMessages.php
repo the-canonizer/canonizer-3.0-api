@@ -770,4 +770,15 @@ class ValidationMessages
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
         ];
     }
+
+    public function getEmailUpdateValidationMessages(): array
+    {
+        return ([
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique')
+        ]);
+    }
 }
