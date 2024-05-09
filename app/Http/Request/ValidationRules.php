@@ -630,4 +630,11 @@ class ValidationRules
             'thread_id' => 'exists:thread,id'
         ]);
     }
+
+    public function getUpdateEmailRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225|unique:person',
+        ]);
+    }
 }

@@ -588,4 +588,52 @@ class ProfileController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    public function requestChangeEmail(Request $request)
+    {
+        $user = $request->user();
+        $otp = mt_rand(100000, 999999);
+        $result['otp'] = $otp;
+        $result['subject'] = "Canonizer - Change Email with  One-Time Passcode (OTP)";
+        
+        $user->otp = $otp;
+        $user->update();
+        Event::dispatch(new SendOtpEvent($user,true));
+        $res = (object)[
+            "status_code" => 200,
+            "message"     => trans('message.success.phone_number_otp'),
+            "error"       => null,
+            "data"        => $user
+        ];
+        return (new SuccessResource($res))->response()->setStatusCode(200);
+    }
+
+    public function UpdateEmailEmail(Request $request)
+    {
+
+        $user = $request->user();
+        $input = $request->all();
+
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateEmailRules(), $this->validationMessages->getEmailUpdateValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        
+        $otp = mt_rand(100000, 999999);
+            $result['otp'] = $otp;
+            $result['subject'] = "Canonizer - Phone number verification code";
+            $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
+            $user->phone_number = $input['phone_number'];
+            $user->mobile_carrier = $input['mobile_carrier'];
+            $user->otp = $otp;
+            $user->update();
+            Event::dispatch(new SendOtpEvent($user,true));
+            $res = (object)[
+                "status_code" => 200,
+                "message"     => trans('message.success.phone_number_otp'),
+                "error"       => null,
+                "data"        => $user
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+    }
 }
