@@ -21,14 +21,16 @@ class EmailChangeListener
     /**
      * Handle the event.
      *
-     * @param  EmailChnageEvent  $event
+     * @param  EmailChangeEvent  $event
      * @return void
      */
-    public function handle(EmailChnageEvent $event)
+    public function handle($event)
     {
         $user = $event->user;
-        //$settingFlag = $event->settingFlag;
+        $requestChange = $event->requestChange;
+        $newEmail = $event->newEmail;
 
-        Mail::to($user->email)->send(new SendOtp($user,$settingFlag));
+        $email = ($newEmail) ? $newEmail : $user->email;
+        Mail::to($email)->send(new EmailChange($user,$requestChange));
     }
 }

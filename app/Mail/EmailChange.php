@@ -13,6 +13,7 @@ class EmailChange extends Mailable {
 
     public $user;
     public $requestChange;
+    public $newEmail;
 
     public function __construct($user, $requestChange = false)
     {
@@ -23,10 +24,10 @@ class EmailChange extends Mailable {
     //build the message.
     public function build() 
     {
-        if($requestChange){
-            return $this->markdown('emails.sendOtp')->subject('One Time Verification Code');  
+        if($this->requestChange){
+            return $this->markdown('emails.emailChangeRequest')->subject('Request Change of Email Address - One Time Password(OTP) Required');  
         }else{
-            return $this->markdown('emails.sendOtp')->subject('One Time Verification Code');  
+            return $this->markdown('emails.verifyNewEmail')->subject('Verify Your new Email Address.');  
         }
     }
 }
