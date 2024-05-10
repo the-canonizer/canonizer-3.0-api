@@ -18,6 +18,7 @@ use App\Models\Languages;
 use App\Models\User;
 use App\Models\Nickname;
 use App\Helpers\TopicSupport;
+use App\Events\EmailChangeEvent;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -589,7 +590,7 @@ class ProfileController extends Controller
         }
     }
 
-    public function requestChangeEmail(Request $request)
+    public function changeEmailRequest(Request $request)
     {
         $user = $request->user();
         $otp = mt_rand(100000, 999999);
@@ -598,21 +599,36 @@ class ProfileController extends Controller
         
         $user->otp = $otp;
         $user->update();
-        Event::dispatch(new SendOtpEvent($user,true));
+        Event::dispatch(new EmailChangeEvent($user,true));
         $res = (object)[
             "status_code" => 200,
-            "message"     => trans('message.success.phone_number_otp'),
+            "message"     => trans('message.email.change_request_with_otp',['email'=>$user->email]),
             "error"       => null,
             "data"        => $user
         ];
         return (new SuccessResource($res))->response()->setStatusCode(200);
     }
 
-    public function UpdateEmailEmail(Request $request)
+    public function emailChangeOtpVerification(Request $request)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        if($user->otp == $all['otp']){
+            $user->otp = '';
+            $user->update();
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.change_request_verfied'), '', '');
+        }else{
+            return $this->resProvider->apiJsonResponse(400, trans('message.email.change_request_failed'), '', '');
+        }
+        
+    }
+
+    public function updateEmailRequest(Request $request, Validate $validate)
     {
 
         $user = $request->user();
         $input = $request->all();
+        $email = $input['email'];
 
         $validationErrors = $validate->validate($request, $this->rules->getUpdateEmailRules(), $this->validationMessages->getEmailUpdateValidationMessages());
         if ($validationErrors) {
@@ -620,20 +636,34 @@ class ProfileController extends Controller
         }
         
         $otp = mt_rand(100000, 999999);
-            $result['otp'] = $otp;
-            $result['subject'] = "Canonizer - Phone number verification code";
-            $receiver = $input['phone_number'] . "@" . $input['mobile_carrier'];
-            $user->phone_number = $input['phone_number'];
-            $user->mobile_carrier = $input['mobile_carrier'];
-            $user->otp = $otp;
+        $user->otp = $otp;
+        $user->update();
+
+        //verify email by sending OTP to new Email
+        Event::dispatch(new EmailChangeEvent($user,false, $email));
+        return $this->resProvider->apiJsonResponse(200, trans('message.email.verify_new_email', ['email'=>$email]), '', '');
+       
+    }
+
+    public function verifyAndUpdateEmail(Request $request,  Validate $validate)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        $email = $all['email'];
+
+
+        $validationErrors = $validate->validate($request, $this->rules->getVerfiyAndUpdateEmailRules(), $this->validationMessages->getVerfiyAndUpdateEmaiMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        if($user->otp == $all['otp']){
+            $user->otp = '';
+            $user->email = $email;
             $user->update();
-            Event::dispatch(new SendOtpEvent($user,true));
-            $res = (object)[
-                "status_code" => 200,
-                "message"     => trans('message.success.phone_number_otp'),
-                "error"       => null,
-                "data"        => $user
-            ];
-            return (new SuccessResource($res))->response()->setStatusCode(200);
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.updated_email'), $user, '');
+        }else{
+            return $this->resProvider->apiJsonResponse(400, trans('message.email.change_request_failed'), '', '');
+        }
     }
 }

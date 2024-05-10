@@ -14,12 +14,14 @@ class EmailChangeEvent extends Event
      */
     public $user;
     public $requestChange;
+    public $newEmail;
 
     
-    public function __construct($user, $requestChange = false)
+    public function __construct($user, $requestChange = false, $newEmail='')
     {
         $this->user = $user;
         $this->requestChange = $requestChange;
+        $this->newEmail = $newEmail;
     }
 
 
