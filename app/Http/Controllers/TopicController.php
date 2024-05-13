@@ -1376,24 +1376,28 @@ class TopicController extends Controller
                     $data['old_parent_camp_num'] = $camp->old_parent_camp_num;
                     // Util::checkParentCampChanged($data, true, $liveCamp);
                     //$submitterNickId = $camp->submitter_nick_id;
+                    $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                    if ($camp->is_archive != $preLiveCamp->is_archive) {
+                        $camp->archive_action_time = time();
+                       
+                    }
 
+                    $camp->update();
                     self::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
                     Util::checkParentCampChanged($data, true, $liveCamp);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     $topic = $camp->topic;
 
-                    //if (isset($topic)) {
-                    // Util::dispatchJob($topic, $camp->camp_num, 1);
-                    //}
-
                     /** Archive and restoration of archive camp #574 */
                     if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
-                        $camp->archive_action_time = time();
-                        $camp->update();
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
+                    
+                    DB::commit();
+                    Util::dispatchJob($topic, $camp->camp_num, 1);
+
                     //timeline start
                     if ($data['event_type'] == "parent_change") {
                         $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $liveCamp->camp_name;
@@ -1412,8 +1416,6 @@ class TopicController extends Controller
                         Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "update_camp", $liveCamp->id, null, null, null, time(), $timeline_url);
                     }
                     //end of timeline
-
-                    DB::commit();
                     $message = trans('message.success.camp_agree');
                 } else {
                     DB::rollback();

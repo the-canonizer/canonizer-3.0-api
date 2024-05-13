@@ -380,6 +380,13 @@ class CampController extends Controller
         $parentCampName = null;
         $camp = [];
         try {
+            $campExist = Camp::where('topic_num', $filter['topicNum'])
+                ->where('camp_num', '=', $filter['campNum'])->count();
+            
+            if(!$campExist) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
+            }
+            
             $livecamp = Camp::getLiveCamp($filter);
             if ($livecamp) {
                 $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
@@ -402,8 +409,6 @@ class CampController extends Controller
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
-            } else { 
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
             }
 
             if ($livecamp && $filter['asOf'] === 'default') {
