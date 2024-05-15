@@ -639,4 +639,19 @@ class ValidationRules
             'nick_name_id' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
         ];
     }
+    
+    public function getUpdateEmailRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225|unique:person',
+        ]);
+    }
+
+    public function getVerfiyAndUpdateEmailRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225|unique:person',
+            'otp' => 'required|digits:6',
+        ]);
+    }
 }

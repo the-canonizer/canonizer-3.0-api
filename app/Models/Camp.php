@@ -587,6 +587,18 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $users;
     }
 
+    public static function getImplicitCampSupporterIds($topicid, $campnum)
+    {
+        $users = [];
+        $directSupporter = Support::getAllDirectSupporters($topicid, $campnum);
+        foreach ($directSupporter as $supporter) {
+            $user = \App\Helpers\CampForum::getUserFromNickId($supporter->nick_name_id);
+            $userId = $user->id ?? null;
+            $users[] = $userId;
+        }
+        return $users;
+    }
+
     public static function validateParentsupport($topicNum, $campNum, $userNicknames) 
     {
         $filter = self::getLiveCampFilter($topicNum, $campNum);

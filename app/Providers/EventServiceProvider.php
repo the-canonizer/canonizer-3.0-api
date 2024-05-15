@@ -38,6 +38,8 @@ use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 use App\Events\UnarchiveCampMailEvent;
 use App\Listeners\UnarchiveCampMailListener;
+use App\Events\EmailChangeEvent;
+use App\Listeners\EmailChangeListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -97,6 +99,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         UnarchiveCampMailEvent::class => [
             UnarchiveCampMailListener::class
+        ],
+        EmailChangeEvent::class => [
+            EmailChangeListener::class
         ]
     ];
 }

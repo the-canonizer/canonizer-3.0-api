@@ -664,5 +664,12 @@ return [
                 'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
             ]
         ]
+    ],       
+    'email' => [
+        "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
+        "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
+        "change_request_failed"   => "Inccorect OTP entered.",
+        "verify_new_email" => "A verification code has been sent to your email :email. Please check your inbox and enter the code ",
+        "updated_email"  => "Email Updated Successfully."
     ]
 ];

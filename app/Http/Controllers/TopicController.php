@@ -744,7 +744,7 @@ class TopicController extends Controller
                         ];
                     }
 
-                    if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_url) && empty($model->camp_about_url))) {
+                    if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_nick_id) && empty($model->camp_about_nick_id))) {
                         $liveNickname = NickName::getNickName($preliveCamp->camp_about_nick_id);
                         $currentNickname = NickName::getNickName($model->camp_about_nick_id);
                         $liveUrl = Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/user/supports/' . $preliveCamp->camp_about_nick_id . '?topicnum=&campnum=&canon=' . $data['namespace_id']);
