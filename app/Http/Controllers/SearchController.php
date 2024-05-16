@@ -80,18 +80,18 @@ class SearchController extends Controller
 
     public function advanceSearchFilter(Request $request)
     {
-        $all    = $request->all();
-        $type   = $all['type'];
-        $nickIds  = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
-        $search = $all['search'];
-        $algorithm   = $all['algo'] ??  '';
-        $asof   = $all['asof'] ??  '';   //search type
-        $score  = $all['score'] ??  0;
-        $query = $all['query'] ?? '';
-        $campIds = $all['camp_ids'] ?? '';
-        $topicIds = $all['topic_ids'] ?? '';
+        $all        = $request->all();
+        $type       = $all['type'];
+        $nickIds    = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
+        $search     = $all['search'];
+        $algorithm  = $all['algo'] ??  '';
+        $asof       = $all['asof'] ??  '';   //search type
+        $score      = $all['score'] ??  0;
+        $query      = $all['query'] ?? '';
+        $campIds    = $all['camp_ids'] ?? '';
+        $topicIds   = $all['topic_ids'] ?? '';
         $pageNumber = $all['page_number'] ?? 1;
-        $pageSize = $all['page_size'] ?? 2;
+        $pageSize   = $all['page_size'] ?? 2;
 
         $status = 200;
         $message =  trans('message.success.success');
@@ -110,6 +110,9 @@ class SearchController extends Controller
                 $message = $data['message'];
                 $response['topic'] = $data['data'];
                 break;
+            case 'statement':
+                $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $algorithm, $score, $asof);
+               break;
             default:
                 // Do something if none of the above cases match
                 break;
