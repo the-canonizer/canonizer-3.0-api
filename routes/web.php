@@ -77,6 +77,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/get-privacy-policy-content','PrivacyPolicyController@getPrivacyPolicyContent');
         $router->post('/camp-total-support-score', 'SupportController@getCampTotalSupportScore');
         $router->get('/videos', 'VideoController@getVideos');
+        $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
     });
@@ -144,6 +145,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/support-reason-list','SupportController@getSupportReason');
 
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
+        $router->get('/change-email-request','ProfileController@changeEmailRequest');
+        $router->post('/emailchange-verify-otp','ProfileController@emailChangeOtpVerification');
+        $router->post('/update-email-request','ProfileController@updateEmailRequest');
+        $router->post('/update-email','ProfileController@verifyAndUpdateEmail');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

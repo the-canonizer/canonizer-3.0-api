@@ -74,6 +74,7 @@ return [
         'nickname_association_absence' => "Nickname not associated.",
         'permission_denied' => "You don't have permission to access this resource.",
         'support_added' => "Support added",
+        'support_order_updated' => "Support order updated",
         'support_removed' => "Support removed",
         'support_delegated' => "Support delegated",
         'default_support_added_reason' => "Default Support added on agreement",
@@ -544,6 +545,7 @@ return [
         
         "support_removed" => ":nick_name removed support",
         "support_added" => ":nick_name added support",
+        "support_order_updated" => ":nick_name updated support order",
         
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
@@ -634,4 +636,12 @@ return [
         'user_agent_string' => "The :attribute must be a valid user agent string.",
         
     ],
+
+    'email' => [
+        "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
+        "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
+        "change_request_failed"   => "Inccorect OTP entered.",
+        "verify_new_email" => "A verification code has been sent to your email :email. Please check your inbox and enter the code ",
+        "updated_email"  => "Email Updated Successfully."
+    ]
 ];

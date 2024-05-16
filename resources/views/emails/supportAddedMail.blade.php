@@ -35,11 +35,13 @@
                                 {{-- <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
                                 has added their support to this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b> --}}
-
+                                <?php if (isset($data['sending_mail_to_action_user'])) { ?>
+                                Thank you for adding your support to this camp: {!! $data['object'] !!}</b>
+                                <?php } else { ?>
                                 <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
                                 has added their support to this camp: {!! $data['object'] !!}</b>
-                                
+                                <?php } ?>
                             </p>
                         </td>
                     <?php } ?>
