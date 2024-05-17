@@ -86,8 +86,10 @@ class SitemapXmlController extends Controller
             ->where('go_live_time', '<=', time())
             ->whereNotIn('namespace_id', $namespaceIds)
             ->latest('submit_time')
+            ->groupBy('topic_num')
             ->get();
         $topicUrls = [];
+        $urlTopicSet = [];
         foreach ($topics as $topic) {
             $camp = Camp::getLiveCamp([
                 'topicNum' => $topic->topic_num,
@@ -96,10 +98,13 @@ class SitemapXmlController extends Controller
             ]);
             if ($camp !== null && $camp->is_archive == 0) {
                 $topicUrl = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topic, $camp, time());
-                $topicUrls[] = [
-                    'url' => $topicUrl,
-                    'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-                ];
+                if (!in_array($topicUrl, $urlTopicSet)) {
+                    $urlTopicSet[] = $topicUrl;
+                    $topicUrls[] = [
+                        'url' => $topicUrl,
+                        'last_modified' => !empty($topic->go_live_time) ? Carbon::createFromTimestamp($topic->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                    ];
+                }
             }
         }
 
@@ -120,17 +125,22 @@ class SitemapXmlController extends Controller
                 $query->whereNotIn('topic.namespace_id', $namespaceIds);
             })
             ->latest('go_live_time')
+            ->groupBy('topic_num','camp_num')
             ->get();
         $campUrls = [];
+        $urlSet = [];
         foreach ($camps as $camp) {
             $topic = Topic::getLiveTopic($camp->topic_num);
             $campLink = Util::getTopicCampUrlWithoutTime($camp->topic_num, $camp->camp_num, $topic, $camp, time());
-            $campUrls[] = [
-                'url' => $campLink,
-                'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-
-            ];
+            if (!in_array($campLink, $urlSet)) {
+                $urlSet[] = $campLink;
+                $campUrls[] = [
+                    'url' => $campLink,
+                    'last_modified' => !empty($camp->go_live_time) ? Carbon::createFromTimestamp($camp->go_live_time)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                ];
+            }
         }
+
         return $campUrls;
     }
 
@@ -145,6 +155,7 @@ class SitemapXmlController extends Controller
             $query->whereNotIn('topic.namespace_id', $namespaceIds);
         })->get();
         $unique = [];
+        $urlThreadSet = [];
         foreach ($threads as $thread) {
             if (in_array($thread->topic_id . '' . $thread->camp_id, $unique)) {
                 continue;
@@ -159,10 +170,13 @@ class SitemapXmlController extends Controller
                 continue;
             }
             $threadLink = config('global.APP_URL_FRONT_END') . '/forum/' . $thread->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $thread->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/';
-            $topicUrl[] = [
-                'url' => $threadLink,
-                'last_modified' => !empty($thread->updated_at) ? Carbon::createFromTimestamp($thread->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-            ];
+            if (!in_array($threadLink, $urlThreadSet)) {
+                $urlThreadSet[] = $threadLink;
+                $topicUrl[] = [
+                    'url' => $threadLink,
+                    'last_modified' => !empty($thread->updated_at) ? Carbon::createFromTimestamp($thread->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                ];
+            }
         }
         return  $topicUrl;
     }
@@ -181,6 +195,7 @@ class SitemapXmlController extends Controller
             ->get()->sortByDesc(function ($thread, $key) {
                 return $thread->latestReply->updated_at;
             });
+        $urlPostSet = [];
         foreach ($threadsWithReplies as $post) {
             if (!empty($post->latestReply)) {
                 $topic = Topic::getLiveTopic($post->topic_id);
@@ -191,10 +206,12 @@ class SitemapXmlController extends Controller
                     continue;
                 }
                 $postLink = config('global.APP_URL_FRONT_END') . '/forum/' . $post->topic_id . '-' .  Util::replaceSpecialCharacters($topic->topic_name) . '/' . $post->camp_id . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '/threads/' . $post->id;
-                $topicUrl[] = [
-                    'url' => $postLink,
-                    'last_modified' => !empty($post->latestReply->updated_at) ? Carbon::createFromTimestamp($post->latestReply->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
-                ];
+                if (!in_array($postLink, $urlPostSet)) {
+                    $topicUrl[] = [
+                        'url' => $postLink,
+                        'last_modified' => !empty($post->latestReply->updated_at) ? Carbon::createFromTimestamp($post->latestReply->updated_at)->toIso8601String() : Carbon::now()->startOfDay()->toIso8601String()
+                    ];
+                }
             }
         }
         return  $topicUrl;
