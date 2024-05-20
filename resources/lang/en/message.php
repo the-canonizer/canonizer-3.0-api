@@ -584,6 +584,10 @@ return [
         'forum_num_required' => "forum_num is required.",
         'forum_num_numeric' => "forum_num should be a numeric.",
         'forum_num_gt' => "forum_num should be greater than :value.",
+
+        'video_id_required' => "video_id is required.",
+        'video_id_numeric' => "video_id should be a numeric.",
+        'video_id_gt' => "video_id should be greater than :value.",
     ],
     "validation_change_supporters" => [
         'topic_num_required' => "topic_num is required.",

@@ -578,6 +578,13 @@ class ValidationRules
         ];
     }
 
+    public function getMetaTagsVideoValidationRules(): array
+    {
+        return [
+            'keys.video_id' => 'required|numeric|gt:0',
+        ];
+    }
+
     public function notifyIfTopicNotExistValidationRules(): array
     {
         return [
