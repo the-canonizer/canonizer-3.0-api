@@ -642,6 +642,9 @@ return [
         "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
         "change_request_failed"   => "Inccorect OTP entered.",
         "verify_new_email" => "A verification code has been sent to your email :email. Please check your inbox and enter the code ",
-        "updated_email"  => "Email Updated Successfully."
+        "updated_email"  => "Email Updated Successfully.",
+        "newemail_added" => "New email added successfully.",
+        "newemail_added_verify" => "New email added successfully, please verify email by entering OTP sent on email to make this your primary/default email.",
+        "newemail_added_verified" => "Email verified successfully, now this email is your primary/login/notification email"
     ]
 ];
