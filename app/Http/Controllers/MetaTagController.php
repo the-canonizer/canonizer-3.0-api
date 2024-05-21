@@ -112,7 +112,7 @@ class MetaTagController extends Controller
                 $getVideo = Video::where('id', $request->keys['video_id'] )->first();
 
                 if (is_null($getVideo)) {
-                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_not_found'));
+                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
                 }
 
                 $title = $getVideo->title ?? "";
