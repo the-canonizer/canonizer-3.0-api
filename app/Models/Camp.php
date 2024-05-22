@@ -21,6 +21,7 @@ use App\Helpers\ElasticSearch;
 use App\Jobs\ForgetCacheKeyJob;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use App\Jobs\ActivityLoggerJob;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -36,7 +37,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name'];
+    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name', 'camp_leader_nick_id'];
     protected $parent_change_in_review;
 
     /**
@@ -729,7 +730,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 *   Now support at the time of submition will be count as total supporter. 
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
-                $supportersByTimeStamp =  Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter);
+                $supportersByTimeStamp =  Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter + ['change_id' => $val->id], false);
                 $val->total_supporters = $supportersByTimeStamp[1];
 
                 $supportersListByTimeStamp = $supportersByTimeStamp[0];
@@ -749,7 +750,17 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $nickNames = Nickname::personNicknameArray();
                 $val->ifIamSupporter = Support::ifIamSupporterForChange($filter['topicNum'], $filter['campNum'], $nickNames, $submittime);
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
-               
+
+                /**
+                 * Camp Leader: Camp leader can't object to that change.
+                 */
+                $val->ifICanAgreeAndObject = true;
+                if(in_array($liveCamp->camp_leader_nick_id, $nickNames) && $liveCamp->camp_leader_nick_id !== $val->camp_leader_nick_id) {
+                    $val->ifICanAgreeAndObject = false;
+                }
+
+                $val->camp_leader_nick_name = NickName::getNickName($val->camp_leader_nick_id)->nick_name ?? '';
+
                 switch ($val) {
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
@@ -1037,5 +1048,83 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
         ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($camp);
         return ['is_disabled' => $camp->is_disabled || $parentIsDisabled, 'is_one_level' => $camp->is_one_level || $parentIsOneLevel];
+    }
+
+    public static function getCampLeaderNickId($topic_num, $camp_num, $as_of = 'default') {
+        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => $as_of], ['camp_leader_nick_id']);
+        return $camp && $camp->camp_leader_nick_id > 0 ? $camp->camp_leader_nick_id : null;
+    }
+
+    public static function updateCampLeaderFromLiveCamp(int $topic_num, int $camp_num, ?int $new_camp_leader_nick_id)
+    {
+        // Replicate live camp with minor tweaks.
+        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate();
+        $old_camp_leader_nick_id = $camp->camp_leader_nick_id;
+        if ($new_camp_leader_nick_id !== $camp->camp_leader_nick_id) {
+
+            $camp->fill([
+                'submit_time' => time(),
+                'go_live_time' => time(),
+                'camp_leader_nick_id' => $new_camp_leader_nick_id,
+            ]);
+            $camp->save();
+
+            // Dispatch job to update mongoDB cache.
+            $topic = Topic::getLiveTopic($topic_num);
+            Util::dispatchJob($topic, $camp_num, 1);
+
+            // Log of system assigned/remove camp leader
+            if(!is_null($new_camp_leader_nick_id)) {
+                self::dispatchCampLeaderActivityLogJob($topic, $camp, $new_camp_leader_nick_id, request()->user(), 'assigned');
+            }
+
+            if(!is_null($old_camp_leader_nick_id)) {
+                self::dispatchCampLeaderActivityLogJob($topic, $camp, $old_camp_leader_nick_id, request()->user(), 'removed');
+            }
+        }
+    }
+
+    public static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user, $action = 'others')
+    {
+        $nickName = Nickname::getNickName($nick_name_id)->nick_name;
+        $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->camp_num, $topic, $camp, time());
+
+        switch ($action) {
+            case 'assigned':
+                $activityMessage = trans('message.activity_log_message.assigned_as_camp_leader', ['nick_name' => $nickName]);
+                break;
+
+            case 'removed':
+                $activityMessage = trans('message.activity_log_message.removed_as_camp_leader', ['nick_name' => $nickName]);
+                break;
+
+            default:
+                $activityMessage = '';
+                break;
+        }
+
+        $activitLogData = [
+            'log_type' => 'topic/camps',
+            'activity' => $activityMessage,
+            'url' => $link,
+            'model' => $camp,
+            'topic_num' => $topic->topic_num,
+            'camp_num' => $camp->camp_num,
+            'user' => $user,
+            'nick_name' => $nickName,
+            'description' =>  $camp->camp_name
+        ];
+        dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+    }
+
+    public static function getNominatedCampLeaderInReviewChanges($topic_num, $camp_num, $camp_leader_nick_id, $submit_time = null) {
+        $submit_time = !is_null($submit_time) ? $submit_time : time();
+        return self::where([
+            ['topic_num', '=', $topic_num],
+            ['camp_num', '=', $camp_num],
+            ['camp_leader_nick_id', '=', $camp_leader_nick_id],
+            ['submit_time', '<', $submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp]
+        ])->whereNull('objector_nick_id')->get();
     }
 }

@@ -66,8 +66,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $camp->go_live_time = $model->go_live_time;
                 $camp->title = $model->topic_name;
                 $camp->camp_name = Camp::AGREEMENT_CAMP;
+                $camp->camp_leader_nick_id = $model->submitter_nick_id;
 
                 $camp->save();
+
+                Camp::dispatchCampLeaderActivityLogJob($model, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
             }
         });
 
@@ -268,7 +271,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 *   Now support at the time of submition will be count as total supporter. 
                 *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                 */
-                $val->total_supporters = Support::getTotalSupporterByTimestamp((int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
+                $val->total_supporters = Support::getTotalSupporterByTimestamp('topic', (int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
                     ->where('camp_num', '=', $filter['campNum'])
                     ->where('change_id', '=', $val->id)

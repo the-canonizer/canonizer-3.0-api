@@ -145,6 +145,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/support-reason-list','SupportController@getSupportReason');
 
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
+        $router->post('camp/sign','CampController@signPetition');
+        $router->get('camp/sign/check','SupportController@checkIfUserAlreadySignCamp');
         $router->get('/change-email-request','ProfileController@changeEmailRequest');
         $router->post('/emailchange-verify-otp','ProfileController@emailChangeOtpVerification');
         $router->post('/update-email-request','ProfileController@updateEmailRequest');

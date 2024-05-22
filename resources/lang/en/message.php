@@ -18,6 +18,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_camp_leader' => 'Only direct supporter can be a camp leader',
         'invalid_camp_name' => 'Invalid camp name.',
         'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
@@ -567,6 +568,9 @@ return [
         "commit_change" => ":nick_name proposed a change to the :type",
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
         "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to.",
+
+        "assigned_as_camp_leader" => ':nick_name assigned as camp leader',
+        "removed_as_camp_leader" => ':nick_name removed as camp leader',
     ],
     "validation_meta_tags" => [
         'page_name_required' => "page_name is required.",
@@ -636,7 +640,31 @@ return [
         'user_agent_string' => "The :attribute must be a valid user agent string.",
         
     ],
+    'sign_petition_validation' => [
+        'topic_num_required' => "topic num is required.",
+        'topic_num_numeric' => "topic num should be a numeric.",
+        'topic_num_gt' => "topic num should be greater than :value.",
+        'topic_num_max_numeric' => "The topic num must not be greater than 9223372036854775807.",
 
+        'camp_num_required' => "camp num is required.",
+        'camp_num_numeric' => "camp num should be a numeric.",
+        'camp_num_gt' => "camp_num should be greater than :value.",
+        'camp_num_max_numeric' => "The camp num must not be greater than 9223372036854775807.",
+
+        'nick_name_id_required' => "nick name id is required.",
+        'nick_name_id_numeric' => "nick name id should be a numeric.",
+        'nick_name_id_gt' => "nick name id should be greater than :value.",
+        'nick_name_id_max_numeric' => "The nick name id must not be greater than 9223372036854775807.",
+    ],
+    'camp_leader' => [
+        'error' => [
+            'cannot_delegate_itslef' => 'The camp leader cannot delegate support to itself.',
+            'already_signed_camp' => 'You cannot sign the camp twice.',
+            'system_generated' => [
+                'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
+            ]
+        ]
+    ],       
     'email' => [
         "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
         "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",

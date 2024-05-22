@@ -45,4 +45,29 @@ class EditCampRecordApiTest extends TestCase
             'data' => []
         ]);
     }
+
+        /**
+     * Check Api response structure is valid 
+     */
+    public function testEditCampApiResponseIsValid()
+    {
+        $user = User::factory()->make();
+        $editCampData = [
+            "record_id" => "224",
+            "event_type" => "edit"
+        ];
+        $this->actingAs($user)->post('/api/v3/edit-camp', $editCampData);
+        $this->response->assertStatus(200)->assertJsonStructure([
+            'status_code',
+            'message',
+            'error',
+            'data' => [
+                "camp",
+                "nick_name",
+                "eligible_camp_leaders",
+                "topic",
+                "parent_camp"
+            ]
+        ]);
+    }
 }

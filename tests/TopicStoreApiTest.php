@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Camp;
 use App\Models\Thread;
 use App\Models\Topic;
 use App\Models\User;
@@ -67,8 +68,19 @@ class TopicStoreApiTest extends TestCase
             'namespace'=>'16',
             'nick_name'=>'347',
         ];
+
         $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
         $this->assertEquals(200, $this->response->status());
+
+        // After topic creation , check the camp leader is added by default...
+        if($this->response->status() == 200) {
+            $checkCampLeader = Camp::where("topic_num", $this->response->json()["data"]["topic_num"])
+                                ->where("camp_num", 1)->first();
+
+            if(!empty($checkCampLeader)) {
+                $this->assertEquals($parameters["nick_name"], $checkCampLeader?->camp_leader_nick_id);
+            }
+        }
     }
    
 }
