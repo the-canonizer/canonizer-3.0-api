@@ -3,7 +3,6 @@
 namespace App\Helpers;
 
 use Throwable;
-use Exception;
 use App\Models\Camp;
 use App\Models\User;
 use App\Facades\Util;
