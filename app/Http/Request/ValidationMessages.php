@@ -819,4 +819,16 @@ class ValidationMessages
             'otp.digits' =>  trans('message.otp.valid_digits')
         ]);
     }
+
+    public function getAddEmailMessages(): array
+    {
+
+        return ([
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique')
+        ]);
+    }
 }

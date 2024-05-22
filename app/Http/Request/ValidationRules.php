@@ -654,4 +654,12 @@ class ValidationRules
             'otp' => 'required|digits:6',
         ]);
     }
+
+    public function getAddEmailRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225|unique:user_email'
+        ]);
+    }
+    
 }
