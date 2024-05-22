@@ -688,6 +688,12 @@ class ValidationMessages
             'keys.forum_num.required' => trans('message.validation_meta_tags.forum_num_required'),
             'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
+
+
+            'keys.video_id.required' => trans('message.validation_meta_tags.video_id_required'),
+            'keys.video_id.numeric' => trans('message.validation_meta_tags.video_id_numeric'),
+            'keys.video_id.gt' => trans('message.validation_meta_tags.video_id_gt'),
+            
         ];
     }
 
