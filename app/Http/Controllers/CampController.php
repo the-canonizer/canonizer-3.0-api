@@ -1320,12 +1320,10 @@ class CampController extends Controller
             $camp = Camp::where('id', $request->record_id)->first();
             if ($camp) {
                 // if camp record is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $camp->go_live_time <= time()) {
-                    if(empty($camp->objector_nick_id)) {
-                        $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'camp']), '', '')->original)->toArray();
-                        $response['is_live'] = true;
-                        return $response;
-                    }
+                if ($request->event_type == 'objection' && $camp->go_live_time <= time() && empty($camp->objector_nick_id)) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'camp']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
                 }
 
                 $filter['topicNum'] = $camp->topic_num;

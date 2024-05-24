@@ -1863,12 +1863,10 @@ class TopicController extends Controller
             $topic = Topic::where('id', $request->record_id)->first();
             if ($topic) {
                 // if topic is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
-                    if(empty($topic->objector_nick_id)) {
-                        $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
-                        $response['is_live'] = true;
-                        return $response;
-                    }
+                if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
                 }
 
                 $nickName = Nickname::topicNicknameUsed($topic->topic_num);
