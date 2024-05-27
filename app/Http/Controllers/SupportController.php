@@ -386,7 +386,7 @@ class SupportController extends Controller
      }
 
 
-     /* @OA\Post(path="topic-support-list",
+    /* @OA\Post(path="topic-support-list",
      *  tags = "{topicSupport}"
      *  description = "This will return support added in topic."
      * ) 
@@ -405,9 +405,11 @@ class SupportController extends Controller
             $data = Support::getSupportedCampsList($topicNum, $userId); 
 
             foreach($data as $key => $support){
+                $liveCamp = Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $support['camp_num']]);
                 $link = Camp::campLink($support['topic_num'], $support['camp_num'], $support['title'], $support['camp_name']);
                 $data[$key]['link'] = $link;
                 $data[$key]['title'] = $topic->topic_name;
+                $data[$key]['camp_leader'] = $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id === $support['nick_name_id'];
             }
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
