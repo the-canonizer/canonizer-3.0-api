@@ -317,9 +317,9 @@ class Search extends Model
     }
 
 
-    public static function advanceCampSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default')
+    public static function advanceCampSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default', $asofdate = '')
     {
-        $asofdate = time();
+        $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('camp as a')
                 ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
                 ->join(DB::raw('(SELECT
@@ -338,8 +338,8 @@ class Search extends Model
                             topic_num,
                             camp_num) b'), function ($join) {
                     $join->on('a.topic_num', '=', 'b.topic_num')
-                        ->on('a.camp_num', '=', 'b.camp_num')
-                        ->on('a.go_live_time', '=', 'b.live_time');
+                         ->on('a.camp_num', '=', 'b.camp_num')
+                         ->on('a.go_live_time', '=', 'b.live_time');
                 });
 
                 if ($asof != 'review') {
@@ -350,7 +350,7 @@ class Search extends Model
                 $results = $query->get();
 
                 $data = [];
-                $algorithm = 'blind_popularity';
+                //$algorithm = 'blind_popularity';
                 foreach($results as $result)
                 {
                    
@@ -378,13 +378,13 @@ class Search extends Model
     }
 
 
-    public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $page_number = 1, $page_size = 5)
+    public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $asofdate='', $page_number = 1, $page_size = 5)
     {
         $requestBody = [
             'algorithm'     =>  $algorithm,
             'search'        =>  $search,
             'asof'          =>  $asof,
-            'asofdate'      =>  time(),
+            'asofdate'      =>  ($asofdate) ? $asofdate : time(),
             'filter'        =>  $filter,
             'page_number'   =>  $page_number,
             'page_size'     =>  $page_size,
@@ -445,9 +445,9 @@ class Search extends Model
         }
     }
 
-    public static function advanceStatementSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default')
+    public static function advanceStatementSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default', $asofdate = '')
     {
-        $asofdate = time();
+        $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
         $query = DB::table('statement as a')
                 ->select('a.id', 'a.parsed_value as type_value', 'a.topic_num', 'a.camp_num', 'a.go_live_time', 'c.camp_name')
                 ->join(DB::raw('(SELECT
@@ -498,7 +498,7 @@ class Search extends Model
 
 
                 $data = [];
-                $algorithm = 'blind_popularity';
+                //$algorithm = 'blind_popularity';
                 foreach($results as $result)
                 {
                    
