@@ -18,6 +18,7 @@ use App\Events\SupportRemovedMailEvent;
 use App\Events\PromotedDelegatesMailEvent;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -1863,7 +1864,9 @@ class TopicSupport
 
     public static function findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id = null)
     {
-        if ($nick_name_id) {
+        $directSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$topic_num, (int)$camp_num, $nick_name_id, Carbon::now()->timestamp, [], false, false)[0];
+        if (in_array($nick_name_id, collect($directSupporters)->pluck('id')->all())) {
+            # Case - If nickname is a supporter at the time of sign, get all the direct supporters before it and make oldest one as camp leader
             $support = Support::where([
                 ['topic_num', '=', $topic_num],
                 ['camp_num', '=', $camp_num],
@@ -1871,13 +1874,14 @@ class TopicSupport
             ])->orderBy('support_id', 'desc')->first();
             if ($support) {
                 $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-                return collect($direct_supporters)->where('start', '<=', $support->start)->where('support_order', 1)->last();
+                return collect($direct_supporters)->where('start', '<=', $support->start)->where('support_order', 1)->last(); 
             } else {
                 return null;
             }
         } else {
+            # Case - If nickname is not a supporter at the time of sign or null, get all the direct supporters and make oldest one as camp leader
             $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-            return collect($direct_supporters)->sortBy('start')->where('support_order', 1)->first();
+            return collect($direct_supporters)->sortBy('start')->where('support_order', 1)->first(); 
         }
     }
 }
