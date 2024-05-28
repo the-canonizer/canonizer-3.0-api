@@ -327,7 +327,7 @@ class Support extends Model
         return count($support) + $supportCount;
     }
 
-    public static function getTotalSupporterByTimestamp($action, $topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [], $includeCampLeader = true)
+    public static function getTotalSupporterByTimestamp($action, $topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [], $includeCampLeader = true, $includeSubmitter = true)
     {
         $submit_time = $submit_time ?: Carbon::now()->timestamp;
 
@@ -354,7 +354,7 @@ class Support extends Model
         }
         $totalSupporters = array_unique(array_merge(...$totalSupporters));
 
-        if ($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) {
+        if ($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters) && $includeSubmitter) {
             $totalSupporters[] = $submitterNickId;
         }
 
