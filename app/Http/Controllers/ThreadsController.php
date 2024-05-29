@@ -760,9 +760,9 @@ class ThreadsController extends Controller
         }
     }
 
-    public function getLatest5Threads($request)
+    public function getLatest5Threads(Request $request)
     {
-        echo 'fggg'; exit;
+        
         return Thread::leftJoin('post', function ($join) {
             $join->on('thread.id', '=', 'post.c_thread_id')
                 ->where('post.is_delete', 0);
