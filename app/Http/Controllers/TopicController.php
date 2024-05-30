@@ -1595,6 +1595,12 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
                 $topic = Topic::where('id', $all['topic_id'])->first();
+
+                // Check if the change is already objected , then we can't object again
+                if (!empty($topic->objector_nick_id)) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
+                }
+                
                 $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
