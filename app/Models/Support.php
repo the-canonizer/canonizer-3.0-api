@@ -7,6 +7,7 @@ use App\Facades\Util;
 use Carbon\Carbon;
 use DB;
 use App\Helpers\ElasticSearch;
+use App\Helpers\TopicSupport;
 use App\Models\Nickname;
 
 class Support extends Model
@@ -250,8 +251,20 @@ class Support extends Model
         return $supports;
     }
 
-    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $reason = null,$reason_summary = null,$citation_link = null)
+    public static function removeSupportWithAllNicknames($topicNum, $campNum = array(), $nickNames = array(), $reason = null, $reason_summary = null, $citation_link = null, $addition_data = [])
     {
+        // dd($topicNum, $campNum, $nickNames, $reason, $reason_summary, $citation_link);
+
+        $campNumToRemove = [];
+        if (empty($campNum) && isset($addition_data['route'], $addition_data['action'], $addition_data['type'])) {
+            if ($addition_data['route'] === 'support/update' && $addition_data['action'] === 'all' && $addition_data['type'] === 'direct') {
+                $campNumToRemove = Support::where([
+                    'topic_num' => $topicNum,
+                    'end' => 0,
+                ])->whereIn('nick_name_id', $nickNames)->get()->pluck('camp_num')->toArray();
+            }
+        }
+
         if (!empty($campNum)) {
             $supports = self::where('topic_num', '=', $topicNum)->where('end', 0)
                 ->whereIn('camp_num', $campNum)
@@ -261,6 +274,17 @@ class Support extends Model
             $supports = self::where('topic_num', '=', $topicNum)->where('end', 0)
                 ->whereIn('nick_name_id', $nickNames)
                 ->update(['end' => time(),'reason'=>$reason,'reason_summary'=>$reason_summary,'citation_link'=>$citation_link]);
+        }
+
+        // Check camp leader remove his support
+        if (empty($campNum))
+            $campNum = $campNumToRemove;
+        foreach ($campNum as $camp_num) {
+            $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
+            if (!is_null($camp_leader) && in_array($camp_leader, $nickNames)) {
+                $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $camp_num, $camp_leader);
+                Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null);
+            }
         }
 
         return;
@@ -327,7 +351,7 @@ class Support extends Model
         return count($support) + $supportCount;
     }
 
-    public static function getTotalSupporterByTimestamp($action, $topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [], $includeCampLeader = true, $includeSubmitter = true)
+    public static function getTotalSupporterByTimestamp($action, $topicNum, $campNum, $submitterNickId, $submit_time = null, $additionalFilter = [], $includeCampLeader = true)
     {
         $submit_time = $submit_time ?: Carbon::now()->timestamp;
 
@@ -354,7 +378,7 @@ class Support extends Model
         }
         $totalSupporters = array_unique(array_merge(...$totalSupporters));
 
-        if ($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters) && $includeSubmitter) {
+        if ($submitterNickId > 0 && !in_array($submitterNickId, $totalSupporters)) {
             $totalSupporters[] = $submitterNickId;
         }
 
