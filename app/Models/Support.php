@@ -282,7 +282,7 @@ class Support extends Model
         foreach ($campNum as $camp_num) {
             $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
             if (!is_null($camp_leader) && in_array($camp_leader, $nickNames)) {
-                $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $camp_num, $camp_leader);
+                $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $camp_num, $camp_leader, false, true);
                 Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null);
             }
         }
