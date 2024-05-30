@@ -468,7 +468,7 @@ class TopicController extends Controller
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
-
+            
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
             $filter['asOf'] = $all['asOf'] ?? "default";
@@ -515,12 +515,19 @@ class TopicController extends Controller
                 $model->go_live_time = time();
                 $changeGoneLive = true;
             }
-            
-            if($type == 'camp') {
+
+            if ($type == 'camp') {
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-                if(count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()))
-                {
+                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
                     $model->go_live_time = time();
+                    // Log of system assigned/remove camp leader
+                    if (!is_null($model->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
+                    }
+
+                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                    }
                 }
             }
 
@@ -1164,6 +1171,19 @@ class TopicController extends Controller
                         if ($camp->is_archive != $preLiveCamp->is_archive) {
                             $camp->archive_action_time = time();
                         }
+                        $preliveCamp = Camp::getLiveCamp(['topicNum' => $camp->topic_num, 'asOf' => "", 'campNum' => $camp->camp_num]);
+
+                        $topic = Topic::getLiveTopic($camp->topic_num, "default");
+
+                        // Log of system assigned/remove camp leader
+                        if (!is_null($camp->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($topic, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
+                        }
+
+                        if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($topic, $preliveCamp, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                        }
+
                         $camp->update();
                         self::updateCampsInReview($camp);
                         $liveCamp = Camp::getLiveCamp($filter);
