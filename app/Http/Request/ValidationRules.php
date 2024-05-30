@@ -578,6 +578,13 @@ class ValidationRules
         ];
     }
 
+    public function getMetaTagsVideoValidationRules(): array
+    {
+        return [
+            'keys.video_id' => 'required|numeric|gt:0',
+        ];
+    }
+
     public function notifyIfTopicNotExistValidationRules(): array
     {
         return [
@@ -631,6 +638,15 @@ class ValidationRules
         ]);
     }
 
+    public function getSignPetitionRules(): array
+    {
+        return [
+            'camp_num' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+            'topic_num' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+            'nick_name_id' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
+        ];
+    }
+    
     public function getUpdateEmailRules(): array
     {
         return ([
@@ -645,4 +661,12 @@ class ValidationRules
             'otp' => 'required|digits:6',
         ]);
     }
+
+    public function getAddEmailRules(): array
+    {
+        return ([
+            'email' => 'required|string|email|max:225|unique:user_email'
+        ]);
+    }
+    
 }

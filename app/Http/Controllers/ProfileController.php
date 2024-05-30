@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Models\Nickname;
 use App\Helpers\TopicSupport;
 use App\Events\EmailChangeEvent;
+use App\Models\UserEmail;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -650,6 +651,7 @@ class ProfileController extends Controller
         $user = $request->user();
         $all = $request->all();
         $email = $all['email'];
+        $setPrimary = ($all['set_primary']) ? $all['set_primary'] : 0;
 
 
         $validationErrors = $validate->validate($request, $this->rules->getVerfiyAndUpdateEmailRules(), $this->validationMessages->getVerfiyAndUpdateEmaiMessages());
@@ -661,9 +663,62 @@ class ProfileController extends Controller
             $user->otp = '';
             $user->email = $email;
             $user->update();
+
+            if($setPrimary){
+                
+                UserEmail::where('user_id',$user->id)->update(['is_primary' => 0]);
+                UserEmail::where('email','=', $email)->update(['is_primary' => 1]);
+
+                return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added_verified'), $user, '');
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.email.updated_email'), $user, '');
         }else{
             return $this->resProvider->apiJsonResponse(400, trans('message.email.change_request_failed'), '', '');
         }
+    }
+
+    public function addEmail(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        $email = $all['email'];
+        $isPrimary = isset($all['is_primary']) && $all['is_primary'] ? $all['is_primary'] : 0;
+
+
+        $validationErrors = $validate->validate($request, $this->rules->getAddEmailRules(), $this->validationMessages->getAddEmailMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $userEmail = new UserEmail;
+        $userEmail->user_id = $user->id;
+        $userEmail->email = $email;
+        //$userEmail->is_primary = isset($all['is_primary']) && $all['is_primary'] ? $all['is_primary'] : 0;
+        $userEmail->save();
+
+        if($isPrimary){
+            $otp = mt_rand(100000, 999999);
+            $user->otp = $otp;
+            $user->update();
+
+            $data['email'] = $userEmail->email;
+            $data['otp'] = $otp;
+            //verify email by sending OTP to new Email
+            Event::dispatch(new EmailChangeEvent($user,false, $email));
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added_verify'), $data, '');
+        }else{
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added'), $userEmail, '');
+        }
+
+        return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $user, '');
+
+    }
+
+
+    public function getAllEmail(Request $request)
+    {
+        $user = $request->user();
+        $emailList = UserEmail::getAll($user->id);
+        return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $emailList, '');
     }
 }

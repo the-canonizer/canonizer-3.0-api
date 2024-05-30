@@ -515,6 +515,14 @@ class TopicController extends Controller
                 $model->go_live_time = time();
                 $changeGoneLive = true;
             }
+            
+            if($type == 'camp') {
+                $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
+                if(count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()))
+                {
+                    $model->go_live_time = time();
+                }
+            }
 
             $model->grace_period = 0;
 
@@ -755,6 +763,14 @@ class TopicController extends Controller
                             'field' => 'camp_about_nick_name',
                             'live' => $live,
                             'change-in-review' => $current,
+                        ];
+                    }
+
+                    if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                        $changeData[] =  [
+                            'field' => 'camp_leader_nick_name',
+                            'live' => NickName::getNickName($preliveCamp->camp_leader_nick_id)->nick_name ?? '-',
+                            'change-in-review' => NickName::getNickName($model->camp_leader_nick_id)->nick_name ?? '-',
                         ];
                     }
 
@@ -1082,7 +1098,7 @@ class TopicController extends Controller
                     $submitterNickId = $statement->submitter_nick_id;
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('statement', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
@@ -1117,7 +1133,7 @@ class TopicController extends Controller
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('camp', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num'], 'change_id' => $changeId], false);
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
@@ -1206,7 +1222,7 @@ class TopicController extends Controller
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('topic', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
 
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
