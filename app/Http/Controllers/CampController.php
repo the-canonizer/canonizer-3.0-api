@@ -1470,12 +1470,7 @@ class CampController extends Controller
         if (strtolower(trim($all['camp_name'])) != 'agreement' && $all['camp_num'] == 1) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_name'), '', '');
         }
-        if (isset($all['camp_leader_nick_id']) && !empty($all['camp_leader_nick_id'])) {            
-            $checkDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $all['camp_num'],[$all['camp_leader_nick_id']], time());
-            if(!$checkDirectSupportExists) {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_leader'), '', '');
-            }
-        }
+
         try {
             if (Camp::IfTopicCampNameAlreadyExists($all)) {
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
@@ -1489,7 +1484,13 @@ class CampController extends Controller
             $filter['topicNum'] = $all['topic_num'];
             $filter['campNum'] = $all['camp_num'];
             $liveCamp = Camp::getLiveCamp($filter);
-
+            
+            if (isset($all['camp_leader_nick_id']) && !empty($all['camp_leader_nick_id']) && $liveCamp->is_archive === 0) {            
+                $checkDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $all['camp_num'],[$all['camp_leader_nick_id']], time());
+                if(!$checkDirectSupportExists) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.error.invalid_camp_leader'), '', '');
+                }
+            }
             
             if ($all['event_type'] == "update") {                
                 if (Camp::checkIfUnarchiveChangeIsSubmitted($liveCamp)) {
