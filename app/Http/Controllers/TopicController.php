@@ -1595,6 +1595,12 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
                 $topic = Topic::where('id', $all['topic_id'])->first();
+
+                // Check if the change is already objected , then we can't object again
+                if (!empty($topic->objector_nick_id)) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
+                }
+                
                 $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
@@ -1863,7 +1869,7 @@ class TopicController extends Controller
             $topic = Topic::where('id', $request->record_id)->first();
             if ($topic) {
                 // if topic is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
+                if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
                     $response['is_live'] = true;
                     return $response;

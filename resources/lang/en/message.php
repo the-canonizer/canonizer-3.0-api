@@ -359,7 +359,8 @@ return [
         'remove_direct_support' => 'Support removed successfully.',
         'not_authorized_for_objection' => 'You are not authorized to object to this statement because you do not support this camp.',
         'not_authorized_for_objection_topic' => 'You are not authorized to object to this topic because you do not support this camp.',
-        'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.'
+        'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.',
+        'can_not_object' => "You can't object to already objected change.",
 
 
 
