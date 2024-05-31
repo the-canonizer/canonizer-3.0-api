@@ -50,7 +50,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
         $router->get('/thread/{id}','ThreadsController@getThreadById');
         $router->get('get-nick-support-user/{nick_id}','NicknameController@getNickSupportUser');
-
+        $router->post('thread/latest5','ThreadsController@getLatest5Threads');
         // Others Routes
 
         $router->post('/get-camp-statement','StatementController@getStatement');
