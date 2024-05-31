@@ -149,8 +149,7 @@ class ReplyController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-        $body_text = strip_tags(trim(html_entity_decode($request->body)));
+        $body_text = trim(html_entity_decode($request->body));
         if (!preg_replace('/\s+/u', '', $body_text)) {
             $status = 400;
             $message = trans('message.post.body_regex');
