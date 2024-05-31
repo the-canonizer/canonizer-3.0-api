@@ -665,6 +665,7 @@ return [
         'error' => [
             'cannot_delegate_itslef' => 'The camp leader cannot delegate support to itself.',
             'already_signed_camp' => 'You cannot sign the camp twice.',
+            'cannot_be_camp_leader_because_high_support_order' => 'You cannot be a camp leader because this camp is not your first choice!',
             'system_generated' => [
                 'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
             ]

@@ -1679,17 +1679,17 @@ class TopicSupport
         return $returnData;
     }
 
-    public static function checkSignValidaionAndWarning($topic_num, $camp_num, $nickNames) 
+    public static function checkSignValidaionAndWarning($topic_num, $camp_num, $nickNames)
     {
         $livecamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
         $directSupporters = collect(Support::getDirectSupporter($topic_num, $camp_num));
-        
+
         /**
          * Case 1: If there not any direct supporter.
          */
         if ($directSupporters->count() === 0) {
             $warning = "There are not any direct supporter in this camp <b>" . $livecamp->camp_name . "</b>. If you continue, you will be added as direct supporter and assigned as camp leader.";
-            $warning = "<span><b>Info!</b> ". $warning . "</span>";
+            $warning = "<span><b>Info!</b> " . $warning . "</span>";
             return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
         }
 
@@ -1698,7 +1698,7 @@ class TopicSupport
          */
         if ($directSupporters->count() === 1 && in_array($livecamp->camp_leader_nick_id, $nickNames)) {
             $warning = "You are the camp leader of this camp <b>" . $livecamp->camp_name . "</b>. You cannot sign the camp.";
-            $warning = "<span><b>Warning!</b> ". $warning . "</span>";
+            $warning = "<span><b>Warning!</b> " . $warning . "</span>";
             return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id);
         }
 
@@ -1709,7 +1709,7 @@ class TopicSupport
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && !is_null($livecamp->camp_leader_nick_id) && count($userSignedCamp) === 0) {
             $nickName = Nickname::getNickName($livecamp->camp_leader_nick_id)->nick_name;
             $warning = "The camp leader of this camp is <b>" . $nickName . "</b>. If you continue, your support will be delegated to the camp leader.";
-            $warning = "<span><b>Info!</b> ". $warning . "</span>";
+            $warning = "<span><b>Info!</b> " . $warning . "</span>";
             return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
         }
 
@@ -1718,12 +1718,14 @@ class TopicSupport
          */
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && is_null($livecamp->camp_leader_nick_id)) {
             $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
-            $nickName = Nickname::getNickName($oldest_direct_supporter->nick_name_id)->nick_name;
-            $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader.' 
-                                            : "the oldest direct supporter (\"" . $nickName . "\") will be assigned as new camp leader and your support will be delegated to the camp leader.";
-            $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. If you continue, ". $oldestDirectSupportMessage;
-            $warning = "<span><b>Info!</b> ". $warning . "</span>";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+            if ($oldest_direct_supporter) {
+                $nickName = Nickname::getNickName($oldest_direct_supporter->nick_name_id)->nick_name;
+                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader.'
+                : "the oldest direct supporter (\"" . $nickName . "\") will be assigned as new camp leader and your support will be delegated to the camp leader.";
+                $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. If you continue, " . $oldestDirectSupportMessage;
+                $warning = "<span><b>Info!</b> " . $warning . "</span>";
+                return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+            }
         }
 
         /**
@@ -1798,10 +1800,10 @@ class TopicSupport
                 if(!$support) {
                     TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $camp_leader_nick_id);
                 } else {
-                    return "already_signed_camp";
+                    throw new Exception(trans('message.camp_leader.error.already_signed_camp'));
                 }
             } else {
-                return "cannot_delegate_itself";
+                throw new Exception(trans('message.camp_leader.error.cannot_delegate_itslef'));
             }
             return;
         }
@@ -1865,23 +1867,34 @@ class TopicSupport
     public static function findOldestDirectSupporter($topic_num, $camp_num, $nick_name_id = null)
     {
         $directSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$topic_num, (int)$camp_num, $nick_name_id, Carbon::now()->timestamp, [], false, false)[0];
-        if (in_array($nick_name_id, collect($directSupporters)->pluck('id')->all())) {
-            # Case - If nickname is a supporter at the time of sign, get all the direct supporters before it and make oldest one as camp leader
+        $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
+        if (!empty($nick_name_id) && in_array($nick_name_id, collect($directSupporters)->pluck('id')->all())) {
+            /**
+             * Case - If the user has support order is greater than 1, throw error
+             */
+            $support = $direct_supporters->where('support_order', '>', 1)->where('nick_name_id', $nick_name_id)->first();
+            if ($support) {
+                throw new Exception(trans('message.camp_leader.error.cannot_be_camp_leader_because_high_support_order'));
+            }
+
+            /**
+             * Case - If nickname is a supporter at the time of sign, get all the direct supporters before it and make oldest one as camp leader
+             */
             $support = Support::where([
                 ['topic_num', '=', $topic_num],
                 ['camp_num', '=', $camp_num],
                 ['nick_name_id', '=', $nick_name_id],
             ])->orderBy('support_id', 'desc')->first();
             if ($support) {
-                $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-                return collect($direct_supporters)->where('start', '<=', $support->start)->where('support_order', 1)->last(); 
+                return collect($direct_supporters)->where('start', '<=', $support->start)->where('support_order', 1)->last();
             } else {
                 return null;
             }
         } else {
-            # Case - If nickname is not a supporter at the time of sign or null, get all the direct supporters and make oldest one as camp leader
-            $direct_supporters = Support::getDirectSupporter($topic_num, $camp_num, ['start', 'end']);
-            return collect($direct_supporters)->sortBy('start')->where('support_order', 1)->first(); 
+            /**
+             *  Case - If nickname is not a supporter at the time of sign or null, get all the direct supporters and make oldest one as camp leader
+             */
+            return collect($direct_supporters)->sortBy('start')->where('support_order', 1)->first();
         }
     }
 }
