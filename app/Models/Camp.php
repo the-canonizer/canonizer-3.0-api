@@ -1083,7 +1083,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             }
 
             if(!is_null($old_camp_leader_nick_id)) {
-                self::dispatchCampLeaderPushNotification(request()->user(), $topic, $camp, $old_camp_leader_nick_id, 'assigned');
+                self::dispatchCampLeaderPushNotification(request()->user(), $topic, $camp, $old_camp_leader_nick_id, 'removed');
                 self::dispatchCampLeaderActivityLogJob($topic, $camp, $old_camp_leader_nick_id, request()->user(), 'removed');
             }
         }
