@@ -630,4 +630,13 @@ class ValidationRules
             'thread_id' => 'exists:thread,id'
         ]);
     }
+
+    public function getTagsListingValidationRules(): array
+    {
+        return [
+            'per_page' => 'required',
+            'page' => 'required',
+            'sort_by' => 'in:asc,desc',
+        ];
+    }
 }

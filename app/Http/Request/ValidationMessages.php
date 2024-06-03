@@ -770,4 +770,13 @@ class ValidationMessages
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
         ];
     }
+
+    public function getTagsListingValidationMessages(): array
+    {
+        return [
+            'per_page.required' => trans('message.tags.per_page_required'),
+            'page.required' => trans('message.tags.page_required'),
+            'sort_by.in' => trans('message.tags.sort_by_in')
+        ];
+    }
 }

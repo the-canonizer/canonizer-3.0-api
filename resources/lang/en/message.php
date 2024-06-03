@@ -636,4 +636,9 @@ return [
         'user_agent_string' => "The :attribute must be a valid user agent string.",
         
     ],
+    'tags' => [
+        'per_page_required' => "Records per page is required.",
+        'page_required' => "Page number is required.",
+        'sort_by_in' => 'Sort by should be asc or desc.',
+    ],
 ];
