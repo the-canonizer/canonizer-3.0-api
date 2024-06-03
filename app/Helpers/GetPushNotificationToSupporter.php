@@ -215,6 +215,18 @@ class GetPushNotificationToSupporter
                 $PushNotificationData->message_body = trans('message.notification_message.commitTopicChange', ['nick_name' => $nickName, 'topic_name' => $topic->topic_name]);
                 $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name);
                 break;
+            case config('global.notification_type.CampLeaderAssigned'):
+                $PushNotificationData->notification_type = config('global.notification_type.CampLeaderAssigned');
+                $PushNotificationData->title = trans('message.notification_title.CampLeaderAssigned', ['camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.CampLeaderAssigned', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)   . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
+                break;
+            case config('global.notification_type.CampLeaderRemoved'):
+                $PushNotificationData->notification_type = config('global.notification_type.CampLeaderRemoved');
+                $PushNotificationData->title = trans('message.notification_title.CampLeaderRemoved', ['camp_name' => $camp->camp_name]);
+                $PushNotificationData->message_body = trans('message.notification_message.CampLeaderRemoved', ['nick_name' => $nickName, 'camp_name' => $camp->camp_name]);
+                $PushNotificationData->link = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name)   . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name) . '?n_type=support';
+                break;
             default:
                 $PushNotificationData->notification_type = config('global.notification_type.Support');
                 $PushNotificationData->title = trans('message.notification_title.removeSupport', ['camp_name' => $camp->camp_name]);
