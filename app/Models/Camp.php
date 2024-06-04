@@ -1091,6 +1091,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function dispatchCampLeaderPushNotification(User $user, Topic $topic, Camp $camp, int $nick_name_id, $action)
     {
+        $camp = Camp::getLiveCamp(['topicNum' => $topic->topic_num, 'campNum' => $camp->camp_num, 'asOf' => 'default']);
         $nickName = Nickname::getNickName($nick_name_id);
         $notificationData = [
             "email" => [],
