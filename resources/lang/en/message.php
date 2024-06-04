@@ -640,5 +640,6 @@ return [
         'per_page_required' => "Records per page is required.",
         'page_required' => "Page number is required.",
         'sort_by_in' => 'Sort by should be asc or desc.',
+        'topic_tags_must_array' => 'Tags must be in array format.',
     ],
 ];

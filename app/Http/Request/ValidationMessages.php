@@ -239,7 +239,8 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
-            'asof.in' => trans('message.validation_topic_store.asof_in')
+            'asof.in' => trans('message.validation_topic_store.asof_in'),
+            'tags.array' => trans('message.tags.topic_tags_must_array')
         ]);
     }
 

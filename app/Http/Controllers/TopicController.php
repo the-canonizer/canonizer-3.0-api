@@ -34,6 +34,8 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use App\Models\TopicTag;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
@@ -198,8 +200,21 @@ class TopicController extends Controller
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
+
             $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
+                // Check if the array exists for tags ...
+                if ($request->has('tags') && is_array($request->tags)) {
+                    $dataToSave = [];
+                    foreach ($request->tags as $tagId) {
+                      $dataToSave[] = [
+                        'topic_num' => $topic->topic_num,
+                        'tag_id' => $tagId,
+                        'created_at' => time()
+                      ];
+                    }
+                    TopicTag::upsert($dataToSave, ['topic_num', 'tag_id'], ['created_at']);
+                }
 
                 Util::dispatchJob($topic, 1, 1);
                 // Eventline - topic create event saved
@@ -1648,6 +1663,20 @@ class TopicController extends Controller
             }
 
             $topic->save();
+
+            // Check if the array exists for tags ...
+            if ($request->has('tags') && is_array($request->tags)) {
+                $dataToSave = [];
+                foreach ($request->tags as $tagId) {
+                  $dataToSave[] = [
+                    'topic_num' => $topic->topic_num,
+                    'tag_id' => $tagId,
+                    'created_at' => time()
+                  ];
+                }
+                TopicTag::upsert($dataToSave, ['topic_num', 'tag_id'], ['created_at']);
+            }
+
             DB::commit();
 
             if ($all['event_type'] == "objection") {

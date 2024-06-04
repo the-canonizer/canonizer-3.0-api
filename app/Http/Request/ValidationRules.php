@@ -225,7 +225,8 @@ class ValidationRules
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
-            'asof' => 'in:default,review,bydate'
+            'asof' => 'in:default,review,bydate',
+            'tags' => 'array',
         ]);
     }
 
