@@ -1101,10 +1101,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         $liveThread =  null;
         $threadId =  null;
 
-        $notification_type = match($action){
-            'assigned' => config('global.notification_type.CampLeaderAssigned'),
-            'removed' => config('global.notification_type.CampLeaderRemoved'),
-        };
+        switch ($action) {
+            case 'assigned':
+                $notification_type = config('global.notification_type.CampLeaderAssigned');
+                break;
+            case 'removed':
+                $notification_type = config('global.notification_type.CampLeaderRemoved');
+                break;
+        }
 
         $getMessageData = GetPushNotificationToSupporter::getMessageData($user, $topic, $camp, $liveThread, $threadId, $notification_type, $nickName->nick_name, null);
         if (!empty($getMessageData)) {
