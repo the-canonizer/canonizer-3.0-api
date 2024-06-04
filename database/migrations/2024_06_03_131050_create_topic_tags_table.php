@@ -18,8 +18,6 @@ class CreateTopicTagsTable extends Migration
                 $table->id();
                 $table->unsignedInteger('topic_num');
                 $table->unsignedInteger('tag_id');
-                $table->unsignedInteger('created_at')->nullable();
-                $table->unsignedInteger('updated_at')->nullable();
             });
         }
     }

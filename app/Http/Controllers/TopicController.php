@@ -205,15 +205,7 @@ class TopicController extends Controller
             if ($topic) {
                 // Check if the array exists for tags ...
                 if ($request->has('tags') && is_array($request->tags)) {
-                    $dataToSave = [];
-                    foreach ($request->tags as $tagId) {
-                      $dataToSave[] = [
-                        'topic_num' => $topic->topic_num,
-                        'tag_id' => $tagId,
-                        'created_at' => time()
-                      ];
-                    }
-                    TopicTag::upsert($dataToSave, ['topic_num', 'tag_id'], ['created_at']);
+                    Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
                 }
 
                 Util::dispatchJob($topic, 1, 1);
@@ -1666,15 +1658,7 @@ class TopicController extends Controller
 
             // Check if the array exists for tags ...
             if ($request->has('tags') && is_array($request->tags)) {
-                $dataToSave = [];
-                foreach ($request->tags as $tagId) {
-                  $dataToSave[] = [
-                    'topic_num' => $topic->topic_num,
-                    'tag_id' => $tagId,
-                    'created_at' => time()
-                  ];
-                }
-                TopicTag::upsert($dataToSave, ['topic_num', 'tag_id'], ['created_at']);
+                Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
             }
 
             DB::commit();
@@ -1880,7 +1864,11 @@ class TopicController extends Controller
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
             }
             $topic = Topic::where('id', $request->record_id)->first();
+
             if ($topic) {
+                // If the topic is found attach the topic tags with it ...
+                $topic->tags = TopicTag::where('topic_num', $topic->topic_num)->pluck('tag_id')->toArray();
+
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
