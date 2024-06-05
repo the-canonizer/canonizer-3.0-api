@@ -108,7 +108,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path'
+       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path', 'show_views'
     ];
 
     /**
@@ -151,7 +151,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             $this->private_flags = implode(",", $this->private_fields);
         else
             $this->private_flags = NULL;
-
+        
+        $this->show_views = $attributes['show_views'];
         return $this->save();
     }
 
