@@ -20,7 +20,8 @@ class UserResource extends JsonResource
             "default_algo"    => $this->default_algo ?? null,
             "private_flags"   => $this->private_flags ?? null,
             "join_time"       => $this->join_time ?? time(),
-            "is_admin"       => $this->is_admin ?? null,
+            "is_admin"        => $this->is_admin ?? null,
+            "show_views"      => $this->show_views ?? 0,
             "profile_picture" => !empty($this->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $this->profile_picture_path) : null
         ];
     }

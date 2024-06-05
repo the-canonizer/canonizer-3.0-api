@@ -151,8 +151,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
             $this->private_flags = implode(",", $this->private_fields);
         else
             $this->private_flags = NULL;
-        
-        $this->show_views = $attributes['show_views'];
+
+        $this->show_views = $attributes['show_views'] ?? $this->show_views;
         return $this->save();
     }
 
