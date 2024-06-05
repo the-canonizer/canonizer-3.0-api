@@ -150,6 +150,7 @@ class Statement extends Model
 
     public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request)
     {
+        $statement_query->where('is_draft', 0);
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
         });
@@ -225,6 +226,11 @@ class Statement extends Model
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
                 switch ($val) {
+                    case $val->is_draft === 1:
+                        $val->status = "draft";
+                        $val->agreed_supporters = 0;
+                        $val->total_supporters = 0;
+                        break;
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
                         $val->objector_nick_name = $val->objectorNickName->nick_name;
@@ -256,4 +262,11 @@ class Statement extends Model
         return  $data;
     }
 
+    public static function getDraftRecord(int $topic_num, int $camp_num)
+    {
+        if ($draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->where('is_draft', 1)->first()) {
+            return $draft->id;
+        }
+        return null;
+    }
 }
