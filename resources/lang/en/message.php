@@ -37,7 +37,8 @@ return [
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
         'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
-        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.'
+        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.',
+        'draft_is_already_exists' => 'Draft is already exists.'
     ],
     'success' => [
         'success'          => 'Success',
@@ -58,6 +59,7 @@ return [
         'subscribed'  => 'Subscribed successfully.',
         'unsubscribed'  => 'Unsubscribed successfully.',
         'statement_create'  => 'Statement submitted successfully.',
+        'statement_draft_create'  => 'Draft submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
         'statement_update'  => 'Statement updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',

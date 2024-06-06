@@ -434,8 +434,12 @@ class StatementController extends Controller
                 }
             }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
+                if (isset($all['is_draft']) && $all['is_draft'] && Statement::getDraftRecord($all['topic_num'], $all['camp_num'])) {
+                    $message = trans('message.error.draft_is_already_exists');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
                 $statement = self::createOrUpdateStatement($all);
-                $message = trans('message.success.statement_create');
+                $message = isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.statement_draft_create') : trans('message.success.statement_create');
             } else {
                 ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
@@ -539,6 +543,10 @@ class StatementController extends Controller
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
+        if ($all['is_draft']) {
+            $statement->submit_time = time();
+            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+        }
         return $statement;
     }
 
