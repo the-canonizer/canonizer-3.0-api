@@ -21,6 +21,8 @@ class Tag extends Model {
      */
     protected $fillable = ['title','is_active','parent_id', 'created_at', 'updated_at', 'deleted_at'];
 
+    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
+
     public function topics() {
         return $this->belongsToMany(Topic::class, 'topics_tags', 'tag_id', 'topic_num');
     }

@@ -85,18 +85,20 @@ class TagController extends Controller
         }
         $perPage = $request->per_page ?? config('global.per_page');
         try {
-            $topic_tags = Tag::select('tags.*')->selectSub(function ($query) {
-                $query->from('topics_tags')
+            $topic_tags = Tag::select('tags.*')
+                ->selectSub(function ($query) {
+                    $query->from('topics_tags')
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('topics_tags.tag_id', 'tags.id');
-            }, 'total_topics')->when($request->search_term, function ($query, $result) {
-                $query->where(function ($q) use ($result) {
-                    $q->where('title', 'LIKE', '%' . $result . '%');
-                });
-            })->orderBy('id', $request->sort_by ?? 'DESC');
-            $log = $topic_tags->paginate($perPage);
-            $log = Util::getPaginatorResponse($log);
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
+                }, 'total_topics')
+                ->when($request->search_term, function ($query, $result) {
+                    $query->where(function ($q) use ($result) {
+                        $q->where('title', 'LIKE', '%' . $result . '%');
+                    });
+                })->orderBy('id', $request->sort_by ?? 'DESC');
+            $topic_tags = $topic_tags->paginate($perPage);
+            $topic_tags = Util::getPaginatorResponse($topic_tags);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topic_tags, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
