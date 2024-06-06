@@ -77,23 +77,28 @@ class TagController extends Controller
      *  )
      */
 
-    public function getTagsList(Request $request, Validate $validate) {
-         $validationErrors = $validate->validate($request, $this->rules->getTagsListingValidationRules(), $this->validationMessages->getTagsListingValidationMessages());
-         if ($validationErrors) {
-             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-         }
-         $perPage = $request->per_page ?? config('global.per_page');
-         try {
-            $topic_tags = Tag::when($request->search_term, function ($query, $result) {
+    public function getTagsList(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTagsListingValidationRules(), $this->validationMessages->getTagsListingValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $perPage = $request->per_page ?? config('global.per_page');
+        try {
+            $topic_tags = Tag::select('tags.*')->selectSub(function ($query) {
+                $query->from('topics_tags')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('topics_tags.tag_id', 'tags.id');
+            }, 'total_topics')->when($request->search_term, function ($query, $result) {
                 $query->where(function ($q) use ($result) {
                     $q->where('title', 'LIKE', '%' . $result . '%');
                 });
             })->orderBy('id', $request->sort_by ?? 'DESC');
-             $log = $topic_tags->paginate($perPage);
-             $log = Util::getPaginatorResponse($log);
-             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
-         } catch (Exception $e) {
-             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-         }
+            $log = $topic_tags->paginate($perPage);
+            $log = Util::getPaginatorResponse($log);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $log, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }
