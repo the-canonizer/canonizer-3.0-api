@@ -526,11 +526,15 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $input = $request->all();
-        dd($input['profile_picture']->getClientMimeType());
+
+        $type = $input['profile_picture']->getClientMimeType();
         $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), $type, '');
+
+        // dd();
         try {
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
