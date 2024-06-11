@@ -532,7 +532,7 @@ class ProfileController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), $type, '');
+        return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), json_encode($validationErrors), '');
 
         // dd();
         try {
