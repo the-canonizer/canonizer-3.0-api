@@ -1856,7 +1856,7 @@ class TopicSupport
         return $oldest_direct_supporter;
     }
 
-    public static function findOldestDirectSupporter(int $topic_num, int|array $camp_num, ?int $nick_name_id = null, bool $includeThisNickName = false, bool $checkSupportOrder = false)
+    public static function findOldestDirectSupporter(int $topic_num, int $camp_num, ?int $nick_name_id = null, bool $includeThisNickName = false, bool $checkSupportOrder = false)
     {
         $support = Support::where([
             ['topic_num', '=', $topic_num],
