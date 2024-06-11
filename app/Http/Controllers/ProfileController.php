@@ -529,8 +529,8 @@ class ProfileController extends Controller
             $user = $request->user();
             $input = $request->all();
     
-            // $type = $input['profile_picture']->getClientMimeType();
-            // return $this->resProvider->apiJsonResponse(200, trans('message.error.update_profile'), json_encode($request), '');
+            $type = $input['profile_picture']->getClientMimeType();
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), json_encode($type), '');
             $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
             if ($validationErrors) {
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
