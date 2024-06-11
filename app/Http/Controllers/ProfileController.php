@@ -526,7 +526,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $input = $request->all();
-        
+        dd($input['profile_picture']->getClientMimeType());
         $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
