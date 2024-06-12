@@ -474,7 +474,7 @@ class StatementController extends Controller
                 Util::dispatchJob($topic, $all['camp_num'], 1, $delayCommitTimeInSeconds);
             }
 
-            if (!is_null($all['statement_id'])) {
+            if (isset($all['statement_id']) && !is_null($all['statement_id'])) {
                 Statement::where(['id' => $all['statement_id'], 'is_draft' => 1])->delete();
             }
 
@@ -501,6 +501,7 @@ class StatementController extends Controller
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
+            dd($e);
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
@@ -543,7 +544,7 @@ class StatementController extends Controller
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
-        if ($all['is_draft']) {
+        if (isset($all['is_draft']) && $all['is_draft']) {
             $statement->submit_time = time();
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
         }
