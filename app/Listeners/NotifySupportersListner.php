@@ -131,7 +131,7 @@ class NotifySupportersListner implements ShouldQueue
                         $data['email']['sub_support_list'] = $supporter_and_subscriber[$user_id]['sub_support_list'];
                     }
 
-                    if (!empty($data['email']['previous_camp_leader_nick_id']) && !is_null($camp->camp_leader_nick_id) && $camp->camp_leader_nick_id !== $data['email']['previous_camp_leader_nick_id']) {
+                    if (!is_null($camp->camp_leader_nick_id) && isset($data['email']['previous_camp_leader_nick_id']) && $camp->camp_leader_nick_id !== $data['email']['previous_camp_leader_nick_id']) {
                         $newCampLeaderNickNames = Nickname::getNicknamesIdsByUserId($user->id);
                         $nickname = Nickname::getNickName($camp->camp_leader_nick_id);
                         $nicknameLink = Nickname::getNickNameLink($camp->camp_leader_nick_id, $data['email']['namespace_id'], $data['email']['topic_num'], $data['email']['camp_num']);
@@ -173,7 +173,7 @@ class NotifySupportersListner implements ShouldQueue
                 }
             }
         } catch(Exception $e) {
-            Util::logMessage($e->getMessage());
+            Util::logMessage($e->getMessage(), 'error');
         }
 
         Util::logMessage('end time ==> '. date("Y-m-d h:i:s", time()));

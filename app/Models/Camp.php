@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\NotifySupportersEvent;
+use App\Facades\GetPushNotificationToSupporter;
 use App\Facades\Util;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +24,7 @@ use App\Jobs\ForgetCacheKeyJob;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use App\Jobs\ActivityLoggerJob;
+use Illuminate\Support\Facades\Event;
 
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
@@ -1075,13 +1078,51 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
             // Log of system assigned/remove camp leader
             if(!is_null($new_camp_leader_nick_id)) {
+                self::dispatchCampLeaderPushNotification(request()->user(), $topic, $camp, $new_camp_leader_nick_id, 'assigned');
                 self::dispatchCampLeaderActivityLogJob($topic, $camp, $new_camp_leader_nick_id, request()->user(), 'assigned');
             }
 
             if(!is_null($old_camp_leader_nick_id)) {
+                self::dispatchCampLeaderPushNotification(request()->user(), $topic, $camp, $old_camp_leader_nick_id, 'removed');
                 self::dispatchCampLeaderActivityLogJob($topic, $camp, $old_camp_leader_nick_id, request()->user(), 'removed');
             }
         }
+    }
+
+    public static function dispatchCampLeaderPushNotification(User $user, Topic $topic, Camp $camp, int $nick_name_id, $action)
+    {
+        $camp = Camp::getLiveCamp(['topicNum' => $topic->topic_num, 'campNum' => $camp->camp_num, 'asOf' => 'default']);
+        $nickName = Nickname::getNickName($nick_name_id);
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+        
+        $liveThread =  null;
+        $threadId =  null;
+
+        switch ($action) {
+            case 'assigned':
+                $notification_type = config('global.notification_type.CampLeaderAssigned');
+                break;
+            case 'removed':
+                $notification_type = config('global.notification_type.CampLeaderRemoved');
+                break;
+        }
+
+        $getMessageData = GetPushNotificationToSupporter::getMessageData($user, $topic, $camp, $liveThread, $threadId, $notification_type, $nickName->nick_name, null);
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $topic->topic_num,
+                "camp_num" => $camp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
+        }
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $notification_type, $getMessageData->link, config('global.notify.push_notification')));
     }
 
     public static function dispatchCampLeaderActivityLogJob($topic, $camp, $nick_name_id, User $user, $action = 'others')
@@ -1114,7 +1155,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             'nick_name' => $nickName,
             'description' =>  $camp->camp_name
         ];
+
         dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+
+        // Dispatch timeline job
+        if ($action !== 'others') {
+            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+            Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $activityMessage, "update_camp", $camp->id, null, null, null, time() + 2, $timeline_url);
+        }
     }
 
     public static function getNominatedCampLeaderInReviewChanges($topic_num, $camp_num, $camp_leader_nick_id, $submit_time = null) {

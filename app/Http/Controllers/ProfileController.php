@@ -524,14 +524,15 @@ class ProfileController extends Controller
     */
     public function updateProfilePicture(Request $request, Validate $validate)
     {
-        $user = $request->user();
-        $input = $request->all();
-
-        $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
         try {
+            $user = $request->user();
+            $input = $request->all();
+    
+            $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
                 if($request->has('is_update') && $request->get('is_update')) {

@@ -175,7 +175,7 @@ class ReplyController extends Controller
                 $data = $thread;
                 $status = 200;
                 $message = trans('message.post.create_success');
-                $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . $request->topic_name . '/' . $request->camp_num.'-'.$request->camp_name . '/threads/' . $request->thread_id;
+                $return_url =  config('global.APP_URL_FRONT_END') .'/forum/' . $request->topic_num . '-' . Util::replaceSpecialCharacters($request->topic_name) . '/' . $request->camp_num.'-'. Util::replaceSpecialCharacters($request->camp_name) . '/threads/' . $request->thread_id;
                 CampForum::notifySupportersForumPost($request->topic_num, $request->camp_num, $return_url, $request->body, $request->thread_id, $request->nick_name, $request->topic_name, "", $nickName, config('global.notification_type.Post'), config('global.notify.both'));
                 $this->createOrUpdatePostActivityLog($thread, $nickName, $return_url, $request);
             
@@ -519,7 +519,7 @@ class ReplyController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
-        $body_text = strip_tags(trim(html_entity_decode($request->body)));
+        $body_text = trim(html_entity_decode($request->body));
         if (!preg_replace('/\s+/u', '', $body_text)) {
             $status = 400;
             $message = trans('message.post.body_regex');

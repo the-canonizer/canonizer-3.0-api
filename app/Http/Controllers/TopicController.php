@@ -35,6 +35,7 @@ use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
 use Illuminate\Support\Facades\Log;
+use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 
 class TopicController extends Controller
 {
@@ -449,6 +450,7 @@ class TopicController extends Controller
         $event_type = NULL;
         $nickNames = Nickname::personNicknameArray();
         $archiveCampSupportNicknames = [];
+        $changeGoneLive = false;
         try {
             if ($type == 'statement') {
                 $model = Statement::where('id', '=', $id)
@@ -520,6 +522,7 @@ class TopicController extends Controller
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
                 if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
                     $model->go_live_time = time();
+                    $changeGoneLive = true;
                     // Log of system assigned/remove camp leader
                     if (!is_null($model->camp_leader_nick_id)) {
                         Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
@@ -918,9 +921,20 @@ class TopicController extends Controller
                     "thread_id" => !empty($threadId) ? $threadId : null,
                 ];
             }
-            // Email
+            // Email In review case
             if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
                 Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
+            }
+
+            if ($changeGoneLive) {
+                if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                    if (!is_null($model->camp_leader_nick_id)) {
+                        Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                    }
+                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                        Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
+                    }
+                }
             }
 
             $activityLogData = [
@@ -1178,10 +1192,12 @@ class TopicController extends Controller
                         // Log of system assigned/remove camp leader
                         if (!is_null($camp->camp_leader_nick_id)) {
                             Camp::dispatchCampLeaderActivityLogJob($topic, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
+                            Event::dispatch(new CampLeaderAssignedEvent($camp->topic_num, $camp->camp_num, $camp->camp_leader_nick_id, true));
                         }
 
                         if (!is_null($preliveCamp->camp_leader_nick_id)) {
                             Camp::dispatchCampLeaderActivityLogJob($topic, $preliveCamp, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                            Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
                         }
 
                         $camp->update();
