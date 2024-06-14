@@ -76,6 +76,7 @@ return [
         'permission_denied' => "You don't have permission to access this resource.",
         'support_added' => "Support added",
         'support_order_updated' => "Support order updated",
+        'support_reason_updated' => "Support updated",
         'support_removed' => "Support removed",
         'support_delegated' => "Support delegated",
         'default_support_added_reason' => "Default Support added on agreement",
@@ -548,6 +549,7 @@ return [
         "support_removed" => ":nick_name removed support",
         "support_added" => ":nick_name added support",
         "support_order_updated" => ":nick_name updated support order",
+        "support_reason_updated" => ":nick_name updated support",
         
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
