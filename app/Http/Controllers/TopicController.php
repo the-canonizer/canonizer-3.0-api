@@ -34,6 +34,8 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use App\Models\TopicTag;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
@@ -198,8 +200,13 @@ class TopicController extends Controller
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
+
             $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
+                // Check if the array exists for tags ...
+                if ($request->has('tags') && is_array($request->tags)) {
+                    Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
+                }
 
                 Util::dispatchJob($topic, 1, 1);
                 // Eventline - topic create event saved
@@ -1648,6 +1655,12 @@ class TopicController extends Controller
             }
 
             $topic->save();
+
+            // Check if the array exists for tags ...
+            if ($request->has('tags') && is_array($request->tags)) {
+                Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
+            }
+
             DB::commit();
 
             if ($all['event_type'] == "objection") {
@@ -1851,7 +1864,11 @@ class TopicController extends Controller
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
             }
             $topic = Topic::where('id', $request->record_id)->first();
+
             if ($topic) {
+                // If the topic is found attach the topic tags with it ...
+                $topic->tags = TopicTag::where('topic_num', $topic->topic_num)->pluck('tag_id')->toArray();
+
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();

@@ -142,6 +142,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
     }
 
+    public function tags() {
+        return $this->belongsToMany(Tag::class, 'topics_tags', 'topic_num', 'tag_id');
+    }
+
     public static function getLiveTopic($topicNum, $filter = array(), $asofdate = null)
     {
         $liveTopicCacheKey = 'live_topic_default-' . $topicNum;

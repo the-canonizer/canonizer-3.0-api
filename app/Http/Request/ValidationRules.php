@@ -225,7 +225,8 @@ class ValidationRules
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
-            'asof' => 'in:default,review,bydate'
+            'asof' => 'in:default,review,bydate',
+            'tags' => 'array',
         ]);
     }
 
@@ -629,5 +630,14 @@ class ValidationRules
             'topic_num' => 'required|numeric|gt:0',
             'thread_id' => 'exists:thread,id'
         ]);
+    }
+
+    public function getTagsListingValidationRules(): array
+    {
+        return [
+            'per_page' => 'required',
+            'page' => 'required',
+            'sort_by' => 'in:asc,desc',
+        ];
     }
 }

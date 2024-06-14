@@ -239,7 +239,8 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
-            'asof.in' => trans('message.validation_topic_store.asof_in')
+            'asof.in' => trans('message.validation_topic_store.asof_in'),
+            'tags.array' => trans('message.tags.topic_tags_must_array')
         ]);
     }
 
@@ -768,6 +769,15 @@ class ValidationMessages
             'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
             
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
+        ];
+    }
+
+    public function getTagsListingValidationMessages(): array
+    {
+        return [
+            'per_page.required' => trans('message.tags.per_page_required'),
+            'page.required' => trans('message.tags.page_required'),
+            'sort_by.in' => trans('message.tags.sort_by_in')
         ];
     }
 }
