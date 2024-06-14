@@ -224,7 +224,7 @@ class TopicSupport
                 foreach ($previousSupports as $singleSupport) {
                     foreach ($orderUpdate as $item) {
                         if ($item['camp_num'] == $singleSupport->camp_num) {
-                            if ($item['order'] == $singleSupport->support_order) {
+                            if ($item['order'] != $singleSupport->support_order) {
                                 $isOrderUpdated = true;
                             }
                             break;
@@ -399,7 +399,7 @@ class TopicSupport
                 foreach ($previousSupports as $singleSupport) {
                     foreach ($orderUpdate as $item) {
                         if ($item['camp_num'] == $singleSupport->camp_num) {
-                            if ($item['order'] == $singleSupport->support_order) {
+                            if ($item['order'] != $singleSupport->support_order) {
                                 $isOrderUpdated = true;
                             }
                             break;
