@@ -1155,7 +1155,14 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             'nick_name' => $nickName,
             'description' =>  $camp->camp_name
         ];
+
         dispatch(new ActivityLoggerJob($activitLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+
+        // Dispatch timeline job
+        if ($action !== 'others') {
+            $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
+            Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $activityMessage, "update_camp", $camp->id, null, null, null, time() + 2, $timeline_url);
+        }
     }
 
     public static function getNominatedCampLeaderInReviewChanges($topic_num, $camp_num, $camp_leader_nick_id, $submit_time = null) {
