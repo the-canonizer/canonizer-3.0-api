@@ -1328,7 +1328,7 @@ class TopicController extends Controller
             ];
             switch ($data['change_for']) {
                 case 'statement':
-                    $model = Statement::where($where)->first();
+                    $model = Statement::where($where)->where('is_draft', 0)->first();
                     break;
                 case 'camp':
                     $model = Camp::where($where)->first();
@@ -1473,7 +1473,8 @@ class TopicController extends Controller
             ['topic_num', '=', $statement->topic_num],
             ['camp_num', '=', $statement->camp_num],
             ['submit_time', '<', $statement->submit_time],
-            ['go_live_time', '>', Carbon::now()->timestamp]
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['is_draft', '=', 0]
         ])->whereNull('objector_nick_id')->get();
         if (count($inReviewStatementChanges)) {
             foreach ($inReviewStatementChanges as $key => $statement) {

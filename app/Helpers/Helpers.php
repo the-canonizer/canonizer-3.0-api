@@ -2,8 +2,7 @@
 
 namespace App\Helpers;
 
-use App\Models\Camp;
-use App\Models\Topic;
+use App\Models\{Camp, Statement, Topic};
 use Carbon\Carbon;
 
 class Helpers
@@ -48,7 +47,10 @@ class Helpers
         if (!($model instanceof Topic)) {
             $where[] = ['camp_num', '=', $camp_num];
         }
-
+        if ($model instanceof Statement) {
+            $where[] = ['is_draft', '=', 0];
+        }
+        
         return $model::where('topic_num', $topic_num)
             ->where($where)
             ->count();

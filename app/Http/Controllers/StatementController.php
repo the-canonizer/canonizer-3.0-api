@@ -119,7 +119,7 @@ class StatementController extends Controller
                 }
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
-                
+            $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -234,6 +234,7 @@ class StatementController extends Controller
             } else {
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
+            $response->draft_record_id = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
@@ -433,8 +434,12 @@ class StatementController extends Controller
                 }
             }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
+                if (isset($all['is_draft']) && $all['is_draft'] && Statement::getDraftRecord($all['topic_num'], $all['camp_num'])) {
+                    $message = trans('message.error.draft_is_already_exists');
+                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
+                }
                 $statement = self::createOrUpdateStatement($all);
-                $message = trans('message.success.statement_create');
+                $message = isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.statement_draft_create') : trans('message.success.statement_create');
             } else {
                 ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
             }
@@ -469,26 +474,34 @@ class StatementController extends Controller
                 Util::dispatchJob($topic, $all['camp_num'], 1, $delayCommitTimeInSeconds);
             }
 
-            $statement->save();
-            $livecamp = Camp::getLiveCamp($filters);
-            $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+            if (isset($all['statement_id']) && !is_null($all['statement_id'])) {
+                Statement::where(['id' => $all['statement_id'], 'is_draft' => 1])->delete();
+            }
 
-            if ($eventType == "create" && $statement->grace_period == 0) {
-                $nickName = '';
-                $nicknameModel = Nickname::getNickName($all['nick_name']);
-                if (!empty($nicknameModel)) {
-                    $nickName = $nicknameModel->nick_name;
+            $statement->save();
+            if (!isset($all['is_draft']) || !$all['is_draft']) {
+                $livecamp = Camp::getLiveCamp($filters);
+                $link = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '/' . $statement->camp_num;
+
+                if ($eventType == "create" && $statement->grace_period == 0
+                ) {
+                    $nickName = '';
+                    $nicknameModel = Nickname::getNickName($all['nick_name']);
+                    if (!empty($nicknameModel)) {
+                        $nickName = $nicknameModel->nick_name;
+                    }
+                    // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'), null, $nickName);
+                    $this->createdStatementNotification($livecamp, $link, $statement, $request);
+                } else if ($eventType == "update" && $ifIamSingleSupporter) {
+                    $this->updatedStatementNotification($livecamp, $link, $statement, $request);
+                } else if ($eventType == "objection") {
+                    $this->objectedStatementNotification($all, $livecamp, $link, $statement, $request);
                 }
-                // GetPushNotificationToSupporter::pushNotificationToSupporter($request->user(), $request->topic_num, $request->camp_num, config('global.notification_type.Statement'), null, $nickName);
-                $this->createdStatementNotification($livecamp, $link, $statement, $request);
-            } else if ($eventType == "update" && $ifIamSingleSupporter) {
-                $this->updatedStatementNotification($livecamp, $link, $statement, $request);
-            } else if ($eventType == "objection") {
-                $this->objectedStatementNotification($all, $livecamp, $link, $statement, $request);
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
+            dd($e);
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
@@ -507,7 +520,8 @@ class StatementController extends Controller
         $statement->submitter_nick_id = $all['nick_name'];
         $statement->go_live_time = $goLiveTime;
         $statement->language = 'English';
-        $statement->grace_period = 1;
+        $statement->grace_period = isset($all['is_draft']) && $all['is_draft'] ? 0 : 1;
+        $statement->is_draft = isset($all['is_draft']) && $all['is_draft'] ? true : false;
         return $statement;
     }
 
@@ -530,6 +544,10 @@ class StatementController extends Controller
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
+        if (isset($all['is_draft']) && $all['is_draft']) {
+            $statement->submit_time = time();
+            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+        }
         return $statement;
     }
 
