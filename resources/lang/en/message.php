@@ -503,6 +503,8 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change to camp",
         "objectTopic" => ":nick_name has objected to your proposed change to topic",
         "objectStatement" => ":nick_name has objected to your proposed change to statement",
+        "CampLeaderAssigned" => "Camp Leader Assigned in Camp - :camp_name",
+        "CampLeaderRemoved" => "Camp Leader Removed in Camp - :camp_name",
     ],
     'notification_message' => [
         "fcm_token_required" => "Fcm Token is required.",
@@ -525,6 +527,8 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name)",
         "objectTopic" => ":nick_name has objected to your proposed change submitted for topic (:topic_name)",
         "objectStatement" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name) statement",
+        "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
+        "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
