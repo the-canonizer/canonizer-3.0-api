@@ -219,11 +219,30 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
+                $isOrderUpdated = false;
+                $previousSupports = self::getTopicSupportByNickName($topicNum, $allNickNames);
+                foreach ($previousSupports as $singleSupport) {
+                    foreach ($orderUpdate as $item) {
+                        if ($item['camp_num'] == $singleSupport->camp_num) {
+                            if ($item['order'] != $singleSupport->support_order) {
+                                $isOrderUpdated = true;
+                            }
+                            break;
+                        }
+                    }
+                    if ($isOrderUpdated) {
+                        break;
+                    }
+                }
                 self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason, $reason_summary, $citation_link);
                 DB::commit();
                 $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
                 foreach($orderUpdate as $order) {
-                    self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                    if ($isOrderUpdated) {
+                        self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                    } elseif (!empty($reason) || !empty($reason_summary) || !empty($citation_link)) {
+                        self::logActivityForUpdateSupportReason($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                    }
                     // Execute job here only when this is topicnumber == 81 (because we using dynamic camp_num for 81) 
                     if($topicNum == config('global.mind_expert_topic_num')) {
                         Util::dispatchJob($topic, $order['camp_num'], 1);
@@ -375,6 +394,21 @@ class TopicSupport
             try
             {
                 DB::beginTransaction();
+                $isOrderUpdated = false;
+                $previousSupports = self::getTopicSupportByNickName($topicNum, $allNickNames);
+                foreach ($previousSupports as $singleSupport) {
+                    foreach ($orderUpdate as $item) {
+                        if ($item['camp_num'] == $singleSupport->camp_num) {
+                            if ($item['order'] != $singleSupport->support_order) {
+                                $isOrderUpdated = true;
+                            }
+                            break;
+                        }
+                    }
+                    if ($isOrderUpdated) {
+                        break;
+                    }
+                }
                 self::reorderSupport($orderUpdate, $topicNum, $allNickNames,$reason,$reason_summary,$citation_link);
 
                 DB::commit();
@@ -394,7 +428,11 @@ class TopicSupport
                     //timeline end
                     // #917 : When adding support remove activity log for support order update
                     if (empty($addCamp)) {
-                        self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                        if ($isOrderUpdated) {
+                            self::logActivityForUpdateSupport($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                        } elseif (!empty($reason) || !empty($reason_summary) || !empty($citation_link)) {
+                            self::logActivityForUpdateSupportReason($topicNum, $order['camp_num'], $nickNameId, $reason, $reason_summary, $citation_link);
+                        }
                     }
                 }
             }catch (Throwable $e) 
@@ -403,6 +441,14 @@ class TopicSupport
                 throw new Exception($e->getMessage());
             }
         }
+    }
+
+    public static function getTopicSupportByNickName($topicNum, $allNickNames)
+    {
+        return Support::where('topic_num', $topicNum)
+            ->whereIn('nick_name_id', $allNickNames)
+            ->where('end', 0)
+            ->orderBy('support_order', 'asc')->get();
     }
 
 
@@ -1409,6 +1455,37 @@ class TopicSupport
             $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
             $model = new Support();
             $description = trans('message.general.support_order_updated');
+
+            return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description, $reason, $reason_summary, $citation_link);
+        }
+        
+        return;
+    }
+
+    /**
+     * [activity logger on update support reason]
+     * @param integer $campNum is camp number to which support is added
+     * @param integer $topicNum is topic number
+     * @param integer $nickNameId is nick name id of user adding support
+     * 
+     * @return void
+     */
+    public static function logActivityForUpdateSupportReason($topicNum, $campNum, $nickNameId, $reason = null, $reason_summary = null, $citation_link = null)
+    {
+        if($campNum){ 
+            $nicknameModel = Nickname::getNickName($nickNameId);
+            $topicFilter = ['topicNum' => $topicNum];
+            $topicModel = Camp::getAgreementTopic($topicFilter);
+            $user = Nickname::getUserByNickName($nickNameId);
+
+            $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
+            $campModel  = self::getLiveCamp($campFilter);
+
+            $logType = "support";
+            $activity = trans('message.activity_log_message.support_reason_updated', ['nick_name' => $nicknameModel->nick_name]);
+            $link = Util::getTopicCampUrl($topicNum, $campNum, $topicModel, $campModel);
+            $model = new Support();
+            $description = trans('message.general.support_reason_updated');
 
             return self::logActivity($logType, $activity, $link, $model, $topicNum, $campNum, $user, $nicknameModel->nick_name, $description, $reason, $reason_summary, $citation_link);
         }
