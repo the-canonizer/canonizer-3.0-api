@@ -635,9 +635,9 @@ class ValidationRules
     public function getTagsListingValidationRules(): array
     {
         return [
-            'per_page' => 'required',
-            'page' => 'required',
-            'sort_by' => 'in:asc,desc',
+            'page' => 'required_with:per_page|numeric|gt:0',
+            'per_page' => 'required_with:page|numeric|gt:0',
+            'sort_by' => 'in:asc,desc'
         ];
     }
 }
