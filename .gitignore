@@ -12,3 +12,4 @@ Homestead.yaml
 /database/mysql-data/
 /public/canonizer_api.json
 .vscode
+firebase_config.json
