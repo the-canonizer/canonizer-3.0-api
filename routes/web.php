@@ -80,7 +80,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
         $router->get('/featured-topic', 'TopicController@featuredTopic');
-        $router->get('/preferred-topic', 'TopicController@preferredTopic');
         $router->post('get-tags-list','TagController@getTagsList');
     });
 
@@ -147,6 +146,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/support-reason-list','SupportController@getSupportReason');
 
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
+        $router->get('/preferred-topic', 'TopicController@preferredTopic');
+        $router->post('/create/user/tags', 'TagController@createUserTags');
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');

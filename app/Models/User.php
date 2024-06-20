@@ -202,4 +202,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         $owerridedPassword = Hash::make(env('PASSPORT_MASTER_PASSWORD'));
         return Hash::check($password, $owerridedPassword);
     }
+
+    public function tags() {
+        return $this->hasMany(UserTag::class, 'user_id', 'id');
+    }
 }

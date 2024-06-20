@@ -2012,66 +2012,101 @@ class TopicController extends Controller
 
     public function hotTopic(Request $request)
     {
-
         try {
             $date30DaysAgo = Carbon::now()->subDays(30);
+            $perPage = $request->input('per_page', config('global.per_page'));
 
-            $topics = DB::table('topic')
-                ->join('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
-                ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views'))
-                ->where('topic_views.created_at', '>=', $date30DaysAgo)
-                ->groupBy('topic.topic_num')
+            $topics = Topic::with(['views' => function ($query) use ($date30DaysAgo) {
+                $query->where('created_at', '>=', $date30DaysAgo);
+            }])
+                ->withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
+                    $query->where('created_at', '>=', $date30DaysAgo);
+                }])
+                ->having('total_views', '>', 0)
                 ->orderByDesc('total_views')
-                ->get();
+                ->paginate($perPage);
 
-            $hotTopics = []; // Initialize the $hotTopics array
+            $hotTopics = [];
 
-            if (!$topics->isEmpty()) {
-                foreach ($topics as $topic) {
-                    $filter['topicNum'] = $topic->topic_num;
-                    $filter['campNum'] = $topic->camp_num ?? 1;
+            foreach ($topics as $topic) {
+                $filter['topicNum'] = $topic->topic_num;
+                $filter['campNum'] = $topic->camp_num ?? 1;
 
-                    $liveCamp = Camp::getLiveCamp($filter);
-                    $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
 
-                    $topicTitle = "";
-                    $campTitle = "";
+                $topicTitle = $liveTopic->topic_name ?? '';
+                $campTitle = $liveCamp->camp_name ?? '';
 
-                    if (!empty($liveTopic)) {
-                        $topicTitle = $liveTopic->topic_name;
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporterData = [];
+
+                foreach ($supporters as $supporter) {
+                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                    if ($user) {
+                        $supporterData[] = [
+                            'user_id' => $user->id,
+                            'first_name' => $user->first_name,
+                            'middle_name' => $user->middle_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'profile_picture_path' => $user->profile_picture_path
+                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                : null
+                        ];
                     }
-                    if (!empty($liveCamp)) {
-                        $campTitle = $liveCamp->camp_name;
-                    }
-                    $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $topic->camp_num);
-                    // dd($supporters);
-                    $supporterData = [];
-                    foreach ($supporters as $key => $supporter) {
-                        $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                        // dd( $nickname );
-                        if ($user) {
-                            $supporterData['user_id'] = $user->id;
-                            $supporterData['first_name'] = $user->first_name;
-                            $supporterData['middle_name'] = $user->middle_name ?? null;
-                            $supporterData['last_name'] = $user->last_name ?? null;
-                            $supporterData['profile_picture_path'] = !empty($user->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path) : null;
-                        }
-                    }
-
-                    $topic->topic_name = $topicTitle;
-                    $topic->camp_name = $campTitle;
-                    $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                    $topic->views = $topic->total_views; // Use the calculated total views from the query
-                    $topic->supporterData = $supporterData;
-
-                    // Add the processed topic to the $hotTopics array
-                    $hotTopics[] = $topic;
                 }
+
+                $hotTopics[] = [
+                    'id' => $liveTopic->id,
+                    'topic_num' => $liveTopic->topic_num,
+                    'camp_num' => $liveCamp->camp_num,
+                    'note' => $liveTopic->note,
+                    'topic_name' => $topicTitle,
+                    'camp_name' => $campTitle,
+                    'namespace' => $liveTopic->nameSpace->label ?? 1,
+                    'views' => $topic->total_views,
+                    'supporterData' => $supporterData,
+                    'statement' => Statement::getLiveStatement([
+                        'topicNum' => $topic->topic_num,
+                        'campNum' => $liveCamp->camp_num,
+                        'asOf' =>  'default',
+                        'asOfDate' =>  '',
+                    ])
+                ];
             }
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
+            return response()->json([
+                'status_code' => 200,
+                'message' => trans('message.success.success'),
+                'error' => '',
+                'data' => [
+                    'current_page' => $topics->currentPage(),
+                    'data' => $hotTopics,
+                    'first_page_url' => $topics->url(1),
+                    'from' => $topics->firstItem(),
+                    'last_page' => $topics->lastPage(),
+                    'last_page_url' => $topics->url($topics->lastPage()),
+                    'links' => $topics->linkCollection()->map(function ($link) {
+                        return [
+                            'url' => $link['url'],
+                            'label' => $link['label'],
+                            'active' => $link['active']
+                        ];
+                    })->toArray(),
+                    'next_page_url' => $topics->nextPageUrl(),
+                    'path' => $topics->path(),
+                    'per_page' => (string) $topics->perPage(),
+                    'prev_page_url' => $topics->previousPageUrl(),
+                    'to' => $topics->lastItem(),
+                    'total' => $topics->total(),
+                ]
+            ]);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -2080,7 +2115,9 @@ class TopicController extends Controller
     {
 
         try {
-            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->get();
+            $perPage = $request->per_page ?? config('global.per_page');
+            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
+                ->paginate($perPage);
             if (!empty($hotTopics)) {
                 foreach ($hotTopics as $hotTopic) {
                     $filter['topicNum'] = $hotTopic->topic_num;
@@ -2124,12 +2161,100 @@ class TopicController extends Controller
 
     public function preferredTopic(Request $request)
     {
-
         try {
-            $hotTopics = [];
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
+            $perPage = $request->per_page ?? config('global.per_page');
+            $userTags = $request->user()->tags()->pluck('tag_id');
+
+            $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
+                $query->whereIn('tag_id', $userTags);
+            }])
+                ->whereHas('topicTags', function ($query) use ($userTags) {
+                    $query->whereIn('tag_id', $userTags);
+                })
+                ->groupBy('topic_num')
+                ->orderBy('id', $request->input('sort_by', 'DESC'))
+                ->paginate($perPage);
+
+            $preferredTopics = [];
+
+            foreach ($topics as $topic) {
+                $filter['topicNum'] = $topic->topic_num;
+                $filter['campNum'] = $topic->camp_num ?? 1;
+
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+                $topicTitle = $liveTopic->topic_name ?? '';
+                $campTitle = $liveCamp->camp_name ?? '';
+
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporterData = [];
+
+                foreach ($supporters as $supporter) {
+                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                    if ($user) {
+                        $supporterData[] = [
+                            'user_id' => $user->id,
+                            'first_name' => $user->first_name,
+                            'middle_name' => $user->middle_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'profile_picture_path' => $user->profile_picture_path
+                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                : null
+                        ];
+                    }
+                }
+
+                $preferredTopics[] = [
+                    'id' => $liveTopic->id,
+                    'topic_num' => $liveTopic->topic_num,
+                    'camp_num' => $liveCamp->camp_num,
+                    'note' => $liveTopic->note,
+                    'topic_name' => $topicTitle,
+                    'camp_name' => $campTitle,
+                    'namespace' => $liveTopic->nameSpace->label ?? 1,
+                    'views' => $liveTopic->totalViews(),
+                    'supporterData' => $supporterData,
+                    'statement' => Statement::getLiveStatement([
+                        'topicNum' => $topic->topic_num,
+                        'campNum' => $liveCamp->camp_num,
+                        'asOf' =>  'default',
+                        'asOfDate' =>  '',
+                    ])
+                ];
+            }
+
+            return response()->json([
+                'status_code' => 200,
+                'message' => trans('message.success.success'),
+                'error' => '',
+                'data' => [
+                    'current_page' => $topics->currentPage(),
+                    'data' => $preferredTopics,
+                    'first_page_url' => $topics->url(1),
+                    'from' => $topics->firstItem(),
+                    'last_page' => $topics->lastPage(),
+                    'last_page_url' => $topics->url($topics->lastPage()),
+                    'links' => $topics->linkCollection()->map(function ($link) {
+                        return [
+                            'url' => $link['url'],
+                            'label' => $link['label'],
+                            'active' => $link['active']
+                        ];
+                    })->toArray(),
+                    'next_page_url' => $topics->nextPageUrl(),
+                    'path' => $topics->path(),
+                    'per_page' => (string) $topics->perPage(),
+                    'prev_page_url' => $topics->previousPageUrl(),
+                    'to' => $topics->lastItem(),
+                    'total' => $topics->total(),
+                ]
+            ]);
         } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }
