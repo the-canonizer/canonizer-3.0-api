@@ -637,8 +637,10 @@ return [
         
     ],
     'tags' => [
-        'per_page_required' => "Records per page is required.",
-        'page_required' => "Page number is required.",
+        'per_page_required_with_page' => "Page number is also required with per page.",
+        'page_required_with_per_page' => "Per page is also required with page number.",
+        'page_should_be_numeric' => "Page number should be numeric and greater than 0.",
+        'per_page_should_be_numeric' => "Per page should be numeric and greater than 0.",
         'sort_by_in' => 'Sort by should be asc or desc.',
         'topic_tags_must_array' => 'Tags must be in array format.',
     ],

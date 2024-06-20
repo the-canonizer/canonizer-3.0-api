@@ -775,8 +775,15 @@ class ValidationMessages
     public function getTagsListingValidationMessages(): array
     {
         return [
-            'per_page.required' => trans('message.tags.per_page_required'),
-            'page.required' => trans('message.tags.page_required'),
+            'per_page.required_with' => trans('message.tags.page_required_with_per_page'),
+            'page.required_with' => trans('message.tags.per_page_required_with_page'),
+
+            'page.numeric' => trans('message.tags.page_should_be_numeric'),
+            'per_page.numeric' => trans('message.tags.per_page_should_be_numeric'),
+            
+            'page.gt' => trans('message.tags.page_should_be_numeric'),
+            'per_page.gt' => trans('message.tags.per_page_should_be_numeric'),
+            
             'sort_by.in' => trans('message.tags.sort_by_in')
         ];
     }
