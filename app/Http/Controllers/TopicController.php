@@ -2010,6 +2010,54 @@ class TopicController extends Controller
     }
 
 
+    /**
+     * @OA\Get(path="/hot-topic",
+     *   tags={"Topic"},
+     *   summary="Get Hot Topic",
+     *   description="This api used to get hot-topic",
+     *   operationId="countrylist",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function hotTopic(Request $request)
     {
         try {
@@ -2023,6 +2071,7 @@ class TopicController extends Controller
                     $query->where('created_at', '>=', $date30DaysAgo);
                 }])
                 ->having('total_views', '>', 0)
+                ->groupBy('topic_num')
                 ->orderByDesc('total_views')
                 ->paginate($perPage);
 
@@ -2075,32 +2124,10 @@ class TopicController extends Controller
                 ];
             }
 
-            return response()->json([
-                'status_code' => 200,
-                'message' => trans('message.success.success'),
-                'error' => '',
-                'data' => [
-                    'current_page' => $topics->currentPage(),
-                    'data' => $hotTopics,
-                    'first_page_url' => $topics->url(1),
-                    'from' => $topics->firstItem(),
-                    'last_page' => $topics->lastPage(),
-                    'last_page_url' => $topics->url($topics->lastPage()),
-                    'links' => $topics->linkCollection()->map(function ($link) {
-                        return [
-                            'url' => $link['url'],
-                            'label' => $link['label'],
-                            'active' => $link['active']
-                        ];
-                    })->toArray(),
-                    'next_page_url' => $topics->nextPageUrl(),
-                    'path' => $topics->path(),
-                    'per_page' => (string) $topics->perPage(),
-                    'prev_page_url' => $topics->previousPageUrl(),
-                    'to' => $topics->lastItem(),
-                    'total' => $topics->total(),
-                ]
-            ]);
+            $currentPage = $request->page;
+            $paginate = Util::paginate($hotTopics, $perPage, $currentPage);
+            $collection = Util::getPaginatorResponse($paginate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -2110,7 +2137,53 @@ class TopicController extends Controller
         }
     }
 
-
+    /**
+     *  @OA\Get(path="/featured-topic",
+     *   tags={"Topic"},
+     *   summary="Get featured Topic",
+     *   description="This api used to get featured topic",
+     *   operationId="featuredTopic",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
     public function featuredTopic(Request $request)
     {
 
@@ -2152,13 +2225,62 @@ class TopicController extends Controller
                     $hotTopic->supporterData = $supporterData;
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
+            $currentPage = $request->page;
+            $paginate = Util::paginate($hotTopics, $perPage, $currentPage);
+            $collection = Util::getPaginatorResponse($paginate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
-
+    /**
+     * @OA\Get(path="/preferred-topic",
+     *   tags={"Topic"},
+     *   summary="Get preferred Topic",
+     *   description="This api used to get preferred topic",
+     *   operationId="preferredTopic",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
     public function preferredTopic(Request $request)
     {
         try {
@@ -2223,32 +2345,10 @@ class TopicController extends Controller
                 ];
             }
 
-            return response()->json([
-                'status_code' => 200,
-                'message' => trans('message.success.success'),
-                'error' => '',
-                'data' => [
-                    'current_page' => $topics->currentPage(),
-                    'data' => $preferredTopics,
-                    'first_page_url' => $topics->url(1),
-                    'from' => $topics->firstItem(),
-                    'last_page' => $topics->lastPage(),
-                    'last_page_url' => $topics->url($topics->lastPage()),
-                    'links' => $topics->linkCollection()->map(function ($link) {
-                        return [
-                            'url' => $link['url'],
-                            'label' => $link['label'],
-                            'active' => $link['active']
-                        ];
-                    })->toArray(),
-                    'next_page_url' => $topics->nextPageUrl(),
-                    'path' => $topics->path(),
-                    'per_page' => (string) $topics->perPage(),
-                    'prev_page_url' => $topics->previousPageUrl(),
-                    'to' => $topics->lastItem(),
-                    'total' => $topics->total(),
-                ]
-            ]);
+            $currentPage = $request->page;
+            $paginate = Util::paginate($preferredTopics, $perPage, $currentPage);
+            $collection = Util::getPaginatorResponse($paginate);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 400,
