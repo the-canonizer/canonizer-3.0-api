@@ -2202,11 +2202,15 @@ class TopicController extends Controller
                     foreach ($supporters as $key => $supporter) {
                         $user = Nickname::getUserByNickName($supporter->nick_name_id);
                         if ($user) {
-                            $supporterData['user_id'] = $user->id;
-                            $supporterData['first_name'] = $user->first_name;
-                            $supporterData['middle_name'] = $user->middle_name ?? null;
-                            $supporterData['last_name'] = $user->last_name ?? null;
-                            $supporterData['profile_picture_path'] = !empty($user->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path) : null;
+                            $supporterData[] = [
+                                'user_id' => $user->id,
+                                'first_name' => $user->first_name,
+                                'middle_name' => $user->middle_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'profile_picture_path' => $user->profile_picture_path
+                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                    : null
+                            ];
                         }
                     }
                     $hotTopic->topic_name = $topicTitle ?? "";
