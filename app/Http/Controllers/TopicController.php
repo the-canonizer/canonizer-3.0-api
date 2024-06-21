@@ -14,11 +14,11 @@ use App\Models\Topic;
 use App\Models\Support;
 use App\Helpers\Helpers;
 use App\Library\General;
-use App\Models\HotTopic;
 use App\Models\Nickname;
 use App\Models\TopicTag;
 use App\Models\Statement;
 use App\Models\Namespaces;
+use App\Models\FeatureTopic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
@@ -2064,12 +2064,9 @@ class TopicController extends Controller
             $date30DaysAgo = Carbon::now()->subDays(30);
             $perPage = $request->input('per_page', config('global.per_page'));
 
-            $topics = Topic::with(['views' => function ($query) use ($date30DaysAgo) {
+            $topics = Topic::withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
                 $query->where('created_at', '>=', $date30DaysAgo);
             }])
-                ->withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
-                    $query->where('created_at', '>=', $date30DaysAgo);
-                }])
                 ->having('total_views', '>', 0)
                 ->groupBy('topic_num')
                 ->orderByDesc('total_views')
@@ -2096,6 +2093,7 @@ class TopicController extends Controller
                             'first_name' => $user->first_name,
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
+                            'email' => $user->email ?? null,
                             'profile_picture_path' => $user->profile_picture_path
                                 ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
                                 : null
@@ -2183,7 +2181,7 @@ class TopicController extends Controller
 
         try {
             $perPage = $request->per_page ?? config('global.per_page');
-            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
+            $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
                 ->paginate($perPage);
             if (!empty($hotTopics)) {
                 foreach ($hotTopics as $hotTopic) {
@@ -2207,6 +2205,7 @@ class TopicController extends Controller
                                 'first_name' => $user->first_name,
                                 'middle_name' => $user->middle_name ?? null,
                                 'last_name' => $user->last_name ?? null,
+                                'email' => $user->email ?? null,
                                 'profile_picture_path' => $user->profile_picture_path
                                     ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
                                     : null
@@ -2313,6 +2312,7 @@ class TopicController extends Controller
                             'first_name' => $user->first_name,
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
+                            'email' => $user->email ?? null,
                             'profile_picture_path' => $user->profile_picture_path
                                 ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
                                 : null
