@@ -2075,8 +2075,6 @@ class TopicController extends Controller
                 ->orderByDesc('total_views')
                 ->paginate($perPage);
 
-            $hotTopics = [];
-
             foreach ($topics as $topic) {
                 $filter['topicNum'] = $topic->topic_num;
                 $filter['campNum'] = $topic->camp_num ?? 1;
@@ -2105,28 +2103,24 @@ class TopicController extends Controller
                     }
                 }
 
-                $hotTopics[] = [
-                    'id' => $liveTopic->id,
-                    'topic_num' => $liveTopic->topic_num,
-                    'camp_num' => $liveCamp->camp_num,
-                    'note' => $liveTopic->note,
-                    'topic_name' => $topicTitle,
-                    'camp_name' => $campTitle,
-                    'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'views' => $topic->total_views,
-                    'supporterData' => $supporterData,
-                    'statement' => Statement::getLiveStatement([
-                        'topicNum' => $topic->topic_num,
-                        'campNum' => $liveCamp->camp_num,
-                        'asOf' =>  'default',
-                        'asOfDate' =>  '',
-                    ])
-                ];
+                $topic->id = $liveTopic->id;
+                $topic->topic_num = $liveTopic->topic_num;
+                $topic->camp_num = $liveCamp->camp_num;
+                $topic->note = $liveTopic->note;
+                $topic->topic_name = $topicTitle;
+                $topic->camp_name = $campTitle;
+                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                $topic->views = $topic->total_views;
+                $topic->supporterData = $supporterData;
+                $topic->statement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
             }
 
-            $currentPage = $request->page;
-            $paginate = Util::paginate($hotTopics, $perPage, $currentPage);
-            $collection = Util::getPaginatorResponse($paginate);
+            $collection = Util::getPaginatorResponse($topics);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
@@ -2225,9 +2219,7 @@ class TopicController extends Controller
                     $hotTopic->supporterData = $supporterData;
                 }
             }
-            $currentPage = $request->page;
-            $paginate = Util::paginate($hotTopics, $perPage, $currentPage);
-            $collection = Util::getPaginatorResponse($paginate);
+            $collection = Util::getPaginatorResponse($hotTopics);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -2297,8 +2289,6 @@ class TopicController extends Controller
                 ->orderBy('id', $request->input('sort_by', 'DESC'))
                 ->paginate($perPage);
 
-            $preferredTopics = [];
-
             foreach ($topics as $topic) {
                 $filter['topicNum'] = $topic->topic_num;
                 $filter['campNum'] = $topic->camp_num ?? 1;
@@ -2326,28 +2316,24 @@ class TopicController extends Controller
                     }
                 }
 
-                $preferredTopics[] = [
-                    'id' => $liveTopic->id,
-                    'topic_num' => $liveTopic->topic_num,
-                    'camp_num' => $liveCamp->camp_num,
-                    'note' => $liveTopic->note,
-                    'topic_name' => $topicTitle,
-                    'camp_name' => $campTitle,
-                    'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'views' => $liveTopic->totalViews(),
-                    'supporterData' => $supporterData,
-                    'statement' => Statement::getLiveStatement([
-                        'topicNum' => $topic->topic_num,
-                        'campNum' => $liveCamp->camp_num,
-                        'asOf' =>  'default',
-                        'asOfDate' =>  '',
-                    ])
-                ];
+                $topic->id = $liveTopic->id;
+                $topic->topic_num = $liveTopic->topic_num;
+                $topic->camp_num = $liveCamp->camp_num;
+                $topic->note = $liveTopic->note;
+                $topic->topic_name = $topicTitle;
+                $topic->camp_name = $campTitle;
+                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                $topic->views = $liveTopic->totalViews();
+                $topic->supporterData = $supporterData;
+                $topic->statement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
             }
 
-            $currentPage = $request->page;
-            $paginate = Util::paginate($preferredTopics, $perPage, $currentPage);
-            $collection = Util::getPaginatorResponse($paginate);
+            $collection = Util::getPaginatorResponse($topics);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
