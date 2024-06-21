@@ -52,13 +52,13 @@ class TagController extends Controller
      *               @OA\Property(
      *                   property="per_page",
      *                   description="Number of records per page",
-     *                   required=true,
+     *                   required=false,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="page",
      *                   description="page number",
-     *                   required=true,
+     *                   required=false,
      *                   type="integer",
      *               )
      *               @OA\Property(
@@ -101,8 +101,16 @@ class TagController extends Controller
                         $q->where('title', 'LIKE', '%' . $result . '%');
                     });
                 })->orderBy('id', $request->sort_by ?? 'DESC');
-            $topic_tags = $topic_tags->paginate($perPage);
-            $topic_tags = Util::getPaginatorResponse($topic_tags);
+            
+            if($request->has('per_page') && $request->has('page')) {
+                $topic_tags = $topic_tags->paginate($perPage);
+                $topic_tags = Util::getPaginatorResponse($topic_tags);
+            } else {
+                $topic_tags = $topic_tags->get();
+                $topic_tags = (object) [
+                    "items" => $topic_tags
+                ];
+            }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topic_tags, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
