@@ -6,22 +6,29 @@ use stdClass;
 use Exception;
 use Throwable;
 use Carbon\Carbon;
+use App\Models\Tag;
+use App\Facades\Aws;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Helpers\Helpers;
 use App\Library\General;
 use App\Models\Nickname;
+use App\Models\TopicTag;
 use App\Models\Statement;
 use App\Models\Namespaces;
+use App\Models\FeatureTopic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
+use App\Facades\Aws as FacadesAws;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Events\NotifySupportersEvent;
@@ -32,11 +39,6 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
-use App\Helpers\Helpers;
-use App\Models\HotTopic;
-use App\Models\TopicTag;
-use App\Models\Tag;
-use Illuminate\Support\Facades\Log;
 
 class TopicController extends Controller
 {
@@ -62,7 +64,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         ) 
+     *         )
      *    ),
      *    @OA\RequestBody(
      *     required=true,
@@ -409,7 +411,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         ) 
+     *         )
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -489,7 +491,7 @@ class TopicController extends Controller
             if ($type == 'camp') {
 
                 $updatedArchiveStatus = $model->is_archive;
-                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
+                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
@@ -757,7 +759,7 @@ class TopicController extends Controller
                         if (!empty($currentNickname) && !empty($currentNickname->nick_name)) {
                             $current = '<a href="' . $currentUrl . '" target="_blank">' . $currentNickname->nick_name . '</a>';
                         }
-                        
+
                         $changeData[] =  [
                             'field' => 'camp_about_nick_name',
                             'live' => $live,
@@ -939,7 +941,7 @@ class TopicController extends Controller
             $responseData = [
                 "archive_camp_support_nicknames" => $archiveCampSupportNicknames,
                 "change_gone_live" => $changeGoneLive ?? false
-            ]; 
+            ];
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -959,7 +961,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         ) 
+     *         )
      *    ),
      *    @OA\RequestBody(
      *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
@@ -1071,9 +1073,9 @@ class TopicController extends Controller
 
 
             /*
-            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-            *   Now support at the time of submition will be count as total supporter. 
-            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+            *   Now support at the time of submition will be count as total supporter.
+            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
             */
             $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])
                 ->where('camp_num', '=', $data['camp_num'])
@@ -1118,9 +1120,9 @@ class TopicController extends Controller
                     $submitterNickId = $camp->submitter_nick_id;
 
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-                    *   Now support at the time of submition will be count as total supporter. 
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+                    *   Now support at the time of submition will be count as total supporter.
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
@@ -1207,9 +1209,9 @@ class TopicController extends Controller
                     $submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-                    *   Now support at the time of submition will be count as total supporter. 
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+                    *   Now support at the time of submition will be count as total supporter.
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
@@ -1370,7 +1372,6 @@ class TopicController extends Controller
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     if ($camp->is_archive != $preLiveCamp->is_archive) {
                         $camp->archive_action_time = time();
-                       
                     }
 
                     $camp->update();
@@ -1389,8 +1390,8 @@ class TopicController extends Controller
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
 
-                    if(isset($topic)) {
-                     Util::dispatchJob($topic, $camp->camp_num, 1);
+                    if (isset($topic)) {
+                        Util::dispatchJob($topic, $camp->camp_num, 1);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
                     //timeline start
@@ -1536,7 +1537,7 @@ class TopicController extends Controller
      *                   type="string",
      *               ),
      *              @OA\Property(
-     *                   property="submitter",                                      
+     *                   property="submitter",
      *                   description="Nick name id of user who previously added statement",
      *                   required=true,
      *                   type="integer",
@@ -1830,7 +1831,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         ) 
+     *         )
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -1907,7 +1908,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         ) 
+     *         )
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -2009,11 +2010,179 @@ class TopicController extends Controller
     }
 
 
+    /**
+     * @OA\Get(path="/hot-topic",
+     *   tags={"Topic"},
+     *   summary="Get Hot Topic",
+     *   description="This api used to get hot-topic",
+     *   operationId="countrylist",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+
     public function hotTopic(Request $request)
+    {
+        try {
+            $date30DaysAgo = Carbon::now()->subDays(30);
+            $perPage = $request->input('per_page', config('global.per_page'));
+
+            $topics = Topic::withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
+                $query->where('created_at', '>=', $date30DaysAgo);
+            }])
+                ->having('total_views', '>', 0)
+                ->groupBy('topic_num')
+                ->orderByDesc('total_views')
+                ->paginate($perPage);
+
+            foreach ($topics as $topic) {
+                $filter['topicNum'] = $topic->topic_num;
+                $filter['campNum'] = $topic->camp_num ?? 1;
+
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+
+                $topicTitle = $liveTopic->topic_name ?? '';
+                $campTitle = $liveCamp->camp_name ?? '';
+
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporterData = [];
+
+                foreach ($supporters as $supporter) {
+                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                    if ($user) {
+                        $supporterData[] = [
+                            'user_id' => $user->id,
+                            'first_name' => $user->first_name,
+                            'middle_name' => $user->middle_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'email' => $user->email ?? null,
+                            'profile_picture_path' => $user->profile_picture_path
+                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                : null
+                        ];
+                    }
+                }
+
+                $topic->id = $liveTopic->id;
+                $topic->topic_num = $liveTopic->topic_num;
+                $topic->camp_num = $liveCamp->camp_num;
+                $topic->note = $liveTopic->note;
+                $topic->topic_name = $topicTitle;
+                $topic->camp_name = $campTitle;
+                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                $topic->views = $topic->total_views;
+                $topic->supporterData = $supporterData;
+                $topic->statement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
+            }
+
+            $collection = Util::getPaginatorResponse($topics);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     *  @OA\Get(path="/featured-topic",
+     *   tags={"Topic"},
+     *   summary="Get featured Topic",
+     *   description="This api used to get featured topic",
+     *   operationId="featuredTopic",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+    public function featuredTopic(Request $request)
     {
 
         try {
-            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->get();
+            $perPage = $request->per_page ?? config('global.per_page');
+            $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
+                ->paginate($perPage);
             if (!empty($hotTopics)) {
                 foreach ($hotTopics as $hotTopic) {
                     $filter['topicNum'] = $hotTopic->topic_num;
@@ -2026,14 +2195,156 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
+                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num, $hotTopic->camp_num);
+                    $supporterData = [];
+                    foreach ($supporters as $key => $supporter) {
+                        $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                        if ($user) {
+                            $supporterData[] = [
+                                'user_id' => $user->id,
+                                'first_name' => $user->first_name,
+                                'middle_name' => $user->middle_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'email' => $user->email ?? null,
+                                'profile_picture_path' => $user->profile_picture_path
+                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                    : null
+                            ];
+                        }
+                    }
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
+                    $hotTopic->topic_num = $hotTopic->topic_num;
                     $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
+                    $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
+                    $hotTopic->namespace_id = $liveTopic->namespace_id;
+                    $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
+                    $hotTopic->supporterData = $supporterData;
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
+            $collection = Util::getPaginatorResponse($hotTopics);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(path="/preferred-topic",
+     *   tags={"Topic"},
+     *   summary="Get preferred Topic",
+     *   description="This api used to get preferred topic",
+     *   operationId="preferredTopic",
+     *   @OA\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         description="Bearer {access-token}",
+     *         @OA\Schema(
+     *              type="Authorization"
+     *         )
+     *    ),
+     *   @OA\Response(response=200,description="successful operation",
+     *                             @OA\JsonContent(
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                         property="status_code",
+     *                                         type="integer"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="message",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="error",
+     *                                         type="string"
+     *                                    ),
+     *                                    @OA\Property(
+     *                                         property="data",
+     *                                         type="object"
+     *                                    )
+     *                                 )
+     *                            ),
+     *
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     *
+     * )
+     */
+    public function preferredTopic(Request $request)
+    {
+        try {
+            $perPage = $request->per_page ?? config('global.per_page');
+            $userTags = $request->user()->tags()->pluck('tag_id');
+
+            $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
+                $query->whereIn('tag_id', $userTags);
+            }])
+                ->whereHas('topicTags', function ($query) use ($userTags) {
+                    $query->whereIn('tag_id', $userTags);
+                })
+                ->groupBy('topic_num')
+                ->orderBy('id', $request->input('sort_by', 'DESC'))
+                ->paginate($perPage);
+
+            foreach ($topics as $topic) {
+                $filter['topicNum'] = $topic->topic_num;
+                $filter['campNum'] = $topic->camp_num ?? 1;
+
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+                $topicTitle = $liveTopic->topic_name ?? '';
+                $campTitle = $liveCamp->camp_name ?? '';
+
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporterData = [];
+
+                foreach ($supporters as $supporter) {
+                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                    if ($user) {
+                        $supporterData[] = [
+                            'user_id' => $user->id,
+                            'first_name' => $user->first_name,
+                            'middle_name' => $user->middle_name ?? null,
+                            'last_name' => $user->last_name ?? null,
+                            'email' => $user->email ?? null,
+                            'profile_picture_path' => $user->profile_picture_path
+                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                : null
+                        ];
+                    }
+                }
+
+                $topic->id = $liveTopic->id;
+                $topic->topic_num = $liveTopic->topic_num;
+                $topic->camp_num = $liveCamp->camp_num;
+                $topic->note = $liveTopic->note;
+                $topic->topic_name = $topicTitle;
+                $topic->camp_name = $campTitle;
+                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                $topic->views = $liveTopic->totalViews();
+                $topic->supporterData = $supporterData;
+                $topic->statement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
+            }
+
+            $collection = Util::getPaginatorResponse($topics);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

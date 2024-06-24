@@ -26,12 +26,12 @@ class Nickname extends Model {
     ];
 
 
-    public static function boot() 
+    public static function boot()
     {
         parent::boot();
-            
-        static::saved(function($item) 
-        {    
+
+        static::saved(function($item)
+        {
             $type = "nickname";
             $id = "nickname-" . $item->id;
             $typeValue = $item->nick_name;
@@ -45,25 +45,25 @@ class Nickname extends Model {
            // $userId = self::getUserIDByNickNameId($item->id);
             $link = self::getNickNameLink($item->id, $namespaceId,'','',true);
             $statementNum =  '';
-            
+
             if($item->private){
                 ElasticSearch::deleteData($id);
                 return;
             }
             ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
-        
+
         });
     }
 
     public function getCreateTimeAttribute($value){
         return date("Y-m-d", strtotime($value));
     }
-    
+
 
      /**
      * Check whether nick already exists or not
      * @param string $nickname
-     * @return boolean 
+     * @return boolean
      */
     public static function isNicknameExists($nickname) {
 
@@ -92,7 +92,7 @@ class Nickname extends Model {
         {
             $nicknames = self::where('user_id', $userID)->orderBy('nick_name', 'ASC')->get();
         }
-        
+
         return $nicknames;
     }
 
@@ -199,7 +199,7 @@ class Nickname extends Model {
         $filter['campNum'] =  $camp_num;
         $onecamp = Camp::getLiveCamp($filter);
         Camp::clearChildCampArray();
-        
+
         try {
             $childCamps = array_unique(Camp::getAllChildCamps($onecamp));
             if(sizeof($supported_camp) > 0){
@@ -211,24 +211,24 @@ class Nickname extends Model {
                             foreach($value['array'] as $i => $supportData ){
                                 foreach($supportData as $j => $support){
                                     if(count($childCamps) > 0 && in_array($support['camp_num'], $childCamps)){
-                                        $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>'; 
+                                        $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>';
                                     } else{
-                                        $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>'; 
+                                        $returnHtml[]=  '<a href="'.$support['link'].'">'.$support['camp_name'].'</a>';
                                     }
                                 }
                             }
                         }else{
-                        $returnHtml[] =  '<a href="'.$value['link'].'">'.$value['camp_name'].'</a>'; 
+                        $returnHtml[] =  '<a href="'.$value['link'].'">'.$value['camp_name'].'</a>';
                         }
-                    }                
+                    }
                 }
-            } 
+            }
         } catch(Exception $e) {
             Util::logMessage("Error :: getSupportCampListNamesEmail :: ".$e->getMessage());
             $returnHtml = [];
         }
-            
-        return $returnHtml;                  
+
+        return $returnHtml;
     }
 
     public static function getNickName($nick_id) {
@@ -254,7 +254,7 @@ class Nickname extends Model {
 
         if ((isset($filter['asof']) && $filter['asof'] == 'bydate')) {
                 $as_of_time = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
-                $as_of_clause = "and go_live_time < $as_of_time";   
+                $as_of_clause = "and go_live_time < $as_of_time";
         } else {
             $as_of_clause = 'and go_live_time < ' . $as_of_time;
         }
@@ -265,7 +265,7 @@ class Nickname extends Model {
         }
         $supports = [];
         try {
-            $sql = "select u.topic_num, u.camp_num, u.title,u.camp_name, p.support_order, p.delegate_nick_name_id from support p, 
+            $sql = "select u.topic_num, u.camp_num, u.title,u.camp_name, p.support_order, p.delegate_nick_name_id from support p,
             (select s.title,s.topic_num,s.camp_name,s.submit_time,s.go_live_time, s.camp_num from camp s,
             (select topic_num, camp_num, max(go_live_time) as camp_max_glt from camp
             where objector_nick_id is null $as_of_clause group by topic_num, camp_num) cz,
@@ -276,9 +276,9 @@ class Nickname extends Model {
             where s.topic_num = cz.topic_num and s.camp_num=cz.camp_num and s.go_live_time = cz.camp_max_glt and s.topic_num=uz.topic_num) u
             where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
             (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by u.submit_time DESC";
-        
+
             $results = DB::select($sql);
-        
+
             foreach ($results as $rs) {
                 $topic_num = $rs->topic_num;
                 $camp_num = $rs->camp_num;
@@ -300,7 +300,7 @@ class Nickname extends Model {
                         //  $topitopic_idc_id = $topic_num . "-" . $title;
                     }
                     $supports[$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-                    $supports[$topic_num]['link'] = $url; 
+                    $supports[$topic_num]['link'] = $url;
                     $supports[$topic_num]['title'] = $title;
                     if($rs->delegate_nick_name_id){
                         $supports[$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
@@ -330,17 +330,17 @@ class Nickname extends Model {
     public static function getAllNicknamesByNickId($nickId)
     {
         $userId = self::getUserIDByNickNameId($nickId);
-        
+
         if($userId){
             return $allNickNames = self::getNicknamesIdsByUserId($userId);
         }
 
-        return [];        
+        return [];
     }
 
 
-   
-    public function getNicknameSupportedCampList($namespace = 1,$filter = array(),$topic_num = null) 
+
+    public function getNicknameSupportedCampList($namespace = 1,$filter = array(),$topic_num = null)
     {
         $as_of_time = time();
         $as_of_clause = '';
@@ -350,10 +350,10 @@ class Nickname extends Model {
         //if(!empty($topic_num)){
            // $topic_num_cond = 'and u.topic_num = '.$topic_num;
        // }
-       
+
         if ((isset($filter['asof']) && $filter['asof'] == 'bydate')) {
                 $as_of_time = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
-                $as_of_clause = "and go_live_time < $as_of_time";   
+                $as_of_clause = "and go_live_time < $as_of_time";
         } else {
             $as_of_clause = 'and go_live_time < ' . $as_of_time;
         }
@@ -363,7 +363,7 @@ class Nickname extends Model {
                     $as_of_clause = 'and go_live_time < ' . $as_of_time;
             }
 
-        $sql = "select u.topic_num, u.camp_num, u.title,u.camp_name, p.support_order, p.delegate_nick_name_id from support p, 
+        $sql = "select u.topic_num, u.camp_num, u.title,u.camp_name, p.support_order, p.delegate_nick_name_id from support p,
         (select s.title,s.topic_num,s.camp_name,s.submit_time,s.go_live_time, s.camp_num from camp s,
             (select topic_num, camp_num, max(go_live_time) as camp_max_glt from camp
                 where objector_nick_id is null $as_of_clause group by topic_num, camp_num) cz,
@@ -374,11 +374,11 @@ class Nickname extends Model {
                 where s.topic_num = cz.topic_num and s.camp_num=cz.camp_num and s.go_live_time = cz.camp_max_glt and s.topic_num=uz.topic_num) u
         where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
         (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by p.support_order ASC, u.submit_time DESC";
-        
+
         $results = DB::select($sql);
         return $results;
     }
-    
+
     public static function personNicknameIds() {
         if (Auth::check()) {
             return DB::table('nick_name')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();

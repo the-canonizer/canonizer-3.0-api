@@ -48,10 +48,10 @@ class ValidationMessages
 
             'password.required' => trans('message.validation_registration.password_required'),
             'password.regex' => trans('message.validation_registration.password_regex'),
-            
+
             'password_confirmation.required' => trans('message.validation_registration.password_confirmation_required'),
             'password_confirmation.same' => trans('message.validation_registration.password_confirmation_same'),
-            
+
             'phone_number.unique' => trans('message.validation_registration.phone_number_unique'),
 
             'country_code.required' => trans('message.validation_registration.country_code_required'),
@@ -534,7 +534,7 @@ class ValidationMessages
             'type.in' => trans('message.validation_discard_change.type_in'),
         ];
     }
-    
+
     public function getStatementComparisonValidationMessages(): array
     {
         return [
@@ -602,7 +602,7 @@ class ValidationMessages
             'page.required' => trans('message.validation_get_camp_history.page_required'),
         ]);
     }
-    
+
     public function getManageCampValidationMessages(): array
     {
         return [
@@ -681,11 +681,11 @@ class ValidationMessages
             'keys.topic_num.required' => trans('message.validation_meta_tags.topic_num_required'),
             'keys.topic_num.numeric' => trans('message.validation_meta_tags.topic_num_numeric'),
             'keys.topic_num.gt' => trans('message.validation_meta_tags.topic_num_gt'),
-            
+
             'keys.camp_num.required' => trans('message.validation_meta_tags.camp_num_required'),
             'keys.camp_num.numeric' => trans('message.validation_meta_tags.camp_num_numeric'),
             'keys.camp_num.gt' => trans('message.validation_meta_tags.camp_num_gt'),
-            
+
             'keys.forum_num.required' => trans('message.validation_meta_tags.forum_num_required'),
             'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
@@ -736,15 +736,15 @@ class ValidationMessages
             'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
             'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
             'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
-            
+
             'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
             'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
-            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
-            
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),
+
             'change_id.required' => trans('message.validation_change_supporters.change_id_required'),
             'change_id.numeric' => trans('message.validation_change_supporters.change_id_numeric'),
-            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),     
-            
+            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),
+
             'type.required' => trans('message.validation_change_supporters.type_required'),
             'type.required' => trans('message.validation_change_supporters.type_in'),
         ];
@@ -763,11 +763,11 @@ class ValidationMessages
             'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
             'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
             'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
-            
+
             'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
             'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
-            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
-            
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),
+
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
         ];
     }
@@ -785,6 +785,16 @@ class ValidationMessages
             'per_page.gt' => trans('message.tags.per_page_should_be_numeric'),
             
             'sort_by.in' => trans('message.tags.sort_by_in')
+        ];
+    }
+
+    public function createUserTagsValidationMessages(): array
+    {
+        return [
+            'user_tags.required' =>trans('message.user_tag.user_tags_required'),
+            'user_tags.array' => trans('message.user_tag.user_tags_array'),
+            'user_tags.*.integer' => trans('message.user_tag.user_tags_integer'),
+            'user_tags.*.exists' =>  trans('message.user_tag.user_tags_exists'),
         ];
     }
 }

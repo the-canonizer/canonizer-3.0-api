@@ -2,8 +2,8 @@
 
 namespace App\Helpers;
 
-use App\Models\{Camp, Statement, Topic};
 use Carbon\Carbon;
+use App\Models\{Camp, Statement, Topic, TopicView};
 
 class Helpers
 {
@@ -50,9 +50,27 @@ class Helpers
         if ($model instanceof Statement) {
             $where[] = ['is_draft', '=', 0];
         }
-        
+
         return $model::where('topic_num', $topic_num)
             ->where($where)
             ->count();
+    }
+
+    public static function getCampViewsByDate(int $topic_num, int $camp_num = 1, ?Carbon $startDate = null, ?Carbon $endDate = null)
+    {
+        return TopicView::where('topic_num', $topic_num)
+            ->when($camp_num > 1, fn ($query) => $query->where('camp_num', $camp_num))
+            ->when(
+                $startDate && $endDate,
+                fn ($query) => $query->whereBetween('created_at', [$startDate->startOfDay()->timestamp, $endDate->endOfDay()->timestamp]),
+                fn ($query) => $query->when(
+                    $endDate,
+                    fn ($query) => $query->where('created_at', '<=', $endDate->endOfDay()->timestamp),
+                    fn ($query) => $query->when(
+                        $startDate,
+                        fn ($query) => $query->where('created_at', '>=', $startDate->startOfDay()->timestamp),
+                    )
+                )
+            )->sum('views');
     }
 }
