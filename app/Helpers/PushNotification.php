@@ -5,18 +5,20 @@ namespace App\Helpers;
 use App\Models\PushNotification as ModelPushNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PushNotification
 {
     public static function sendPushNotification($request)
     {
-        $saveNotificationData = self::savePushNotification($request);
-        if (empty($request->fcm_token)) {
-            return true;
-        }
-
         $user = User::find($request->user_id);
         $token = $user->userOAuthTokenForFCM();
+
+        if (empty($request->fcm_token) || !$token) {
+            return true;
+        }
+        $saveNotificationData = self::savePushNotification($request);
+
         $fcmUrl = 'https://fcm.googleapis.com/v1/projects/' . env('FCM_PROJECT_ID') . '/messages:send';
 
         $queryString = parse_url($request->link, PHP_URL_QUERY);

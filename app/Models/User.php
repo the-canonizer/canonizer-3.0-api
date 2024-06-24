@@ -204,7 +204,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return Hash::check($password, $owerridedPassword);
     }
 
-    public function userOAuthTokenForFCM(): string
+    public function userOAuthTokenForFCM()
     {
         return $this->refreshOAuthToken('fcm', $this->id)['token'];
     }
