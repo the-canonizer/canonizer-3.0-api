@@ -11,38 +11,42 @@ class PushNotification
 {
     public static function sendPushNotification($request)
     {
+        $saveNotificationData = self::savePushNotification($request);
+        
+        
         $user = User::find($request->user_id);
         $token = $user->userOAuthTokenForFCM();
+        
+        $result = null;
 
-        if (empty($request->fcm_token) || !$token) {
-            return true;
-        }
-        $saveNotificationData = self::savePushNotification($request);
+        if (!empty($request->fcm_token) || $token) {
 
-        $fcmUrl = 'https://fcm.googleapis.com/v1/projects/' . env('FCM_PROJECT_ID') . '/messages:send';
-
-        $queryString = parse_url($request->link, PHP_URL_QUERY);
-        $link = $request->link . (empty($queryString) ? '?' : '&') . 'from=notify_' . $saveNotificationData->id;
-
-        $payload = [
-            'message' => [
-                'token' => $request->fcm_token,
-                'notification' => [
-                    'title' => $request->title,
-                    'body' => $request->message_body,
-                ],
-                'data' => [
-                    'url' => $link,
+            $fcmUrl = 'https://fcm.googleapis.com/v1/projects/' . env('FCM_PROJECT_ID') . '/messages:send';
+    
+            $queryString = parse_url($request->link, PHP_URL_QUERY);
+            $link = $request->link . (empty($queryString) ? '?' : '&') . 'from=notify_' . $saveNotificationData->id;
+    
+            $payload = [
+                'message' => [
+                    'token' => $request->fcm_token,
+                    'notification' => [
+                        'title' => $request->title,
+                        'body' => $request->message_body,
+                    ],
+                    'data' => [
+                        'url' => $link,
+                    ]
                 ]
-            ]
-        ];
+            ];
+    
+            $result = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json'
+            ])->post($fcmUrl, $payload);
+        }
 
-        $result = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json'
-        ])->post($fcmUrl, $payload);
 
-        ModelPushNotification::where('id', $saveNotificationData->id)->update(['message_response' => $result->json()]);
+        ModelPushNotification::where('id', $saveNotificationData->id)->update(['message_response' => !is_null($result) ? $result->json() : ""]);
         return $result;
     }
 
