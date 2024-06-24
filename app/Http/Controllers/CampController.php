@@ -1775,13 +1775,15 @@ class CampController extends Controller
 
         if (!empty($additionalNickNameIds)) {
             foreach ($additionalNickNameIds as $nick_name_id) {
-                $eligibleCampLeaders[] = [
-                    "topic_num" => $topic_num,
-                    "camp_num" => $camp_num,
-                    'nick_name_id' => $nick_name_id,
-                    'nick_name' => NickName::getNickName($nick_name_id)->nick_name ?? '',
-                    'camp_leader' => !is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $nick_name_id,
-                ];
+                if (!in_array($nick_name_id, array_column($eligibleCampLeaders, 'nick_name_id'))) {
+                    $eligibleCampLeaders[] = [
+                        "topic_num" => $topic_num,
+                        "camp_num" => $camp_num,
+                        'nick_name_id' => $nick_name_id,
+                        'nick_name' => NickName::getNickName($nick_name_id)->nick_name ?? '',
+                        'camp_leader' => !is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $nick_name_id,
+                    ];
+                }
             }
         }
 
