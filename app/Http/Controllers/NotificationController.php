@@ -267,8 +267,13 @@ class NotificationController extends Controller
             $user = User::find($request->user()->id);
             if ($request->fcm_token == 'disabled') {
                 $user->fcm_token = null;
+                $user->fcm_auth_token = null;
+                $user->fcm_auth_token_expiry = null;
             } else {
                 $user->fcm_token = $request->fcm_token;
+                $token = $user->generateOAuthToken('fcm');
+                $user->fcm_auth_token = $token['token'];
+                $user->fcm_auth_token_expiry = time() + $token['expiry'];
             }
             $user->save();
             $status = 200;

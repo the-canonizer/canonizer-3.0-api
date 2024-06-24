@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use App\Facades\Util;
+use Google_Client;
 
 /**
  *  @OA\Schema(
@@ -201,5 +202,38 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         }
         $owerridedPassword = Hash::make(env('PASSPORT_MASTER_PASSWORD'));
         return Hash::check($password, $owerridedPassword);
+    }
+
+    public function userOAuthTokenForFCM()
+    {
+        return $this->refreshOAuthToken('fcm', $this->id)['token'];
+    }
+
+    public function refreshOAuthToken(string $tokenFor, int $user_id): array
+    {
+        $user = self::find($user_id);
+        if ($user->fcm_auth_token && $user->fcm_auth_token_expiry < time()) {
+            $token = $this->generateOAuthToken($tokenFor);
+            $user->fcm_auth_token = $token['token'];
+            $user->fcm_auth_token_expiry = time() + $token['expiry'];
+            $user->save();
+            return $token;
+        }
+
+        return ['token' => $user->fcm_auth_token, 'expiry' => $user->fcm_auth_token_expiry];
+    }
+    public function generateOAuthToken(string $tokenFor): array
+    {
+        $client = new Google_Client();
+
+        if ($tokenFor === 'fcm') {
+            $client->setAuthConfig(base_path('firebase_config.json'));
+            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+        }
+
+        $client->fetchAccessTokenWithAssertion();
+        $token = $client->getAccessToken();
+
+        return ['token' => $token['access_token'], 'expiry' => $token['expires_in']];
     }
 }
