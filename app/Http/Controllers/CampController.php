@@ -1812,8 +1812,10 @@ class CampController extends Controller
                         ->orderBy('go_live_time', 'desc')
                         ->take(3)
                         ->get();
-            
+                    
             if (count($siblingCamps)) {
+                $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
+
                 foreach ($siblingCamps as $key => $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
                     $supporterData = [];
@@ -1823,15 +1825,16 @@ class CampController extends Controller
                             $supporterData[] = [
                                 'user_id' => $user->id,
                                 'first_name' => $user->first_name,
-                                'middle_name' => $user->middle_name ?? null,
-                                'last_name' => $user->last_name ?? null,
-                                'email' => $user->email ?? null,
+                                'middle_name' => $user->middle_name ?? NULL,
+                                'last_name' => $user->last_name ?? NULL,
                                 'profile_picture_path' => $user->profile_picture_path
                                     ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                    : null
+                                    : NULL
                             ];
                         }
                     }
+                    $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
+                    $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
                     $camp->supporterData = $supporterData;
                 }
