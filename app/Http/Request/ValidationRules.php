@@ -648,4 +648,12 @@ class ValidationRules
             'user_tags.*' => 'integer|exists:tags,id',       // Ensure each element in user_tags is an integer
         ];
     }
+
+    public function getSiblingCampsValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
+        ]);
+    }
 }

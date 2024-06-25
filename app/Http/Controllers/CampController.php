@@ -1744,4 +1744,102 @@ class CampController extends Controller
 
         return $result;
     }
+
+        /**
+     * @OA\Post(path="/get-sibling-camps",
+     *   tags={"Camp"},
+     *   summary="get sibling camps",
+     *   description="Used to get sibling camps of a camp.",
+     *   operationId="getSiblingCamps",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get sibling camps records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getSiblingCamps(Request $request, Validate $validate) {
+        
+        try {
+            $validationErrors = $validate->validate($request, $this->rules->getSiblingCampsValidationRules(), $this->validationMessages->getSiblingCampsValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $filter['topicNum'] = $request->topic_num;
+            $filter['campNum'] = $request->camp_num;
+            $filter['parentCampNum'] = $request->parent_camp_num;
+            
+            $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
+                        ->where([
+                            ['topic_num', '=', $filter['topicNum']],
+                            ['parent_camp_num', '=', $filter['parentCampNum']],
+                            ['objector_nick_id', '=', NULL],
+                            ['camp_num', '!=', $filter['campNum']],
+                            ['go_live_time', '<=', time()],
+                        ])
+                        ->whereIn('go_live_time', function ($query) use ($filter) {
+
+                            // Find out the latest live camp in multiple camps...
+                            $query->selectRaw('MAX(go_live_time)')
+                                ->from('camp')
+                                ->where([
+                                    ['topic_num', '=', $filter['topicNum']],
+                                    ['parent_camp_num', '=', $filter['parentCampNum']],
+                                    ['objector_nick_id', '=', NULL],
+                                    ['go_live_time', '<=', time()],
+                                ])
+                                ->groupBy('camp_num');
+
+                        })
+                        ->orderBy('go_live_time', 'desc')
+                        ->take(3)
+                        ->get();
+            
+            if (count($siblingCamps)) {
+                foreach ($siblingCamps as $key => $camp) {
+                    $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
+                    $supporterData = [];
+                    foreach ($supporters as $key => $supporter) {
+                        $user = Nickname::getUserByNickName($supporter->nick_name_id);
+                        if ($user) {
+                            $supporterData[] = [
+                                'user_id' => $user->id,
+                                'first_name' => $user->first_name,
+                                'middle_name' => $user->middle_name ?? null,
+                                'last_name' => $user->last_name ?? null,
+                                'email' => $user->email ?? null,
+                                'profile_picture_path' => $user->profile_picture_path
+                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
+                                    : null
+                            ];
+                        }
+                    }
+                    $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
+                    $camp->supporterData = $supporterData;
+                }
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $siblingCamps, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
 }

@@ -2082,7 +2082,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {
@@ -2195,7 +2195,7 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num, $hotTopic->camp_num);
+                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num);
                     $supporterData = [];
                     foreach ($supporters as $key => $supporter) {
                         $user = Nickname::getUserByNickName($supporter->nick_name_id);
@@ -2301,7 +2301,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {

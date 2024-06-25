@@ -797,4 +797,14 @@ class ValidationMessages
             'user_tags.*.exists' =>  trans('message.user_tag.user_tags_exists'),
         ];
     }
+
+    public function getSiblingCampsValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_get_camp_record.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_record.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_record.camp_num_numeric')
+        ];
+    }
 }

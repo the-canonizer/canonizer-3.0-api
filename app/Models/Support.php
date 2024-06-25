@@ -882,10 +882,10 @@ class Support extends Model
             ->where('end', 0)->count();
     }
 
-    public static function getAllSupporterOfTopic($topic_num,$camp_num)
+    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL)
     {
        return self::where('topic_num', '=', $topic_num)
-        // ->where('camp_num', $camp_num)
+        ->when(!empty($camp_num), fn ($query) => $query->where('camp_num', $camp_num))
         ->orderBy('support_order', 'ASC')
         ->where('end', '=', '0')->groupBy('nick_name_id')->get();
     }
