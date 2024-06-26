@@ -1768,6 +1768,12 @@ class CampController extends Controller
      *                   description="Camp number is required",
      *                   required=true,
      *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent Camp number is required",
+     *                   required=true,
+     *                   type="integer",
      *               )
      *          )
      *      )
