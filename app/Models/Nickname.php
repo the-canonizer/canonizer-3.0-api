@@ -241,6 +241,16 @@ class Nickname extends Model {
         return User::find($nickname->user_id);
     }
 
+    public static function getUsersByNickNameIds($nick_ids = [], $userColumnsToSelect= ['*']) {
+        $usersOfNickNames = self::whereIn('id', $nick_ids)
+                            ->groupBy('user_id')
+                            ->pluck('user_id')
+                            ->toArray();
+        return User::select($userColumnsToSelect)
+                        ->whereIn('id', $usersOfNickNames)
+                        ->get();
+    }
+
     public function getSupportCampList($namespace = 1,$filter = array(),$topic_num = null) {
         $as_of_time = time();
         $as_of_clause = '';

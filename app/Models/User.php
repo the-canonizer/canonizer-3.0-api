@@ -129,6 +129,12 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         }
     }
 
+    // Define the accessor for the profile_picture_path attribute
+    public function getProfilePicturePathAttribute($value)
+    {
+        return urldecode(env('AWS_PUBLIC_URL') . '/' . $value);
+    }
+
     public function setBirthdayAttribute($value)
     {
         if(!empty($value)){

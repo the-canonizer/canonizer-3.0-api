@@ -2094,9 +2094,7 @@ class TopicController extends Controller
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path
-                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                : null
+                            'profile_picture_path' => $user->profile_picture_path ?? null
                         ];
                     }
                 }
@@ -2206,9 +2204,7 @@ class TopicController extends Controller
                                 'middle_name' => $user->middle_name ?? null,
                                 'last_name' => $user->last_name ?? null,
                                 'email' => $user->email ?? null,
-                                'profile_picture_path' => $user->profile_picture_path
-                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                    : null
+                                'profile_picture_path' => $user->profile_picture_path ?? null,
                             ];
                         }
                     }
@@ -2313,9 +2309,7 @@ class TopicController extends Controller
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path
-                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                : null
+                            'profile_picture_path' => $user->profile_picture_path ?? null
                         ];
                     }
                 }

@@ -1816,27 +1816,16 @@ class CampController extends Controller
             if (count($siblingCamps)) {
                 $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
 
-                foreach ($siblingCamps as $key => $camp) {
+                foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
-                    $supporterData = [];
-                    foreach ($supporters as $key => $supporter) {
-                        $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                        if ($user) {
-                            $supporterData[] = [
-                                'user_id' => $user->id,
-                                'first_name' => $user->first_name,
-                                'middle_name' => $user->middle_name ?? NULL,
-                                'last_name' => $user->last_name ?? NULL,
-                                'profile_picture_path' => $user->profile_picture_path
-                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                    : NULL
-                            ];
-                        }
-                    }
+                    $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
+                    $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
+                    $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
+
                     $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
                     $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
-                    $camp->supporterData = $supporterData;
+                    $camp->supporterData = $supporters ?? [];
                 }
             }
 
