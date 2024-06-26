@@ -654,6 +654,7 @@ class ValidationRules
         return ([
             'topic_num' => 'required|numeric',
             'camp_num' => 'required|numeric',
+            'parent_camp_num' => 'required|numeric',
         ]);
     }
 }

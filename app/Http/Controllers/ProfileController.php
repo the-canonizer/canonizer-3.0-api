@@ -533,6 +533,7 @@ class ProfileController extends Controller
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
                 if($request->has('is_update') && $request->get('is_update')) {
+                    $user->profile_picture_path = urldecode($user->getOriginal('profile_picture_path'));
                     Aws::DeleteFile($user->profile_picture_path);
                 }
                 
@@ -570,8 +571,8 @@ class ProfileController extends Controller
 
         try {
             if (!is_null($user->profile_picture_path)) {
+                $user->profile_picture_path = urldecode($user->getOriginal('profile_picture_path'));
                 $result = Aws::DeleteFile($user->profile_picture_path);
-
                 if ($result['@metadata']['statusCode'] === 204) {
                     $user->profile_picture_path = null;
                 }
