@@ -9,6 +9,7 @@ use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Statement;
 use App\Library\General;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
@@ -29,7 +30,8 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
-use Illuminate\Support\Arr; 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class CampController extends Controller
 {
@@ -1792,6 +1794,8 @@ class CampController extends Controller
             $filter['topicNum'] = $request->topic_num;
             $filter['campNum'] = $request->camp_num;
             $filter['parentCampNum'] = $request->parent_camp_num;
+            $filter['asOf'] = 'default';
+            $filter['asOfDate'] = time();
             
             $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
                         ->where([
@@ -1821,6 +1825,7 @@ class CampController extends Controller
                     
             if (count($siblingCamps)) {
                 $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
+                
 
                 foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
@@ -1828,9 +1833,16 @@ class CampController extends Controller
                     $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
                     $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
 
+                    $filter['campNum'] = $camp->camp_num;
+                    $campStatement =  Statement::getLiveStatement($filter);
+                    $campStatement = Helpers::stripTagsExcept($campStatement->value ?? "", ['figure', 'table']);
+                    $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', $campStatement);
+                    $campStatement = Str::of($campStatement)->trim()->words(12);
+
                     $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
                     $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
+                    $camp->statement = $campStatement ?? NULL;
                     $camp->supporterData = $supporters ?? [];
                 }
             }
