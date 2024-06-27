@@ -12,6 +12,7 @@
         "dusterio/lumen-passport": "^0.3.0",
         "elasticsearch/elasticsearch": "^8.10",
         "flipbox/lumen-generator": "^8.2",
+        "google/apiclient": "^2.15",
         "guzzlehttp/guzzle": "^7.0",
         "illuminate/mail": "^8.81",
         "illuminate/redis": "^8.83",
