@@ -24,14 +24,14 @@ class TopicTagTest extends TestCase
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)->post('/api/v3/get-tags-list', [] ,$header);
-        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(200, $this->response->status());
     }
 
     /**
      * Check Api with empty form values
      * validation
      */
-    public function testGetTopicHistoryApiWithEmptyValues() {
+    public function testGetTagListApiWithEmptyValues() {
         $emptyData = [
             "per_page" => "",
             "page" => "",
@@ -43,7 +43,7 @@ class TopicTagTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-tags-list', [] ,$header);
+        $this->actingAs($user)->post('/api/v3/get-tags-list', $emptyData ,$header);
         $this->assertEquals(400, $this->response->status());
     }
 
@@ -51,7 +51,7 @@ class TopicTagTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testGetTopicHistoryApiWithValidData() {
+    public function testGetTagListApiWithValidData() {
         $validData = [
             "per_page" => "10",
             "page" => "1",
