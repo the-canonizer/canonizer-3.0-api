@@ -389,7 +389,7 @@ class Search extends Model
             'page_number'   =>  $page_number,
             'page_size'     =>  $page_size,
             'namespace_id'  =>  "",
-        ];
+        ]; 
         
         $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
         $appURL = env('CS_APP_URL');
@@ -406,14 +406,14 @@ class Search extends Model
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
 
         // Check the unauthorized request here...
-        if(isset($response)) {
+       /* if(isset($response)) {
             $checkRes = json_decode($response, true);
             if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
                 Log::error("Unauthorized action.");
                 throw new ServiceAuthenticationException('Authentication Issue!');
                 return;
             }
-        }
+        }*/
         if(isset($response)) {
             $responseData = json_decode($response, true)['data'];
             $responseMessage = json_decode($response, true)['message'];
