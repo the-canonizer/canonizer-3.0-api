@@ -73,4 +73,30 @@ class Helpers
                 )
             )->sum('views');
     }
+
+    public static function stripTagsExcept($html, $excludeTags = [])
+    {
+        if (!is_string($html)) {
+            return $html;
+        }
+        $excludeTagsPattern = implode('|', array_map(
+            function ($tag) {
+                return preg_quote($tag, '/');
+            },
+            $excludeTags
+        ));
+
+        // Remove the content and tags of the excluded tags
+        $pattern = '/<(' . $excludeTagsPattern . ')\b[^>]*>(.*?)<\/\1>/is';
+        $html = preg_replace($pattern, '', $html);
+
+        // Strip all remaining tags
+        $cleanedText = strip_tags($html);
+
+        // Decode HTML entities to get the proper text
+        // $cleanedText = html_entity_decode($cleanedText, ENT_QUOTES, 'UTF-8');
+
+        // Trim to the specified limit
+        return $cleanedText;
+    }
 }

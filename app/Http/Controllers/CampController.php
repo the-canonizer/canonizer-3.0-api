@@ -9,6 +9,7 @@ use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Models\Statement;
 use App\Library\General;
 use App\Models\Nickname;
 use App\Helpers\CampForum;
@@ -29,7 +30,8 @@ use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
-use Illuminate\Support\Arr; 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class CampController extends Controller
 {
@@ -1743,5 +1745,111 @@ class CampController extends Controller
         }
 
         return $result;
+    }
+
+        /**
+     * @OA\Post(path="/get-sibling-camps",
+     *   tags={"Camp"},
+     *   summary="get sibling camps",
+     *   description="Used to get sibling camps of a camp.",
+     *   operationId="getSiblingCamps",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get sibling camps records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *              @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               )
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+    public function getSiblingCamps(Request $request, Validate $validate) {
+        
+        try {
+            $validationErrors = $validate->validate($request, $this->rules->getSiblingCampsValidationRules(), $this->validationMessages->getSiblingCampsValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $filter['topicNum'] = $request->topic_num;
+            $filter['campNum'] = $request->camp_num;
+            $filter['parentCampNum'] = $request->parent_camp_num;
+            $filter['asOf'] = 'default';
+            $filter['asOfDate'] = time();
+            
+            $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
+                        ->where([
+                            ['topic_num', '=', $filter['topicNum']],
+                            ['parent_camp_num', '=', $filter['parentCampNum']],
+                            ['objector_nick_id', '=', NULL],
+                            ['camp_num', '!=', $filter['campNum']],
+                            ['go_live_time', '<=', time()],
+                        ])
+                        ->whereIn('go_live_time', function ($query) use ($filter) {
+
+                            // Find out the latest live camp in multiple camps...
+                            $query->selectRaw('MAX(go_live_time)')
+                                ->from('camp')
+                                ->where([
+                                    ['topic_num', '=', $filter['topicNum']],
+                                    ['parent_camp_num', '=', $filter['parentCampNum']],
+                                    ['objector_nick_id', '=', NULL],
+                                    ['go_live_time', '<=', time()],
+                                ])
+                                ->groupBy('camp_num');
+
+                        })
+                        ->orderBy('go_live_time', 'desc')
+                        ->take(3)
+                        ->get();
+                    
+            if (count($siblingCamps)) {
+                $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
+                
+
+                foreach ($siblingCamps as $camp) {
+                    $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
+                    $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
+                    $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
+                    $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
+
+                    $filter['campNum'] = $camp->camp_num;
+                    $campStatement =  Statement::getLiveStatement($filter);
+                    $campStatement = Helpers::stripTagsExcept($campStatement->value ?? "", ['figure', 'table']);
+                    $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', $campStatement);
+                    $campStatement = Str::of($campStatement)->trim()->words(12);
+
+                    $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
+                    $camp->namespace_id = $liveTopic->namespace_id;
+                    $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
+                    $camp->statement = $campStatement ?? NULL;
+                    $camp->supporterData = $supporters ?? [];
+                }
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $siblingCamps, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }
