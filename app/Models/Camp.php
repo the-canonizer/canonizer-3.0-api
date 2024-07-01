@@ -1061,7 +1061,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function updateCampLeaderFromLiveCamp(int $topic_num, int $camp_num, ?int $new_camp_leader_nick_id)
     {
         // Replicate live camp with minor tweaks.
-        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate();
+        $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate(['title']);
         $old_camp_leader_nick_id = $camp->camp_leader_nick_id;
         if ($new_camp_leader_nick_id !== $camp->camp_leader_nick_id) {
 
