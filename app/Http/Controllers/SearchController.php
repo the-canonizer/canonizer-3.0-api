@@ -105,7 +105,7 @@ class SearchController extends Controller
             case 'camp':
                 $response['camp'] = [];
                 if(!empty($topicIds) || !empty($campIds)){
-                    $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algorithm, $score, $asof, $asofdate); 
+                    $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate); 
                 }
                 break;
             case 'topic':
@@ -117,7 +117,7 @@ class SearchController extends Controller
             case 'statement':
                 $response['statement'] = [];
                 if(!empty($topicIds) && !empty($campIds)){
-                    $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $algorithm, $score, $asof, $asofdate);
+                    $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate);
                 }
                break;
             default:
