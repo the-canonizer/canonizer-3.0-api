@@ -380,7 +380,7 @@ class Search extends Model
 
     public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $asofdate='', $page_number = 1, $page_size = 5)
     {
-        $requestBody = [
+        /*$requestBody = [
             'algorithm'     =>  $algorithm,
             'search'        =>  $search,
             'asof'          =>  $asof,
@@ -389,7 +389,21 @@ class Search extends Model
             'page_number'   =>  $page_number,
             'page_size'     =>  $page_size,
             'namespace_id'  =>  "",
-        ]; 
+        ]; */
+
+        $requestBody = [
+            'algorithm'     => 'blind_popularity',
+            'asofdate'      => 1719563473.48,
+            'namespace_id'  => '1',
+            'page_number'   => 1,
+            'page_size'     => 15,
+            'search'        => 'test search cases',
+            'filter'        => '0',
+            'asof'          => 'default',
+            'user_email'    => '',
+            'is_archive'    => 0,
+            'sort'          => false,
+        ];
         
         $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
         $appURL = env('CS_APP_URL');
