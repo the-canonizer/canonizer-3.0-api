@@ -81,6 +81,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/hot-topic', 'TopicController@hotTopic');
         $router->get('/featured-topic', 'TopicController@featuredTopic');
         $router->post('get-tags-list','TagController@getTagsList');
+        $router->post('get-sibling-camps','CampController@getSiblingCamps');
     });
 
     //Route Group to access api with user access token

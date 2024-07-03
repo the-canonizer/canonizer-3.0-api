@@ -662,4 +662,13 @@ class ValidationRules
             'ids' => 'required|array',
         ]);
     }
+
+    public function getSiblingCampsValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
+            'parent_camp_num' => 'required|numeric',
+        ]);
+    }
 }

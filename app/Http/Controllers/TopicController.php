@@ -2082,7 +2082,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {
@@ -2094,9 +2094,7 @@ class TopicController extends Controller
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path
-                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                : null
+                            'profile_picture_path' => $user->profile_picture_path ?? null
                         ];
                     }
                 }
@@ -2195,7 +2193,7 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num, $hotTopic->camp_num);
+                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num);
                     $supporterData = [];
                     foreach ($supporters as $key => $supporter) {
                         $user = Nickname::getUserByNickName($supporter->nick_name_id);
@@ -2206,9 +2204,7 @@ class TopicController extends Controller
                                 'middle_name' => $user->middle_name ?? null,
                                 'last_name' => $user->last_name ?? null,
                                 'email' => $user->email ?? null,
-                                'profile_picture_path' => $user->profile_picture_path
-                                    ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                    : null
+                                'profile_picture_path' => $user->profile_picture_path ?? null,
                             ];
                         }
                     }
@@ -2301,7 +2297,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, $filter['campNum']);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {
@@ -2313,9 +2309,7 @@ class TopicController extends Controller
                             'middle_name' => $user->middle_name ?? null,
                             'last_name' => $user->last_name ?? null,
                             'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path
-                                ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path)
-                                : null
+                            'profile_picture_path' => $user->profile_picture_path ?? null
                         ];
                     }
                 }

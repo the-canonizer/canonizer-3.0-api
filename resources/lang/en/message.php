@@ -235,6 +235,8 @@ return [
         'camp_num_required' => "Camp number is required",
         'topic_num_numeric' => "Topic Num should be a numeric.",
         'camp_num_numeric' => "Camp Num should be a numeric.",
+        'parent_camp_num_numeric' => "Parent camp number should be a numeric.",
+        'parent_camp_num_required' => "Parent camp number is required.",
     ],
     'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
