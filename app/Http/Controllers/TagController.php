@@ -96,12 +96,17 @@ class TagController extends Controller
                         ->selectRaw('COUNT(*)')
                         ->whereColumn('topics_tags.tag_id', 'tags.id');
                 }, 'total_topics')
+                ->selectSub(function ($query) {
+                    $query->from('user_tags')
+                        ->selectRaw('COUNT(*)')
+                        ->whereColumn('user_tags.tag_id', 'tags.id');
+                }, 'total_users')
                 ->when($request->search_term, function ($query, $result) {
                     $query->where(function ($q) use ($result) {
                         $q->where('title', 'LIKE', '%' . $result . '%');
                     });
                 })->orderBy('id', $request->sort_by ?? 'DESC');
-            
+
             if($request->has('per_page') && $request->has('page')) {
                 $topic_tags = $topic_tags->paginate($perPage);
                 $topic_tags = Util::getPaginatorResponse($topic_tags);

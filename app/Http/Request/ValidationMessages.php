@@ -780,10 +780,10 @@ class ValidationMessages
 
             'page.numeric' => trans('message.tags.page_should_be_numeric'),
             'per_page.numeric' => trans('message.tags.per_page_should_be_numeric'),
-            
+
             'page.gt' => trans('message.tags.page_should_be_numeric'),
             'per_page.gt' => trans('message.tags.per_page_should_be_numeric'),
-            
+
             'sort_by.in' => trans('message.tags.sort_by_in')
         ];
     }
@@ -795,6 +795,22 @@ class ValidationMessages
             'user_tags.array' => trans('message.user_tag.user_tags_array'),
             'user_tags.*.integer' => trans('message.user_tag.user_tags_integer'),
             'user_tags.*.exists' =>  trans('message.user_tag.user_tags_exists'),
+        ];
+    }
+
+    public function updateReadAllValidationMessages(): array
+    {
+        return [
+            'ids.required' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray')
+        ];
+    }
+
+    public function updateDeleteAllValidationMessages(): array
+    {
+        return [
+            'ids.required' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray')
         ];
     }
 

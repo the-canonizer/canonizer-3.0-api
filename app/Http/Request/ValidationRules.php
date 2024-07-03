@@ -649,6 +649,20 @@ class ValidationRules
         ];
     }
 
+    public function updateReadAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
+
+    public function updateDeleteAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
+
     public function getSiblingCampsValidationRules(): array
     {
         return ([
