@@ -525,6 +525,8 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name)",
         "objectTopic" => ":nick_name has objected to your proposed change submitted for topic (:topic_name)",
         "objectStatement" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name) statement",
+        "idsRequired" => "The ids must be an required",
+        "idsArray" => "The ids must be an array",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",

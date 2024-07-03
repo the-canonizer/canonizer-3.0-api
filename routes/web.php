@@ -139,6 +139,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-camp', 'CampController@manageCamp');
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
+        $router->post('notification/read/all/','NotificationController@updateReadAll');
+        $router->post('notification/delete/all/','NotificationController@deleteAll');
         $router->post('/edit-camp','CampController@editCampRecord');
         $router->post('/manage-topic','TopicController@manageTopic');
         $router->post('/edit-topic', 'TopicController@editTopicRecord');

@@ -648,4 +648,18 @@ class ValidationRules
             'user_tags.*' => 'integer|exists:tags,id',       // Ensure each element in user_tags is an integer
         ];
     }
+
+    public function updateReadAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
+
+    public function updateDeleteAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
 }
