@@ -277,15 +277,18 @@ class NotificationController extends Controller
         }
 
         try {
+            DB::beginTransaction();
             PushNotification::whereIn('id', $request->ids)->update([
                 'is_read' => 1,
                 'is_seen' => 1,
                 'seen_time' => time(),
             ]);
+            DB::commit();
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Throwable $e) {
+            DB::rollBack();
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
@@ -300,11 +303,14 @@ class NotificationController extends Controller
         }
 
         try {
+            DB::beginTransaction();
             PushNotification::whereIn('id', $request->ids)->delete();
+            DB::commit();
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Throwable $e) {
+            DB::rollBack();
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
