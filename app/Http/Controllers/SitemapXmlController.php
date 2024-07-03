@@ -116,15 +116,16 @@ class SitemapXmlController extends Controller
         foreach ($namespaces as $namespace) {
             $namespaceIds[] = $namespace->id;
         }
-        $camps = Camp::where('objector_nick_id', '=', null)
+        $camps = Camp::where('objector_nick_id', null)
             ->where('go_live_time', '<=', time())
-            ->where('is_archive', '0')
+            ->where('is_archive', 0)
             ->whereHas('topic', function ($query) use ($namespaceIds) {
                 $query->whereNotIn('topic.namespace_id', $namespaceIds);
             })
-            ->whereRaw('go_live_time in (select max(go_live_time) from camp whereS objector_nick_id is null and go_live_time < "' . time() . '" group by camp_num)')
-            ->groupBy('topic_num','camp_num')
+            ->whereRaw('go_live_time in (select max(go_live_time) from camp where objector_nick_id is null and go_live_time < ' . time() . ' group by topic_num,camp_num)')
+            ->groupBy('topic_num', 'camp_num')
             ->get();
+
         $campUrls = [];
         $urlSet = [];
         foreach ($camps as $camp) {
