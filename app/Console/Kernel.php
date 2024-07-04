@@ -29,7 +29,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateUserIdFromOwnerCode',
         'App\Console\Commands\UpdateUserLastNameFromFullName',
         'App\Console\Commands\UpdateFilePathsToRelativePaths',
-        'App\Console\Commands\ReplaceBetaURLWithCanonizerURLForStatements'
+        'App\Console\Commands\ReplaceBetaURLWithCanonizerURLForStatements',
+        'App\Console\Commands\UpdateUserFCMTokenToOAuth',
     ];
 
     /**
