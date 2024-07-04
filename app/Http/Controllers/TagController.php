@@ -105,7 +105,7 @@ class TagController extends Controller
                     $query->where(function ($q) use ($result) {
                         $q->where('title', 'LIKE', '%' . $result . '%');
                     });
-                })->orderBy('id', $request->sort_by ?? 'DESC');
+                })->orderBy('name', $request->sort_by ?? 'ASC');
 
             if($request->has('per_page') && $request->has('page')) {
                 $topic_tags = $topic_tags->paginate($perPage);
