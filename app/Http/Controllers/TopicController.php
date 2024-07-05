@@ -1796,7 +1796,8 @@ class TopicController extends Controller
 
         try {
             $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
-            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery);
+            $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
+            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery, $liveTopic);
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
@@ -1812,6 +1813,7 @@ class TopicController extends Controller
                 $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
             }
             $response->details = $details;
+            $response->total_counts = Helpers::getHistoryCountsByChange($liveTopic, $filter);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Carbon\Carbon;
 use App\Models\{Camp, Statement, Topic, TopicView};
+use Illuminate\Support\Facades\DB;
 
 class Helpers
 {
@@ -98,5 +99,40 @@ class Helpers
 
         // Trim to the specified limit
         return $cleanedText;
+    }
+
+    public static function getHistoryCountsByChange($liveRecord, $filter) {
+
+        if (($liveRecord instanceof Topic)) {
+            $baseQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
+        } else if ($liveRecord instanceof Camp) {
+            $baseQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
+        } else if ($liveRecord instanceof Statement) {
+            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
+                                ->where('is_draft', 0)
+                                ->latest('submit_time');
+        }
+
+        // Current timestamp for consistent comparison
+        $currentTime = time();
+
+        $counts = $baseQuery->select(
+            DB::raw('COUNT(*) as total_changes'),
+            DB::raw('SUM(CASE WHEN id = ' . $liveRecord->id . ' THEN 1 ELSE 0 END) as live_changes'),
+            DB::raw('SUM(CASE WHEN objector_nick_id IS NOT NULL THEN 1 ELSE 0 END) as objected_changes'),
+            DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as in_review_changes'),
+            DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecord->id . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
+        )
+        ->first();
+
+        $historyCounts = [
+            'total_changes' => (int) $counts->total_changes,
+            'live_changes' => (int) $counts->live_changes,
+            'objected_changes' => (int) $counts->objected_changes,
+            'in_review_changes' => (int) $counts->in_review_changes,
+            'old_changes' => (int) $counts->old_changes,
+        ];
+
+        return $historyCounts;
     }
 }
