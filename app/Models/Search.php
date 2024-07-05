@@ -317,7 +317,7 @@ class Search extends Model
     }
 
 
-    public static function advanceCampSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default', $asofdate = '')
+    public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '')
     {
         $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('camp as a')
@@ -357,19 +357,18 @@ class Search extends Model
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
                    
-                    $supportCount = new SupportAndScoreCount();
+                   /* $supportCount = new SupportAndScoreCount();
                     $scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
                     $scoreCount = $scoreData['score'];
                     if($scoreCount < $score){
                         continue;
-                    }
+                    }*/
                     $liveTopic = Topic::getLiveTopic($topicNum);
                     $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
                     $temp['topic_num'] = $topicNum;
                     $temp['camp_num'] = $campNum;
                     $temp['camp_name'] = $result->camp_name;
                     $temp['breadcrumb'] = $breadcrumb;
-                    $temp['score'] = $scoreCount;
 
                     array_push($data,$temp);
                 }
@@ -380,7 +379,7 @@ class Search extends Model
 
     public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $asofdate='', $page_number = 1, $page_size = 5)
     {
-        $requestBody = [
+        /*$requestBody = [
             'algorithm'     =>  $algorithm,
             'search'        =>  $search,
             'asof'          =>  $asof,
@@ -389,6 +388,20 @@ class Search extends Model
             'page_number'   =>  $page_number,
             'page_size'     =>  $page_size,
             'namespace_id'  =>  "",
+        ]; */
+
+        $requestBody = [
+            'algorithm'     => 'blind_popularity',
+            'asofdate'      => 1719563473.48,
+            'namespace_id'  => '1',
+            'page_number'   => 1,
+            'page_size'     => 15,
+            'search'        => 'test search cases',
+            'filter'        => '0',
+            'asof'          => 'default',
+            'user_email'    => '',
+            'is_archive'    => 0,
+            'sort'          => false,
         ];
         
         $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
@@ -406,14 +419,14 @@ class Search extends Model
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
 
         // Check the unauthorized request here...
-        if(isset($response)) {
+       /* if(isset($response)) {
             $checkRes = json_decode($response, true);
             if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
                 Log::error("Unauthorized action.");
                 throw new ServiceAuthenticationException('Authentication Issue!');
                 return;
             }
-        }
+        }*/
         if(isset($response)) {
             $responseData = json_decode($response, true)['data'];
             $responseMessage = json_decode($response, true)['message'];
@@ -445,7 +458,7 @@ class Search extends Model
         }
     }
 
-    public static function advanceStatementSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default', $asofdate = '')
+    public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '')
     {
         $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
         $query = DB::table('statement as a')
@@ -505,19 +518,18 @@ class Search extends Model
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
                    
-                    $supportCount = new SupportAndScoreCount();
-                    $scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
-                    $scoreCount = $scoreData['score'];
-                    if($scoreCount < $score){
-                        continue;
-                    }
+                   // $supportCount = new SupportAndScoreCount();
+                    //$scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
+                    //$scoreCount = $scoreData['score'];
+                    //if($scoreCount < $score){
+                        //continue;
+                    //}
                     $liveTopic = Topic::getLiveTopic($topicNum);
                     $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
                     $temp['topic_num'] = $topicNum;
                     $temp['camp_num'] = $campNum;
                     $temp['camp_name'] = $result->camp_name;
                     $temp['breadcrumb'] = $breadcrumb;
-                    $temp['score'] = $scoreCount;
                     $temp['type_value'] = $result->type_value;
 
 
