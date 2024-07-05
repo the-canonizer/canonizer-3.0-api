@@ -1807,7 +1807,7 @@ class TopicSupport
         $supports = Support::getDelgatedSupportInTopic($topic_num, $nickNames);
         $liveTopic = Topic::getLiveTopic($topic_num, ['nofilter' => true]);
         $camp_leader = Camp::getCampLeaderNickId($topic_num, $camp_num);
-        $campsToemoved = [];
+        $campsToRemove = [];
         if (count($supports) && $supports[0]->delegate_nick_name_id) {
             foreach ($supports as $support) {
                 $support_camp_leader = Camp::getCampLeaderNickId($topic_num, $support->camp_num);
@@ -1822,15 +1822,18 @@ class TopicSupport
                         'camp_name' => $livecamp->camp_name,
                         'link' => Camp::campLink($topic_num, $support->camp_num, $liveTopic->topic_name, $livecamp->camp_name)
                     ];
-                    array_push($campsToemoved, $temp);
+                    array_push($campsToRemove, $temp);
                 }
             }
 
+            if (empty($campsToRemove)) {
+                return [];
+            }
             $returnData['warning'] = "You have already signed following camps. If you continue, your support will be removed from following camps and delegated to the camp leader of this camp.";
             $returnData['warning_type'] = "warning";
             $returnData['topic_num'] = $topic_num;
             $returnData['camp_num'] = $camp_num;
-            $returnData['remove_camps'] = $campsToemoved;
+            $returnData['remove_camps'] = $campsToRemove;
             $returnData['delegated_nick_name_id'] = $camp_leader;
             $returnData['nick_name_link'] = Nickname::getNickNameLink($camp_leader, '1', $topic_num, $camp_num);
         }
