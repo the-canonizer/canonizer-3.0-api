@@ -1814,6 +1814,8 @@ class TopicController extends Controller
             }
             $response->details = $details;
             $response->total_counts = Helpers::getHistoryCountsByChange($liveTopic, $filter);
+            $response->live_record_id = Helpers::getLiveHistoryRecord($liveTopic, $filter);
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

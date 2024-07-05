@@ -135,4 +135,23 @@ class Helpers
 
         return $historyCounts;
     }
+
+    public static function getLiveHistoryRecord($liveRecord, $filter) {
+
+        $modelInstance = get_class($liveRecord);
+        $modelName = class_basename($liveRecord);
+
+        $getLiveRecordId = $modelInstance::select('id')
+                    ->where('topic_num', $filter['topicNum'])
+                    ->when(($modelName == "Camp" || $modelName == "Statement"), function ($q) use ($filter) {
+                        $q->where('camp_num', '=', $filter['campNum']);
+                    })
+                    ->when($modelName == "Statement", function ($q) {
+                        $q->where('is_draft', 0);
+                    })
+                    ->where('id',  $liveRecord->id)
+                    ->latest('submit_time')->first();
+
+        return $getLiveRecordId->id ?? 0;
+    }
 }
