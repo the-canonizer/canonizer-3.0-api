@@ -528,7 +528,8 @@ class TopicSupport
             //timeline start
         
             $subjectStatement = "has just delegated their support to";
-            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId);
+            $channel = config('global.notify.email');
+            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId, null, $channel);
 
             GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
@@ -972,7 +973,7 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null)
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null, $channel = null)
     {
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
@@ -1032,7 +1033,7 @@ class TopicSupport
                 "thread_id" => !empty($threadId) ? $threadId : null,
             ];
         }
-        $channel = config('global.notify.both');
+        $channel = $channel ?? config('global.notify.both');
         Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
         return true;
     }
