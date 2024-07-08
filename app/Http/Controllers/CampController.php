@@ -1264,6 +1264,9 @@ class CampController extends Controller
             } else {
                 $response = Camp::campHistory($campHistoryQuery, $filter, $response, $liveCamp);
             }
+            $response->total_counts = Helpers::getHistoryCountsByChange($liveCamp, $filter);
+            $response->live_record_id = Helpers::getLiveHistoryRecord($liveCamp, $filter);
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

@@ -224,10 +224,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         //return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
-    public static function getTopicHistory($filter, $request, $topicHistoryQuery )
+    public static function getTopicHistory($filter, $request, $topicHistoryQuery , $liveTopic)
     {
-        $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
-
         $topicHistoryQuery->when($filter['type'] == "old", function ($q) use ($filter, $liveTopic) {
                 $q->where('go_live_time', '<=', $filter['currentTime'])
                 ->where('objector_nick_id', NULL)
