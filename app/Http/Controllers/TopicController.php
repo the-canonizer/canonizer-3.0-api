@@ -483,7 +483,7 @@ class TopicController extends Controller
             $pre_LiveId = null;
             if ($type == 'camp') {
 
-                $updatedArchiveStatus = $model->is_archive;
+                $updatedArchiveStatus = $model->is_archive;               
                 if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
                     $model->archive_action_time = time();
                     // get supporters list
@@ -501,7 +501,7 @@ class TopicController extends Controller
                         }
                     }
 
-                    // echo count($explicitArchiveSupporters);
+                   
                     if (count($archiveCampSupportNicknames) > 0 || count($explicitArchiveSupporters) > 0) {
                         $archiveReviewPeriod = true;
                     }
@@ -520,7 +520,7 @@ class TopicController extends Controller
 
             if ($type == 'camp') {
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
+                if (count($totalSupporters) === 1 && (in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) && !$archiveReviewPeriod ) { // && !$archiveReviewPeriod
                     $model->go_live_time = time();
                     $changeGoneLive = true;
                     // Log of system assigned/remove camp leader
