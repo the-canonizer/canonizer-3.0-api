@@ -235,7 +235,13 @@ class StatementController extends Controller
                 $response = Statement::statementHistory($statement_query, $response, $filter,  $campLiveStatement, $request);
             }
             $response->draft_record_id = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
-            $response->total_counts = Helpers::getHistoryCountsByChange($campLiveStatement, $filter);
+            $response->total_counts = [
+                'total_changes' => 0,
+                'live_changes' => 0,
+                'objected_changes' => 0,
+                'in_review_changes' => 0,
+                'old_changes' => 0,
+            ];
             $response->live_record_id = Helpers::getLiveHistoryRecord($campLiveStatement, $filter);
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
