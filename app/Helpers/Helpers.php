@@ -121,8 +121,8 @@ class Helpers
 
         // Current timestamp for consistent comparison
         $currentTime = time();
-        $liveRecordId = $liveRecord ?? 0;
-        
+        $liveRecordId = $liveRecord->id ?? 0;
+
         $counts = $baseQuery->select(
             DB::raw('COUNT(*) as total_changes'),
             DB::raw('SUM(CASE WHEN id = ' . $liveRecordId . ' THEN 1 ELSE 0 END) as live_changes'),
