@@ -2065,7 +2065,7 @@ class TopicController extends Controller
     public function hotTopic(Request $request)
     {
         try {
-            $date30DaysAgo = Carbon::now()->subDays(30);
+            $date30DaysAgo = Carbon::now()->subDays(30)->endOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
 
             $topics = Topic::withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
