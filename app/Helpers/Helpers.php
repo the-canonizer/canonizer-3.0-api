@@ -111,17 +111,24 @@ class Helpers
             $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
                                 ->where('is_draft', 0)
                                 ->latest('submit_time');
+        } else {
+            /* This is the case for statement only, Becuase when we create new topic so in this only 
+            statement is empty first time */
+            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
+                        ->where('is_draft', 0)
+                        ->latest('submit_time');
         }
 
         // Current timestamp for consistent comparison
         $currentTime = time();
-
+        $liveRecordId = $liveRecord ?? 0;
+        
         $counts = $baseQuery->select(
             DB::raw('COUNT(*) as total_changes'),
-            DB::raw('SUM(CASE WHEN id = ' . $liveRecord->id . ' THEN 1 ELSE 0 END) as live_changes'),
+            DB::raw('SUM(CASE WHEN id = ' . $liveRecordId . ' THEN 1 ELSE 0 END) as live_changes'),
             DB::raw('SUM(CASE WHEN objector_nick_id IS NOT NULL THEN 1 ELSE 0 END) as objected_changes'),
             DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as in_review_changes'),
-            DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecord->id . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
+            DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecordId . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
         )
         ->first();
 
