@@ -2106,7 +2106,7 @@ class TopicController extends Controller
                 $topic->topic_name = $topicTitle;
                 $topic->camp_name = $campTitle;
                 $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                $topic->views = $topic->total_views;
+                $topic->views = $topic->totalViews();
                 $topic->supporterData = $supporterData;
                 $topic->statement = Statement::getLiveStatement([
                     'topicNum' => $topic->topic_num,
@@ -2275,7 +2275,6 @@ class TopicController extends Controller
     public function preferredTopic(Request $request)
     {
         try {
-            $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->tags()->pluck('tag_id');
 
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
@@ -2285,10 +2284,11 @@ class TopicController extends Controller
                     $query->whereIn('tag_id', $userTags);
                 })
                 ->groupBy('topic_num')
-                ->orderBy('id', $request->input('sort_by', 'DESC'))
-                ->paginate($perPage);
+                ->inRandomOrder() // Fetch random records
+                ->limit(6) // Limit to 6 records
+                ->get();
 
-            foreach ($topics as $topic) {
+            $topics = $topics->map(function ($topic) {
                 $filter['topicNum'] = $topic->topic_num;
                 $filter['campNum'] = $topic->camp_num ?? 1;
 
@@ -2314,24 +2314,29 @@ class TopicController extends Controller
                     }
                 }
 
-                $topic->id = $liveTopic->id;
-                $topic->topic_num = $liveTopic->topic_num;
-                $topic->camp_num = $liveCamp->camp_num;
-                $topic->note = $liveTopic->note;
-                $topic->topic_name = $topicTitle;
-                $topic->camp_name = $campTitle;
-                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                $topic->views = $liveTopic->totalViews();
-                $topic->supporterData = $supporterData;
-                $topic->statement = Statement::getLiveStatement([
-                    'topicNum' => $topic->topic_num,
-                    'campNum' => $liveCamp->camp_num,
-                    'asOf' => 'default',
-                    'asOfDate' => '',
-                ]);
-            }
+                return [
+                    'id' => $liveTopic->id,
+                    'topic_num' => $liveTopic->topic_num,
+                    'camp_num' => $liveCamp->camp_num,
+                    'note' => $liveTopic->note,
+                    'topic_name' => $topicTitle,
+                    'camp_name' => $campTitle,
+                    'namespace' => $liveTopic->nameSpace->label ?? 1,
+                    'views' => $liveTopic->totalViews(),
+                    'supporterData' => $supporterData,
+                    'statement' => Statement::getLiveStatement([
+                        'topicNum' => $topic->topic_num,
+                        'campNum' => $liveCamp->camp_num,
+                        'asOf' => 'default',
+                        'asOfDate' => '',
+                    ]),
+                ];
+            });
 
-            $collection = Util::getPaginatorResponse($topics);
+            $collection = [
+                'items' => $topics
+            ];
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
@@ -2341,4 +2346,5 @@ class TopicController extends Controller
             ]);
         }
     }
+
 }
