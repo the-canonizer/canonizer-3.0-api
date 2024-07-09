@@ -242,7 +242,7 @@ class StatementController extends Controller
                 'in_review_changes' => 0,
                 'old_changes' => 0,
             ];
-            $response->live_record_id = Helpers::getLiveHistoryRecord($campLiveStatement, $filter);
+            $response->live_record_id = 1;
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
