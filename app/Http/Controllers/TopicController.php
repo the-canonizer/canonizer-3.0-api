@@ -1796,7 +1796,7 @@ class TopicController extends Controller
 
         try {
             $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
-            $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
+            $liveTopic = Topic::getLiveTopic($filter['topicNum'], 'default');
             $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery, $liveTopic);
             $response = $topics;
             $details->ifIamSupporter = null;
@@ -2065,15 +2065,18 @@ class TopicController extends Controller
     public function hotTopic(Request $request)
     {
         try {
-            $date30DaysAgo = Carbon::now()->subDays(30)->endOfDay()->timestamp;
+            $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
 
-            $topics = Topic::withCount(['views as total_views' => function ($query) use ($date30DaysAgo) {
-                $query->where('created_at', '>=', $date30DaysAgo);
-            }])
-                ->having('total_views', '>', 0)
-                ->groupBy('topic_num')
-                ->orderByDesc('total_views')
+            $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
+                $query->where('updated_at', '>=', $date30DaysAgo);
+            })
+                ->leftJoin('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
+                ->select('topic.*')
+                ->groupBy('topic.topic_num')
+                ->orderByDesc(
+                    DB::raw('(SELECT SUM(tv.views) FROM topic_views tv WHERE tv.topic_num = topic.topic_num)')
+                )
                 ->paginate($perPage);
 
             foreach ($topics as $topic) {
@@ -2350,5 +2353,4 @@ class TopicController extends Controller
             ]);
         }
     }
-
 }
