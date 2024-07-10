@@ -1799,6 +1799,11 @@ class CampController extends Controller
             $filter['parentCampNum'] = $request->parent_camp_num;
             $filter['asOf'] = 'default';
             $filter['asOfDate'] = time();
+
+            if($request->camp_num == 1) {
+                // in case of root Agreement camp, there's no sibling camps
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), [], '');
+            }
             
             $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
                         ->where([
