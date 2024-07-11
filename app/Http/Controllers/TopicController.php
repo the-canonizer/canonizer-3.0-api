@@ -2106,6 +2106,9 @@ class TopicController extends Controller
                     }
                 }
 
+                // Get the tag IDs associated with $liveTopic
+                $tagIds = $liveTopic->topicTags->pluck('tag_id');
+                $tags = Tag::whereIn('id', $tagIds)->get();
                 $topic->id = $liveTopic->id;
                 $topic->topic_num = $liveTopic->topic_num;
                 $topic->camp_num = $liveCamp->camp_num;
@@ -2113,6 +2116,7 @@ class TopicController extends Controller
                 $topic->topic_name = $topicTitle;
                 $topic->camp_name = $campTitle;
                 $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                $topic->topicTags = $tags;
                 $topic->views = $topic->totalViews();
                 $topic->supporterData = $supporterData;
                 $topic->statement = Statement::getLiveStatement([
@@ -2215,11 +2219,17 @@ class TopicController extends Controller
                             ];
                         }
                     }
+
+                    // Get the tag IDs associated with $liveTopic
+                    $tagIds = $liveTopic->topicTags->pluck('tag_id');
+                    $tags = Tag::whereIn('id', $tagIds)->get();
+
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
                     $hotTopic->topic_num = $hotTopic->topic_num;
                     $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
                     $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
+                    $hotTopic->topicTags = $tags;
                     $hotTopic->namespace_id = $liveTopic->namespace_id;
                     $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
                     $hotTopic->supporterData = $supporterData;
@@ -2321,6 +2331,9 @@ class TopicController extends Controller
                     }
                 }
 
+                // Get the tag IDs associated with $liveTopic
+                $tagIds = $liveTopic->topicTags->pluck('tag_id');
+                $tags = Tag::whereIn('id', $tagIds)->get();
                 return [
                     'id' => $liveTopic->id,
                     'topic_num' => $liveTopic->topic_num,
@@ -2329,6 +2342,7 @@ class TopicController extends Controller
                     'topic_name' => $topicTitle,
                     'camp_name' => $campTitle,
                     'namespace' => $liveTopic->nameSpace->label ?? 1,
+                    'topicTags' => $tags,
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'statement' => Statement::getLiveStatement([
