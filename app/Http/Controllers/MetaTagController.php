@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Library\wiki_parser\wikiParser;
 use App\Helpers\{ResourceInterface, ResponseInterface};
 use App\Http\Request\{ValidationRules, ValidationMessages};
+use App\Models\Video;
 
 class MetaTagController extends Controller
 {
@@ -101,6 +102,34 @@ class MetaTagController extends Controller
                 $metaTag->author = "";
 
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'),  $metaTag, '');
+            } elseif($page_name == 'VideosPage' && $metaTag->is_static == 0) {
+
+                $validationErrors = $validate->validate($request, $this->rules->getMetaTagsVideoValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
+                if ($validationErrors) {
+                    return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+                }
+
+                $getVideo = Video::where('id', $request->keys['video_id'] )->first();
+
+                if (is_null($getVideo)) {
+                    return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+                }
+
+                $title = $getVideo->title ?? "";
+                $title .= (strlen($title) > 0 ? ' | ' : '') . $metaTag->title;
+
+                $description = $getVideo->title ?? "";
+                $description .= (strlen($description) > 0 ? ' | ' : '') . $metaTag->title;
+
+                $responseArr = [
+                    "page_name" => $page_name ?? "",
+                    "title" => $title ?? "",
+                    "description" => $description ?? "",
+                    "author" => "",
+                ];
+
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseArr, '');
+                
             } else {
 
                 $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());

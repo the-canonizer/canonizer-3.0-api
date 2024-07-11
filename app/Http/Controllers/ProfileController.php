@@ -18,6 +18,8 @@ use App\Models\Languages;
 use App\Models\User;
 use App\Models\Nickname;
 use App\Helpers\TopicSupport;
+use App\Events\EmailChangeEvent;
+use App\Models\UserEmail;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -522,14 +524,15 @@ class ProfileController extends Controller
     */
     public function updateProfilePicture(Request $request, Validate $validate)
     {
-        $user = $request->user();
-        $input = $request->all();
-
-        $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
         try {
+            $user = $request->user();
+            $input = $request->all();
+    
+            $validationErrors = $validate->validate($request, $this->rules->getUpdateProfilePictureValidatonRules(), $this->validationMessages->getUpdateProfilePictureValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
                 if($request->has('is_update') && $request->get('is_update')) {
@@ -587,5 +590,136 @@ class ProfileController extends Controller
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
+
+    public function changeEmailRequest(Request $request)
+    {
+        $user = $request->user();
+        $otp = mt_rand(100000, 999999);
+        $result['otp'] = $otp;
+        $result['subject'] = "Canonizer - Change Email with  One-Time Passcode (OTP)";
+        
+        $user->otp = $otp;
+        $user->update();
+        Event::dispatch(new EmailChangeEvent($user,true));
+        $res = (object)[
+            "status_code" => 200,
+            "message"     => trans('message.email.change_request_with_otp',['email'=>$user->email]),
+            "error"       => null,
+            "data"        => $user
+        ];
+        return (new SuccessResource($res))->response()->setStatusCode(200);
+    }
+
+    public function emailChangeOtpVerification(Request $request)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        if($user->otp == $all['otp']){
+            $user->otp = '';
+            $user->update();
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.change_request_verfied'), '', '');
+        }else{
+            return $this->resProvider->apiJsonResponse(400, trans('message.email.change_request_failed'), '', '');
+        }
+        
+    }
+
+    public function updateEmailRequest(Request $request, Validate $validate)
+    {
+
+        $user = $request->user();
+        $input = $request->all();
+        $email = $input['email'];
+
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateEmailRules(), $this->validationMessages->getEmailUpdateValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        
+        $otp = mt_rand(100000, 999999);
+        $user->otp = $otp;
+        $user->update();
+
+        //verify email by sending OTP to new Email
+        Event::dispatch(new EmailChangeEvent($user,false, $email));
+        return $this->resProvider->apiJsonResponse(200, trans('message.email.verify_new_email', ['email'=>$email]), '', '');
+       
+    }
+
+    public function verifyAndUpdateEmail(Request $request,  Validate $validate)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        $email = $all['email'];
+        $setPrimary = ($all['set_primary']) ? $all['set_primary'] : 0;
+
+
+        $validationErrors = $validate->validate($request, $this->rules->getVerfiyAndUpdateEmailRules(), $this->validationMessages->getVerfiyAndUpdateEmaiMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        if($user->otp == $all['otp']){
+            $user->otp = '';
+            $user->email = $email;
+            $user->update();
+
+            if($setPrimary){
+                
+                UserEmail::where('user_id',$user->id)->update(['is_primary' => 0]);
+                UserEmail::where('email','=', $email)->update(['is_primary' => 1]);
+
+                return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added_verified'), $user, '');
+            }
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.updated_email'), $user, '');
+        }else{
+            return $this->resProvider->apiJsonResponse(400, trans('message.email.change_request_failed'), '', '');
+        }
+    }
+
+    public function addEmail(Request $request, Validate $validate)
+    {
+        $user = $request->user();
+        $all = $request->all();
+        $email = $all['email'];
+        $isPrimary = isset($all['is_primary']) && $all['is_primary'] ? $all['is_primary'] : 0;
+
+
+        $validationErrors = $validate->validate($request, $this->rules->getAddEmailRules(), $this->validationMessages->getAddEmailMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $userEmail = new UserEmail;
+        $userEmail->user_id = $user->id;
+        $userEmail->email = $email;
+        //$userEmail->is_primary = isset($all['is_primary']) && $all['is_primary'] ? $all['is_primary'] : 0;
+        $userEmail->save();
+
+        if($isPrimary){
+            $otp = mt_rand(100000, 999999);
+            $user->otp = $otp;
+            $user->update();
+
+            $data['email'] = $userEmail->email;
+            $data['otp'] = $otp;
+            //verify email by sending OTP to new Email
+            Event::dispatch(new EmailChangeEvent($user,false, $email));
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added_verify'), $data, '');
+        }else{
+            return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added'), $userEmail, '');
+        }
+
+        return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $user, '');
+
+    }
+
+
+    public function getAllEmail(Request $request)
+    {
+        $user = $request->user();
+        $emailList = UserEmail::getAll($user->id);
+        return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $emailList, '');
     }
 }

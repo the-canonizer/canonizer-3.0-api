@@ -52,7 +52,7 @@ class ActivityLoggerJob implements ShouldQueue
         if (isset($activityLog) && $activityLog->id) {
             $users = [];
             $subscribers = Camp::getCampSubscribers($this->data['topic_num'], $this->data['camp_num']);
-            $supporters = Camp::getDirectCampSupporterIds($this->data['topic_num'], $this->data['camp_num']);
+            $supporters = Camp::getImplicitCampSupporterIds($this->data['topic_num'], $this->data['camp_num']);
             $users = array_unique(array_merge($subscribers, $supporters));
 
             foreach ($users as $user) {

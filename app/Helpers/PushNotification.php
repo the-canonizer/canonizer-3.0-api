@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\PushNotification as ModelPushNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PushNotification
 {

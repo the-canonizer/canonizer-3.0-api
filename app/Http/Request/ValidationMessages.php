@@ -119,7 +119,7 @@ class ValidationMessages
         return ([
             'profile_picture.required' => trans('message.validation_update_profile.profile_picture_required'),
             'profile_picture.file' => trans('message.validation_update_profile.profile_picture_file'),
-            'profile_picture.mimes' => trans('message.validation_update_profile.profile_picture_mimes'),
+            'profile_picture.mimetypes' => trans('message.validation_update_profile.profile_picture_mimes'),
             'profile_picture.max' => trans('message.validation_update_profile.profile_picture_size'),
             'is_update.boolean' => trans("message.validation_update_profile.profile_pic_update_flag")
         ]);
@@ -688,6 +688,12 @@ class ValidationMessages
             'keys.forum_num.required' => trans('message.validation_meta_tags.forum_num_required'),
             'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
+
+
+            'keys.video_id.required' => trans('message.validation_meta_tags.video_id_required'),
+            'keys.video_id.numeric' => trans('message.validation_meta_tags.video_id_numeric'),
+            'keys.video_id.gt' => trans('message.validation_meta_tags.video_id_gt'),
+            
         ];
     }
 
@@ -769,5 +775,66 @@ class ValidationMessages
             
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
         ];
+    }
+
+    public function getSignPetitionMessages(): array
+    {
+        return ([
+            'topic_num.required' => trans('message.sign_petition_validation.topic_num_required'),
+            'topic_num.numeric' => trans('message.sign_petition_validation.topic_num_numeric'),
+            'topic_num.gt' => trans('message.sign_petition_validation.topic_num_gt'),
+            'topic_num.max' => [
+                'numeric' => trans('message.sign_petition_validation.topic_num_max_numeric')
+            ],
+            
+            'camp_num.required' => trans('message.sign_petition_validation.camp_num_required'),
+            'camp_num.numeric' => trans('message.sign_petition_validation.camp_num_numeric'),
+            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),    
+            'camp_num.max' => [
+                'numeric' => trans('message.sign_petition_validation.camp_num_max_numeric')
+            ],
+
+            'nick_name_id.required' => trans('message.sign_petition_validation.nick_name_id_required'),
+            'nick_name_id.numeric' => trans('message.sign_petition_validation.nick_name_id_numeric'),
+            'nick_name_id.gt' => trans('message.sign_petition_validation.nick_name_id_gt'),
+            'nick_name_id.max' => [
+                'numeric' => trans('message.sign_petition_validation.nick_name_id_max_numeric')
+            ],
+        ]);
+    }
+    
+    public function getEmailUpdateValidationMessages(): array
+    {
+        return ([
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique')
+        ]);
+    }
+    public function getVerfiyAndUpdateEmaiMessages(): array
+    {
+        return ([
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique'),
+            'otp.required' => trans('message.otp.required'),
+            'otp.digits' =>  trans('message.otp.valid_digits')
+        ]);
+    }
+
+    public function getAddEmailMessages(): array
+    {
+
+        return ([
+            'email.required' => trans('message.validation_registration.email_required'),
+            'email.string' => trans('message.validation_registration.email_string'),
+            'email.email' => trans('message.validation_registration.email_email'),
+            'email.max' => trans('message.validation_registration.email_max'),
+            'email.unique' => trans('message.validation_registration.email_unique')
+        ]);
     }
 }

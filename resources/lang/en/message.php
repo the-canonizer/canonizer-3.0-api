@@ -18,6 +18,7 @@ return [
         'topic_failed' => 'Fail to create topic, please try later.',
         'camp_failed' => 'Fail to create camp, please try later.',
         'camp_alreday_exist' => 'Camp name has already been taken.',
+        'invalid_camp_leader' => 'Only direct supporter can be a camp leader',
         'invalid_camp_name' => 'Invalid camp name.',
         'topic_name_alreday_exist' => 'Topic name has already been taken.',
         'invalid_data' => 'The given data was invalid.',
@@ -75,6 +76,7 @@ return [
         'permission_denied' => "You don't have permission to access this resource.",
         'support_added' => "Support added",
         'support_order_updated' => "Support order updated",
+        'support_reason_updated' => "Support updated",
         'support_removed' => "Support removed",
         'support_delegated' => "Support delegated",
         'default_support_added_reason' => "Default Support added on agreement",
@@ -358,7 +360,8 @@ return [
         'remove_direct_support' => 'Support removed successfully.',
         'not_authorized_for_objection' => 'You are not authorized to object to this statement because you do not support this camp.',
         'not_authorized_for_objection_topic' => 'You are not authorized to object to this topic because you do not support this camp.',
-        'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.'
+        'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.',
+        'can_not_object' => "You can't object to already objected change.",
 
 
 
@@ -501,6 +504,8 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change to camp",
         "objectTopic" => ":nick_name has objected to your proposed change to topic",
         "objectStatement" => ":nick_name has objected to your proposed change to statement",
+        "CampLeaderAssigned" => "Camp Leader Assigned in Camp - :camp_name",
+        "CampLeaderRemoved" => "Camp Leader Removed in Camp - :camp_name",
     ],
     'notification_message' => [
         "fcm_token_required" => "Fcm Token is required.",
@@ -523,6 +528,8 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name)",
         "objectTopic" => ":nick_name has objected to your proposed change submitted for topic (:topic_name)",
         "objectStatement" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name) statement",
+        "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
+        "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
@@ -546,6 +553,7 @@ return [
         "support_removed" => ":nick_name removed support",
         "support_added" => ":nick_name added support",
         "support_order_updated" => ":nick_name updated support order",
+        "support_reason_updated" => ":nick_name updated support",
         
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
@@ -567,6 +575,9 @@ return [
         "commit_change" => ":nick_name proposed a change to the :type",
         "delegate_support" => ":nick_name delegated their support to :delegate_to",
         "remove_delegated_support" => ":nick_name removed delegated support from :delegate_to.",
+
+        "assigned_as_camp_leader" => ':nick_name assigned as camp leader',
+        "removed_as_camp_leader" => ':nick_name removed as camp leader',
     ],
     "validation_meta_tags" => [
         'page_name_required' => "page_name is required.",
@@ -584,6 +595,10 @@ return [
         'forum_num_required' => "forum_num is required.",
         'forum_num_numeric' => "forum_num should be a numeric.",
         'forum_num_gt' => "forum_num should be greater than :value.",
+
+        'video_id_required' => "video_id is required.",
+        'video_id_numeric' => "video_id should be a numeric.",
+        'video_id_gt' => "video_id should be greater than :value.",
     ],
     "validation_change_supporters" => [
         'topic_num_required' => "topic_num is required.",
@@ -636,4 +651,40 @@ return [
         'user_agent_string' => "The :attribute must be a valid user agent string.",
         
     ],
+    'sign_petition_validation' => [
+        'topic_num_required' => "topic num is required.",
+        'topic_num_numeric' => "topic num should be a numeric.",
+        'topic_num_gt' => "topic num should be greater than :value.",
+        'topic_num_max_numeric' => "The topic num must not be greater than 9223372036854775807.",
+
+        'camp_num_required' => "camp num is required.",
+        'camp_num_numeric' => "camp num should be a numeric.",
+        'camp_num_gt' => "camp_num should be greater than :value.",
+        'camp_num_max_numeric' => "The camp num must not be greater than 9223372036854775807.",
+
+        'nick_name_id_required' => "nick name id is required.",
+        'nick_name_id_numeric' => "nick name id should be a numeric.",
+        'nick_name_id_gt' => "nick name id should be greater than :value.",
+        'nick_name_id_max_numeric' => "The nick name id must not be greater than 9223372036854775807.",
+    ],
+    'camp_leader' => [
+        'error' => [
+            'cannot_delegate_itslef' => 'The camp leader cannot delegate support to itself.',
+            'already_signed_camp' => 'You cannot sign the camp twice.',
+            'cannot_be_camp_leader_because_high_support_order' => 'You cannot be a camp leader because this camp is not your first choice!',
+            'system_generated' => [
+                'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
+            ]
+        ]
+    ],       
+    'email' => [
+        "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
+        "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
+        "change_request_failed"   => "Inccorect OTP entered.",
+        "verify_new_email" => "A verification code has been sent to your email :email. Please check your inbox and enter the code ",
+        "updated_email"  => "Email Updated Successfully.",
+        "newemail_added" => "New email added successfully.",
+        "newemail_added_verify" => "New email added successfully, please verify email by entering OTP sent on email to make this your primary/default email.",
+        "newemail_added_verified" => "Email verified successfully, now this email is your primary/login/notification email"
+    ]
 ];
