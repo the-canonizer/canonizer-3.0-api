@@ -2109,6 +2109,7 @@ class TopicController extends Controller
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
                 $tags = Tag::whereIn('id', $tagIds)->get();
+
                 $topic->id = $liveTopic->id;
                 $topic->topic_num = $liveTopic->topic_num;
                 $topic->camp_num = $liveCamp->camp_num;
@@ -2334,6 +2335,7 @@ class TopicController extends Controller
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
                 $tags = Tag::whereIn('id', $tagIds)->get();
+
                 return [
                     'id' => $liveTopic->id,
                     'topic_num' => $liveTopic->topic_num,
