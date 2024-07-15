@@ -6,10 +6,8 @@ use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Namespaces;
-use App\Models\Reply;
 use App\Models\Topic;
 use App\Models\Thread;
-use App\Models\Statement;
 use Illuminate\Http\Request;
 
 class SitemapXmlController extends Controller
@@ -82,11 +80,9 @@ class SitemapXmlController extends Controller
         foreach ($namespaces as $namespace) {
             $namespaceIds[] = $namespace->id;
         }
-        $topics = Topic::whereNull('objector_nick_id')
-            ->where('go_live_time', '<=', time())
-            ->whereNotIn('namespace_id', $namespaceIds)
-            ->latest('submit_time')
-            ->groupBy('topic_num')
+        $topics = Topic::whereNotIn('namespace_id', $namespaceIds)
+            ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+            ->orderBy('submit_time', 'DESC')
             ->get();
         $topicUrls = [];
         $urlTopicSet = [];
@@ -118,15 +114,16 @@ class SitemapXmlController extends Controller
         foreach ($namespaces as $namespace) {
             $namespaceIds[] = $namespace->id;
         }
-        $camps = Camp::where('objector_nick_id', '=', null)
+        $camps = Camp::where('objector_nick_id', null)
             ->where('go_live_time', '<=', time())
-            ->where('is_archive', '0')
+            ->where('is_archive', 0)
             ->whereHas('topic', function ($query) use ($namespaceIds) {
                 $query->whereNotIn('topic.namespace_id', $namespaceIds);
             })
-            ->latest('go_live_time')
-            ->groupBy('topic_num','camp_num')
+            ->whereRaw('go_live_time in (select max(go_live_time) from camp where objector_nick_id is null and go_live_time < ' . time() . ' group by topic_num,camp_num)')
+            ->groupBy('topic_num', 'camp_num')
             ->get();
+
         $campUrls = [];
         $urlSet = [];
         foreach ($camps as $camp) {

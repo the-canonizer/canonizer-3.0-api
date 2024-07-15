@@ -39,6 +39,10 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
+use App\Models\HotTopic;
+use Illuminate\Support\Facades\Log;
+use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 
 class TopicController extends Controller
 {
@@ -458,6 +462,7 @@ class TopicController extends Controller
         $event_type = NULL;
         $nickNames = Nickname::personNicknameArray();
         $archiveCampSupportNicknames = [];
+        $changeGoneLive = false;
         try {
             if ($type == 'statement') {
                 $model = Statement::where('id', '=', $id)
@@ -477,7 +482,7 @@ class TopicController extends Controller
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
-
+            
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
             $filter['asOf'] = $all['asOf'] ?? "default";
@@ -523,6 +528,22 @@ class TopicController extends Controller
             if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
                 $changeGoneLive = true;
+            }
+
+            if ($type == 'camp') {
+                $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
+                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
+                    $model->go_live_time = time();
+                    $changeGoneLive = true;
+                    // Log of system assigned/remove camp leader
+                    if (!is_null($model->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
+                    }
+
+                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                    }
+                }
             }
 
             $model->grace_period = 0;
@@ -745,7 +766,7 @@ class TopicController extends Controller
                         ];
                     }
 
-                    if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_url) && empty($model->camp_about_url))) {
+                    if (($preliveCamp->camp_about_nick_id !== $model->camp_about_nick_id) && !(empty($preliveCamp->camp_about_nick_id) && empty($model->camp_about_nick_id))) {
                         $liveNickname = NickName::getNickName($preliveCamp->camp_about_nick_id);
                         $currentNickname = NickName::getNickName($model->camp_about_nick_id);
                         $liveUrl = Util::linkForEmail(config('global.APP_URL_FRONT_END') . '/user/supports/' . $preliveCamp->camp_about_nick_id . '?topicnum=&campnum=&canon=' . $data['namespace_id']);
@@ -764,6 +785,14 @@ class TopicController extends Controller
                             'field' => 'camp_about_nick_name',
                             'live' => $live,
                             'change-in-review' => $current,
+                        ];
+                    }
+
+                    if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                        $changeData[] =  [
+                            'field' => 'camp_leader_nick_name',
+                            'live' => NickName::getNickName($preliveCamp->camp_leader_nick_id)->nick_name ?? '-',
+                            'change-in-review' => NickName::getNickName($model->camp_leader_nick_id)->nick_name ?? '-',
                         ];
                     }
 
@@ -904,9 +933,20 @@ class TopicController extends Controller
                     "thread_id" => !empty($threadId) ? $threadId : null,
                 ];
             }
-            // Email
+            // Email In review case
             if ($currentTime < $model->go_live_time && $model->objector_nick_id == null) {
                 Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
+            }
+
+            if ($changeGoneLive) {
+                if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                    if (!is_null($model->camp_leader_nick_id)) {
+                        Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                    }
+                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                        Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
+                    }
+                }
             }
 
             $activityLogData = [
@@ -1091,7 +1131,7 @@ class TopicController extends Controller
                     $submitterNickId = $statement->submitter_nick_id;
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('statement', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $statement->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
@@ -1126,7 +1166,7 @@ class TopicController extends Controller
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('camp', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num'], 'change_id' => $changeId], false);
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
                     }
@@ -1157,6 +1197,21 @@ class TopicController extends Controller
                         if ($camp->is_archive != $preLiveCamp->is_archive) {
                             $camp->archive_action_time = time();
                         }
+                        $preliveCamp = Camp::getLiveCamp(['topicNum' => $camp->topic_num, 'asOf' => "", 'campNum' => $camp->camp_num]);
+
+                        $topic = Topic::getLiveTopic($camp->topic_num, "default");
+
+                        // Log of system assigned/remove camp leader
+                        if (!is_null($camp->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($topic, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
+                            Event::dispatch(new CampLeaderAssignedEvent($camp->topic_num, $camp->camp_num, $camp->camp_leader_nick_id, true));
+                        }
+
+                        if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($topic, $preliveCamp, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                            Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
+                        }
+
                         $camp->update();
                         self::updateCampsInReview($camp);
                         $liveCamp = Camp::getLiveCamp($filter);
@@ -1215,7 +1270,7 @@ class TopicController extends Controller
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
-                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
+                    [$totalSupporters, $totalSupportersCount] = Support::getTotalSupporterByTimestamp('topic', (int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time, ['topicNum' => $data['topic_num'], 'campNum' => $data['camp_num']]);
 
                     if ($submitterNickId > 0 && !in_array($submitterNickId, $agreed_supporters)) {
                         $agreeCount++;
@@ -1381,19 +1436,15 @@ class TopicController extends Controller
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     $topic = $camp->topic;
 
-                    //if (isset($topic)) {
-                    // Util::dispatchJob($topic, $camp->camp_num, 1);
-                    //}
-
                     /** Archive and restoration of archive camp #574 */
                     if ($liveCamp->is_archive != $preLiveCamp->is_archive) {
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
-
-                    if (isset($topic)) {
-                        Util::dispatchJob($topic, $camp->camp_num, 1);
-                    }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
+                    
+                    DB::commit();
+                    Util::dispatchJob($topic, $camp->camp_num, 1);
+
                     //timeline start
                     if ($data['event_type'] == "parent_change") {
                         $timelineMessage = $nickName->nick_name . " changed the parent of camp   " . $liveCamp->camp_name;
@@ -1412,8 +1463,6 @@ class TopicController extends Controller
                         Util::dispatchTimelineJob($topic->topic_num, $liveCamp->camp_num, 1, $timelineMessage, "update_camp", $liveCamp->id, null, null, null, time(), $timeline_url);
                     }
                     //end of timeline
-
-                    DB::commit();
                     $message = trans('message.success.camp_agree');
                 } else {
                     DB::rollback();
@@ -1594,6 +1643,12 @@ class TopicController extends Controller
             if ($all['event_type'] == "objection") {
                 // $checkUserDirectSupportExists = Support::checkIfSupportExists($all['topic_num'], $nickNames);
                 $topic = Topic::where('id', $all['topic_id'])->first();
+
+                // Check if the change is already objected , then we can't object again
+                if (!empty($topic->objector_nick_id)) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
+                }
+                
                 $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
@@ -1876,7 +1931,7 @@ class TopicController extends Controller
                 $topic->tags = TopicTag::where('topic_num', $topic->topic_num)->pluck('tag_id')->toArray();
 
                 // if topic is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $topic->go_live_time <= time()) {
+                if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
                     $response['is_live'] = true;
                     return $response;

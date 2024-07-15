@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Events\CampForumThreadMailEvent;
 use Illuminate\Bus\Queueable;
 use App\Mail\CampForumThreadMail;
 use Illuminate\Support\Facades\Mail;
@@ -23,7 +24,7 @@ class CampForumThreadMailListener implements ShouldQueue
      * @param  \App\Events\ExampleEvent  $event
      * @return void
      */
-    public function handle($event)
+    public function handle(CampForumThreadMailEvent $event)
     {
 
         $user = $event->user;

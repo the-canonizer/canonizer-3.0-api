@@ -23,7 +23,7 @@
                 <tr>
                     <td style="font-weight:400;">
                         {{-- TODO: Commented Code from Issue [#665](https://github.com/the-canonizer/canonizer-3.0-api/issues/665) --}}
-                        <p>You proposed a change for {{ $data->type }} : <b>{!! $data->object !!}</b></p>
+                        <p>You proposed a change {{ $data->type === 'topic' ? 'and assigned as camp leader ' : '' }}for {{ $data->type }} : <b>{!! $data->object !!}</b></p>
                     </td>
                 </tr>
                 <tr>

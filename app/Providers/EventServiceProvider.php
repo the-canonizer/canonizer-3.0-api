@@ -18,6 +18,8 @@ use App\Listeners\LogActivityListener;
 use App\Listeners\WelcomeMailListener;
 use App\Events\SupportRemovedMailEvent;
 use App\Events\CampForumThreadMailEvent;
+use App\Events\CampLeaderAssignedEvent;
+use App\Events\CampLeaderRemovedEvent;
 use App\Events\NotifyAdministratorEvent;
 use App\Events\SendPushNotificationEvent;
 use App\Events\ThankToSubmitterMailEvent;
@@ -38,6 +40,9 @@ use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 use App\Events\UnarchiveCampMailEvent;
 use App\Listeners\UnarchiveCampMailListener;
+use App\Events\EmailChangeEvent;
+use App\Listeners\CampLeaderChangedListener;
+use App\Listeners\EmailChangeListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -97,6 +102,15 @@ class EventServiceProvider extends ServiceProvider
         ],
         UnarchiveCampMailEvent::class => [
             UnarchiveCampMailListener::class
-        ]
+        ],
+        EmailChangeEvent::class => [
+            EmailChangeListener::class
+        ],
+        CampLeaderAssignedEvent::class => [
+            CampLeaderChangedListener::class
+        ],
+        CampLeaderRemovedEvent::class => [
+            CampLeaderChangedListener::class
+        ],
     ];
 }

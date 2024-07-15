@@ -197,15 +197,6 @@ class MetaTagSeeder extends Seeder
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'page_name' => 'VideosPage',
-                'title' => 'Videos | Canonizer',
-                'is_static' => 1,
-                'description' => 'Watch and understand each aspect of consciousness, as it is said that consciousness is not a hard problem, but rather a colour problem.',
-                'submitter_nick_id' => null,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ],
-            [
                 'page_name' => 'RecentActivitiesPage',
                 'title' => 'Recent User Activities | Canonizer',
                 'is_static' => 1,
@@ -312,7 +303,25 @@ class MetaTagSeeder extends Seeder
                 'submitter_nick_id' => null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
-            ],  
+            ],
+            [
+                'page_name' => 'VideoListingPage',
+                'title' => 'Browse Curated Videos | Canonizer',
+                'is_static' => 1,
+                'description' => 'Explore our curated video listings on Canonizer.',
+                'submitter_nick_id' => null,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'page_name' => 'VideosPage',
+                'title' => 'Canonizer',
+                'is_static' => 0,
+                'description' => '[Video Name] | Canonizer',
+                'submitter_nick_id' => null,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
         ];
     
         foreach ($data as $value) {

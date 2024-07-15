@@ -96,6 +96,27 @@ class ManageCampApiTest extends TestCase
         $this->assertEquals(200,  $this->response->status());
     }
 
+    public function testUpdateManageCampWithInvalidCampLeader()
+    {
+        $validData = [
+            "topic_num" => "47",
+            "camp_num" => "2",
+            "camp_id" => "2",
+            "camp_name" => rand(),
+            "nick_name" => "347",
+            "camp_about_nick_id" => "123",
+            "note" => "note",
+            "submitter" => "1",
+            "event_type" => "update",
+            "camp_leader_nick_id" => "393939399339"
+        ];
+        $user = User::factory()->make([
+            'id' => trans('testSample.user_ids.normal_user.user_1')
+        ]);
+        $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $this->assertEquals(400,  $this->response->status());
+    }
+
     /**
      * Check Api with valid data
      * validation
