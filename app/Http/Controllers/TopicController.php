@@ -447,7 +447,7 @@ class TopicController extends Controller
         $type = $all['type'];
         $id = $all['id'];
         $message = "";
-        $event_type = NULL;
+        $event_type = null;
         $nickNames = Nickname::personNicknameArray();
         $archiveCampSupportNicknames = [];
         $changeGoneLive = false;
@@ -458,9 +458,9 @@ class TopicController extends Controller
                         return $query->whereIn('submitter_nick_id', $nickNames);
                     })
                     ->first();
-            } else if ($type == 'camp') {
+            } elseif ($type == 'camp') {
                 $model = Camp::where('id', '=', $id)->first();
-            } else if ($type == 'topic') {
+            } elseif ($type == 'topic') {
                 $model = Topic::where('id', '=', $id)->first();
             }
             if (!$model) {
@@ -523,13 +523,16 @@ class TopicController extends Controller
                 if (count($totalSupporters) === 1 && (in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) && !$archiveReviewPeriod ) { // && !$archiveReviewPeriod
                     $model->go_live_time = time();
                     $changeGoneLive = true;
-                    // Log of system assigned/remove camp leader
-                    if (!is_null($model->camp_leader_nick_id)) {
-                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
-                    }
 
-                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
-                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                    if ($model->camp_leader_nick_id !== $preliveCamp->camp_leader_nick_id) {
+                        // Log of system assigned/remove camp leader
+                        if (!is_null($model->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
+                        }
+
+                        if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                            Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
+                        }
                     }
                 }
             }

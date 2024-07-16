@@ -655,8 +655,14 @@ class Support extends Model
     {
         $supports = self::where('topic_num', '=', $topicNum)
                     ->where('camp_num', $campNum)
-                    ->where('nick_name_id', $nickId)
-                    ->update(['end' => time()]);
+                    ->where('nick_name_id', $nickId)->first();
+        $supports->update(['end' => time()]);
+
+        $campLeaderNickId = Camp::getCampLeaderNickId($topicNum, $campNum);
+        if ($supports->nick_name_id === $campLeaderNickId) {
+            $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $campNum, null, false, true);
+            Camp::updateCampLeaderFromLiveCamp($topicNum, $campNum, $oldest_direct_supporter->nick_name_id ?? null);
+        }
 
         $delegators = self::getDelegatorForNicknameId($topicNum, $nickId);
 
