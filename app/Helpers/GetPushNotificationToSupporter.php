@@ -20,7 +20,9 @@ class GetPushNotificationToSupporter
         $bcc_user = [];
         $sub_bcc_user = [];
         $userExist = [];
-        $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
+        $directSupporter = collect(Support::getAllDirectSupporters($topicNum, $campNum))->filter(function ($supporter) use ($delegateNickNameId) {
+            return $supporter['nick_name_id'] !== $delegateNickNameId;
+        })->values()->all();
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
         $topic = Topic::getLiveTopic($topicNum, "");
         $filter['topicNum'] = $topicNum;
