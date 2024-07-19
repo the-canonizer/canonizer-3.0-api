@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Search;
 use App\Helpers\ElasticSearch;
+use App\Helpers\Helpers;
 use App\Jobs\ForgetCacheKeyJob;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -1072,6 +1073,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ]);
             $camp->save();
 
+            Helpers::updateCampsInReview($camp);
+
             // Dispatch job to update mongoDB cache.
             $topic = Topic::getLiveTopic($topic_num);
             Util::dispatchJob($topic, $camp_num, 1);
@@ -1172,7 +1175,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ['camp_num', '=', $camp_num],
             ['camp_leader_nick_id', '=', $camp_leader_nick_id],
             ['submit_time', '<', $submit_time],
-            ['go_live_time', '>', Carbon::now()->timestamp]
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
         ])->whereNull('objector_nick_id')->get();
     }
 }
