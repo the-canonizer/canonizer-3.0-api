@@ -39,9 +39,7 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
-use App\Helpers\Helpers;
 use App\Models\HotTopic;
-use Illuminate\Support\Facades\Log;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 
 class TopicController extends Controller
