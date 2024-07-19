@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches: ["development", "UI-UX-Overhaul"]
+
+jobs:
+  sonarqube_analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Set up SSH Connection and Run SonarQube Scanner
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.SONAR_SERVER }}
+          username: ${{ secrets.SONAR_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/sonar/the-canonizer/canonizer-3.0-api;
+            git stash;
+            git pull;
+            /home/sonar/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=canonizer-3.0-api \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=http://110.39.11.117:9033 \
+              -Dsonar.login=sqp_6b39fe437311f94b26938de31c3050d39883d8e7;
+            cd /home/sonar/the-canonizer/reports/;
+            python3 canonizer-3.0-api-report.py
