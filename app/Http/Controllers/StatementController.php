@@ -297,7 +297,7 @@ class StatementController extends Controller
             $statement = Statement::where('id', $request->record_id)->first();
             if ($statement) {
                 // if statement is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $statement->go_live_time <= time()) {
+                if ($request->event_type == 'objection' && $statement->go_live_time <= time() && empty($statement->objector_nick_id)) {
                     $response = collect($this->resProvider->apiJsonResponse(404, trans('message.error.objection_history_changed', ['history' => 'statement']), '', '')->original)->toArray();
                     $response['is_live'] = true;
                     return $response;
@@ -429,6 +429,12 @@ class StatementController extends Controller
 
             if ($eventType == 'objection') {
                 $statement = Statement::where('id', $all['statement_id'])->first();
+
+                // Check if the change is already objected , then we can't object again
+                if (!empty($statement->objector_nick_id)) {
+                    return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
+                }
+
                 $checkUserDirectSupportExists = Support::ifIamSupporterForChange($all['topic_num'], $filters['campNum'], $nickNames, $statement->submit_time);
                 // This change is asked to implement in https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/193
                 $checkIfIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filters, $nickNames, $statement->submit_time, null, false, 'ifIamExplicitSupporter');

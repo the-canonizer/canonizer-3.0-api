@@ -33,10 +33,13 @@
                                 {{-- <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
                                 has removed their support from this camp: <a target="_blank" href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">{{ $data['object'] }}</a></b> --}}
-
+                                
                                 <a target="_blank"
                                     href="{{ \App\Facades\Util::linkForEmail($data['nick_name_link']) }}">{{ $data['nick_name']}}</a>
-                                has removed their support from this camp: {!! $data['object'] !!}</b>
+                                has removed their support {{ $data['previous_camp_leader_nick_id'] === $data['nick_name_id'] ? 'and removed as camp leader ' : '' }}from this camp: {!! $data['object'] !!}</b><br>
+                                @isset($data['new_camp_leader_statement'])
+                                    {!! $data['new_camp_leader_statement'] !!}
+                                @endisset
                             </p>
                         </td>
                     </tr>

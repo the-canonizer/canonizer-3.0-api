@@ -317,9 +317,9 @@ class Search extends Model
     }
 
 
-    public static function advanceCampSearch($topicIds, $campIds, $algorithm, $score = 0, $asof = 'default')
+    public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '')
     {
-        $asofdate = time();
+        $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('camp as a')
                 ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
                 ->join(DB::raw('(SELECT
@@ -338,8 +338,8 @@ class Search extends Model
                             topic_num,
                             camp_num) b'), function ($join) {
                     $join->on('a.topic_num', '=', 'b.topic_num')
-                        ->on('a.camp_num', '=', 'b.camp_num')
-                        ->on('a.go_live_time', '=', 'b.live_time');
+                         ->on('a.camp_num', '=', 'b.camp_num')
+                         ->on('a.go_live_time', '=', 'b.live_time');
                 });
 
                 if ($asof != 'review') {
@@ -350,26 +350,25 @@ class Search extends Model
                 $results = $query->get();
 
                 $data = [];
-                $algorithm = 'blind_popularity';
+                //$algorithm = 'blind_popularity';
                 foreach($results as $result)
                 {
                    
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
                    
-                    $supportCount = new SupportAndScoreCount();
+                   /* $supportCount = new SupportAndScoreCount();
                     $scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
                     $scoreCount = $scoreData['score'];
                     if($scoreCount < $score){
                         continue;
-                    }
+                    }*/
                     $liveTopic = Topic::getLiveTopic($topicNum);
                     $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
                     $temp['topic_num'] = $topicNum;
                     $temp['camp_num'] = $campNum;
                     $temp['camp_name'] = $result->camp_name;
                     $temp['breadcrumb'] = $breadcrumb;
-                    $temp['score'] = $scoreCount;
 
                     array_push($data,$temp);
                 }
@@ -378,17 +377,31 @@ class Search extends Model
     }
 
 
-    public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $page_number = 1, $page_size = 5)
+    public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $asofdate='', $page_number = 1, $page_size = 5)
     {
-        $requestBody = [
+        /*$requestBody = [
             'algorithm'     =>  $algorithm,
             'search'        =>  $search,
             'asof'          =>  $asof,
-            'asofdate'      =>  time(),
+            'asofdate'      =>  ($asofdate) ? $asofdate : time(),
             'filter'        =>  $filter,
             'page_number'   =>  $page_number,
             'page_size'     =>  $page_size,
             'namespace_id'  =>  "",
+        ]; */
+
+        $requestBody = [
+            'algorithm'     => 'blind_popularity',
+            'asofdate'      => 1719563473.48,
+            'namespace_id'  => '1',
+            'page_number'   => 1,
+            'page_size'     => 15,
+            'search'        => 'test search cases',
+            'filter'        => '0',
+            'asof'          => 'default',
+            'user_email'    => '',
+            'is_archive'    => 0,
+            'sort'          => false,
         ];
         
         $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
@@ -406,14 +419,14 @@ class Search extends Model
         $response = Util::execute('POST', $endpoint, $headers, $requestBody);
 
         // Check the unauthorized request here...
-        if(isset($response)) {
+       /* if(isset($response)) {
             $checkRes = json_decode($response, true);
             if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
                 Log::error("Unauthorized action.");
                 throw new ServiceAuthenticationException('Authentication Issue!');
                 return;
             }
-        }
+        }*/
         if(isset($response)) {
             $responseData = json_decode($response, true)['data'];
             $responseMessage = json_decode($response, true)['message'];
@@ -443,6 +456,87 @@ class Search extends Model
         } else {
             Log::error("Empty response, something went wrong");
         }
+    }
+
+    public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '')
+    {
+        $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
+        $query = DB::table('statement as a')
+                ->select('a.id', 'a.parsed_value as type_value', 'a.topic_num', 'a.camp_num', 'a.go_live_time', 'c.camp_name')
+                ->join(DB::raw('(SELECT
+                            topic_num,
+                            camp_num,
+                            MAX(go_live_time) AS live_time
+                        FROM
+                        statement
+                        WHERE
+                            objector_nick_id IS NULL
+                            AND grace_period = 0
+                            AND topic_num IN (' . implode(',', $topicIds) . ')
+                            AND camp_num IN (' . implode(',', $campIds) . ')
+                        GROUP BY
+                            topic_num,
+                            camp_num) b'), function ($join) {
+                    $join->on('a.topic_num', '=', 'b.topic_num')
+                        ->on('a.camp_num', '=', 'b.camp_num')
+                        ->on('a.go_live_time', '=', 'b.live_time');
+                });
+
+                $query->join(DB::raw('(SELECT
+                            topic_num,
+                            camp_num,
+                            MAX(go_live_time) AS live_time,
+                            camp_name
+                        FROM
+                        camp
+                        WHERE
+                            objector_nick_id IS NULL
+                            AND is_archive = 0
+                            AND grace_period = 0
+                            AND topic_num IN (' . implode(',', $topicIds) . ')
+                            AND camp_num IN (' . implode(',', $campIds) . ')
+                        GROUP BY
+                            topic_num,
+                            camp_num) c'), function ($join) {
+                    $join->on('a.topic_num', '=', 'c.topic_num')
+                        ->on('a.camp_num', '=', 'c.camp_num');
+                });
+
+                if ($asof != 'review') {
+                    $query->where('b.live_time', '<=', $asofdate);
+                }else{
+                    $query->where('b.live_time', '>=', $asofdate);
+                }
+                $results = $query->get();
+
+
+                $data = [];
+                //$algorithm = 'blind_popularity';
+                foreach($results as $result)
+                {
+                   
+                    $topicNum = $result->topic_num;
+                    $campNum = $result->camp_num;
+                   
+                   // $supportCount = new SupportAndScoreCount();
+                    //$scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
+                    //$scoreCount = $scoreData['score'];
+                    //if($scoreCount < $score){
+                        //continue;
+                    //}
+                    $liveTopic = Topic::getLiveTopic($topicNum);
+                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                    $temp['topic_num'] = $topicNum;
+                    $temp['camp_num'] = $campNum;
+                    $temp['camp_name'] = $result->camp_name;
+                    $temp['breadcrumb'] = $breadcrumb;
+                    $temp['type_value'] = $result->type_value;
+
+
+                    array_push($data,$temp);
+                }
+
+            return $data;
     }
 
 }

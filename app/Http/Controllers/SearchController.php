@@ -80,36 +80,46 @@ class SearchController extends Controller
 
     public function advanceSearchFilter(Request $request)
     {
-        $all    = $request->all();
-        $type   = $all['type'];
-        $nickIds  = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
-        $search = $all['search'];
-        $algorithm   = $all['algo'] ??  '';
-        $asof   = $all['asof'] ??  '';   //search type
-        $score  = $all['score'] ??  0;
-        $query = $all['query'] ?? '';
-        $campIds = $all['camp_ids'] ?? '';
-        $topicIds = $all['topic_ids'] ?? '';
+        $all        = $request->all();
+        $type       = $all['type'];
+        $nickIds    = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
+        $search     = $all['search'];
+        $algorithm  = $all['algo'] ??  '';
+        $asof       = $all['asof'] ??  '';   //search type
+        $score      = $all['score'] ??  0;
+        $query      = $all['query'] ?? '';
+        $campIds    = $all['camp_ids'] ?? '';
+        $topicIds   = $all['topic_ids'] ?? '';
         $pageNumber = $all['page_number'] ?? 1;
-        $pageSize = $all['page_size'] ?? 2;
+        $pageSize   = $all['page_size'] ?? 2;
+        $asofdate   = $all['asofdate'] ?? time();
 
         $status = 200;
         $message =  trans('message.success.success');
         switch ($type) {
             case 'nickname':
                 $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
-                $response['camp'] = Search::advanceCampFilterByNickname($nickIds, $query);
+                $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
                 
                 break;
             case 'camp':
-                 $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $algorithm, $score, $asof); 
+                $response['camp'] = [];
+                if(!empty($topicIds) || !empty($campIds)){
+                    $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate); 
+                }
                 break;
             case 'topic':
-                $data = Search::advanceTopicSearch($search, $algorithm, $asof, $score, $pageNumber, $pageSize);
+                $data = Search::advanceTopicSearch($search, $algorithm, $asof, $score, $asofdate, $pageNumber, $pageSize);
                 $status = $data['code'];
                 $message = $data['message'];
                 $response['topic'] = $data['data'];
                 break;
+            case 'statement':
+                $response['statement'] = [];
+                if(!empty($topicIds) && !empty($campIds)){
+                    $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate);
+                }
+               break;
             default:
                 // Do something if none of the above cases match
                 break;

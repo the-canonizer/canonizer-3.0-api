@@ -188,7 +188,7 @@ class SupportController extends Controller
         $reason = $all['reason'] ?? null; 
         $reason_summary = $all['reason_summary'] ?? null; 
         $citation_link = $all['citation_link'] ?? null; 
-
+        // dd($all);
         try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
@@ -386,7 +386,7 @@ class SupportController extends Controller
      }
 
 
-     /* @OA\Post(path="topic-support-list",
+    /* @OA\Post(path="topic-support-list",
      *  tags = "{topicSupport}"
      *  description = "This will return support added in topic."
      * ) 
@@ -405,9 +405,11 @@ class SupportController extends Controller
             $data = Support::getSupportedCampsList($topicNum, $userId); 
 
             foreach($data as $key => $support){
+                $liveCamp = Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $support['camp_num']]);
                 $link = Camp::campLink($support['topic_num'], $support['camp_num'], $support['title'], $support['camp_name']);
                 $data[$key]['link'] = $link;
                 $data[$key]['title'] = $topic->topic_name;
+                $data[$key]['camp_leader'] = $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id === $support['nick_name_id'];
             }
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
@@ -592,7 +594,7 @@ class SupportController extends Controller
             $isChangeLive = $model->grace_period == 0 && $model->go_live_time < time() && is_null($model->objector_nick_id);
 
             $response = [];
-            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp((int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time, ['topicNum' => $inputs['topic_num'], 'campNum' => $inputs['camp_num']]);
+            [$response['total_supporters'], $response['total_supporters_count']] = Support::getTotalSupporterByTimestamp($inputs['type'], (int)$inputs['topic_num'], (int)$inputs['camp_num'], $model->submitter_nick_id, $model->submit_time, ['topicNum' => $inputs['topic_num'], 'campNum' => $inputs['camp_num'], 'change_id' => $inputs['change_id']], $inputs['type'] === 'camp' ? false : true);
             
             if ($inputs['type'] == 'camp') {
                 $filter['topicNum'] = (int)$inputs['topic_num'];
@@ -642,5 +644,48 @@ class SupportController extends Controller
         unset($response['total_supporters'], $response['agreed_supporters']);
 
         return $response;
+    }
+
+    public function checkIfUserAlreadySignCamp(Request $request)
+    {
+
+        $data = $request->all();
+        $user = $request->user();
+        $userId = $user->id;
+
+        try {
+
+            $topicNum = isset($data['topic_num']) ? $data['topic_num'] : '';
+            $campNum =  isset($data['camp_num']) ? $data['camp_num'] : '';
+            
+            $nickNames = Nickname::getNicknamesIdsByUserId($userId);
+            
+            if (!$topicNum || !$campNum) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', '');
+            }
+
+            if (!Topic::getLiveTopic($topicNum) || !Camp::getLiveCamp(['topicNum' => $topicNum, 'campNum' => $campNum])) {
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+            }
+            
+            $support = Support::checkIfSupportExists($topicNum, $nickNames, [$campNum]);
+            $data = TopicSupport::checkSignValidaionAndWarning($topicNum, $campNum, $nickNames);
+
+            if($data === 'cannot_delegate_itslef') {
+                $data = null;
+            }
+
+            if ($support) {
+                $data['support_flag'] = 1;
+                $message = trans('message.support.support_exist');
+            } else {
+                $message = trans('message.support.support_not_exist');
+                $data['support_flag'] = 0;
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message ?? '', $data, '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 }
