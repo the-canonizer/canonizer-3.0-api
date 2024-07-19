@@ -2,7 +2,8 @@ name: Build
 
 on:
   push:
-    branches: ["development", "UI-UX-Overhaul"]
+    branches:
+      - development
 
 jobs:
   sonarqube_analysis:
