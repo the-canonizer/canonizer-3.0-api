@@ -2,8 +2,7 @@
 
 namespace App\Helpers;
 
-use App\Models\Camp;
-use App\Models\Topic;
+use App\Models\{Camp, Statement, Topic};
 use Carbon\Carbon;
 
 class Helpers
@@ -52,5 +51,52 @@ class Helpers
         return $model::where('topic_num', $topic_num)
             ->where($where)
             ->count();
+    }
+
+    public static function updateTopicsInReview($topic)
+    {
+        $inReviewTopicChanges = Topic::where([
+            ['topic_num', '=', $topic->topic_num],
+            ['submit_time', '<', $topic->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewTopicChanges)) {
+            foreach ($inReviewTopicChanges as $key => $topic) {
+                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
+    }
+
+    public static function updateStatementsInReview($statement)
+    {
+        $inReviewStatementChanges = Statement::where([
+            ['topic_num', '=', $statement->topic_num],
+            ['camp_num', '=', $statement->camp_num],
+            ['submit_time', '<', $statement->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewStatementChanges)) {
+            foreach ($inReviewStatementChanges as $key => $statement) {
+                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
+    }
+
+    public static function updateCampsInReview($camp)
+    {
+        $inReviewCampChanges = Camp::where([
+            ['topic_num', '=', $camp->topic_num],
+            ['camp_num', '=', $camp->camp_num],
+            ['submit_time', '<', $camp->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->orderBy('go_live_time', 'desc')->get();
+        if (count($inReviewCampChanges)) {
+            foreach ($inReviewCampChanges as $key => $Camp) {
+                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
     }
 }
