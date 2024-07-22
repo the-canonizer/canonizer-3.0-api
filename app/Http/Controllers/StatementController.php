@@ -875,7 +875,9 @@ class StatementController extends Controller
                         'parent_camp_name' => Camp::where('camp_num', $val->parent_camp_num)->where('topic_num', $val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
                         'is_disabled' => $val->is_disabled,
                         'is_one_level' => $val->is_one_level,
-                        'is_archive' => $val->is_archive
+                        'is_archive' => $val->is_archive,
+                        'camp_leader_nick_id' => $val->camp_leader_nick_id,
+                        'camp_leader_nick_name' => Nickname::getUserByNickId($val->camp_leader_nick_id),
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -896,6 +898,8 @@ class StatementController extends Controller
                     $statement['liveStatement']['camp_about_url'] = $liveStatement->camp_about_url;
                     $statement['liveStatement']['camp_about_nick_id'] = $liveStatement->camp_about_nick_id;
                     $statement['liveStatement']['camp_about_nick_name'] = Nickname::getUserByNickId($liveStatement->camp_about_nick_id);
+                    $statement['liveStatement']['camp_leader_nick_id'] = $liveStatement->camp_leader_nick_id;
+                    $statement['liveStatement']['camp_leader_nick_name'] = Nickname::getUserByNickId($liveStatement->camp_leader_nick_id);
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
