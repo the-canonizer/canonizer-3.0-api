@@ -1790,7 +1790,6 @@ class TopicSupport
                 $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader.'
                 : "the oldest direct supporter (\"" . $nickName . "\") will be assigned as new camp leader and your support will be delegated to the camp leader.";
                 $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. If you continue, " . $oldestDirectSupportMessage;
-                $warning = "<span><b>Info!</b> " . $warning . "</span>";
                 return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
             }
         }

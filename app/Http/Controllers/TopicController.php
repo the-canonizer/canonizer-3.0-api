@@ -491,6 +491,23 @@ class TopicController extends Controller
             $preliveTopic = Topic::getLiveTopic($model->topic_num, 'default');
             $prevArchiveStatus = $preliveCamp->is_archive;
             $pre_LiveId = null;
+
+            // Check if nominated camp leader is not a direct supporter, object the change if nominated as camp leader
+            $directSupports = collect(Support::getAllDirectSupporters($model->topic_num, $model->camp_num))->pluck('nick_name_id')->values()->all();
+            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports)) {
+                $model->objector_nick_id = $model->camp_leader_nick_id;
+                $model->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
+                $model->object_time = time();
+                $model->grace_period = 0;
+                $model->save();
+
+                $responseData = [
+                    "archive_camp_support_nicknames" => $archiveCampSupportNicknames,
+                    "change_gone_live" => $changeGoneLive ?? false
+                ];
+                return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
+            }
+        
             if ($type == 'camp') {
 
                 $updatedArchiveStatus = $model->is_archive;
@@ -552,16 +569,16 @@ class TopicController extends Controller
             if ($ifIamSingleSupporter) {
                 switch ($type) {
                     case 'statement':
-                        self::updateStatementsInReview($model);
+                        Helpers::updateStatementsInReview($model);
                         break;
                     case 'camp':
                         if (!$archiveReviewPeriod) {
-                            self::updateCampsInReview($model);
+                            Helpers::updateCampsInReview($model);
                         }
                         break;
                     case 'topic':
                         if (!$archiveReviewPeriod) {
-                            self::updateTopicsInReview($model);
+                            Helpers::updateTopicsInReview($model);
                         }
                         break;
 
@@ -1136,7 +1153,7 @@ class TopicController extends Controller
                     if ($agreeCount == $totalSupportersCount) {
                         $statement->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $statement->update();
-                        self::updateStatementsInReview($statement);
+                        Helpers::updateStatementsInReview($statement);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         /** Update check to send status of change */
                         $responseData["change_gone_live"] = true;
@@ -1211,7 +1228,7 @@ class TopicController extends Controller
                         }
 
                         $camp->update();
-                        self::updateCampsInReview($camp);
+                        Helpers::updateCampsInReview($camp);
                         $liveCamp = Camp::getLiveCamp($filter);
                         Util::checkParentCampChanged($data, true, $liveCamp);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
@@ -1277,7 +1294,7 @@ class TopicController extends Controller
                     if ($agreeCount == $totalSupportersCount) {
                         $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                         $topic->update();
-                        self::updateTopicsInReview($topic);
+                        Helpers::updateTopicsInReview($topic);
                         ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                         if (isset($topic)) {
                             Util::dispatchJob($topic, $data['camp_num'], 1);
@@ -1405,7 +1422,7 @@ class TopicController extends Controller
             if ($data['change_for'] == 'statement') {
                 $statement = Statement::where('id', $changeId)->first();
                 if ($statement) {
-                    self::updateStatementsInReview($statement);
+                    Helpers::updateStatementsInReview($statement);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     $message = trans('message.success.statement_agree');
                 } else {
@@ -1428,7 +1445,7 @@ class TopicController extends Controller
                     }
 
                     $camp->update();
-                    self::updateCampsInReview($camp);
+                    Helpers::updateCampsInReview($camp);
                     $liveCamp = Camp::getLiveCamp($filter);
                     Util::checkParentCampChanged($data, true, $liveCamp);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
@@ -1475,7 +1492,7 @@ class TopicController extends Controller
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     // $topic->update();
-                    self::updateTopicsInReview($topic);
+                    Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     if (isset($topic)) {
                         //Util::dispatchJob($topic, $data['camp_num'], 1);
@@ -1500,52 +1517,6 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
-    private function updateTopicsInReview($topic)
-    {
-        $inReviewTopicChanges = Topic::where([
-            ['topic_num', '=', $topic->topic_num],
-            ['submit_time', '<', $topic->submit_time],
-            ['go_live_time', '>', Carbon::now()->timestamp]
-        ])->whereNull('objector_nick_id')->get();
-        if (count($inReviewTopicChanges)) {
-            foreach ($inReviewTopicChanges as $key => $topic) {
-                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
-            }
-        }
-    }
-
-    private function updateStatementsInReview($statement)
-    {
-        $inReviewStatementChanges = Statement::where([
-            ['topic_num', '=', $statement->topic_num],
-            ['camp_num', '=', $statement->camp_num],
-            ['submit_time', '<', $statement->submit_time],
-            ['go_live_time', '>', Carbon::now()->timestamp],
-            ['is_draft', '=', 0]
-        ])->whereNull('objector_nick_id')->get();
-        if (count($inReviewStatementChanges)) {
-            foreach ($inReviewStatementChanges as $key => $statement) {
-                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
-            }
-        }
-    }
-
-    private function updateCampsInReview($camp)
-    {
-        $inReviewCampChanges = Camp::where([
-            ['topic_num', '=', $camp->topic_num],
-            ['camp_num', '=', $camp->camp_num],
-            ['submit_time', '<', $camp->submit_time],
-            ['go_live_time', '>', Carbon::now()->timestamp]
-        ])->whereNull('objector_nick_id')->get();
-        if (count($inReviewCampChanges)) {
-            foreach ($inReviewCampChanges as $key => $Camp) {
-                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
-            }
-        }
-    }
-
 
     /**
      * @OA\Post(path="/manage-topic",
