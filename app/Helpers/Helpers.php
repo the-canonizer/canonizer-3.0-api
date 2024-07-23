@@ -101,7 +101,8 @@ class Helpers
         return $cleanedText;
     }
 
-    public static function getHistoryCountsByChange($liveRecord, $filter) {
+    public static function getHistoryCountsByChange($liveRecord, $filter)
+    {
 
         if (($liveRecord instanceof Topic)) {
             $baseQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
@@ -109,14 +110,14 @@ class Helpers
             $baseQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
         } else if ($liveRecord instanceof Statement) {
             $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
-                                ->where('is_draft', 0)
-                                ->latest('submit_time');
+                ->where('is_draft', 0)
+                ->latest('submit_time');
         } else {
             /* This is the case for statement only, Becuase when we create new topic so in this only 
             statement is empty first time */
             $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
-                        ->where('is_draft', 0)
-                        ->latest('submit_time');
+                ->where('is_draft', 0)
+                ->latest('submit_time');
         }
 
         // Current timestamp for consistent comparison
@@ -130,7 +131,7 @@ class Helpers
             DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as in_review_changes'),
             DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecordId . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
         )
-        ->first();
+            ->first();
 
         $historyCounts = [
             'total_changes' => (int) $counts->total_changes,
@@ -143,22 +144,70 @@ class Helpers
         return $historyCounts;
     }
 
-    public static function getLiveHistoryRecord($liveRecord, $filter) {
+    public static function getLiveHistoryRecord($liveRecord, $filter)
+    {
 
         $modelInstance = get_class($liveRecord);
         $modelName = class_basename($liveRecord);
 
         $getLiveRecordId = $modelInstance::select('id')
-                    ->where('topic_num', $filter['topicNum'])
-                    ->when(($modelName == "Camp" || $modelName == "Statement"), function ($q) use ($filter) {
-                        $q->where('camp_num', '=', $filter['campNum']);
-                    })
-                    ->when($modelName == "Statement", function ($q) {
-                        $q->where('is_draft', 0);
-                    })
-                    ->where('id',  $liveRecord->id)
-                    ->latest('submit_time')->first();
+            ->where('topic_num', $filter['topicNum'])
+            ->when(($modelName == "Camp" || $modelName == "Statement"), function ($q) use ($filter) {
+                $q->where('camp_num', '=', $filter['campNum']);
+            })
+            ->when($modelName == "Statement", function ($q) {
+                $q->where('is_draft', 0);
+            })
+            ->where('id',  $liveRecord->id)
+            ->latest('submit_time')->first();
 
         return $getLiveRecordId->id ?? 0;
+    }
+
+    public static function updateTopicsInReview($topic)
+    {
+        $inReviewTopicChanges = Topic::where([
+            ['topic_num', '=', $topic->topic_num],
+            ['submit_time', '<', $topic->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewTopicChanges)) {
+            foreach ($inReviewTopicChanges as $key => $topic) {
+                Topic::where('id', $topic->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
+    }
+
+    public static function updateStatementsInReview($statement)
+    {
+        $inReviewStatementChanges = Statement::where([
+            ['topic_num', '=', $statement->topic_num],
+            ['camp_num', '=', $statement->camp_num],
+            ['submit_time', '<', $statement->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->get();
+        if (count($inReviewStatementChanges)) {
+            foreach ($inReviewStatementChanges as $key => $statement) {
+                Statement::where('id', $statement->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
+    }
+
+    public static function updateCampsInReview($camp)
+    {
+        $inReviewCampChanges = Camp::where([
+            ['topic_num', '=', $camp->topic_num],
+            ['camp_num', '=', $camp->camp_num],
+            ['submit_time', '<', $camp->submit_time],
+            ['go_live_time', '>', Carbon::now()->timestamp],
+            ['grace_period', '=', 0]
+        ])->whereNull('objector_nick_id')->orderBy('go_live_time', 'desc')->get();
+        if (count($inReviewCampChanges)) {
+            foreach ($inReviewCampChanges as $key => $Camp) {
+                Camp::where('id', $Camp->id)->update(['go_live_time' => strtotime(date('Y-m-d H:i:s')) - ($key + 1)]);
+            }
+        }
     }
 }
