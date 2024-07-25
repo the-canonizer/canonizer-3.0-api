@@ -423,6 +423,7 @@ class CampController extends Controller
                 $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
                 if (!empty($liveCampDefault)) {
                     $camp['is_archive'] = $liveCampDefault->is_archive;
+                    $camp['camp_name'] = $liveCampDefault->camp_name;
                 }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
@@ -1861,7 +1862,7 @@ class CampController extends Controller
                     $campStatement =  Statement::getLiveStatement($filter);
                     $campStatement = Helpers::stripTagsExcept($campStatement->value ?? "", ['figure', 'table']);
                     $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', $campStatement);
-                    $campStatement = Str::of($campStatement)->trim()->words(12);
+                    $campStatement = Str::of($campStatement)->trim();
 
                     $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
                     $camp->namespace_id = $liveTopic->namespace_id;
