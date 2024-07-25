@@ -423,6 +423,7 @@ class CampController extends Controller
                 $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
                 if (!empty($liveCampDefault)) {
                     $camp['is_archive'] = $liveCampDefault->is_archive;
+                    $camp['camp_name'] = $liveCampDefault->camp_name;
                 }
             }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
