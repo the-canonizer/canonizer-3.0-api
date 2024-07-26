@@ -70,7 +70,7 @@ class SearchController extends Controller
         return ($result);
     }
 
-    public static function optimizeResponse($data, $total, $page, $size,$totalTopicCounts, $totalCampCounts, $totalStatementCounts, $totalNicknameCounts)
+    public static function optimizeResponse($data, $total, $page, $size, $totalTopicCounts = 0, $totalCampCounts = 0, $totalStatementCounts = 0, $totalNicknameCounts = 0)
     { 
         
         
