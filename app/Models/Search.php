@@ -34,79 +34,90 @@ class Search extends Model
     protected $fillable = ['id', 'type', 'type_value','topic_num', 'camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link', 'statement_num', 'breadcrum_data', 'support_count'];
 
     public static function getSearchData($search, $type, $size = 25, $from = 1)
-    {
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $size = (intval($size) ?: 25);
-        $from = $size * ((intval($from) ?: 1) - 1);
+{
+    // Initialize Elasticsearch client
+    $elasticsearch = (new Elasticsearch())->elasticsearchClient;
 
-        $searchFields = ['type_value'];
-        //$excludesColumn = ["id","type","breadcrumb"];
+    // Ensure size and from are integers and set default values if needed
+    $size = intval($size) ?: 25;
+    $from = $size * ((intval($from) ?: 1) - 1);
 
+    // Define fields to search
+    $searchFields = ['type_value'];
 
-        $indexName = 'canonizer_elastic_search';
-        $response = $elasticsearch->search([
-            'index' => $indexName,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            [
-                                'bool' => [
-                                    'should' => [
-                                        [
-                                            'multi_match' => [
-                                                'query' => $search, // Use the custom query value here
-                                                'fields' => $searchFields,
-                                            ],
+    // Define the index name
+    $indexName = 'canonizer_elastic_search';
+    
+    // Perform the search query with aggregations
+    $response = $elasticsearch->search([
+        'index' => $indexName,
+        'body' => [
+            'query' => [
+                'bool' => [
+                    'must' => [
+                        [
+                            'bool' => [
+                                'should' => [
+                                    [
+                                        'multi_match' => [
+                                            'query' => $search,
+                                            'fields' => $searchFields,
                                         ],
-                                        [
-                                            'multi_match' => [
-                                                'query' => $search, // Use the custom query value here
-                                                'type' => 'phrase_prefix',
-                                                'fields' => $searchFields,
-                                            ],
+                                    ],
+                                    [
+                                        'multi_match' => [
+                                            'query' => $search,
+                                            'type' => 'phrase_prefix',
+                                            'fields' => $searchFields,
                                         ],
                                     ],
                                 ],
                             ],
                         ],
-                        'filter' => [
-                            [
-                                'terms' => [
-                                    'type' => $type, // Use the custom type value here
-                                ],
+                    ],
+                    'filter' => [
+                        [
+                            'terms' => [
+                                'type' => $type,
                             ],
                         ],
                     ],
                 ],
-                'size' => $size, // Use the custom size value here
-                'from' => $from, // Use the custom from value here
             ],
-        ]);
+            'size' => $size,
+            'from' => $from,
+            'aggs' => [
+                'type_counts' => [
+                    'terms' => [
+                        'field' => 'type',
+                        // No size parameter specified
+                    ],
+                ],
+            ],
+        ],
+    ]);
 
-        if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
-            $parsedResponse = $response['hits']['hits'];
-            $totalResponse = $response['hits']['total']['value'];
-        
-            $data = [
-                'data' => collect($parsedResponse)->pluck('_source'),
-                'type' => $type,
-                'count' => $totalResponse,
-            ];
-        
-            return $data;
-        } else {
-            // Handle the case where the Elasticsearch response doesn't contain the expected data.
-            $data = [
-                'data' => [],
-                'type' => '',
-                'count' => 0
-            ]; 
-            
-            return $data;
+    // Extract hits and total count
+    $hits = $response['hits']['hits'] ?? [];
+    $totalHits = $response['hits']['total']['value'] ?? 0;
+
+    // Extract aggregation results
+    $typeCounts = [];
+    if (isset($response['aggregations']['type_counts']['buckets'])) {
+        foreach ($response['aggregations']['type_counts']['buckets'] as $bucket) {
+            $typeCounts[$bucket['key']] = $bucket['doc_count'];
         }
-
     }
+
+    // Return the results
+    return [
+        'data' => collect($hits)->pluck('_source'),
+        'type' => $type,
+        'count' => $totalHits,
+        'type_counts' => $typeCounts, // Include counts per type
+    ];
+}
+
 
 
     public static function createOrUpdate($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
