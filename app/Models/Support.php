@@ -283,7 +283,21 @@ class Support extends Model
             $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
             if (!is_null($camp_leader) && in_array($camp_leader, $nickNames)) {
                 $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $camp_num, $camp_leader, false, true);
-                Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null);
+                /**
+                 * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1051
+                 *
+                 * The issue is that when shifting camp leader support from parent to child camp, system will submit 2 changes at the same time.
+                 * 1. A change of removal of camp leader from parent camp.
+                 * 2. A change of assigning of camp leader to child camp in case of no DS.
+                 * Due to this, mongoDB tree will not be updated correctly. Because of the following issue:
+                 *
+                 * Canonizer Server: app/Services/CampService.php:78 (prepareCampTree)
+                 * This query will get two records(newest and oldest) of the child camp and after group by, it will replace oldest with newest.
+                 *
+                 * That's why removal change is submitted 1 second before current time.
+                 */
+                $changeSubmitAndLiveTime = time() - 1;
+                Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null, $changeSubmitAndLiveTime, $changeSubmitAndLiveTime);
             }
         }
 
