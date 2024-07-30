@@ -1496,21 +1496,28 @@ class TopicSupport
     /** 
      * Return Add support API message
      */
-    public static function getMessageBasedOnAction($add, $remove, $reOrder)
+    public static function getMessageBasedOnAction($add, $remove, $reOrder, $topicNum)
     {
         $message = []; 
 
         if($add && !$remove)
         {
-            $filter['topicNum'] = $camp->topic_num;
+            $filter['topicNum'] = $topicNum;
             $filter['asOf'] = '';
-            $filter['campNum'] = $camp->parent_camp_num;
+            $filter['campNum'] = $add['camp_num'];
             $camp = self::getLiveCamp($filter, ['camp_name']); 
-            $message['add'] = trans('message.support.add_direct_support');
+            $message['add'] = trans('message.support.add_direct_support',['camp_name' => $camp->camp_name]);
         }else if(!$add && $remove)
-        {
-            $message['remove'] = trans('message.support.remove_direct_support');
-        }else{
+        { 
+            foreach($remove as $rmCamp){
+                $filter['topicNum'] = $topicNum;
+                $filter['asOf'] = '';
+                $filter['campNum'] = $rmCamp;
+                $camp = self::getLiveCamp($filter, ['camp_name']); 
+                $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                $message['remove'][] = $msg;
+            }
+         }else{
             $message['update'] = trans('message.support.update_support');
         }
 
@@ -1741,7 +1748,7 @@ class TopicSupport
                 array_push($campsToemoved, $temp);
             }
 
-            $returnData['warning'] = "You have already delegated your support for this camp to user " . $alreadyDelegatedTo->nick_name . ". If you continue your delegated support will be removed.";
+            $returnData['warning'] = "You have already delegated your support for this camp to user:-  " . $alreadyDelegatedTo->nick_name . ". If you continue your delegated support will be removed.";
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
             $returnData['is_confirm'] = 1;

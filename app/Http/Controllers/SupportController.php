@@ -191,7 +191,7 @@ class SupportController extends Controller
         // dd($all);
         try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
-            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
+            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate, $topicNum);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
          } catch (\Throwable $e) {
@@ -262,7 +262,7 @@ class SupportController extends Controller
         try{
 
             TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$citation_link);     
-            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
+            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate, $topicNum);
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
