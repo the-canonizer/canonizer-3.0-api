@@ -1498,14 +1498,20 @@ class TopicSupport
      */
     public static function getMessageBasedOnAction($add, $remove, $reOrder)
     {
-        $message = trans('message.support.update_support');
+        $message = []; 
 
         if($add && !$remove)
         {
-            $message = trans('message.support.add_direct_support');
+            $filter['topicNum'] = $camp->topic_num;
+            $filter['asOf'] = '';
+            $filter['campNum'] = $camp->parent_camp_num;
+            $camp = self::getLiveCamp($filter, ['camp_name']); 
+            $message['add'] = trans('message.support.add_direct_support');
         }else if(!$add && $remove)
         {
-            $message = trans('message.support.remove_direct_support');
+            $message['remove'] = trans('message.support.remove_direct_support');
+        }else{
+            $message['update'] = trans('message.support.update_support');
         }
 
         return $message;
