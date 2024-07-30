@@ -1059,7 +1059,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return $camp && $camp->camp_leader_nick_id > 0 ? $camp->camp_leader_nick_id : null;
     }
 
-    public static function updateCampLeaderFromLiveCamp(int $topic_num, int $camp_num, ?int $new_camp_leader_nick_id)
+    public static function updateCampLeaderFromLiveCamp(int $topic_num, int $camp_num, ?int $new_camp_leader_nick_id, $submit_time = null, $go_live_time = null)
     {
         // Replicate live camp with minor tweaks.
         $camp = self::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num, 'asOf' => 'default'])->replicate(['title']);
@@ -1067,8 +1067,8 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         if ($new_camp_leader_nick_id !== $camp->camp_leader_nick_id) {
 
             $camp->fill([
-                'submit_time' => time(),
-                'go_live_time' => time(),
+                'submit_time' => $submit_time ?? time(),
+                'go_live_time' => $go_live_time ?? time(),
                 'camp_leader_nick_id' => $new_camp_leader_nick_id,
             ]);
             $camp->save();
