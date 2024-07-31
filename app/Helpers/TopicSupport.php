@@ -1521,7 +1521,7 @@ class TopicSupport
             }
          }
          
-        if(!empty($reOrder)){
+        if(empty($add) && empty($remove) && !empty($reOrder)){
             $message['update'] = trans('message.support.update_support');
         }
 
