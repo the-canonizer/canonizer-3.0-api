@@ -360,7 +360,7 @@ return [
         'delegate_invalid_request' => 'Invalid request, please try again later.',
         'support_exist' => 'This camp is already supported',
         'support_not_exist' => "This camp doesn't have your support",
-        'update_support' => 'Support updated successfully.',
+        'update_support' => 'Support order updated successfully.',
         'remove_direct_support' => 'Your support from camp: :camp_name has been removed',
         'not_authorized_for_objection' => 'You are not authorized to object to this statement because you do not support this camp.',
         'not_authorized_for_objection_topic' => 'You are not authorized to object to this topic because you do not support this camp.',

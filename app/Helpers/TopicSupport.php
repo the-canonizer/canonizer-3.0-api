@@ -1500,14 +1500,16 @@ class TopicSupport
     {
         $message = []; 
 
-        if($add && !$remove)
+        if(!empty($add))
         {
             $filter['topicNum'] = $topicNum;
             $filter['asOf'] = '';
             $filter['campNum'] = $add['camp_num'];
             $camp = self::getLiveCamp($filter, ['camp_name']); 
             $message['add'] = trans('message.support.add_direct_support',['camp_name' => $camp->camp_name]);
-        }else if(!$add && $remove)
+        }
+
+        if(!empty($remove))
         { 
             foreach($remove as $rmCamp){
                 $filter['topicNum'] = $topicNum;
@@ -1517,7 +1519,9 @@ class TopicSupport
                 $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
                 $message['remove'][] = $msg;
             }
-         }else{
+         }
+         
+        if(!empty($reOrder)){
             $message['update'] = trans('message.support.update_support');
         }
 
