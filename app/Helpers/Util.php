@@ -450,6 +450,7 @@ class Util
                         $supportData = Support::where('topic_num',$topicNum)
                                         ->where('camp_num',$parentCamp)
                                         ->whereIn('nick_name_id',$supporterNicknames)
+                                        ->where('delegate_nick_name_id', 0)
                                         ->where('end','=',0);
                         $results = $supportData->get();
 
@@ -457,6 +458,7 @@ class Util
                         $supportData_child = Support::where('topic_num',$topicNum)
                                         ->whereIn('camp_num',$allChildCamps)
                                         ->whereIn('nick_name_id',$supporterNicknames)
+                                        ->where('delegate_nick_name_id', 0)
                                         ->where('end','=',0);
 
                         $results_child = $supportData_child->get()->toArray();                      
