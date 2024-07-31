@@ -37,18 +37,18 @@ class SearchController extends Controller
                 $data['statement'] = $statement['data'];
                 $data['nickname'] = $nickName['data'];
                 $total = $topic['count'] + $camp['count'] + $statement['count'] + $nickName['count'];
-
-                //$data =  self::optimizeResponse($searchData,'all',$page,$size);
+                $totalTopicCounts       = isset($topic['type_counts']['topic']) ? $topic['type_counts']['topic']  : 0;
+                $totalCampCounts        = isset($camp['type_counts']['camp']) ? $camp['type_counts']['camp'] : 0;
+                $totalStatementCounts   = isset($statement['type_counts']['statement']) ? $statement['type_counts']['statement'] :0;
+                $totalNicknameCounts    = isset($nickName['type_counts']['nickname']) ? $nickName['type_counts']['nickname'] : 0;
             
             }else{
                 $searchData = Search::getSearchData($term, [$type], $size, $page);
                 $data[$type] = $searchData['data'];
                 $total = $searchData['count'];
-
-              //  =  self::optimizeResponse($searchData, $type,$page,$size);
             } 
 
-            $response = self::optimizeResponse($data, $total, $page, $size);
+            $response = self::optimizeResponse($data, $total, $page, $size, $totalTopicCounts, $totalCampCounts, $totalStatementCounts, $totalNicknameCounts);
 
             //$data = $data;
             $status = 200;
@@ -64,7 +64,7 @@ class SearchController extends Controller
         return ($result);
     }
 
-    public static function optimizeResponse($data, $total, $page, $size)
+    public static function optimizeResponse($data, $total, $page, $size, $totalTopicCounts = 0, $totalCampCounts = 0, $totalStatementCounts = 0, $totalNicknameCounts = 0)
     { 
         
         
@@ -73,7 +73,11 @@ class SearchController extends Controller
                 'meta_data' => [
                     'total' => $total,
                     'page' => $page,
-                    'size' => $size
+                    'size' => $size,
+                    'topic_total' => $totalTopicCounts,
+                    'camp_total'  => $totalCampCounts,
+                    'statement_total' => $totalStatementCounts,
+                    'nickname_total' => $totalNicknameCounts
                 ]
         ];
     }
