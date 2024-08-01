@@ -669,7 +669,9 @@ class Support extends Model
     {
         $supports = self::where('topic_num', '=', $topicNum)
                     ->where('camp_num', $campNum)
-                    ->where('nick_name_id', $nickId)->first();
+                    ->where('nick_name_id', $nickId)
+                    ->where('end', 0)->first();
+                    
         $supports->update(['end' => time()]);
 
         $campLeaderNickId = Camp::getCampLeaderNickId($topicNum, $campNum);
