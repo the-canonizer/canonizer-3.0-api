@@ -101,6 +101,7 @@ class StatementController extends Controller
         $filter['asOfDate'] = $request->as_of_date;
         $filter['campNum'] = $request->camp_num;
         $statement = [];
+        $message = null;
         try {
             $campStatement =  Statement::getLiveStatement($filter);
             if ($campStatement) {
@@ -116,11 +117,11 @@ class StatementController extends Controller
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
                 if (!$campStatement && !$inReviewChangesCount) {
                     $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
-                    return $this->resProvider->apiJsonResponse(404, trans('message.error.camp_live_statement_not_found'), $statement, '');
+                    $message = trans('message.error.camp_live_statement_not_found');
                 }
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
+            return $this->resProvider->apiJsonResponse(200, $message ?? trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
