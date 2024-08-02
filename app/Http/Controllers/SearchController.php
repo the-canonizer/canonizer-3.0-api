@@ -37,33 +37,22 @@ class SearchController extends Controller
                 $data['camp'] = $camp['data'];
                 $data['statement'] = $statement['data'];
                 $data['nickname'] = $nickName['data'];
-                $total = $topic['count'] + $camp['count'] + $statement['count'] + $nickName['count'];
-
-                
+                $total = $topic['count'] + $camp['count'] + $statement['count'] + $nickName['count'];                
 
                 $totalCounts['topic']       = isset($topic['type_counts']['topic']) ? $topic['type_counts']['topic']  : 0;
                 $totalCounts['camp']        = isset($camp['type_counts']['camp']) ? $camp['type_counts']['camp'] : 0;
                 $totalCounts['statement']   = isset($statement['type_counts']['statement']) ? $statement['type_counts']['statement'] :0;
                 $totalCounts['nickname']    = isset($nickName['type_counts']['nickname']) ? $nickName['type_counts']['nickname'] : 0;
 
-                //$totalTopicCounts       = isset($topic['type_counts']['topic']) ? $topic['type_counts']['topic']  : 0;
-               // $totalCampCounts        = isset($camp['type_counts']['camp']) ? $camp['type_counts']['camp'] : 0;
-               // $totalStatementCounts   = isset($statement['type_counts']['statement']) ? $statement['type_counts']['statement'] :0;
-               // $totalNicknameCounts    = isset($nickName['type_counts']['nickname']) ? $nickName['type_counts']['nickname'] : 0;
-            
             }else{
                 $searchData = Search::getSearchData($term, [$type], $size, $page);
                 $data[$type] = $searchData['data'];
                 $total = $searchData['count'];
 
-               // return $searchData;
-
                 $totalCounts[$type] = isset($searchData['type_counts'][$type]) ? $searchData['type_counts'][$type]  : 0;
             } 
 
             $response = self::optimizeResponse($data, $total, $page, $size, $totalCounts);
-
-            //$data = $data;
             $status = 200;
             $message =  trans('message.success.success');
             
