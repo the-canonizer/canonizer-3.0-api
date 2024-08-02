@@ -513,7 +513,6 @@ class StatementController extends Controller
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
         } catch (Exception $e) {
-            dd($e);
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
