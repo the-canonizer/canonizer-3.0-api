@@ -418,7 +418,6 @@ class StatementController extends Controller
         }
 
         $all = $request->all();
-        dd($all);
         $filters['topicNum'] = $all['topic_num'];
         $filters['campNum'] = $all['camp_num'];
         $filters['asOf'] = 'default';
