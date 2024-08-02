@@ -115,11 +115,11 @@ class StatementController extends Controller
             if ($filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
                 if (!$campStatement && !$inReviewChangesCount) {
-                    return $this->resProvider->apiJsonResponse(404, trans('message.error.camp_live_statement_not_found'), '', '');
+                    $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
+                    return $this->resProvider->apiJsonResponse(404, trans('message.error.camp_live_statement_not_found'), $statement, '');
                 }
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
-            $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
