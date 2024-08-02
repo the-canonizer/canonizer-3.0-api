@@ -143,7 +143,7 @@ class ValidationRules
     public function getStatementValidationRules(): array
     {
         return ([
-            'topic_num' => 'required|exists:statement,topic_num',
+            'topic_num' => 'required',
             'camp_num' => 'required',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'

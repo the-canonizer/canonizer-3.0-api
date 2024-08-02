@@ -63,6 +63,7 @@ return [
         'statement_draft_create'  => 'Draft submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
         'statement_update'  => 'Statement updated successfully.',
+        'draft_update'  => 'Draft updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
         'topic_agree'  => ' Your agreement to topic is submitted successfully.',

@@ -446,35 +446,21 @@ class StatementController extends Controller
                 }
             }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
-                if (isset($all['is_draft']) && $all['is_draft'] && Statement::getDraftRecord($all['topic_num'], $all['camp_num'])) {
+                if (isset($all['is_draft']) && $all['is_draft'] && !$all['statement_id'] && Statement::getDraftRecord($all['topic_num'], $all['camp_num'])) {
                     $message = trans('message.error.draft_is_already_exists');
                     return $this->resProvider->apiJsonResponse(400, $message, '', '');
                 }
                 $statement = self::createOrUpdateStatement($all);
                 $message = isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.statement_draft_create') : trans('message.success.statement_create');
+            } elseif ($eventType == 'edit') {
+                $statement = self::editUpdatedStatement($all);
+                $message = (isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.draft_update') : trans('message.success.statement_update'));
             } else {
-                ($eventType == 'edit') ? ($statement = self::editUpdatedStatement($all) and $message = trans('message.success.statement_update')) : ($statement = self::objectStatement($all) and $message = trans('message.success.statement_object'));
+                $statement = self::objectStatement($all);
+                $message = trans('message.success.statement_object');
             }
-            //            dd($statement->grace_period, $all['submitter'], $loginUserNicknames);
-            //            $statement->grace_period = in_array($all['submitter'], $loginUserNicknames) ? 0 : 1;
-            //            if ($all['camp_num'] > 1) {
-            //                if (!$totalSupport || $ifIamSingleSupporter || ($totalSupport && in_array($all['submitter'], $loginUserNicknames))) {
-            //                    $statement->grace_period = 0;
-            //                } else {
-            //                    $statement->grace_period = 1;
-            //                }
-            //            } elseif ($all['camp_num'] == 1 && $ifIamSingleSupporter) {
-            //                $statement->grace_period = 0;
-            //            }
-            //
-            //            if (!$ifIamSingleSupporter) {
-            //                $statement->grace_period = 1;
-            //            }
-            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
-            // if($eventType == 'objection') {
-            //     $statement->grace_period = 0;
-            // }
+            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
             /** Dispatch job for the case when the statement is in grace period by user B,
              * so schedule a job that will run and update the tree
@@ -484,10 +470,6 @@ class StatementController extends Controller
                 $topic = Topic::getLiveTopic($all['topic_num']);
                 $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS'); // 1 hour commit time + 10 seconds for delay job
                 Util::dispatchJob($topic, $all['camp_num'], 1, $delayCommitTimeInSeconds);
-            }
-
-            if (isset($all['statement_id']) && !is_null($all['statement_id'])) {
-                Statement::where(['id' => $all['statement_id'], 'is_draft' => 1])->delete();
             }
 
             $statement->save();
@@ -521,7 +503,7 @@ class StatementController extends Controller
     {
         $goLiveTime = time();
 
-        $statement = new Statement();
+        $statement = isset($all['statement_id']) ? Statement::find($all['statement_id']) : new Statement();
         $statement->value = $all['statement'] ?? "";
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->topic_num = $all['topic_num'];
@@ -558,6 +540,7 @@ class StatementController extends Controller
         if (isset($all['is_draft']) && $all['is_draft']) {
             $statement->submit_time = time();
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            $statement->grace_period = 0;
         }
         return $statement;
     }
