@@ -493,7 +493,7 @@ class StatementController extends Controller
                 }
             }
 
-            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+            return $this->resProvider->apiJsonResponse(200, $message, (isset($all['is_draft']) && $all['is_draft'] ? [ "draft_record_id" => $statement->id] : ''), '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
