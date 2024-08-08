@@ -265,13 +265,10 @@ class Statement extends Model
         return  $data;
     }
 
-    public static function getDraftRecord(int $topic_num, int $camp_num)
+    public static function getDraftRecord(int $topic_num, int $camp_num, $nickNames = [])
     {
-        $nicknames = NickName::personNicknameArray();
-        $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->where('is_draft', 1)->first();
-        if ($draft && in_array($draft->submitter_nick_id, $nicknames)) {
-            return $draft->id;
-        }
-        return null;
+        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
+        $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 1)->first();
+        return $draft ? $draft->id : null;
     }
 }

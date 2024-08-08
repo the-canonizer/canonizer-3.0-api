@@ -446,10 +446,6 @@ class StatementController extends Controller
                 }
             }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
-                if (isset($all['is_draft']) && $all['is_draft'] && !$all['statement_id'] && Statement::getDraftRecord($all['topic_num'], $all['camp_num'])) {
-                    $message = trans('message.error.draft_is_already_exists');
-                    return $this->resProvider->apiJsonResponse(400, $message, '', '');
-                }
                 $statement = self::createOrUpdateStatement($all);
                 $message = isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.statement_draft_create') : trans('message.success.statement_create');
             } elseif ($eventType == 'edit') {
@@ -502,6 +498,10 @@ class StatementController extends Controller
     private function createOrUpdateStatement($all)
     {
         $goLiveTime = time();
+
+        if ($draftId = Statement::getDraftRecord($all['topic_num'], $all['camp_num'], [$all['nick_name']])) {
+            Statement::find($draftId)->delete();
+        }
 
         $statement = isset($all['statement_id']) ? Statement::find($all['statement_id']) : new Statement();
         $statement->value = $all['statement'] ?? "";
