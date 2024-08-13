@@ -403,6 +403,14 @@ class ValidationRules
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
+    public function getPostStatementCountValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'camp_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'statement_id' => 'required|integer|max:' . PHP_INT_MAX,
+        ];
+    }
 
     public function getPostVerifyEmailValidationRules(): array
     {

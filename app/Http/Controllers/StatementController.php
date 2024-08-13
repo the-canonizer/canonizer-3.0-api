@@ -495,6 +495,31 @@ class StatementController extends Controller
         }
     }
 
+    public function postStatementCount(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getPostStatementCountValidationRules(), $this->validationMessages->getPostStatementCountValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
+        $all = $request->all();
+        try {
+            /**
+             * Checking on submititon of draft, if there are any other live and in_review statements then it will show submittion popup and ask for confirmation
+             */
+            $postChanges = Statement::where([
+                'topic_num' => $all['topic_num'],
+                'camp_num' => $all['camp_num'],
+                'objector_nick_id' => null,
+                'is_draft' => 0,
+            ])->where('id', '>', $all['statement_id'])->count();
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), ['post_changes_count' => $postChanges], '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
     private function createOrUpdateStatement($all)
     {
         $goLiveTime = time();
@@ -538,7 +563,7 @@ class StatementController extends Controller
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
         if (isset($all['is_draft']) && $all['is_draft']) {
-            $statement->submit_time = time();
+            // $statement->submit_time = time();
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $statement->grace_period = 0;
         }

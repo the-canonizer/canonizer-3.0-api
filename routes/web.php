@@ -131,6 +131,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
         $router->post('/edit-camp-statement', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
+        $router->post('/post-statement-count', 'StatementController@postStatementCount');
         $router->post('support-order/update','SupportController@updateSupportOrder');
         $router->post('commit/change','TopicController@commitAndNotifyChange');
         $router->post('discard/change','TopicController@discardChange');

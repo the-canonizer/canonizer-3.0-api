@@ -478,6 +478,14 @@ class ValidationMessages
             'objection_reason.required_if' => trans('message.validation_store_statement.objection_reason_required_if'),
         ];
     }
+    public function getPostStatementCountValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_store_statement.topic_num_required'),
+            'camp_num.required' => trans('message.validation_store_statement.camp_num_required'),
+            'statement_id.required' => trans('message.validation_store_statement.statement_id_required_if'),
+        ];
+    }
 
     public function getPostVerifyEmailValidationMessages(): array
     {
