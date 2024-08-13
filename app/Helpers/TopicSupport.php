@@ -1287,7 +1287,8 @@ class TopicSupport
                 
                 if ($parent->camp_num != $campNum) {
 
-                    $returnData['is_confirm'] = 1;  
+                    $returnData['is_confirm'] = 1;
+                    $returnData['is_parent'] = 1;   
                     $returnData['warning'] = '"' . $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
                 }
             }
