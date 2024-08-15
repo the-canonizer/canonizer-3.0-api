@@ -528,7 +528,7 @@ class StatementController extends Controller
             Statement::find($draftId)->delete();
         }
 
-        $statement = isset($all['statement_id']) ? Statement::find($all['statement_id']) : new Statement();
+        $statement = new Statement();
         $statement->value = $all['statement'] ?? "";
         $statement->parsed_value = $all['statement'] ?? "";
         $statement->topic_num = $all['topic_num'];
