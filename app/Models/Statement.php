@@ -89,6 +89,7 @@ class Statement extends Model
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
                 ->where('go_live_time', '<=', time())
+                ->where('is_draft', 0)
                 ->orderBy('submit_time', 'desc')
                 ->first();
         });
@@ -102,7 +103,8 @@ class Statement extends Model
             return self::where('topic_num', $filter['topicNum'])
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
-                ->where('grace_period', 0) 
+                ->where('grace_period', 0)
+                ->where('is_draft', 0)
                 ->orderBy('go_live_time', 'desc')
                 ->first();
         });
@@ -116,6 +118,7 @@ class Statement extends Model
             ->where('camp_num', $filter['campNum'])
             ->where('go_live_time', '<=', $asofdate)
             ->orderBy('go_live_time', 'desc')
+            ->where('is_draft', 0)
             ->first();
     }
 
@@ -262,11 +265,10 @@ class Statement extends Model
         return  $data;
     }
 
-    public static function getDraftRecord(int $topic_num, int $camp_num)
+    public static function getDraftRecord(int $topic_num, int $camp_num, $nickNames = [])
     {
-        if ($draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->where('is_draft', 1)->first()) {
-            return $draft->id;
-        }
-        return null;
+        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
+        $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 1)->first();
+        return $draft ? $draft->id : null;
     }
 }

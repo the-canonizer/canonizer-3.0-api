@@ -142,12 +142,12 @@ class ValidationRules
 
     public function getStatementValidationRules(): array
     {
-        return ([
-            'topic_num' => 'required|exists:statement,topic_num',
+        return [
+            'topic_num' => 'required',
             'camp_num' => 'required',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
-        ]);
+        ];
     }
 
     public function getEditCaseValidationRules(): array
@@ -401,6 +401,14 @@ class ValidationRules
             'event_type' => 'required|in:create,update,edit,objection',
             'statement_id' => 'required_if:event_type,objection|required_if:event_type,edit',
             'objection_reason' => 'required_if:event_type,objection'
+        ];
+    }
+    public function getPostStatementCountValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'camp_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'statement_id' => 'required|integer|max:' . PHP_INT_MAX,
         ];
     }
 
