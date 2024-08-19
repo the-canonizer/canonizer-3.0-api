@@ -1920,7 +1920,7 @@ class CampController extends Controller
             // Sign Petition
             $returnValue = TopicSupport::signPetition($request->user(), $all['topic_num'], $all['camp_num'], $all['nick_name_id']);
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '', '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.sign_petition'), '', '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage() ?? trans('message.error.exception'), '', '');
         }

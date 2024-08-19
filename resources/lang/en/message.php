@@ -352,9 +352,10 @@ return [
         'event_type_required' => 'Event type is required.',
     ],
     'support'  => [
-        'add_direct_support' => 'Thankyou for adding your support to camp: :camp_name',
+        'add_direct_support' => 'Thank you for adding your support to camp: :camp_name',
         'add_delegate_support' => 'You have delegated your support successfully.',
         'add_delegation_support' => 'Support delegated successfully.',
+        'sign_petition' => 'Petition has been signed to camp leader successfully.',
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
