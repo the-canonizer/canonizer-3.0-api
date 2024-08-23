@@ -314,7 +314,7 @@ class Util
                 }
             }
         } catch(Exception $ex) {
-            Log::error("Util :: Dispatch Job :: message: ".$ex->getMessage());
+            Log::error("Util :: DispatchJob :: message: ".$ex->getMessage());
         }
         
     }
