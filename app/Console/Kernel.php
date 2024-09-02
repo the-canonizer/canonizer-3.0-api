@@ -31,6 +31,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateFilePathsToRelativePaths',
         'App\Console\Commands\ReplaceBetaURLWithCanonizerURLForStatements',
         'App\Console\Commands\UpdateUserFCMTokenToOAuth',
+        \App\Console\Commands\CorrectSupportOrder::class,
     ];
 
     /**
