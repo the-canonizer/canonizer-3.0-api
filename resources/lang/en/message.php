@@ -154,7 +154,7 @@ return [
         'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
         'nick_name_required' => 'The nick name field is required.',
         'camp_name_required' => 'Camp name is required.',
-        'camp_name_max' => 'Camp name can not be more than 30 characters.',
+        'camp_name_max' => 'Camp name can not be more than 60 characters.',
         'camp_name_unique' => 'The camp name has already been taken.',
         'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
         'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
