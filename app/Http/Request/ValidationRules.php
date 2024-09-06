@@ -211,7 +211,7 @@ class ValidationRules
 
         return ([
             'nick_name' => 'required',
-            'camp_name' => 'required|max:60',
+            'camp_name' => 'required|max:80',
             'camp_about_url' => 'nullable|max:1024|regex:' . $regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
@@ -221,7 +221,7 @@ class ValidationRules
     public function getTopicStoreValidationRules(): array
     {
         return ([
-            'topic_name' => 'required|max:30',
+            'topic_name' => 'required|max:80',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
@@ -529,7 +529,7 @@ class ValidationRules
             'camp_id' => 'required',
             'nick_name' => 'required',
             'submitter' => 'required',
-            'camp_name' => 'required|max:60',
+            'camp_name' => 'required|max:80',
             'camp_about_url' => ['regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/', 'nullable'],
             'event_type' => 'required|in:update,edit,objection',
             'objection_reason' => 'required_if:event_type,objection'
