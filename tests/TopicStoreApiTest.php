@@ -22,7 +22,7 @@ class TopicStoreApiTest extends TestCase
     public function testTopicStoreValidateFiled()
     {
         $rules = [
-            'topic_name' => 'required|max:30|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
+            'topic_name' => 'required|max:80|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
