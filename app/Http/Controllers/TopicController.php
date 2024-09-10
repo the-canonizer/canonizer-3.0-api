@@ -380,12 +380,13 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
+            $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time'];
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time', 'tags'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
 

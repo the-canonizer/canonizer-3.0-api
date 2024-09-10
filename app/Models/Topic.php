@@ -145,10 +145,6 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
     }
 
-    public function tags() {
-        return $this->belongsToMany(Tag::class, 'topics_tags', 'topic_num', 'tag_id');
-    }
-
     public function views()
     {
         return $this->hasMany(TopicView::class, 'topic_num', 'topic_num');
@@ -164,6 +160,16 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasMany(TopicTag::class, 'topic_num', 'topic_num');
     }
 
+    public function getTagsArrayAttribute()
+    {
+        return $this->topicTags->pluck('tag')->map(function($tag) {
+            return [
+                'id' => $tag->id,
+                'title' => $tag->title
+            ];
+        })->toArray();
+    }
+
     public static function getLiveTopic($topicNum, $filter = array(), $asofdate = null)
     {
         $liveTopicCacheKey = 'live_topic_default-' . $topicNum;
@@ -171,7 +177,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         switch ($filter) {
             case "default":
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
                         ->latest('submit_time')->first();
@@ -180,7 +189,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             case "review":
                 $topic = Cache::remember($reviewTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('grace_period', 0)
                         ->latest('submit_time')->first();
@@ -189,7 +201,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             case "bydate":
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
-                return self::where('topic_num', $topicNum)
+                return self::with(['topicTags.tag' => function ($query) {
+                        $query->select('id', 'title');
+                    }])
+                    ->where('topic_num', $topicNum)
                     ->where('go_live_time', '<=', $asOfDate)
                     ->where(function($query) use($asOfDate) {
                         return $query->where('objector_nick_id', '=', NULL)
@@ -199,7 +214,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             default:
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
                         ->latest('submit_time')->first();
