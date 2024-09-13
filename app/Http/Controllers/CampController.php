@@ -1837,7 +1837,6 @@ class CampController extends Controller
                                 ->from('camp')
                                 ->where([
                                     ['topic_num', '=', $filter['topicNum']],
-                                    ['parent_camp_num', '=', $filter['parentCampNum']],
                                     ['objector_nick_id', '=', NULL],
                                     ['go_live_time', '<=', time()],
                                 ])
