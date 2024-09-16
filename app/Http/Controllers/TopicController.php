@@ -495,7 +495,7 @@ class TopicController extends Controller
 
             // Check if nominated camp leader is not a direct supporter, object the change if nominated as camp leader
             $directSupports = collect(Support::getAllDirectSupporters($model->topic_num, $model->camp_num))->pluck('nick_name_id')->values()->all();
-            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports)) {
+            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
                 $model->objector_nick_id = $model->camp_leader_nick_id;
                 $model->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
                 $model->object_time = time();
