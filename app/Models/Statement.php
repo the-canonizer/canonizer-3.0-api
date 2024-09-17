@@ -271,4 +271,10 @@ class Statement extends Model
         $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 1)->first();
         return $draft ? $draft->id : null;
     }
+
+    public static function getGracePeriodRecordCount(int $topic_num, int $camp_num, $nickNames = [])
+    {
+        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
+        return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
+    }
 }
