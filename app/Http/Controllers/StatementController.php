@@ -119,6 +119,7 @@ class StatementController extends Controller
                     $message = trans('message.error.camp_live_statement_not_found');
                 }
                 $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
+                $statement[0]['grace_period_record_count'] = Statement::getGracePeriodRecordCount($filter['topicNum'], $filter['campNum']);
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
             return $this->resProvider->apiJsonResponse(200, $message ?? trans('message.success.success'), $statement, '');
