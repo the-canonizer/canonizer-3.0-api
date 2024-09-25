@@ -541,14 +541,14 @@ class TopicController extends Controller
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
-            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
+            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {                
                 $model->go_live_time = time();
                 $changeGoneLive = true;
             }
 
             if ($type == 'camp') {
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
+                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()) && !$archiveReviewPeriod) {
                     $model->go_live_time = time();
                     $changeGoneLive = true;
                     // Log of system assigned/remove camp leader
