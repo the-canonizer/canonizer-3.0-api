@@ -20,6 +20,9 @@ use App\Models\Nickname;
 use App\Helpers\TopicSupport;
 use App\Events\EmailChangeEvent;
 use App\Models\UserEmail;
+use App\Models\Tag;
+use App\Models\UserTag;
+use DB;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -169,11 +172,31 @@ class ProfileController extends Controller
        }
 
        try{
-            return ( $user->update($input) )
-                 ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
-                 : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            DB::beginTransaction();
+
+            $user->update($input) ;
+
+            $userTags = $request->user_tags;
+            if(isset($userTags) && $userTags)
+            {
+                foreach ($userTags as $tagId) {
+                    UserTag::updateOrCreate(
+                        ['user_id' => $user->id, 'tag_id' => $tagId], // Unique criteria
+                        [] // No additional attributes to update (optional)
+                    );
+                }
+            }
+
+            $userModel = User::with('tags')->find($user->id);
+
+            DB::commit();
+
+           return  $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $userModel, '');
+        
         }catch(Exception $e){
-           return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
+            DB::rollBack();
+            //return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
        }
     }
 
