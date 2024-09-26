@@ -2359,7 +2359,11 @@ class TopicController extends Controller
 
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->get();
+                $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
+
+                if (count($tags) < 1) {
+                    return null;
+                }
 
                 return [
                     'id' => $liveTopic->id,
@@ -2379,7 +2383,7 @@ class TopicController extends Controller
                         'asOfDate' => '',
                     ]),
                 ];
-            });
+            })->filter()->values();
 
             $collection = [
                 'items' => $topics
