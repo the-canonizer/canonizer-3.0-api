@@ -2318,6 +2318,7 @@ class TopicController extends Controller
     public function preferredTopic(Request $request)
     {
         try {
+            $perPage = $request->per_page ?? null;
             $userTags = $request->user()->tags()->pluck('tag_id');
 
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
@@ -2326,15 +2327,16 @@ class TopicController extends Controller
                 ->whereHas('topicTags', function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
                 })
-                ->groupBy('topic_num')
-                ->inRandomOrder() // Fetch random records
-                ->limit(6) // Limit to 6 records
-                ->get();
-
+                ->groupBy('topic_num');
+            if (!empty($perPage)) {
+                $topics = $topics->paginate($perPage);
+            } else {
+                $topics = $topics->inRandomOrder()->paginate(6);
+            }
+            $paginatedResponse = Util::getPaginatorResponse($topics);
             $topics = $topics->map(function ($topic) {
                 $filter['topicNum'] = $topic->topic_num;
                 $filter['campNum'] = $topic->camp_num ?? 1;
-
                 $liveCamp = Camp::getLiveCamp($filter);
                 $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
                 $topicTitle = $liveTopic->topic_name ?? '';
@@ -2380,12 +2382,9 @@ class TopicController extends Controller
                     ]),
                 ];
             });
+            $paginatedResponse->items = $topics;
 
-            $collection = [
-                'items' => $topics
-            ];
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $paginatedResponse, null);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 400,
