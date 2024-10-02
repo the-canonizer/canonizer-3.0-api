@@ -2361,9 +2361,9 @@ class TopicController extends Controller
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
                 $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
 
-                if (count($tags) < 1) {
-                    return null;
-                }
+                // if (count($tags) < 1) {
+                //     return null;
+                // }
 
                 return [
                     'id' => $liveTopic->id,
