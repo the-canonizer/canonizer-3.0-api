@@ -214,6 +214,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function tags() {
         return $this->hasMany(UserTag::class, 'user_id', 'id');
     }
+
+    public function userActiveTags() {
+        return $this->hasManyThrough(Tag::class, UserTag::class, 'user_id', 'id', 'id', 'tag_id')
+                    ->where('tags.is_active', true);
+    }
     
     public function userOAuthTokenForFCM()
     {

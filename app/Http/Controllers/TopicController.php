@@ -2319,7 +2319,7 @@ class TopicController extends Controller
     {
         try {
             $perPage = $request->per_page ?? null;
-            $userTags = $request->user()->tags()->pluck('tag_id');
+            $userTags = $request->user()->userActiveTags()->pluck('tag_id');
 
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
                 $query->whereIn('tag_id', $userTags);
@@ -2361,11 +2361,7 @@ class TopicController extends Controller
 
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->get();
-
-                // if (count($tags) < 1) {
-                //     return null;
-                // }
+                $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
 
                 return [
                     'id' => $liveTopic->id,
