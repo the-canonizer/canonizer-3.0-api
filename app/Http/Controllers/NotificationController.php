@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
@@ -194,20 +195,28 @@ class NotificationController extends Controller
                 // Set camp_num to 1 if it is null or empty
                 $value->camp_num = empty($value->camp_num) ? 1 : $value->camp_num;
 
-                // Get the live topic and camp data
+                // Skip notification if topic is null or empty
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
 
                 // Skip this notification if topic is null
-                if (!$topic) {
+                if (empty($topic)) {
                     unset($notifications[$key]); // Remove the notification from the list
                     continue; // Skip to the next notification
                 }
 
                 $camp = ($value->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
 
+                // If camp is null or empty, create a default camp object
+
+                if (empty($camp)) {
+                    $camp = new stdClass(); // Create an empty object to avoid null property access
+                    $camp->camp_num = 1; // Default camp_num
+                    $camp->camp_name = 'Agreement'; // Set a default camp_name, can be an empty string too
+                    $camp->topic_num = $value->topic_num; // Ensure it has the correct topic_num
+                }
                 switch ($value->notification_type) {
                     case config('global.notification_type.Topic'):
-                        $value->url = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
+                        $value->url = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Agreement', 'topic');
                         break;
                     case config('global.notification_type.Camp'):
                         $value->url = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp');
