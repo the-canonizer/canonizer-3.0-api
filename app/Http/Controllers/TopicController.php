@@ -1486,13 +1486,14 @@ class TopicController extends Controller
                 }
             } else if ($data['change_for'] == 'topic') {
 
-                $topic = Topic::where('id', $changeId)->first();
+                $topic = Topic::find($changeId);
                 $preliveTopic = Topic::where('id', $pre_LiveId)->first();
                 if ($topic) {
                     //$submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
-                    $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
-                    $topic->update();
+                   // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                   // $topic->save();
+                    Topic::updateElasticSearch($topic);
                     Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     if (isset($topic)) {
