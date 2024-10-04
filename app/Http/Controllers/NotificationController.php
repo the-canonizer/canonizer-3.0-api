@@ -190,9 +190,20 @@ class NotificationController extends Controller
                 $notifications = PushNotification::where('user_id', $request->user()->id)->latest()->get();
             }
 
-            foreach ($notifications as $value) {
+            foreach ($notifications as $key => $value) {
+                // Set camp_num to 1 if it is null or empty
+                $value->camp_num = empty($value->camp_num) ? 1 : $value->camp_num;
+
+                // Get the live topic and camp data
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
-                $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
+
+                // Skip this notification if topic is null
+                if (!$topic) {
+                    unset($notifications[$key]); // Remove the notification from the list
+                    continue; // Skip to the next notification
+                }
+
+                $camp = ($value->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
 
                 switch ($value->notification_type) {
                     case config('global.notification_type.Topic'):
