@@ -177,15 +177,17 @@ class ProfileController extends Controller
             $user->update($input) ;
 
             $userTags = $request->user_tags;
-            if(isset($userTags) && $userTags)
-            {
+            // Step 1: Update or create new tags
+            if (isset($userTags) && $userTags) {
                 foreach ($userTags as $tagId) {
                     UserTag::updateOrCreate(
-                        ['user_id' => $user->id, 'tag_id' => $tagId], // Unique criteria
-                        [] // No additional attributes to update (optional)
+                        ['user_id' => $user->id, 'tag_id' => $tagId],
                     );
                 }
             }
+            UserTag::where('user_id', $user->id)
+                ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
+                ->delete();
 
             $userModel = User::with('tags')->find($user->id);
 
@@ -213,6 +215,10 @@ class ProfileController extends Controller
     public function getProfile(Request $request){
         $user = $request->user();
         $user->profile_picture = !empty($user->profile_picture_path) ? $user->profile_picture_path : null;
+        
+        // Load the tags relationship
+        $user->load('tags');
+
         unset($user->profile_picture_path);
 
         try{

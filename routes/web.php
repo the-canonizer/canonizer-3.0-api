@@ -83,6 +83,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/featured-topic', 'TopicController@featuredTopic');
         $router->post('get-tags-list','TagController@getTagsList');
         $router->post('get-sibling-camps','CampController@getSiblingCamps');
+        //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
     //Route Group to access api with user access token
