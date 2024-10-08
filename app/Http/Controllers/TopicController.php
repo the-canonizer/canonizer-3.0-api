@@ -2249,7 +2249,7 @@ class TopicController extends Controller
 
                     // Get the tag IDs associated with $liveTopic
                     $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                    $tags = Tag::whereIn('id', $tagIds)->get();
+                    $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
 
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
