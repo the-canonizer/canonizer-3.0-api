@@ -251,7 +251,9 @@ class NotificationController extends Controller
                     ->update(['is_seen' => 1, 'seen_time' => time()]);
             }
 
-            $unreadCount = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 0)->count();
+            $unreadCount = collect($notifications)->filter(function ($notification) {
+                return $notification->is_seen == 0;
+            })->count();
             $notifications = (!is_array($notifications)) ? $notifications->toArray() : $notifications;
             $notifications = array_values($notifications);
             if ($perPage > 0) {
