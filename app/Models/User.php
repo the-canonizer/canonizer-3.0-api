@@ -130,6 +130,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         }
     }
 
+    // Define the accessor for the profile_picture_path attribute
+    public function getProfilePicturePathAttribute($value)
+    {
+        if(empty($value)) return null;
+        return urldecode(env('AWS_PUBLIC_URL') . '/' . $value);
+    }
+
     public function setBirthdayAttribute($value)
     {
         if(!empty($value)){
@@ -204,6 +211,15 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return Hash::check($password, $owerridedPassword);
     }
 
+    public function tags() {
+        return $this->hasMany(UserTag::class, 'user_id', 'id');
+    }
+
+    public function userActiveTags() {
+        return $this->hasManyThrough(Tag::class, UserTag::class, 'user_id', 'id', 'id', 'tag_id')
+                    ->where('tags.is_active', true);
+    }
+    
     public function userOAuthTokenForFCM()
     {
         return $this->refreshOAuthToken('fcm', $this->id)['token'];

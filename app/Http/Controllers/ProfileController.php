@@ -20,6 +20,9 @@ use App\Models\Nickname;
 use App\Helpers\TopicSupport;
 use App\Events\EmailChangeEvent;
 use App\Models\UserEmail;
+use App\Models\Tag;
+use App\Models\UserTag;
+use DB;
 
 /**
  * @OA\Info(title="Account Setting API", version="1.0.0")
@@ -169,11 +172,36 @@ class ProfileController extends Controller
        }
 
        try{
-            return ( $user->update($input) )
-                 ? $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $request->user(), '')
-                 : $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+            DB::beginTransaction();
+
+            $user->update($input) ;
+
+            $userTags = $request->user_tags;
+
+            if(isset($input['user_tags'])){
+                // Step 1: Update or create new tags
+                if (isset($userTags) && $userTags) {
+                    foreach ($userTags as $tagId) {
+                        UserTag::updateOrCreate(
+                            ['user_id' => $user->id, 'tag_id' => $tagId],
+                        );
+                    }
+                }
+                UserTag::where('user_id', $user->id)
+                    ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
+                    ->delete();
+            }
+
+            $userModel = User::with('tags')->find($user->id);
+
+            DB::commit();
+
+           return  $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), $userModel, '');
+        
         }catch(Exception $e){
-           return $this->resProvider->apiJsonResponse(200, trans('message.error.exception'), $e->getMessage(), '');
+            DB::rollBack();
+            //return $this->resProvider->apiJsonResponse(400, trans('message.error.update_profile'), '', '');
+           return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
        }
     }
 
@@ -189,7 +217,11 @@ class ProfileController extends Controller
      */
     public function getProfile(Request $request){
         $user = $request->user();
-        $user->profile_picture = !empty($user->profile_picture_path) ? urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path) : null;
+        $user->profile_picture = !empty($user->profile_picture_path) ? $user->profile_picture_path : null;
+        
+        // Load the tags relationship
+        $user->load('tags');
+
         unset($user->profile_picture_path);
 
         try{
@@ -472,7 +504,7 @@ class ProfileController extends Controller
                     unset($userArray[$private]);
                 }               
                 
-                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : env('AWS_PUBLIC_URL') . '/' . $userArray['profile_picture_path']);
+                $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : $userArray['profile_picture_path']);
                 unset($userArray['profile_picture_path']);
 
                 $supportResponse = $nickName->getNicknameSupportedCampList($namespace, ['nofilter' => true]);
@@ -536,9 +568,8 @@ class ProfileController extends Controller
             if (isset($input['profile_picture'])) {
                 // For case of update the profile picture request
                 if($request->has('is_update') && $request->get('is_update')) {
-                    $user->profile_picture_path = urldecode($user->profile_picture_path);
+                    $user->profile_picture_path = urldecode($user->getOriginal('profile_picture_path'));
                     Aws::DeleteFile($user->profile_picture_path);
-
                 }
                 
                 $six_digit_random_number = random_int(100000, 999999);
@@ -548,7 +579,6 @@ class ProfileController extends Controller
                 $user->profile_picture_path = urlencode('profile/' . $filename);
             }
             if ($user->save()) {
-                $user->profile_picture_path = urldecode(env('AWS_PUBLIC_URL') . '/' . $user->profile_picture_path);
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.update_profile'), ['profile_picture' => $user->profile_picture_path], '');
             }
 
@@ -576,9 +606,8 @@ class ProfileController extends Controller
 
         try {
             if (!is_null($user->profile_picture_path)) {
-                $user->profile_picture_path = urldecode($user->profile_picture_path);
+                $user->profile_picture_path = urldecode($user->getOriginal('profile_picture_path'));
                 $result = Aws::DeleteFile($user->profile_picture_path);
-
                 if ($result['@metadata']['statusCode'] === 204) {
                     $user->profile_picture_path = null;
                 }

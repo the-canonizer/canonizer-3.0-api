@@ -78,8 +78,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             //forget cache
             self::forgetCache($item);
 
-            $liveTopic = Topic::getLiveTopic($item->topic_num);            
-            $namespace = Namespaces::find($liveTopic->namespace_id);            
+            $liveTopic = Topic::getLiveTopic($item->topic_num);
+            $namespace = Namespaces::find($liveTopic->namespace_id);
             $namespaceLabel = 'no-namespace';
             if (!empty($namespace)) {
                 $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
@@ -94,12 +94,12 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             $namespace = $namespaceLabel; //fetch namespace
             $breadcrumb = '';
             $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($campNum == 1){            
+            if($campNum == 1){
                 $type = "topic";
                 $typeValue = $liveTopic->topic_name;
                 $id = "topic-". $topicNum;
                 $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
-            }else{               
+            }else{
                 $id = "camp-". $topicNum . "-" . $campNum;
                 // breadcrumb
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
@@ -145,6 +145,31 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
     }
 
+    public function views()
+    {
+        return $this->hasMany(TopicView::class, 'topic_num', 'topic_num');
+    }
+
+    public function totalViews()
+    {
+        return $this->views()->sum('views');
+    }
+
+    public function topicTags()
+    {
+        return $this->hasMany(TopicTag::class, 'topic_num', 'topic_num');
+    }
+
+    public function getTagsArrayAttribute()
+    {
+        return $this->topicTags->pluck('tag')->map(function($tag) {
+            return [
+                'id' => $tag->id,
+                'title' => $tag->title
+            ];
+        })->toArray();
+    }
+
     public static function getLiveTopic($topicNum, $filter = array(), $asofdate = null)
     {
         $liveTopicCacheKey = 'live_topic_default-' . $topicNum;
@@ -152,7 +177,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         switch ($filter) {
             case "default":
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
                         ->latest('submit_time')->first();
@@ -161,16 +189,22 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             case "review":
                 $topic = Cache::remember($reviewTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
-                        ->where('grace_period', 0) 
+                        ->where('grace_period', 0)
                         ->latest('submit_time')->first();
                 });
                 return $topic;
                 break;
             case "bydate":
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
-                return self::where('topic_num', $topicNum)
+                return self::with(['topicTags.tag' => function ($query) {
+                        $query->select('id', 'title');
+                    }])
+                    ->where('topic_num', $topicNum)
                     ->where('go_live_time', '<=', $asOfDate)
                     ->where(function($query) use($asOfDate) {
                         return $query->where('objector_nick_id', '=', NULL)
@@ -180,7 +214,10 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             default:
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::where('topic_num', $topicNum)
+                    return self::with(['topicTags.tag' => function ($query) {
+                            $query->select('id', 'title');
+                        }])
+                        ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
                         ->latest('submit_time')->first();
@@ -203,15 +240,13 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         }
 
         return $link;
-        
-        
+
+
         //return $link = config('global.APP_URL_FRONT_END') . ('/topic/' . $topicId . '/' . $campId);
     }
 
-    public static function getTopicHistory($filter, $request, $topicHistoryQuery )
+    public static function getTopicHistory($filter, $request, $topicHistoryQuery , $liveTopic)
     {
-        $liveTopic = Topic::getLiveTopic($filter['topicNum'],'default');
-
         $topicHistoryQuery->when($filter['type'] == "old", function ($q) use ($filter, $liveTopic) {
                 $q->where('go_live_time', '<=', $filter['currentTime'])
                 ->where('objector_nick_id', NULL)
@@ -267,9 +302,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $val->agreed_to_change = 0;
 
                 /*
-                *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-                *   Now support at the time of submition will be count as total supporter. 
-                *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+                *   Now support at the time of submition will be count as total supporter.
+                *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
                 */
                 $val->total_supporters = Support::getTotalSupporterByTimestamp('topic', (int)$filter['topicNum'], (int)$filter['campNum'], $val->submitter_nick_id, $submittime, $filter)[1];
                 $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $filter['topicNum'])
@@ -277,11 +312,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                     ->where('change_id', '=', $val->id)
                     ->where('change_for', '=', 'topic')
                     ->get()->pluck('nick_name_id')->toArray();
-                
+
                 $val->agreed_supporters = count($agreed_supporters);
 
-                if($val->submitter_nick_id > 0 && !in_array($val->submitter_nick_id, $agreed_supporters)) 
-                {   
+                if($val->submitter_nick_id > 0 && !in_array($val->submitter_nick_id, $agreed_supporters))
+                {
                     $val->agreed_supporters++;
                 }
 
@@ -300,7 +335,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                         $val->agreed_to_change = (int) ChangeAgreeLog::whereIn('nick_name_id', $nickNameIds)
                         ->where('change_for', '=', 'topic')
                         ->where('change_id', '=', $val->id)
-                        ->exists(); 
+                        ->exists();
                         $val->status = "in_review";
                         break;
                     case $liveTopic->id == $val->id && $filter['type'] != "old":
@@ -330,7 +365,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         ->where('topic.topic_name', $data['topic_name'])
         ->where('topic.objector_nick_id',"=",null)
         ->whereRaw('topic.go_live_time in (select max(go_live_time) from topic where objector_nick_id is null and go_live_time < "' . time() . '" group by topic_num)')
-        ->where('topic.go_live_time', '<=', time())                            
+        ->where('topic.go_live_time', '<=', time())
         ->latest('submit_time')
         ->first();
 
@@ -359,6 +394,51 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
 
     public static function getTopicFirstName($topicNumber) {
         return self::where('topic_num', $topicNumber)->pluck('topic_name')->first();
+    }
+
+
+
+    public static function updateElasticSearch($item) 
+    {
+        //forget cache
+        self::forgetCache($item);
+
+        $liveTopic = Topic::getLiveTopic($item->topic_num);
+        $namespace = Namespaces::find($liveTopic->namespace_id);
+        $namespaceLabel = 'no-namespace';
+        if (!empty($namespace)) {
+            $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+            $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
+        }
+        $type = "camp";
+        $typeValue = $item->topic_name;
+        $topicNum = $item->topic_num;
+        $campNum = 1;
+        $campName = 'Agreement';
+        $goLiveTime = $item->go_live_time;
+        $namespace = $namespaceLabel; //fetch namespace
+        $breadcrumb = '';
+        $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
+        if($campNum == 1){
+            $type = "topic";
+            $typeValue = $liveTopic->topic_name;
+            $id = "topic-". $topicNum;
+            $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
+        }else{
+            $id = "camp-". $topicNum . "-" . $campNum;
+            // breadcrumb
+            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+        }
+
+        if($item->is_archive && $item->go_live_time <= time()){
+            ElasticSearch::deleteData($id);
+            return;
+        }
+
+        if($item->go_live_time <= time()){
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+        }
+
     }
 
 

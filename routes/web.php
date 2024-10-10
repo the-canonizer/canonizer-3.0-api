@@ -50,7 +50,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/user/resend-otp-verify-email','UserController@reSendOtpVerifyEmail');
         $router->get('/thread/{id}','ThreadsController@getThreadById');
         $router->get('get-nick-support-user/{nick_id}','NicknameController@getNickSupportUser');
-
+        $router->post('thread/latest5','ThreadsController@getLatest5Threads');
         // Others Routes
 
         $router->post('/get-camp-statement','StatementController@getStatement');
@@ -80,6 +80,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
         $router->post('/notify-if-url-not-exist', 'NotificationController@notifyIfUrlNotExist');
         $router->get('/hot-topic', 'TopicController@hotTopic');
+        $router->get('/featured-topic', 'TopicController@featuredTopic');
+        $router->post('get-tags-list','TagController@getTagsList');
+        $router->post('get-sibling-camps','CampController@getSiblingCamps');
+        //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
     //Route Group to access api with user access token
@@ -128,6 +132,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('camp/subscription/list','CampController@campSubscriptionList');
         $router->post('/edit-camp-statement', 'StatementController@editStatement');
         $router->post('/store-camp-statement', 'StatementController@storeStatement');
+        $router->post('/post-statement-count', 'StatementController@postStatementCount');
         $router->post('support-order/update','SupportController@updateSupportOrder');
         $router->post('commit/change','TopicController@commitAndNotifyChange');
         $router->post('discard/change','TopicController@discardChange');
@@ -138,6 +143,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/manage-camp', 'CampController@manageCamp');
         $router->get('notification-list','NotificationController@notificationList');
         $router->put('notification-is-read/update/{id}','NotificationController@updateIsRead');
+        $router->post('notification/read/all/','NotificationController@updateReadAll');
+        $router->post('notification/delete/all/','NotificationController@deleteAll');
         $router->post('/edit-camp','CampController@editCampRecord');
         $router->post('/manage-topic','TopicController@manageTopic');
         $router->post('/edit-topic', 'TopicController@editTopicRecord');
@@ -145,6 +152,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/support-reason-list','SupportController@getSupportReason');
 
         $router->post('/get-change-supporters','SupportController@getChangeSupporters');
+        $router->get('/preferred-topic', 'TopicController@preferredTopic');
+        $router->post('/create/user/tags', 'TagController@createUserTags');
         $router->post('camp/sign','CampController@signPetition');
         $router->get('camp/sign/check','SupportController@checkIfUserAlreadySignCamp');
         $router->get('/change-email-request','ProfileController@changeEmailRequest');

@@ -26,12 +26,12 @@
                         <p>You proposed a change {{ $data->type === 'topic' ? 'and assigned as camp leader ' : '' }}for {{ $data->type }} : <b>{!! $data->object !!}</b></p>
                     </td>
                 </tr>
-                <tr>
+                {{-- <tr>
                     <td style="font-weight:400;">
                         <br>
                         <p><b>{{ ucfirst($data->type) }} Summary:</b> {{ $data->note }}</p>
                     </td>
-                </tr>
+                </tr> --}}
                 <tr>
                     <td style="font-weight:400; color:#497BDF;">
                         @component('mail::button', ['url' => \App\Facades\Util::linkForEmail($data->link)])

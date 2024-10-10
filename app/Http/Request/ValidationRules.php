@@ -30,7 +30,7 @@ class ValidationRules
             'last_name' => 'required|regex:/^[a-zA-Z ]*$/|string|max:100',
             'middle_name' => 'nullable|regex:/^[a-zA-Z ]*$/|max:100',
             'email' => 'required|string|email|max:225|unique:person',
-            'password' => ['required','regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
+            'password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/'],
             'password_confirmation' => 'required|same:password',
             'phone_number' => 'unique:person',
             'country_code' => 'required',
@@ -85,8 +85,8 @@ class ValidationRules
             'postal_code' => 'nullable',
             'phone_number' => 'nullable|digits:10',
         ]);
-    }    
-    
+    }
+
     public function getUpdateProfilePictureValidatonRules(): array
     {
         return ([
@@ -112,7 +112,7 @@ class ValidationRules
 
     public function getForgotPasswordUpdateValidationRules(): array
     {
-        return([
+        return ([
             'username' => 'required',
             'new_password' => ['required', 'regex:/^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/', 'different:current_password'],
             'confirm_password' => 'required|same:new_password'
@@ -142,12 +142,12 @@ class ValidationRules
 
     public function getStatementValidationRules(): array
     {
-        return ([
-            'topic_num' => 'required|exists:statement,topic_num',
+        return [
+            'topic_num' => 'required',
             'camp_num' => 'required',
             'as_of' => 'in:default,review,bydate',
             'as_of_date' => 'required_if:as_of,bydate'
-        ]);
+        ];
     }
 
     public function getEditCaseValidationRules(): array
@@ -198,7 +198,7 @@ class ValidationRules
     {
         return [
             'display_text' => 'required|max:256',
-            'link' => ['required','regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/'],
+            'link' => ['required', 'regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/'],
             'available_for_child' => 'required|boolean',
             'newsfeed_id' => 'required|exists:news_feed,id',
             'submitter_nick_id' => 'required'
@@ -211,8 +211,8 @@ class ValidationRules
 
         return ([
             'nick_name' => 'required',
-            'camp_name' => 'required|max:30',
-            'camp_about_url' => 'nullable|max:1024|regex:'.$regex,
+            'camp_name' => 'required|max:80',
+            'camp_about_url' => 'nullable|max:1024|regex:' . $regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
         ]);
@@ -221,11 +221,12 @@ class ValidationRules
     public function getTopicStoreValidationRules(): array
     {
         return ([
-            'topic_name' => 'required|max:30',
+            'topic_name' => 'required|max:80',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
-            'asof' => 'in:default,review,bydate'
+            'asof' => 'in:default,review,bydate',
+            'tags' => 'array',
         ]);
     }
 
@@ -265,21 +266,21 @@ class ValidationRules
 
     public function getUploadFileValidationRules(): array
     {
-        return([
+        return ([
             'file' => 'required',
             'file.*' => 'max:5120',
             //'file.*' => 'mimes:jpeg,bmp,png,jpg,gif',
             'name.*' => 'required|unique:uploads,file_name,NULL,id,deleted_at,NULL'
         ]);
     }
-    
+
     public function getNewsFeedStoreValidationRules(): array
     {
         return [
             'topic_num' => 'required',
             'camp_num' => 'required',
             'available_for_child' => 'required|boolean',
-            "link" => ['required','regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/'],
+            "link" => ['required', 'regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/'],
             "display_text" => 'required|max:256',
             "submitter_nick_id" => 'required'
         ];
@@ -336,7 +337,7 @@ class ValidationRules
             'thread_id' => 'required',
         ]);
     }
-    
+
     public function getStatementHistoryValidationRules(): array
     {
         return [
@@ -397,12 +398,20 @@ class ValidationRules
             'statement' => 'required',
             'nick_name' => 'required',
             'submitter' => 'required',
-            'event_type' => 'required|in:create,update,edit,objection', 
+            'event_type' => 'required|in:create,update,edit,objection',
             'statement_id' => 'required_if:event_type,objection|required_if:event_type,edit',
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
-    
+    public function getPostStatementCountValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'camp_num' => 'required|integer|max:' . PHP_INT_MAX,
+            'statement_id' => 'required|integer|max:' . PHP_INT_MAX,
+        ];
+    }
+
     public function getPostVerifyEmailValidationRules(): array
     {
         return ([
@@ -451,7 +460,7 @@ class ValidationRules
             'type' => 'required|in:statement,camp,topic',
         ]);
     }
-    
+
     public function getStatementComparisonValidationRules(): array
     {
         return ([
@@ -511,7 +520,7 @@ class ValidationRules
             'page' => 'required',
         ]);
     }
-    
+
     public function getManageCampValidationRules(): array
     {
         return [
@@ -520,9 +529,9 @@ class ValidationRules
             'camp_id' => 'required',
             'nick_name' => 'required',
             'submitter' => 'required',
-            'camp_name' => 'required',
-            'camp_about_url' => ['regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/','nullable'],
-            'event_type' => 'required|in:update,edit,objection', 
+            'camp_name' => 'required|max:80',
+            'camp_about_url' => ['regex:/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|^(www)\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/^(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[a-zA-Z0-9][^\s]{2,}|^[a-zA-Z0-9]+\.[^\s]{2,})/', 'nullable'],
+            'event_type' => 'required|in:update,edit,objection',
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
@@ -544,7 +553,7 @@ class ValidationRules
             'topic_name' => 'required',
             'nick_name' => 'required',
             'namespace_id' => 'required',
-            'event_type' => 'required|in:update,edit,objection', 
+            'event_type' => 'required|in:update,edit,objection',
             'objection_reason' => 'required_if:event_type,objection'
         ];
     }
@@ -638,6 +647,46 @@ class ValidationRules
         ]);
     }
 
+    public function getTagsListingValidationRules(): array
+    {
+        return [
+            'page' => 'required_with:per_page|numeric|gt:0',
+            'per_page' => 'required_with:page|numeric|gt:0',
+            'sort_by' => 'in:asc,desc'
+        ];
+    }
+
+    public function createUserTagsValidationRules(): array
+    {
+        return  [
+            'user_tags' => 'required|array',  // Ensure user_tags is required and an array
+            'user_tags.*' => 'integer|exists:tags,id',       // Ensure each element in user_tags is an integer
+        ];
+    }
+
+    public function updateReadAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
+
+    public function updateDeleteAllValidationRules(): array
+    {
+        return ([
+            'ids' => 'required|array',
+        ]);
+    }
+
+    public function getSiblingCampsValidationRules(): array
+    {
+        return ([
+            'topic_num' => 'required|numeric',
+            'camp_num' => 'required|numeric',
+            'parent_camp_num' => 'required|numeric',
+        ]);
+    }
+    
     public function getSignPetitionRules(): array
     {
         return [
