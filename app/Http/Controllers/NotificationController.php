@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use stdClass;
 use Throwable;
 use App\Models\Camp;
 use App\Models\User;
@@ -52,7 +51,7 @@ class NotificationController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *   @OA\Parameter(
      *         name="page",
@@ -61,7 +60,7 @@ class NotificationController extends Controller
      *         description="Add page field in query parameters",
      *         @OA\Schema(
      *              type="Query Parameters"
-     *         )
+     *         ) 
      *    ),
      *   @OA\Parameter(
      *         name="per_page",
@@ -70,7 +69,7 @@ class NotificationController extends Controller
      *         description="Add per_page field in query parameters",
      *         @OA\Schema(
      *              type="Query Parameters"
-     *         )
+     *         ) 
      *    ),
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
@@ -179,49 +178,27 @@ class NotificationController extends Controller
 
     public function notificationList(Request $request, Validate $validate)
     {
+
         try {
-            $perPage = $request->per_page;
-            $isSeen = $request->is_seen ?? 0;
-
-            if ($perPage > 0) {
-                $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($perPage);
-                $paginatorResponse = Util::getPaginatorResponse($notificationList);
-                $notifications = $paginatorResponse->items;
-            } else {
-                $notifications = PushNotification::where('user_id', $request->user()->id)->latest()->get();
-            }
-
-            foreach ($notifications as $key => $value) {
-                // Set camp_num to 1 if it is null or empty
-                $value->camp_num = empty($value->camp_num) ? 1 : $value->camp_num;
-
-                // Skip notification if topic is null or empty
+            $notificationList = null;
+            $per_page = !empty($request->per_page) ? $request->per_page : config('global.per_page');
+            $isSeen =  !empty($request->is_seen)  ? $request->is_seen : 0;
+            $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($per_page);
+            $notificationList = Util::getPaginatorResponse($notificationList);
+            foreach ($notificationList->items as $value) {
                 $topic = Topic::getLiveTopic($value->topic_num ?? '', 'default');
+                $camp = ($value->camp_num ?? '' != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
 
-                // Skip this notification if topic is null
-                if (empty($topic)) {
-                    unset($notifications[$key]); // Remove the notification from the list
-                    continue; // Skip to the next notification
-                }
-
-                $camp = ($value->camp_num != 0) ? Camp::getLiveCamp(['topicNum' => $value->topic_num, 'campNum' => $value->camp_num, 'asOf' => 'default']) : null;
-
-                // If camp is null or empty, create a default camp object
-
-                if (empty($camp)) {
-                    $camp = new stdClass(); // Create an empty object to avoid null property access
-                    $camp->camp_num = 1; // Default camp_num
-                    $camp->camp_name = 'Agreement'; // Set a default camp_name, can be an empty string too
-                    $camp->topic_num = $value->topic_num; // Ensure it has the correct topic_num
-                }
                 switch ($value->notification_type) {
                     case config('global.notification_type.Topic'):
-                        $value->url = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Agreement', 'topic');
+                        $value->url = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
                         break;
                     case config('global.notification_type.Camp'):
-                        $value->url = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp');
+                        $value->url = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $topic->topic_name,  $camp->camp_name, 'camp');
                         break;
                     case config('global.notification_type.Thread'):
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name . '/threads/' . $value->thread_id;
+                        break;
                     case config('global.notification_type.Post'):
                         $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name . '/threads/' . $value->thread_id;
                         break;
@@ -244,29 +221,17 @@ class NotificationController extends Controller
                         $value->url = Camp::campLink($camp->topic_num ?? '', $camp->camp_num ?? '', $topic->topic_name ?? '', $camp->camp_name ?? '');
                 }
             }
-
-            if ($isSeen) {
+            if($isSeen){
                 PushNotification::where('user_id', $request->user()->id)
-                    ->where('is_seen', 0)
-                    ->update(['is_seen' => 1, 'seen_time' => time()]);
+                                ->where('is_seen', 0)
+                                ->update(['is_seen' => 1,'seen_time' => time()]);
             }
 
-            $unreadCount = collect($notifications)->filter(function ($notification) {
-                return $notification->is_seen == 0;
-            })->count();
-            $notifications = (!is_array($notifications)) ? $notifications->toArray() : $notifications;
-            $notifications = array_values($notifications);
-            if ($perPage > 0) {
-                $paginatorResponse->items = $notifications;
-                $paginatorResponse->unread_count = $unreadCount;
-                $response = $paginatorResponse;
-            } else {
-                $response = ['items' => $notifications, 'unread_count' => $unreadCount];
-            }
+            $notificationList->unread_count = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 0)->count();
 
             $status = 200;
             $message = trans('message.success.success');
-            return $this->resProvider->apiJsonResponse($status, $message, $response, null);
+            return $this->resProvider->apiJsonResponse($status, $message, $notificationList, null);
         } catch (Throwable $e) {
             $status = 400;
             $message = trans('message.error.exception');
@@ -286,54 +251,6 @@ class NotificationController extends Controller
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         } catch (Throwable $e) {
-            $status = 400;
-            $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
-        }
-    }
-
-    public function updateReadAll(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->updateReadAllValidationRules(), $this->validationMessages->updateReadAllValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-
-        try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->update([
-                'is_read' => 1,
-                'is_seen' => 1,
-                'seen_time' => time(),
-            ]);
-            DB::commit();
-            $status = 200;
-            $message = trans('message.success.success');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        } catch (Throwable $e) {
-            DB::rollBack();
-            $status = 400;
-            $message = trans('message.error.exception');
-            return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
-        }
-    }
-
-    public function deleteAll(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->updateDeleteAllValidationRules(), $this->validationMessages->updateDeleteAllValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-
-        try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->delete();
-            DB::commit();
-            $status = 200;
-            $message = trans('message.success.success');
-            return $this->resProvider->apiJsonResponse($status, $message, null, null);
-        } catch (Throwable $e) {
-            DB::rollBack();
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());

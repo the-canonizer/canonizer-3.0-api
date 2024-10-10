@@ -6,29 +6,22 @@ use stdClass;
 use Exception;
 use Throwable;
 use Carbon\Carbon;
-use App\Models\Tag;
-use App\Facades\Aws;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
-use App\Helpers\Helpers;
 use App\Library\General;
 use App\Models\Nickname;
-use App\Models\TopicTag;
 use App\Models\Statement;
 use App\Models\Namespaces;
-use App\Models\FeatureTopic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
-use App\Facades\Aws as FacadesAws;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Events\NotifySupportersEvent;
@@ -39,7 +32,9 @@ use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
+use App\Helpers\Helpers;
 use App\Models\HotTopic;
+use Illuminate\Support\Facades\Log;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 
 class TopicController extends Controller
@@ -66,7 +61,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *    @OA\RequestBody(
      *     required=true,
@@ -204,13 +199,8 @@ class TopicController extends Controller
             ];
             DB::beginTransaction();
             $topic = Topic::create($input);
-
             $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
-                // Check if the array exists for tags ...
-                if ($request->has('tags') && is_array($request->tags)) {
-                    Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
-                }
 
                 Util::dispatchJob($topic, 1, 1);
                 // Eventline - topic create event saved
@@ -380,13 +370,12 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
-            $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time', 'tags'];
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
 
@@ -414,7 +403,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -495,7 +484,7 @@ class TopicController extends Controller
 
             // Check if nominated camp leader is not a direct supporter, object the change if nominated as camp leader
             $directSupports = collect(Support::getAllDirectSupporters($model->topic_num, $model->camp_num))->pluck('nick_name_id')->values()->all();
-            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports)) {
                 $model->objector_nick_id = $model->camp_leader_nick_id;
                 $model->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
                 $model->object_time = time();
@@ -512,7 +501,7 @@ class TopicController extends Controller
             if ($type == 'camp') {
 
                 $updatedArchiveStatus = $model->is_archive;
-                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1
+                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
@@ -541,14 +530,14 @@ class TopicController extends Controller
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
-            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {                
+            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
                 $changeGoneLive = true;
             }
 
             if ($type == 'camp') {
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()) && !$archiveReviewPeriod) {
+                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) {
                     $model->go_live_time = time();
                     $changeGoneLive = true;
                     // Log of system assigned/remove camp leader
@@ -796,7 +785,7 @@ class TopicController extends Controller
                         if (!empty($currentNickname) && !empty($currentNickname->nick_name)) {
                             $current = '<a href="' . $currentUrl . '" target="_blank">' . $currentNickname->nick_name . '</a>';
                         }
-
+                        
                         $changeData[] =  [
                             'field' => 'camp_about_nick_name',
                             'live' => $live,
@@ -997,7 +986,7 @@ class TopicController extends Controller
             $responseData = [
                 "archive_camp_support_nicknames" => $archiveCampSupportNicknames,
                 "change_gone_live" => $changeGoneLive ?? false
-            ];
+            ]; 
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -1017,7 +1006,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *    @OA\RequestBody(
      *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
@@ -1129,9 +1118,9 @@ class TopicController extends Controller
 
 
             /*
-            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
-            *   Now support at the time of submition will be count as total supporter.
-            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
+            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+            *   Now support at the time of submition will be count as total supporter. 
+            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
             */
             $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])
                 ->where('camp_num', '=', $data['camp_num'])
@@ -1176,9 +1165,9 @@ class TopicController extends Controller
                     $submitterNickId = $camp->submitter_nick_id;
 
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
-                    *   Now support at the time of submition will be count as total supporter.
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
@@ -1280,9 +1269,9 @@ class TopicController extends Controller
                     $submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
-                    *   Now support at the time of submition will be count as total supporter.
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
+                    *   Now support at the time of submition will be count as total supporter. 
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
@@ -1401,7 +1390,7 @@ class TopicController extends Controller
             ];
             switch ($data['change_for']) {
                 case 'statement':
-                    $model = Statement::where($where)->where('is_draft', 0)->first();
+                    $model = Statement::where($where)->first();
                     break;
                 case 'camp':
                     $model = Camp::where($where)->first();
@@ -1443,6 +1432,7 @@ class TopicController extends Controller
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     if ($camp->is_archive != $preLiveCamp->is_archive) {
                         $camp->archive_action_time = time();
+                       
                     }
 
                     $camp->update();
@@ -1486,14 +1476,13 @@ class TopicController extends Controller
                 }
             } else if ($data['change_for'] == 'topic') {
 
-                $topic = Topic::find($changeId);
+                $topic = Topic::where('id', $changeId)->first();
                 $preliveTopic = Topic::where('id', $pre_LiveId)->first();
                 if ($topic) {
                     //$submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
-                   // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
-                   // $topic->save();
-                    Topic::updateElasticSearch($topic);
+                    // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                    // $topic->update();
                     Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     if (isset($topic)) {
@@ -1557,7 +1546,7 @@ class TopicController extends Controller
      *                   type="string",
      *               ),
      *              @OA\Property(
-     *                   property="submitter",
+     *                   property="submitter",                                      
      *                   description="Nick name id of user who previously added statement",
      *                   required=true,
      *                   type="integer",
@@ -1683,12 +1672,6 @@ class TopicController extends Controller
             }
 
             $topic->save();
-
-            // Check if the array exists for tags ...
-            if ($request->has('tags') && is_array($request->tags)) {
-                Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
-            }
-
             DB::commit();
 
             if ($all['event_type'] == "objection") {
@@ -1822,8 +1805,7 @@ class TopicController extends Controller
 
         try {
             $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
-            $liveTopic = Topic::getLiveTopic($filter['topicNum'], 'default');
-            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery, $liveTopic);
+            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery);
             $response = $topics;
             $details->ifIamSupporter = null;
             $details->ifSupportDelayed = null;
@@ -1839,9 +1821,6 @@ class TopicController extends Controller
                 $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
             }
             $response->details = $details;
-            $response->total_counts = Helpers::getHistoryCountsByChange($liveTopic, $filter);
-            $response->live_record_id = Helpers::getLiveHistoryRecord($liveTopic, $filter);
-
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -1861,7 +1840,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -1896,11 +1875,7 @@ class TopicController extends Controller
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
             }
             $topic = Topic::where('id', $request->record_id)->first();
-
             if ($topic) {
-                // If the topic is found attach the topic tags with it ...
-                $topic->tags = TopicTag::where('topic_num', $topic->topic_num)->pluck('tag_id')->toArray();
-
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
                     $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
@@ -1938,7 +1913,7 @@ class TopicController extends Controller
      *         description="Bearer {access-token}",
      *         @OA\Schema(
      *              type="Authorization"
-     *         )
+     *         ) 
      *    ),
      *   @OA\RequestBody(
      *       required=true,
@@ -2040,185 +2015,11 @@ class TopicController extends Controller
     }
 
 
-    /**
-     * @OA\Get(path="/hot-topic",
-     *   tags={"Topic"},
-     *   summary="Get Hot Topic",
-     *   description="This api used to get hot-topic",
-     *   operationId="countrylist",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
-     *   )
-     *
-     * )
-     */
-
     public function hotTopic(Request $request)
     {
-        try {
-            $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
-            $perPage = $request->input('per_page', config('global.per_page'));
-
-            $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
-                $query->where('updated_at', '>=', $date30DaysAgo);
-            })
-                ->leftJoin('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
-                ->select('topic.*')
-                ->groupBy('topic.topic_num')
-                ->orderByDesc(
-                    DB::raw('(SELECT SUM(tv.views) FROM topic_views tv WHERE tv.topic_num = topic.topic_num)')
-                )
-                ->paginate($perPage);
-
-            foreach ($topics as $topic) {
-                $filter['topicNum'] = $topic->topic_num;
-                $filter['campNum'] = $topic->camp_num ?? 1;
-
-                $liveCamp = Camp::getLiveCamp($filter);
-                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
-
-                $topicTitle = $liveTopic->topic_name ?? '';
-                $campTitle = $liveCamp->camp_name ?? '';
-
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
-                $supporterData = [];
-
-                foreach ($supporters as $supporter) {
-                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                    if ($user) {
-                        $supporterData[] = [
-                            'user_id' => $user->id,
-                            'first_name' => $user->first_name,
-                            'middle_name' => $user->middle_name ?? null,
-                            'last_name' => $user->last_name ?? null,
-                            'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path ?? null
-                        ];
-                    }
-                }
-
-                // Get the tag IDs associated with $liveTopic
-                $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->get();
-
-                $topic->id = $liveTopic->id;
-                $topic->topic_num = $liveTopic->topic_num;
-                $topic->camp_num = $liveCamp->camp_num;
-                $topic->note = $liveTopic->note;
-                $topic->topic_name = $topicTitle;
-                $topic->camp_name = $campTitle;
-                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                $topic->topicTags = $tags;
-                $topic->views = $topic->totalViews();
-                $topic->supporterData = $supporterData;
-                $topic->statement = Statement::getLiveStatement([
-                    'topicNum' => $topic->topic_num,
-                    'campNum' => $liveCamp->camp_num,
-                    'asOf' => 'default',
-                    'asOfDate' => '',
-                ]);
-            }
-
-            $collection = Util::getPaginatorResponse($topics);
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 400,
-                'message' => trans('message.error.exception'),
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
-     *  @OA\Get(path="/featured-topic",
-     *   tags={"Topic"},
-     *   summary="Get featured Topic",
-     *   description="This api used to get featured topic",
-     *   operationId="featuredTopic",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
-     *   )
-     *
-     * )
-     */
-    public function featuredTopic(Request $request)
-    {
 
         try {
-            $perPage = $request->per_page ?? config('global.per_page');
-            $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
-                ->paginate($perPage);
+            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->get();
             if (!empty($hotTopics)) {
                 foreach ($hotTopics as $hotTopic) {
                     $filter['topicNum'] = $hotTopic->topic_num;
@@ -2231,167 +2032,14 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num);
-                    $supporterData = [];
-                    foreach ($supporters as $key => $supporter) {
-                        $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                        if ($user) {
-                            $supporterData[] = [
-                                'user_id' => $user->id,
-                                'first_name' => $user->first_name,
-                                'middle_name' => $user->middle_name ?? null,
-                                'last_name' => $user->last_name ?? null,
-                                'email' => $user->email ?? null,
-                                'profile_picture_path' => $user->profile_picture_path ?? null,
-                            ];
-                        }
-                    }
-
-                    // Get the tag IDs associated with $liveTopic
-                    $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                    $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
-
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
-                    $hotTopic->topic_num = $hotTopic->topic_num;
                     $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
-                    $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
-                    $hotTopic->topicTags = $tags;
-                    $hotTopic->namespace_id = $liveTopic->namespace_id;
-                    $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
-                    $hotTopic->supporterData = $supporterData;
                 }
             }
-            $collection = Util::getPaginatorResponse($hotTopics);
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Get(path="/preferred-topic",
-     *   tags={"Topic"},
-     *   summary="Get preferred Topic",
-     *   description="This api used to get preferred topic",
-     *   operationId="preferredTopic",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
-     *   )
-     *
-     * )
-     */
-    public function preferredTopic(Request $request)
-    {
-        try {
-            $perPage = $request->per_page ?? null;
-            $userTags = $request->user()->userActiveTags()->pluck('tag_id');
-
-            $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
-                $query->whereIn('tag_id', $userTags);
-            }])
-                ->whereHas('topicTags', function ($query) use ($userTags) {
-                    $query->whereIn('tag_id', $userTags);
-                })
-                ->groupBy('topic_num');
-            if (!empty($perPage)) {
-                $topics = $topics->paginate($perPage);
-            } else {
-                $topics = $topics->inRandomOrder()->paginate(6);
-            }
-            $paginatedResponse = Util::getPaginatorResponse($topics);
-            $topics = $topics->map(function ($topic) {
-                $filter['topicNum'] = $topic->topic_num;
-                $filter['campNum'] = $topic->camp_num ?? 1;
-                $liveCamp = Camp::getLiveCamp($filter);
-                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
-                $topicTitle = $liveTopic->topic_name ?? '';
-                $campTitle = $liveCamp->camp_name ?? '';
-
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
-                $supporterData = [];
-
-                foreach ($supporters as $supporter) {
-                    $user = Nickname::getUserByNickName($supporter->nick_name_id);
-                    if ($user) {
-                        $supporterData[] = [
-                            'user_id' => $user->id,
-                            'first_name' => $user->first_name,
-                            'middle_name' => $user->middle_name ?? null,
-                            'last_name' => $user->last_name ?? null,
-                            'email' => $user->email ?? null,
-                            'profile_picture_path' => $user->profile_picture_path ?? null
-                        ];
-                    }
-                }
-
-                // Get the tag IDs associated with $liveTopic
-                $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
-
-                return [
-                    'id' => $liveTopic->id,
-                    'topic_num' => $liveTopic->topic_num,
-                    'camp_num' => $liveCamp->camp_num,
-                    'note' => $liveTopic->note,
-                    'topic_name' => $topicTitle,
-                    'camp_name' => $campTitle,
-                    'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'topicTags' => $tags,
-                    'views' => $liveTopic->totalViews(),
-                    'supporterData' => $supporterData,
-                    'statement' => Statement::getLiveStatement([
-                        'topicNum' => $topic->topic_num,
-                        'campNum' => $liveCamp->camp_num,
-                        'asOf' => 'default',
-                        'asOfDate' => '',
-                    ]),
-                ];
-            });
-            $paginatedResponse->items = $topics;
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $paginatedResponse, null);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 400,
-                'message' => trans('message.error.exception'),
-                'error' => $e->getMessage(),
-            ]);
         }
     }
 }

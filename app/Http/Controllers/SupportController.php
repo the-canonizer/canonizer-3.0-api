@@ -191,7 +191,7 @@ class SupportController extends Controller
         // dd($all);
         try{            
             TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
-            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate, $topicNum);            
+            $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     
          } catch (\Throwable $e) {
@@ -227,8 +227,7 @@ class SupportController extends Controller
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
-            $message = ['add' => trans('message.support.add_delegation_support')];
-            return $this->resProvider->apiJsonResponse(200, $message, '','');
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.add_delegation_support'), '','');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -263,7 +262,7 @@ class SupportController extends Controller
         try{
 
             TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$citation_link);     
-            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate, $topicNum);
+            $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate);
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
@@ -324,9 +323,8 @@ class SupportController extends Controller
 
         try{
 
-            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId);   
-            $message = ['remove' => [ trans('message.support.delegate_support_removed') ]];            
-            return $this->resProvider->apiJsonResponse(200, $message, '','');
+            TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId);               
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.delegate_support_removed'), '','');
         
         } catch (\Throwable $e) {
 
