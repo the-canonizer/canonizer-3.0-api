@@ -177,17 +177,20 @@ class ProfileController extends Controller
             $user->update($input) ;
 
             $userTags = $request->user_tags;
-            // Step 1: Update or create new tags
-            if (isset($userTags) && $userTags) {
-                foreach ($userTags as $tagId) {
-                    UserTag::updateOrCreate(
-                        ['user_id' => $user->id, 'tag_id' => $tagId],
-                    );
+
+            if(isset($input['user_tags'])){
+                // Step 1: Update or create new tags
+                if (isset($userTags) && $userTags) {
+                    foreach ($userTags as $tagId) {
+                        UserTag::updateOrCreate(
+                            ['user_id' => $user->id, 'tag_id' => $tagId],
+                        );
+                    }
                 }
+                UserTag::where('user_id', $user->id)
+                    ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
+                    ->delete();
             }
-            UserTag::where('user_id', $user->id)
-                ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
-                ->delete();
 
             $userModel = User::with('tags')->find($user->id);
 
