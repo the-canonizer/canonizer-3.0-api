@@ -2,9 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Models\{Camp, Statement, Topic};
 use Carbon\Carbon;
-use App\Models\{Camp, Statement, Topic, TopicView};
-use Illuminate\Support\Facades\DB;
 
 class Helpers
 {
@@ -48,120 +47,10 @@ class Helpers
         if (!($model instanceof Topic)) {
             $where[] = ['camp_num', '=', $camp_num];
         }
-        if ($model instanceof Statement) {
-            $where[] = ['is_draft', '=', 0];
-        }
 
         return $model::where('topic_num', $topic_num)
             ->where($where)
             ->count();
-    }
-
-    public static function getCampViewsByDate(int $topic_num, int $camp_num = 1, ?Carbon $startDate = null, ?Carbon $endDate = null)
-    {
-        return TopicView::where('topic_num', $topic_num)
-            ->when($camp_num > 1, fn ($query) => $query->where('camp_num', $camp_num))
-            ->when(
-                $startDate && $endDate,
-                fn ($query) => $query->whereBetween('created_at', [$startDate->startOfDay()->timestamp, $endDate->endOfDay()->timestamp]),
-                fn ($query) => $query->when(
-                    $endDate,
-                    fn ($query) => $query->where('created_at', '<=', $endDate->endOfDay()->timestamp),
-                    fn ($query) => $query->when(
-                        $startDate,
-                        fn ($query) => $query->where('created_at', '>=', $startDate->startOfDay()->timestamp),
-                    )
-                )
-            )->sum('views');
-    }
-
-    public static function stripTagsExcept($html, $excludeTags = [])
-    {
-        if (!is_string($html)) {
-            return $html;
-        }
-        $excludeTagsPattern = implode('|', array_map(
-            function ($tag) {
-                return preg_quote($tag, '/');
-            },
-            $excludeTags
-        ));
-
-        // Remove the content and tags of the excluded tags
-        $pattern = '/<(' . $excludeTagsPattern . ')\b[^>]*>(.*?)<\/\1>/is';
-        $html = preg_replace($pattern, '', $html);
-
-        // Strip all remaining tags
-        $cleanedText = strip_tags($html);
-
-        // Decode HTML entities to get the proper text
-        // $cleanedText = html_entity_decode($cleanedText, ENT_QUOTES, 'UTF-8');
-
-        // Trim to the specified limit
-        return $cleanedText;
-    }
-
-    public static function getHistoryCountsByChange($liveRecord, $filter)
-    {
-
-        if (($liveRecord instanceof Topic)) {
-            $baseQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
-        } else if ($liveRecord instanceof Camp) {
-            $baseQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
-        } else if ($liveRecord instanceof Statement) {
-            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
-                ->where('is_draft', 0)
-                ->latest('submit_time');
-        } else {
-            /* This is the case for statement only, Becuase when we create new topic so in this only 
-            statement is empty first time */
-            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
-                ->where('is_draft', 0)
-                ->latest('submit_time');
-        }
-
-        // Current timestamp for consistent comparison
-        $currentTime = time();
-        $liveRecordId = $liveRecord->id ?? 0;
-
-        $counts = $baseQuery->select(
-            DB::raw('COUNT(*) as total_changes'),
-            DB::raw('SUM(CASE WHEN id = ' . $liveRecordId . ' THEN 1 ELSE 0 END) as live_changes'),
-            DB::raw('SUM(CASE WHEN objector_nick_id IS NOT NULL THEN 1 ELSE 0 END) as objected_changes'),
-            DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as in_review_changes'),
-            DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecordId . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
-        )
-            ->first();
-
-        $historyCounts = [
-            'total_changes' => (int) $counts->total_changes,
-            'live_changes' => (int) $counts->live_changes,
-            'objected_changes' => (int) $counts->objected_changes,
-            'in_review_changes' => (int) $counts->in_review_changes,
-            'old_changes' => (int) $counts->old_changes,
-        ];
-
-        return $historyCounts;
-    }
-
-    public static function getLiveHistoryRecord($liveRecord, $filter)
-    {
-
-        $modelInstance = get_class($liveRecord);
-        $modelName = class_basename($liveRecord);
-
-        $getLiveRecordId = $modelInstance::select('id')
-            ->where('topic_num', $filter['topicNum'])
-            ->when(($modelName == "Camp" || $modelName == "Statement"), function ($q) use ($filter) {
-                $q->where('camp_num', '=', $filter['campNum']);
-            })
-            ->when($modelName == "Statement", function ($q) {
-                $q->where('is_draft', 0);
-            })
-            ->where('id',  $liveRecord->id)
-            ->latest('submit_time')->first();
-
-        return $getLiveRecordId->id ?? 0;
     }
 
     public static function updateTopicsInReview($topic)

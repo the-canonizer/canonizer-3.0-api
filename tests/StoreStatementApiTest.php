@@ -73,7 +73,7 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testUpdateStatementApiWithValidData()
+    public function testUpdateStatementApiWithValidData()  
     {
         $validData = [
             "topic_num" => "200",
@@ -83,7 +83,6 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "1",
             "statement" => "statement",
             "event_type" => "update",
-            "statement_id" => 1,
         ];
         print sprintf("Test with valid values for updating statement based on a version");
            $user = User::factory()->make([
@@ -98,7 +97,7 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testCreateStatementApiWithValidData()
+    public function testCreateStatementApiWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
@@ -140,7 +139,7 @@ class StoreStatementApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-
+        
         Support::insert([
             'nick_name_id' => 347,
             'delegate_nick_name_id' => 0,
@@ -159,7 +158,7 @@ class StoreStatementApiTest extends TestCase
      * Check Api with valid data
      * validation
      */
-    public function testEditStatementApiWithValidData()
+    public function testEditStatementApiWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
@@ -169,7 +168,7 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "1",
             "statement" => "statement",
             "event_type" => "edit",
-            "statement_id" => 1,
+            "statement_id" => "1",
         ];
         print sprintf("Test with valid values for editing a statement");
            $user = User::factory()->make([
@@ -191,7 +190,7 @@ class StoreStatementApiTest extends TestCase
         $this->assertEquals(401,  $this->response->status());
     }
 
-    public function testCreateStatementInGracePeriodWithValidData()
+    public function testCreateStatementInGracePeriodWithValidData() 
     {
         $validData = [
             "topic_num" => "47",
@@ -212,105 +211,6 @@ class StoreStatementApiTest extends TestCase
         $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
         $this->assertNotNull($statement);
         $this->assertEquals(1, $statement->grace_period);
-    }
-
-    public function testCreateDraftStatment()
-    {
-        $validData = [
-            "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "347",
-            "note" => "note",
-            "submitter" => "347",
-            "statement" => "statement",
-            "event_type" => "create",
-            "is_draft" => true,
-        ];
-        print sprintf("Test to create draft statement");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
-
-        $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
-        $this->assertNotNull($statement);
-
-    }
-
-    public function testEditDraftStatment()
-    {
-        $validData = [
-            "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "347",
-            "note" => "note",
-            "submitter" => "347",
-            "statement" => "statement",
-            "event_type" => "create",
-            "is_draft" => true,
-        ];
-
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $statement = $this->response->json();
-        $draftRecordId = $statement['data']['draft_record_id'];
-
-        $validData = [
-            "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "347",
-            "note" => "note",
-            "submitter" => "347",
-            "statement" => "statement",
-            "statement_id" => $draftRecordId,
-            "event_type" => "edit",
-            "is_draft" => true,
-        ];
-        print sprintf("Test to edit draft statement");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
-    }
-
-    public function testPublishDraftStatment()
-    {
-        $validData = [
-            "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "347",
-            "note" => "note",
-            "submitter" => "347",
-            "statement" => "statement",
-            "event_type" => "create",
-            "is_draft" => true,
-        ];
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $statement = $this->response->json();
-        $draftRecordId = $statement['data']['draft_record_id'];
-
-        // Publish a draft statement
-        $validData = [
-            "topic_num" => "47",
-            "camp_num" => "1",
-            "nick_name" => "347",
-            "note" => "note",
-            "submitter" => "347",
-            "statement" => "statement",
-            "statement_id" => $draftRecordId,
-            "event_type" => "create",
-            "is_draft" => false,
-        ];
-
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-
-        $this->assertEquals(200,  $this->response->status());
+        
     }
 }

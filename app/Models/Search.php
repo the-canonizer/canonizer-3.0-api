@@ -81,34 +81,17 @@ class Search extends Model
                 ],
                 'size' => $size, // Use the custom size value here
                 'from' => $from, // Use the custom from value here
-                'aggs' => [
-                    'type_counts' => [
-                        'terms' => [
-                            'field' => 'type',
-                            // No size parameter specified
-                        ],
-                    ],
-                ],
             ],
         ]);
 
         if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
             $parsedResponse = $response['hits']['hits'];
             $totalResponse = $response['hits']['total']['value'];
-
-             // Extract aggregation results
-            $typeCounts = [];
-            if (isset($response['aggregations']['type_counts']['buckets'])) {
-                foreach ($response['aggregations']['type_counts']['buckets'] as $bucket) {
-                    $typeCounts[$bucket['key']] = $bucket['doc_count'];
-                }
-            }
         
             $data = [
                 'data' => collect($parsedResponse)->pluck('_source'),
                 'type' => $type,
                 'count' => $totalResponse,
-                'type_counts' => $typeCounts, // Include counts per type
             ];
         
             return $data;
@@ -117,8 +100,7 @@ class Search extends Model
             $data = [
                 'data' => [],
                 'type' => '',
-                'count' => 0,
-                'type_counts' => 0
+                'count' => 0
             ]; 
             
             return $data;

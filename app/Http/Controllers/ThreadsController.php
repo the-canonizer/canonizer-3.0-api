@@ -759,20 +759,4 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
-    public function getLatest5Threads(Request $request)
-    {
-        
-        return Thread::leftJoin('post', function ($join) {
-            $join->on('thread.id', '=', 'post.c_thread_id')
-                ->where('post.is_delete', 0);
-        })
-            ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
-            ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
-            ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count, max(COALESCE(post.updated_at, thread.created_at)) as post_updated_at'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name')
-            ->where('camp_id', $request->camp_num)
-            ->where('topic_id', $request->topic_num)
-            ->groupBy('thread.id')
-            ->orderBy('post_updated_at', 'DESC')
-            ->limit(5)->get();
-    }
 }

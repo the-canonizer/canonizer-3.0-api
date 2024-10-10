@@ -89,7 +89,6 @@ class Statement extends Model
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
                 ->where('go_live_time', '<=', time())
-                ->where('is_draft', 0)
                 ->orderBy('submit_time', 'desc')
                 ->first();
         });
@@ -103,8 +102,7 @@ class Statement extends Model
             return self::where('topic_num', $filter['topicNum'])
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
-                ->where('grace_period', 0)
-                ->where('is_draft', 0)
+                ->where('grace_period', 0) 
                 ->orderBy('go_live_time', 'desc')
                 ->first();
         });
@@ -118,7 +116,6 @@ class Statement extends Model
             ->where('camp_num', $filter['campNum'])
             ->where('go_live_time', '<=', $asofdate)
             ->orderBy('go_live_time', 'desc')
-            ->where('is_draft', 0)
             ->first();
     }
 
@@ -153,7 +150,6 @@ class Statement extends Model
 
     public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request)
     {
-        $statement_query->where('is_draft', 0);
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
         });
@@ -229,11 +225,6 @@ class Statement extends Model
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
                 switch ($val) {
-                    case $val->is_draft === 1:
-                        $val->status = "draft";
-                        $val->agreed_supporters = 0;
-                        $val->total_supporters = 0;
-                        break;
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
                         $val->objector_nick_name = $val->objectorNickName->nick_name;
@@ -265,16 +256,4 @@ class Statement extends Model
         return  $data;
     }
 
-    public static function getDraftRecord(int $topic_num, int $camp_num, $nickNames = [])
-    {
-        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
-        $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 1)->first();
-        return $draft ? $draft->id : null;
-    }
-
-    public static function getGracePeriodRecordCount(int $topic_num, int $camp_num, $nickNames = [])
-    {
-        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
-        return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
-    }
 }

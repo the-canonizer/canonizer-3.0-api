@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FeatureTopic extends Model
+class HotTopic extends Model
 {
     use HasFactory;
 
     protected $dateFormat = 'U';
-
-    protected $table = 'feature_topics';
+    
+    protected $table = 'hot_topics';
     public $timestamps = false;
 
     /**
@@ -19,5 +19,5 @@ class FeatureTopic extends Model
      *
      * @var array
      */
-    protected $fillable = ['title', 'description', 'topic_num', 'camp_num', 'file_relative_path', 'file_full_path', 'active', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['title', 'description', 'topic_num', 'camp_num', 'file_relative_path', 'file_full_path','active','created_at', 'updated_at', 'deleted_at'];
 }
