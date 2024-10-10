@@ -252,7 +252,8 @@ class NotificationController extends Controller
             }
 
             $unreadCount = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 0)->count();
-
+            $notifications = (!is_array($notifications)) ? $notifications->toArray() : $notifications;
+            $notifications = array_values($notifications);
             if ($perPage > 0) {
                 $paginatorResponse->items = $notifications;
                 $paginatorResponse->unread_count = $unreadCount;
