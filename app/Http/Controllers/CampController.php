@@ -416,16 +416,19 @@ class CampController extends Controller
             if ($livecamp && $filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
                 $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
-            } else {
-                $liveCampFilter['topicNum'] = $request->topic_num;
-                $liveCampFilter['asOf'] = 'default';
-                $liveCampFilter['campNum'] = $request->camp_num;
-                $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
-                if (!empty($liveCampDefault)) {
-                    $camp['is_archive'] = $liveCampDefault->is_archive;
-                    $camp['camp_name'] = $liveCampDefault->camp_name;
-                }
-            }
+            } 
+            // This case is no more useful, because it was due to handling of camp create button in archive.
+            // Now create camp is no more available when archived, so this case is no more useful.
+            // else {
+            //     $liveCampFilter['topicNum'] = $request->topic_num;
+            //     $liveCampFilter['asOf'] = 'default';
+            //     $liveCampFilter['campNum'] = $request->camp_num;
+            //     $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
+            //     if (!empty($liveCampDefault)) {
+            //         $camp['is_archive'] = $liveCampDefault->is_archive;
+            //         $camp['camp_name'] = $liveCampDefault->camp_name;
+            //     }
+            // }
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
