@@ -2091,12 +2091,17 @@ class TopicController extends Controller
     public function hotTopic(Request $request)
     {
         try {
+            $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+            $namespaceIds = [];
+            foreach ($namespaces as $namespace) {
+                $namespaceIds[] = $namespace->id;
+            }
             $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
             $supporterLimit = $request->input('supporter_limit', 5);
             $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
                 $query->where('updated_at', '>=', $date30DaysAgo);
-            })
+            })->whereNotIn('namespace_id', $namespaceIds)
                 ->leftJoin('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
                 ->select('topic.*')
                 ->groupBy('topic.topic_num')
@@ -2322,13 +2327,18 @@ class TopicController extends Controller
         try {
             $perPage = $request->per_page ?? null;
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
-
+            $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
+            $namespaceIds = [];
+            foreach ($namespaces as $namespace) {
+                $namespaceIds[] = $namespace->id;
+            }
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
                 $query->whereIn('tag_id', $userTags);
             }])
                 ->whereHas('topicTags', function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
                 })
+                ->whereNotIn('namespace_id', $namespaceIds)
                 ->groupBy('topic_num');
             if (!empty($perPage)) {
                 $topics = $topics->paginate($perPage);
