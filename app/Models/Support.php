@@ -879,21 +879,31 @@ class Support extends Model
             ->where('end', 0)->count();
     }
 
-    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL, $limit = null)
+    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL)
     {
-        $query = self::where('topic_num', '=', $topic_num)
-            ->where('end', 0)
-            ->where('delegate_nick_name_id', 0)
-            ->orderBy('support_order', 'ASC');
-
-        if (!empty($camp_num)) {
-            $query->where('camp_num', $camp_num);
-        }
-
-        if (!empty($limit)) {
-            $query->limit($limit);
-        }
-
-        return $query->get();
+       return self::select('nick_name_id')
+        ->where('topic_num', '=', $topic_num)
+        ->when(!empty($camp_num), function ($query) use ($camp_num) {
+            return $query->where('camp_num', $camp_num);
+        })
+        ->where('end', '=', '0')
+        ->orderBy('support_order', 'ASC')
+        ->groupBy('nick_name_id')->get();
     }
+
+    public static function getAllSupporterNicknames($topic_num, $camp_num = null, $limit = null)
+    {
+        return self::select('nick_name_id', 'users.id as user_id', 'users.first_name', 'users.middle_name', 'users.last_name', 'users.email', 'users.profile_picture_path')
+            ->join('users', 'supporters.user_id', '=', 'users.id') // Assuming there is a relationship between supporters and users.
+            ->where('topic_num', $topic_num)
+            ->when(!empty($camp_num), function ($query) use ($camp_num) {
+                return $query->where('camp_num', $camp_num);
+            })
+            ->where('end', '0')
+            ->orderBy('support_order', 'ASC')
+            ->groupBy('nick_name_id')
+            ->limit($limit)
+            ->get();
+    }
+
 }
