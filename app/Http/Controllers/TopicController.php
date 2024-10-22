@@ -2091,11 +2091,7 @@ class TopicController extends Controller
     public function hotTopic(Request $request)
     {
         try {
-            $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-            $namespaceIds = [];
-            foreach ($namespaces as $namespace) {
-                $namespaceIds[] = $namespace->id;
-            }
+            $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
             $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
             $supporterLimit = $request->input('supporter_limit', 5);
@@ -2327,17 +2323,10 @@ class TopicController extends Controller
         try {
             $perPage = $request->per_page ?? null;
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
-            $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-            $namespaceIds = [];
-            foreach ($namespaces as $namespace) {
-                $namespaceIds[] = $namespace->id;
-            }
+            $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
                 $query->whereIn('tag_id', $userTags);
             }])
-                ->whereHas('topicTags', function ($query) use ($userTags) {
-                    $query->whereIn('tag_id', $userTags);
-                })
                 ->whereNotIn('namespace_id', $namespaceIds)
                 ->groupBy('topic_num');
             if (!empty($perPage)) {
