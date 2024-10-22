@@ -481,7 +481,7 @@ class TopicController extends Controller
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
-            
+
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
             $filter['asOf'] = $all['asOf'] ?? "default";
@@ -508,7 +508,7 @@ class TopicController extends Controller
                 ];
                 return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
             }
-        
+
             if ($type == 'camp') {
 
                 $updatedArchiveStatus = $model->is_archive;
@@ -541,7 +541,7 @@ class TopicController extends Controller
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
-            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {                
+            if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
                 $changeGoneLive = true;
             }
@@ -1457,7 +1457,7 @@ class TopicController extends Controller
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
-                    
+
                     DB::commit();
                     Util::dispatchJob($topic, $camp->camp_num, 1);
 
@@ -1491,8 +1491,8 @@ class TopicController extends Controller
                 if ($topic) {
                     //$submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
-                   // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
-                   // $topic->save();
+                    // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                    // $topic->save();
                     Topic::updateElasticSearch($topic);
                     Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
@@ -1619,7 +1619,7 @@ class TopicController extends Controller
                 if (!empty($topic->objector_nick_id)) {
                     return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
                 }
-                
+
                 $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
@@ -2093,7 +2093,7 @@ class TopicController extends Controller
         try {
             $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
-
+            $supporterLimit = $request->input('supporter_limit', 5);
             $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
                 $query->where('updated_at', '>=', $date30DaysAgo);
             })
@@ -2115,7 +2115,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, null, $supporterLimit);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {
@@ -2217,6 +2217,7 @@ class TopicController extends Controller
 
         try {
             $perPage = $request->per_page ?? config('global.per_page');
+            $supporterLimit = $request->supporter_limit ?? 5;
             $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
                 ->paginate($perPage);
             if (!empty($hotTopics)) {
@@ -2231,7 +2232,7 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num);
+                    $supporters = Support::getAllSupporterOfTopic($hotTopic->topic_num, null, $supporterLimit);
                     $supporterData = [];
                     foreach ($supporters as $key => $supporter) {
                         $user = Nickname::getUserByNickName($supporter->nick_name_id);
@@ -2320,6 +2321,7 @@ class TopicController extends Controller
     {
         try {
             $perPage = $request->per_page ?? null;
+            $supporterLimit = $request->supporter_limit ?? 5;
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
 
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
@@ -2343,7 +2345,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporters = Support::getAllSupporterOfTopic($topic->topic_num);
+                $supporters = Support::getAllSupporterOfTopic($topic->topic_num, null, $supporterLimit);
                 $supporterData = [];
 
                 foreach ($supporters as $supporter) {

@@ -879,13 +879,21 @@ class Support extends Model
             ->where('end', 0)->count();
     }
 
-    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL)
+    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL, $limit = null)
     {
-       return self::select('nick_name_id')
-        ->where('topic_num', '=', $topic_num)
-        ->when(!empty($camp_num), fn ($query) => $query->where('camp_num', $camp_num))
-        ->where('end', '=', '0')
-        ->orderBy('support_order', 'ASC')
-        ->groupBy('nick_name_id')->get();
+        $query = self::where('topic_num', '=', $topic_num)
+            ->where('end', 0)
+            ->where('delegate_nick_name_id', 0)
+            ->orderBy('support_order', 'ASC');
+
+        if (!empty($camp_num)) {
+            $query->where('camp_num', $camp_num);
+        }
+
+        if (!empty($limit)) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
     }
 }
