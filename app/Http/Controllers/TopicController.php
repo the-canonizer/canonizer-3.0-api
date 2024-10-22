@@ -2095,14 +2095,14 @@ class TopicController extends Controller
             $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
             $supporterLimit = $request->input('supporter_limit', 5);
-            $topics = Topic::with('views') // Eager load the views relationship to avoid N+1 issues
-                ->whereHas('views', function ($query) use ($date30DaysAgo) {
-                    $query->where('updated_at', '>=', $date30DaysAgo);
-                })
+
+            $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
+                $query->where('updated_at', '>=', $date30DaysAgo);
+            })
                 ->whereNotIn('namespace_id', $namespaceIds)
                 ->leftJoin('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
                 ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
-                ->groupBy('topic.topic_num') // Group by topic number to allow aggregate functions
+                ->groupBy('topic.topic_num') // Group by topic number
                 ->orderByDesc('total_views') // Order by the calculated total_views column
                 ->paginate($perPage);
 
@@ -2116,7 +2116,7 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporterData = Support::getAllSupporterNicknames($topic->topic_num, null, $supporterLimit);
+                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
@@ -2218,7 +2218,7 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporterData = Support::getAllSupporterNicknames($topic->topic_num, null, $supporterLimit);
+                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                     // Get the tag IDs associated with $liveTopic
                     $tagIds = $liveTopic->topicTags->pluck('tag_id');
@@ -2226,8 +2226,8 @@ class TopicController extends Controller
 
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
-                    $hotTopic->topic_num = $hotTopic->topic_num;
-                    $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
+                    $hotTopic->topic_num = $liveTopic->topic_num;
+                    $hotTopic->camp_num = $liveTopic->camp_num ?? 1;
                     $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
                     $hotTopic->topicTags = $tags;
                     $hotTopic->namespace_id = $liveTopic->namespace_id;
@@ -2292,7 +2292,8 @@ class TopicController extends Controller
     public function preferredTopic(Request $request)
     {
         try {
-            $perPage = $request->per_page ?? null;
+            $isRandom = $request->is_random ?? false;
+            $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
             $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
@@ -2303,10 +2304,10 @@ class TopicController extends Controller
                 })
                 ->whereNotIn('namespace_id', $namespaceIds)
                 ->groupBy('topic_num');
-            if (!empty($perPage)) {
-                $topics = $topics->paginate($perPage);
+            if ($isRandom) {
+                $topics = $topics->inRandomOrder()->paginate($perPage);
             } else {
-                $topics = $topics->inRandomOrder()->paginate(6);
+                $topics = $topics->paginate($perPage);
             }
             $paginatedResponse = Util::getPaginatorResponse($topics);
             $topics = $topics->map(function ($topic) {
@@ -2318,7 +2319,7 @@ class TopicController extends Controller
                 $campTitle = $liveCamp->camp_name ?? '';
                 $supporterLimit = $request->supporter_limit ?? 5;
 
-                $supporterData = Support::getAllSupporterNicknames($topic->topic_num, null, $supporterLimit);
+                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                 // Get the tag IDs associated with $liveTopic
                 $tagIds = $liveTopic->topicTags->pluck('tag_id');
