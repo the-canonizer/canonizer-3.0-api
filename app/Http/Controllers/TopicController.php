@@ -2321,7 +2321,6 @@ class TopicController extends Controller
     {
         try {
             $perPage = $request->per_page ?? null;
-            $supporterLimit = $request->supporter_limit ?? 5;
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
 
             $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
@@ -2344,6 +2343,7 @@ class TopicController extends Controller
                 $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
+                $supporterLimit = $request->supporter_limit ?? 5;
 
                 $supporters = Support::getAllSupporterOfTopic($topic->topic_num, null, $supporterLimit);
                 $supporterData = [];
