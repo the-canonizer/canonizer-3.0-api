@@ -883,9 +883,28 @@ class Support extends Model
     {
        return self::select('nick_name_id')
         ->where('topic_num', '=', $topic_num)
-        ->when(!empty($camp_num), fn ($query) => $query->where('camp_num', $camp_num))
+        ->when(!empty($camp_num), function ($query) use ($camp_num) {
+            return $query->where('camp_num', $camp_num);
+        })
         ->where('end', '=', '0')
         ->orderBy('support_order', 'ASC')
         ->groupBy('nick_name_id')->get();
     }
+
+    public static function getAllSupporterNicknames($topic_num, $camp_num = null, $limit = null)
+    {
+        return self::select('nick_name.id as nick_name_id', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')
+            ->join('nick_name', 'support.nick_name_id', '=', 'nick_name.id')
+            ->join('person', 'nick_name.user_id', '=', 'person.id') // Assuming nicknames have a relationship with users.
+            ->where('support.topic_num', $topic_num)
+            ->when($camp_num, function ($query, $camp_num) {
+                return $query->where('support.camp_num', $camp_num);
+            })
+            ->where('support.end', '0')
+            ->orderBy('support.support_order', 'ASC')
+            ->groupBy('nick_name.id') // Grouping by nickname to avoid duplicate entries
+            ->limit($limit)
+            ->get();
+    }
+
 }
