@@ -943,14 +943,18 @@ class TopicController extends Controller
                 Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
             }
 
-            if ($changeGoneLive) {
-                if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
-                    if (!is_null($model->camp_leader_nick_id)) {
-                        Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
-                    }
-                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
-                        Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
-                    }
+            if ($changeGoneLive && $type == 'camp') 
+            {
+                if (!is_null($model->camp_leader_nick_id) && is_null($preliveCamp->camp_leader_nick_id)) {
+                    Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                }
+                if (is_null($model->camp_leader_nick_id) && !is_null($preliveCamp->camp_leader_nick_id)) {
+                    Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
+                }
+                
+                if (!is_null($preliveCamp->camp_leader_nick_id) && !is_null($model->camp_leader_nick_id) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                    Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                    Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
                 }
             }
 
