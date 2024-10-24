@@ -105,7 +105,7 @@ return [
         'email_string' => 'The email should be string.',
         'email_email' => 'The email should be a valid email.',
         'email_max' => 'The email can not be more than 225.',
-        'email_unique' => 'The email is already used..',
+        'email_unique' => 'This email is already registered.',
 
         'password_required' => 'Password is required.',
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
@@ -113,7 +113,7 @@ return [
         'password_confirmation_required' => 'The confirm password field is required.',
         'password_confirmation_same' => 'The password confirmation does not match.',
 
-        'phone_number_unique' => 'Phone number is already used.',
+        'phone_number_unique' => 'Contact number is already registered.',
 
         'country_code_required' => 'The country code is required.',
     ],
@@ -562,7 +562,7 @@ return [
         "support_added" => ":nick_name added support",
         "support_order_updated" => ":nick_name updated support order",
         "support_reason_updated" => ":nick_name updated support",
-        
+
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
         "news_delete" => ":nick_name deleted a news",
@@ -701,7 +701,7 @@ return [
                 'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
             ]
         ]
-    ],       
+    ],
     'email' => [
         "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
         "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
