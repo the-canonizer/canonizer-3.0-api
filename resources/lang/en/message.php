@@ -577,7 +577,7 @@ return [
         "post_create" => ":nick_name created a post",
         "post_update" => ":nick_name updated a post",
 
-        "topic_create" => ":nick_name created a topic",
+        "topic_create" => ":nick_name created a topic and added their support on camp :camp_name",
         "topic_update" => ":nick_name updated a topic",
         "topic_object" => ":nick_name objected a change to topic",
         "commit_change" => ":nick_name proposed a change to the :type",

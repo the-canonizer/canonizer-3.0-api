@@ -276,7 +276,7 @@ class TopicController extends Controller
                     $nickName = Nickname::getNickName($request->nick_name)->nick_name;
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
-                        'activity' => trans('message.activity_log_message.topic_create', ['nick_name' =>  $nickName]),
+                        'activity' => trans('message.activity_log_message.topic_create', ['nick_name' =>  $nickName, 'camp_name' => Camp::AGREEMENT_CAMP]),
                         'url' => $link,
                         'model' => $topic,
                         'topic_num' => $topic->topic_num,
