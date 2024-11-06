@@ -264,6 +264,10 @@ class SupportController extends Controller
 
             TopicSupport::removeDirectSupport($topicNum, $removeCamps, $nickNameId, $action, $type, $orderUpdate, $request->user(),$reason,$reason_summary,$citation_link);     
             $message =TopicSupport::getMessageBasedOnAction([], $removeCamps, $orderUpdate, $topicNum);
+
+           if(isset($action) && $action == 'all' && empty($message)){
+                $message = "Support removed successfully.";
+            }
             return $this->resProvider->apiJsonResponse(200, $message, '','');
                
         } catch (\Throwable $e) {
