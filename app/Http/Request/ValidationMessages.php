@@ -654,6 +654,7 @@ class ValidationMessages
             'submitter.required' => trans('message.validation_manage_topic.submitter_required'),
             'event_type.required' => trans('message.validation_manage_topic.event_type_required'),
             'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
+            'namespace_id.required_unless' => trans('message.validation_manage_topic.namespace_id_required_unless'),
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
         ];
     }

@@ -548,6 +548,7 @@ return [
         'event_type_in' => "Possible values are update, edit, objection.",
         'topic_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
+        'namespace_id_required_unless' => "Canon is required.",
 
     ],
     'validation_parse_statement' => [
