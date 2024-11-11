@@ -1793,7 +1793,7 @@ class TopicSupport
          */
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && !is_null($livecamp->camp_leader_nick_id) && count($userSignedCamp) === 0) {
             $nickName = Nickname::getNickName($livecamp->camp_leader_nick_id)->nick_name;
-            $warning = "<b>" . $nickName . "</b> is the Leader of this camp. By continuing, your support will be delegated to this user.";
+            $warning = "<b>" . $nickName . "</b> is the Leader of this camp. By continuing, your direct support of all those camps will be deleted, and your support will be delegated to this user.";
             return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
         }
 
