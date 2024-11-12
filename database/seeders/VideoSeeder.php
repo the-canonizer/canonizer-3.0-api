@@ -99,6 +99,15 @@ class VideoSeeder extends Seeder
             ],
             [
                 'id' => 10,
+                'title' => 'Neural Ponytails',
+                'link' => 'neural_ponytails',
+                'thumbnail' => 'neural_ponytails.png',
+                'extension' => 'mp4',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'id' => 11,
                 'title' => 'Conclusion',
                 'link' => 'conclusion',
                 'thumbnail' => 'conclusion_thumb.png',
