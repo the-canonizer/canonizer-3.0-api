@@ -116,7 +116,9 @@ class SearchController extends Controller
                 break;
             case 'topic':
                 $response['topic'] = [];
-                $response['topic'] = Search::advanceTopicSearch($topicIds, $campIds, $asof,$asofdate);
+                if(!empty($topicIds)){
+                    $response['topic'] = Search::advanceTopicSearch($topicIds, $campIds, $asof,$asofdate);
+                }
                // $status = $data['code'];
                // $message = $data['message'];
               //  $response['topic'] = $data['data'];
