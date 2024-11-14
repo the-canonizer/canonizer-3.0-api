@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 use Carbon\Carbon;
-use App\Models\{Camp, Statement, Topic, TopicView};
+use App\Models\{Camp, Nickname, Statement, Topic, TopicView};
 use Illuminate\Support\Facades\DB;
 
 class Helpers
@@ -119,22 +119,25 @@ class Helpers
                 ->where('is_draft', 0)
                 ->latest('submit_time');
         }
-
+        
         // Current timestamp for consistent comparison
         $currentTime = time();
         $liveRecordId = $liveRecord->id ?? 0;
+
+        $nickNameIds = isset(request()->user()->id) ? Nickname::getNicknamesIdsByUserId(request()->user()->id) : [];
 
         $counts = $baseQuery->select(
             DB::raw('COUNT(*) as total_changes'),
             DB::raw('SUM(CASE WHEN id = ' . $liveRecordId . ' THEN 1 ELSE 0 END) as live_changes'),
             DB::raw('SUM(CASE WHEN objector_nick_id IS NOT NULL THEN 1 ELSE 0 END) as objected_changes'),
-            DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as in_review_changes'),
+            DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' 
+                    AND (grace_period = 0 OR (grace_period = 1 AND submitter_nick_id IN (' . implode(',', $nickNameIds) . ')))
+                    THEN 1 ELSE 0 END) as in_review_changes'),
             DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecordId . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
-        )
-            ->first();
+        )->first();
 
         $historyCounts = [
-            'total_changes' => (int) $counts->total_changes,
+            'total_changes' => (int) ($counts->live_changes + $counts->objected_changes + $counts->in_review_changes + $counts->old_changes),
             'live_changes' => (int) $counts->live_changes,
             'objected_changes' => (int) $counts->objected_changes,
             'in_review_changes' => (int) $counts->in_review_changes,
