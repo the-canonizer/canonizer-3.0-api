@@ -79,7 +79,7 @@ class Search extends Model
                         ],
                     ],
                 ],
-                'size' => 100,  $size, // Use the custom size value here
+                'size' => 100,  //$size, // Use the custom size value here
                 'from' => 0, // Use the custom from value here
                 'aggs' => [
                     'type_counts' => [
