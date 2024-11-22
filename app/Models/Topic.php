@@ -432,12 +432,15 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
 
         if($item->is_archive && $item->go_live_time <= time()){
             ElasticSearch::deleteData($id);
-            return;
+            return true;
         }
 
         if($item->go_live_time <= time()){
             ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            return true;
         }
+
+        return false;
 
     }
 
