@@ -28,8 +28,7 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Helpers\Helpers;
 use App\Library\wiki_parser\wikiParser as wikiParser;
-
-
+use Illuminate\Support\Carbon;
 
 class StatementController extends Controller
 {
@@ -904,7 +903,7 @@ class StatementController extends Controller
                         'camp_about_url' => $val->camp_about_url,
                         'camp_about_nick_id' => $val->camp_about_nick_id,
                         'camp_about_nick_name' => Nickname::getUserByNickId($val->camp_about_nick_id),
-                        'parent_camp_name' => Camp::where('camp_num', $val->parent_camp_num)->where('topic_num', $val->topic_num)->latest('submit_time')->first()->camp_name ?? "",
+                        'parent_camp_name' => Camp::where('camp_num', $val->parent_camp_num)->where('topic_num', $val->topic_num)->where('grace_period', 0)->whereNull('objector_nick_id')->where('go_live_time', '<', Carbon::now()->timestamp)->latest('submit_time')->first()->camp_name ?? "",
                         'is_disabled' => $val->is_disabled,
                         'is_one_level' => $val->is_one_level,
                         'is_archive' => $val->is_archive,
@@ -935,7 +934,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['value'] = $liveStatement->camp_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
                     $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
-                    $statement['liveStatement']['parent_camp_name'] = Camp::where('camp_num', $liveStatement->parent_camp_num)->where('topic_num', $liveStatement->topic_num)->latest('submit_time')->first()->camp_name ?? "";
+                    $statement['liveStatement']['parent_camp_name'] = Camp::where('camp_num', $liveStatement->parent_camp_num)->where('topic_num', $liveStatement->topic_num)->where('grace_period', 0)->whereNull('objector_nick_id')->where('go_live_time', '<', Carbon::now()->timestamp)->latest('submit_time')->first()->camp_name ?? "";
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
