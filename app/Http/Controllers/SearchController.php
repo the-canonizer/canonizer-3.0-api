@@ -94,8 +94,8 @@ class SearchController extends Controller
         $asof       = $all['asof'] ??  '';   //search type
         $score      = $all['score'] ??  0;
         $query      = $all['query'] ?? '';
-        $campIds    = $all['camp_ids'] ?? '';
-        $topicIds   = $all['topic_ids'] ?? '';
+        $campIds    = $all['camp_ids'] ?? [];
+        $topicIds   = $all['topic_ids'] ?? [];
         $pageNumber = $all['page_number'] ?? 1;
         $pageSize   = $all['page_size'] ?? 2;
         $asofdate   = $all['asofdate'] ?? time();
@@ -115,10 +115,13 @@ class SearchController extends Controller
                 }
                 break;
             case 'topic':
-                $data = Search::advanceTopicSearch($search, $algorithm, $asof, $score, $asofdate, $pageNumber, $pageSize);
-                $status = $data['code'];
-                $message = $data['message'];
-                $response['topic'] = $data['data'];
+                $response['topic'] = [];
+                if(!empty($topicIds)){
+                    $response['topic'] = Search::advanceTopicSearch($topicIds, $campIds, $asof,$asofdate);
+                }
+               // $status = $data['code'];
+               // $message = $data['message'];
+              //  $response['topic'] = $data['data'];
                 break;
             case 'statement':
                 $response['statement'] = [];
