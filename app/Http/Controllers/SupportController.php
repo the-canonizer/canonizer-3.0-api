@@ -21,6 +21,7 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use App\Models\ActivityLog;
 use App\Models\ChangeAgreeLog;
 use App\Models\Statement;
 use Exception;
@@ -71,11 +72,13 @@ class SupportController extends Controller
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $request->topic_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
                         'nick_name_id' => $support->nick_name_id,
                         'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                        'recent_activity' => $recentActivityLog,
                         'camps' => array(
                                 [
                                     'id' => $support->camp_num,
@@ -129,6 +132,7 @@ class SupportController extends Controller
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $request->topic_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
@@ -139,6 +143,7 @@ class SupportController extends Controller
                         'my_nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num),
                         'delegated_to_nick_name' => $support->delegated_to_nick_name,
                         'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_nick_name_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
+                        'recent_activity' => $recentActivityLog,
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,
