@@ -72,7 +72,7 @@ class SupportController extends Controller
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $request->topic_num)->latest()->first();
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $support->topic_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
@@ -132,7 +132,7 @@ class SupportController extends Controller
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $request->topic_num)->latest()->first();
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $support->topic_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
