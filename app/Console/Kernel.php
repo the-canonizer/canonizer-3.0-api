@@ -32,6 +32,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\ReplaceBetaURLWithCanonizerURLForStatements',
         'App\Console\Commands\UpdateUserFCMTokenToOAuth',
         'App\Console\Commands\CorrectSupportOrder',
+        'App\Console\Commands\AssociateTopicTags',
+
     ];
 
     /**
