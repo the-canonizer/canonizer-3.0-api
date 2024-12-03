@@ -28,6 +28,8 @@ use Exception;
 
 class SupportController extends Controller
 {
+    private const PROPERTIES_TOPIC_NUM = 'properties->topic_num';
+    private const PROPERTIES_CAMP_NUM = 'properties->camp_num';
 
     private ValidationRules $rules;
 
@@ -62,23 +64,28 @@ class SupportController extends Controller
             foreach($response as $k => $support){
 
                 if(isset($directSupports[$support->topic_num])){
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $tempCamp = [
                         'id' => $support->camp_num,
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
                         'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
+                        'recent_activity' => $recentActivityLog,
                     ];
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $support->topic_num)->latest()->first();
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
                         'nick_name_id' => $support->nick_name_id,
                         'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
-                        'recent_activity' => $recentActivityLog,
                         'camps' => array(
                                 [
                                     'id' => $support->camp_num,
@@ -86,7 +93,7 @@ class SupportController extends Controller
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,
                                     'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-
+                                    'recent_activity' => $recentActivityLog,
                                 ]
                         ),
                     );
@@ -122,17 +129,23 @@ class SupportController extends Controller
             foreach($response as $k => $support){
 
                 if(isset($directSupports[$support->topic_num])){
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $tempCamp = [
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
                         'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
-                        'support_added' => date('Y-m-d',$support->start)
+                        'support_added' => date('Y-m-d',$support->start),
+                        'recent_activity' => $recentActivityLog,
                     ];
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)->whereJsonContains('properties->topic_num', (int) $support->topic_num)->latest()->first();
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
@@ -143,15 +156,14 @@ class SupportController extends Controller
                         'my_nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num),
                         'delegated_to_nick_name' => $support->delegated_to_nick_name,
                         'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_nick_name_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
-                        'recent_activity' => $recentActivityLog,
                         'camps' => array(
                                 [
                                     'camp_num' => $support->camp_num,
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,
                                     'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
-                                    'support_added' => date('Y-m-d',$support->start)
-
+                                    'support_added' => date('Y-m-d',$support->start),
+                                    'recent_activity' => $recentActivityLog,
                                 ]
                         ),
                     );
