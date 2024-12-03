@@ -1302,7 +1302,7 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0,$reason,$reason_summary,$citation_link)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0, $reason,$reason_summary='', $citation_link='')
     {
         $support = new Support();
         $support->topic_num = $topicNum;
