@@ -888,4 +888,14 @@ class Support extends Model
         ->orderBy('support_order', 'ASC')
         ->groupBy('nick_name_id')->get();
     }
+
+    public static function updateSupportOrder($topicNum, $campNum, $supportOrder, $nickNameId)
+    {
+        return self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('nick_name_id', '=', $nickNameId) 
+            ->where('end', 0)
+            ->update(['support_order' => $supportOrder]);
+
+    }
 }
