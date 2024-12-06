@@ -1867,7 +1867,7 @@ class TopicSupport
         $warning = "<span>" . $warning . "</span>";
 
         return [
-            'warning' => $isHaveWarning ? $warning . " And you will be removed from following camps." : $warning,
+            'warning' => $isHaveWarning ? $warning . " And your support will be removed from following camps." : $warning,
             'topic_num' => $topic_num,
             'camp_num' => $camp_num,
             'delegated_nick_name_id' => $delegated_nick_name_id,
