@@ -227,6 +227,7 @@ class ValidationRules
             'nick_name' => 'required',
             'asof' => 'in:default,review,bydate',
             'tags' => 'array',
+            'is_rank_hidden' => 'boolean'
         ]);
     }
 

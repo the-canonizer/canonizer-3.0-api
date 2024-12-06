@@ -240,7 +240,8 @@ class ValidationMessages
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
             'asof.in' => trans('message.validation_topic_store.asof_in'),
-            'tags.array' => trans('message.tags.topic_tags_must_array')
+            'tags.array' => trans('message.tags.topic_tags_must_array'),
+            'is_rank_hidden.boolean' => trans('message.validation_topic_store.is_rank_hidden_boolean')
         ]);
     }
 
