@@ -1698,6 +1698,7 @@ class TopicController extends Controller
 
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
+                $topic->is_rank_hidden =  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0;
                 $message = trans('message.success.topic_update');
             }
 
