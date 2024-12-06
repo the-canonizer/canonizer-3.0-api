@@ -1770,16 +1770,17 @@ class TopicSupport
         $livecamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
         $directSupporters = collect(Support::getDirectSupporter($topic_num, $camp_num));
 
-        $checkWarning = self::checkSupportValidaionAndWarning($topic_num, $camp_num, $nickNames, $livecamp->camp_leader_nick_id ?? 0);
-        $haveWarning =  array_key_exists('warning', $checkWarning) ? true : false;
-        
+        $supoortValidation = self::checkSupportValidaionAndWarning($topic_num, $camp_num, $nickNames, $livecamp->camp_leader_nick_id ?? 0);
+        $remove_camps = array_key_exists('remove_camps', $supoortValidation) ? $supoortValidation['remove_camps'] : [];
+        $haveWarning = count($remove_camps) > 0;
+
         /**
          * Case 1: If there not any direct supporter.
          * Tooltip messages from: https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1020
          */
         if ($directSupporters->count() === 0) {
-            $warning = "There is no direct supporter for camp <b>" . $livecamp->camp_name . "</b>. You will be appointed as Camp Leader and your support will also be added to current camp.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, [], $haveWarning);
+            $warning = "There is no direct supporter for camp <b>" . $livecamp->camp_name . "</b>. You will be appointed as Camp Leader and your direct support will also be added to current camp.";
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, $remove_camps, $haveWarning);
         }
 
         /**
@@ -1787,7 +1788,7 @@ class TopicSupport
          */
         if ($directSupporters->count() === 1 && in_array($livecamp->camp_leader_nick_id, $nickNames)) {
             $warning = "As you are the current Camp Leader, hence you cannot sign the petition.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id, [], $haveWarning);
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id, $remove_camps, $haveWarning);
         }
 
         $userSignedCamp = self::getUserSignedCamp($topic_num, $camp_num, $nickNames);
@@ -1797,7 +1798,7 @@ class TopicSupport
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && !is_null($livecamp->camp_leader_nick_id) && count($userSignedCamp) === 0) {
             $nickName = Nickname::getNickName($livecamp->camp_leader_nick_id)->nick_name;
             $warning = "<b>" . $nickName . "</b> is the leader of this camp. By continuing, your support will be delegated to the leader of this camp.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, [], $haveWarning);
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, $remove_camps, $haveWarning);
         }
 
         /**
@@ -1807,10 +1808,10 @@ class TopicSupport
             $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
             if ($oldest_direct_supporter) {
                 $nickName = Nickname::getNickName($oldest_direct_supporter->nick_name_id)->nick_name;
-                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader.'
-                : "the oldest direct supporter (\"" . $nickName . "\") will be assigned as new camp leader and your support will be delegated to the camp leader.";
+                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader. '
+                : "The oldest direct supporter <b>" . $nickName . "</b> will be assigned as new camp leader and your support will be delegated to the camp leader.";
                 $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>." . $oldestDirectSupportMessage;
-                return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null, [], $haveWarning);
+                return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null, $remove_camps, $haveWarning);
             }
         }
 
@@ -1866,14 +1867,13 @@ class TopicSupport
         $warning = "<span>" . $warning . "</span>";
 
         return [
-            'warning' => $isHaveWarning ? $warning . " And you will be removed from following camps," : $warning,
+            'warning' => $isHaveWarning ? $warning . " And you will be removed from following camps." : $warning,
             'topic_num' => $topic_num,
             'camp_num' => $camp_num,
             'delegated_nick_name_id' => $delegated_nick_name_id,
             'nick_name_link' => is_null($delegated_nick_name_id) ? Nickname::getNickNameLink($delegated_nick_name_id, '1', $topic_num, $camp_num) : null,
             'remove_camps' => $remove_camps,
             'warning_type' => $warning_type,
-            'is_have_warning' => $isHaveWarning
         ];
     }
 
