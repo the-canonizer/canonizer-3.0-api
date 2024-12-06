@@ -657,6 +657,7 @@ class ValidationMessages
             'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
             'namespace_id.required_unless' => trans('message.validation_manage_topic.namespace_id_required_unless'),
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+            'is_rank_hidden.boolean' => trans('message.validation_manage_topic.is_rank_hidden_boolean')
         ];
     }
 
