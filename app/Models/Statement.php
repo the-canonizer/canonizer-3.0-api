@@ -277,4 +277,30 @@ class Statement extends Model
         $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
         return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
     }
+
+    public static function getProposeStatementEditId(array $filter) {
+        
+        $nickNames = NickName::personNicknameArray();
+
+        $getTheLatestStatementRecord = self::where('topic_num', $filter['topicNum'])
+                    ->where('camp_num', $filter['campNum'])
+                    ->where('is_draft', 0)
+                    ->where('grace_period', 0)
+                    ->orderBy('submit_time', 'desc')
+                    ->first();        
+        
+        /*
+        * Here implement the logic to get the edit record id
+        * Get the latest change of a statement against a topic and camp_num that is not the drafted. 
+        * If the latest change is not committed yet then check if the requester id is same submmitter id. 
+        * If Id matched the return the id of record else get the first row that is already committed.
+        * And return the id of that record.
+        */
+        if(!empty($getTheLatestStatementRecord)) {
+            return $getTheLatestStatementRecord->id;
+        }
+
+        return NULL;
+
+    }
 }
