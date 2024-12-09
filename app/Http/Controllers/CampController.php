@@ -1217,8 +1217,8 @@ class CampController extends Controller
                 $data->subscribed_camp_name = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
             }
             $data->topic_name = $topic->topic_name ?? Topic::getTopicFirstName($filter['topicNum']);
-            $data->propose_statement_edit_id = Statement::getProposeStatementEditId($filter);
-            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name', 'topic_name','propose_statement_edit_id'];
+            $data->propose_statement_edit = Statement::getProposeStatementEditId($filter);
+            $indexs = ['bread_crumb', 'flag', 'subscription_id', 'subscribed_camp_name', 'topic_name','propose_statement_edit'];
             $response[] = $data;
             $response = $this->resourceProvider->jsonResponse($indexs, $response);
             $response = $response[0];
