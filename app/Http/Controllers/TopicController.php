@@ -35,6 +35,7 @@ use App\Events\NotifySupportersEvent;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Database\Query\Builder;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
@@ -954,7 +955,7 @@ class TopicController extends Controller
                 Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
             }
 
-            if ($changeGoneLive && $type == 'camp') 
+            if ($changeGoneLive && $type == 'camp')
             {
                 if (!is_null($model->camp_leader_nick_id) && is_null($preliveCamp->camp_leader_nick_id)) {
                     Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
@@ -962,7 +963,7 @@ class TopicController extends Controller
                 if (is_null($model->camp_leader_nick_id) && !is_null($preliveCamp->camp_leader_nick_id)) {
                     Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
                 }
-                
+
                 if (!is_null($preliveCamp->camp_leader_nick_id) && !is_null($model->camp_leader_nick_id) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
                     Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
                     Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
@@ -2108,6 +2109,7 @@ class TopicController extends Controller
                 ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
                 ->groupBy('topic.topic_num') // Group by topic number
                 ->orderByDesc('total_views') // Order by the calculated total_views column
+                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
                 ->paginate($perPage);
 
             foreach ($topics as $topic) {
@@ -2307,7 +2309,8 @@ class TopicController extends Controller
                     $query->whereIn('tag_id', $userTags);
                 })
                 ->whereNotIn('namespace_id', $namespaceIds)
-                ->groupBy('topic_num');
+                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+                ->orderBy('submit_time', 'DESC');
             if ($isRandom) {
                 $topics = $topics->inRandomOrder()->paginate($perPage);
             } else {
