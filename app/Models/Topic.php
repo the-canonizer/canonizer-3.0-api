@@ -160,6 +160,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasMany(TopicTag::class, 'topic_num', 'topic_num');
     }
 
+    public function topicTagFailures()
+    {
+        return $this->hasMany(TopicTagFailure::class, 'topic_num', 'topic_num');
+    }
+
     public function getTagsArrayAttribute()
     {
         return $this->topicTags->pluck('tag')->map(function($tag) {
@@ -398,7 +403,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
 
 
 
-    public static function updateElasticSearch($item) 
+    public static function updateElasticSearch($item)
     {
         //forget cache
         self::forgetCache($item);
