@@ -1302,7 +1302,7 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0,$reason,$reason_summary,$citation_link)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0, $reason,$reason_summary='', $citation_link='')
     {
         $support = new Support();
         $support->topic_num = $topicNum;
@@ -1793,8 +1793,8 @@ class TopicSupport
          */
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && !is_null($livecamp->camp_leader_nick_id) && count($userSignedCamp) === 0) {
             $nickName = Nickname::getNickName($livecamp->camp_leader_nick_id)->nick_name;
-            $warning = "<b>" . $nickName . "</b> is the Leader of this camp. By continuing, your direct support of all those camps will be deleted, and your support will be delegated to this user.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+            $warning = "<b>" . $nickName . "</b> is the leader of this camp. By continuing, your direct support from following camps will be removed, and your support will be delegated to the leader of this camp.";
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null);
         }
 
         /**
@@ -1860,7 +1860,7 @@ class TopicSupport
     public static function checkSignCampInfo($topic_num, $camp_num, $warning, $warning_type = 'info', $delegated_nick_name_id = null, $remove_camps = []) 
     {
         
-        $warning = "<span><b>" . ucfirst($warning_type) . "!</b> " . $warning . "</span>";
+        $warning = "<span>" . $warning . "</span>";
 
         return [
             'warning' => $warning,

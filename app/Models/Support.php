@@ -891,6 +891,15 @@ class Support extends Model
         ->groupBy('nick_name_id')->get();
     }
 
+    public static function updateSupportOrder($topicNum, $campNum, $supportOrder, $nickNameId)
+    {
+        return self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('nick_name_id', '=', $nickNameId) 
+            ->where('end', 0)
+            ->update(['support_order' => $supportOrder]);
+
+    }
     public static function getAllSupporterNicknames($topic_num, $camp_num = null, $limit = null)
     {
         return self::select('nick_name.id as nick_name_id', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')

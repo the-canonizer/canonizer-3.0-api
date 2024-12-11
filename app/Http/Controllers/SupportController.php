@@ -21,12 +21,15 @@ use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
+use App\Models\ActivityLog;
 use App\Models\ChangeAgreeLog;
 use App\Models\Statement;
 use Exception;
 
 class SupportController extends Controller
 {
+    private const PROPERTIES_TOPIC_NUM = 'properties->topic_num';
+    private const PROPERTIES_CAMP_NUM = 'properties->camp_num';
 
     private ValidationRules $rules;
 
@@ -61,16 +64,23 @@ class SupportController extends Controller
             foreach($response as $k => $support){
 
                 if(isset($directSupports[$support->topic_num])){
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $tempCamp = [
                         'id' => $support->camp_num,
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
                         'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
+                        'recent_activity' => $recentActivityLog,
                     ];
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
@@ -83,7 +93,7 @@ class SupportController extends Controller
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,
                                     'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-
+                                    'recent_activity' => $recentActivityLog,
                                 ]
                         ),
                     );
@@ -119,16 +129,23 @@ class SupportController extends Controller
             foreach($response as $k => $support){
 
                 if(isset($directSupports[$support->topic_num])){
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $tempCamp = [
                         'camp_num' => $support->camp_num,
                         'camp_name' => $support->camp_name,
                         'support_order'=> $support->support_order,
                         'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
-                        'support_added' => date('Y-m-d',$support->start)
+                        'support_added' => date('Y-m-d',$support->start),
+                        'recent_activity' => $recentActivityLog,
                     ];
                     array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
 
                 }else{
+                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
                     $directSupports[$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
@@ -145,8 +162,8 @@ class SupportController extends Controller
                                     'camp_name' => $support->camp_name,
                                     'support_order' => $support->support_order,
                                     'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
-                                    'support_added' => date('Y-m-d',$support->start)
-
+                                    'support_added' => date('Y-m-d',$support->start),
+                                    'recent_activity' => $recentActivityLog,
                                 ]
                         ),
                     );
