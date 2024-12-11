@@ -10,6 +10,7 @@ use App\Jobs\ForgetCacheKeyJob;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Exception;
 
 class Statement extends Model
 {
@@ -276,5 +277,49 @@ class Statement extends Model
     {
         $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
         return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
+    }
+
+    public static function getProposeStatementEditId(array $filter) {
+        
+        try {
+
+            /*
+            * Here implement the logic to get the edit record id
+            * First check the change in grace period by current user , if found return the record id.
+            * Else check if the latest change is not committed yet.
+            */
+            $propose_edit_response = [
+                'edit_id' => NULL,
+                'grace_period' => 0
+            ];
+            
+            $nickNames = NickName::personNicknameArray();
+            $checkCurrentUserNonCommitted = self::where('topic_num', $filter['topicNum'])
+                                            ->whereIn('submitter_nick_id', $nickNames)
+                                            ->where('camp_num', $filter['campNum'])
+                                            ->where('is_draft', 0)
+                                            ->where('grace_period', 1)
+                                            ->orderBy('submit_time', 'desc')
+                                            ->first();
+            
+            if(!empty($checkCurrentUserNonCommitted)) {
+                $propose_edit_response['edit_id'] = $checkCurrentUserNonCommitted->id;
+                $propose_edit_response['grace_period'] = 1;
+            } else {
+    
+                $getTheLatestStatementRecord = self::where('topic_num', $filter['topicNum'])
+                                                ->where('camp_num', $filter['campNum'])
+                                                ->where('is_draft', 0)
+                                                ->where('grace_period', 0)
+                                                ->orderBy('submit_time', 'desc')
+                                                ->first();
+                                
+                $propose_edit_response['edit_id'] = $getTheLatestStatementRecord->id ?? NULL;
+            }
+    
+            return $propose_edit_response;
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
     }
 }
