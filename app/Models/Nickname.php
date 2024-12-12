@@ -146,7 +146,7 @@ class Nickname extends Model {
     public static function personNickname()
     {
         if (Auth::check()) {
-            return self::select('id', 'nick_name')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->get();
+            return self::select('id', 'nick_name', 'default')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->get();
         }
         return [];
     }
