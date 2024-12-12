@@ -16,7 +16,7 @@ use App\Http\Request\Validate;
 use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\Statement;
-
+use Illuminate\Support\Carbon;
 
 class UploadController extends Controller
 {
@@ -490,30 +490,37 @@ class UploadController extends Controller
     {
         $user = $request->user();
         $query = $request->get('query');
-        try{
-            $files = Upload::where('file_name','LIKE','%'.$query.'%')->where('user_id',$user->id)->orderBy('created_at', 'desc')->get();
-            
-            foreach($files as $val){
+        $date = $request->get('date');
+
+        try {
+
+            $files = Upload::where('user_id', $user->id)
+                ->when($query, function ($q) use ($query) {
+                    return $q->where('file_name', 'LIKE', '%' . $query . '%');
+                })
+                ->when($date, function ($q) use ($date) {
+                    $startDay = Carbon::parse($date)->startOfDay()->timestamp;
+                    $endDay = Carbon::parse($date)->endOfDay()->timestamp;
+                    return $q->whereBetween('created_at', [$startDay, $endDay]);
+                })->latest()->get();
+
+            foreach ($files as $val) {
                 $s3FileName = $val->file_name;
-                if(isset($val->file_path) && $val->file_path)
-                {
-                    $strArray = explode('/',$val->file_path);
+                if (isset($val->file_path) && $val->file_path) {
+                    $strArray = explode('/', $val->file_path);
                     $s3FileName = end($strArray);
                 }
-                
-                $val->short_code_path = env('SHORT_CODE_BASE_PATH').$s3FileName;
-            } 
-            
+
+                $val->short_code_path = env('SHORT_CODE_BASE_PATH') . $s3FileName;
+            }
+
             $data = [
                 'files' => $files,
             ];
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, null);
-        }catch (\Throwable $e) {
+        } catch (\Throwable $e) {
 
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
-
-
 }
