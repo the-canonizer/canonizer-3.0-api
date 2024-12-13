@@ -178,6 +178,7 @@ return [
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default, review, bydate) or leave it empty",
+        'is_rank_hidden_boolean' => 'The Hide Rank field should be boolean.'
 
     ],
     'validation_get_statement' => [
@@ -549,6 +550,7 @@ return [
         'topic_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
         'namespace_id_required_unless' => "Canon is required.",
+        'is_rank_hidden_boolean' => "The Hide Rank field should be boolean."
 
     ],
     'validation_parse_statement' => [
