@@ -9,7 +9,7 @@ class Upload extends Model
 {
     use SoftDeletes;
     protected $dateFormat = 'U';
-    
+
     protected $table = 'uploads';
     public $timestamps = false;
 
@@ -18,7 +18,11 @@ class Upload extends Model
      *
      * @var array
      */
-    protected $fillable = ['file_name', 'user_id', 'file_id', 'short_code', 'file_path', 'folder_id','file_type','created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['file_name', 'user_id', 'file_id', 'short_code', 'file_path', 'folder_id', 'file_type', 'created_at', 'updated_at', 'deleted_at'];
 
-   
+
+    public function folder()
+    {
+        return $this->belongsTo(FileFolder::class, 'folder_id');
+    }
 }

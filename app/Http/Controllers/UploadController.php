@@ -490,7 +490,7 @@ class UploadController extends Controller
     {
         $user = $request->user();
         $query = $request->get('query');
-        $date = $request->get('date');
+        $date = intval($request->get('date'));
 
         try {
 
@@ -502,7 +502,7 @@ class UploadController extends Controller
                     $startDay = Carbon::parse($date)->startOfDay()->timestamp;
                     $endDay = Carbon::parse($date)->endOfDay()->timestamp;
                     return $q->whereBetween('created_at', [$startDay, $endDay]);
-                })->latest()->get();
+                })->with('folder:id,name')->latest()->get();
 
             foreach ($files as $val) {
                 $s3FileName = $val->file_name;
