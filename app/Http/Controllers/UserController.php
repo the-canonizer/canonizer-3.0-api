@@ -641,6 +641,7 @@ class UserController extends Controller
             $nicknameObj->user_id = $userID;
             $nicknameObj->nick_name = substr($nickname, 0, 50);
             $nicknameObj->private = 0;
+            $nicknameObj->default = 1;
             $nicknameObj->create_time = time();
             $nicknameObj->save();
             $nicknameCreated = true;
