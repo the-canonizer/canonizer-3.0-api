@@ -240,7 +240,8 @@ class ValidationMessages
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
             'asof.in' => trans('message.validation_topic_store.asof_in'),
-            'tags.array' => trans('message.tags.topic_tags_must_array')
+            'tags.array' => trans('message.tags.topic_tags_must_array'),
+            'is_rank_hidden.boolean' => trans('message.validation_topic_store.is_rank_hidden_boolean')
         ]);
     }
 
@@ -656,6 +657,7 @@ class ValidationMessages
             'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
             'namespace_id.required_unless' => trans('message.validation_manage_topic.namespace_id_required_unless'),
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+            'is_rank_hidden.boolean' => trans('message.validation_manage_topic.is_rank_hidden_boolean')
         ];
     }
 

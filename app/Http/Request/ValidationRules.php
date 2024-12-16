@@ -227,6 +227,7 @@ class ValidationRules
             'nick_name' => 'required',
             'asof' => 'in:default,review,bydate',
             'tags' => 'array',
+            'is_rank_hidden' => 'boolean'
         ]);
     }
 
@@ -554,7 +555,8 @@ class ValidationRules
             'nick_name' => 'required',
             'namespace_id' => 'required_unless:event_type,objection',
             'event_type' => 'required|in:update,edit,objection',
-            'objection_reason' => 'required_if:event_type,objection'
+            'objection_reason' => 'required_if:event_type,objection',
+            'is_rank_hidden' => 'boolean'
         ];
     }
 
