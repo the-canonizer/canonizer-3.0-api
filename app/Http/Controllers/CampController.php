@@ -261,6 +261,15 @@ class CampController extends Controller
             $camp = Camp::create($input);
 
             if ($camp) {
+                // Save the template of statement using statement template
+                $templateData = [
+                    'topic_num' => $input['topic_num'],
+                    'camp_num' => $input['camp_num'],
+                    'record_title' => $input['camp_name'],
+                    'nick_name' => $input['submitter_nick_id']
+                ];
+
+                $saveTheStatementTemplate = Statement::createStatementTemplate($templateData);
                 $topic = Topic::getLiveTopic($camp->topic_num, $request->asof);
                 Util::dispatchJob($topic, $camp->camp_num, 1);
 

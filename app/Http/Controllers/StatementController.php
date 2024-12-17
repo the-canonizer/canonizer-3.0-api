@@ -446,7 +446,7 @@ class StatementController extends Controller
                 }
             }
             if (preg_match('/\bcreate\b|\bupdate\b/', $eventType)) {
-                $statement = self::createOrUpdateStatement($all);
+                $statement = Statement::createOrUpdateStatement($all);
                 $message = isset($all['is_draft']) && $all['is_draft'] ? trans('message.success.statement_draft_create') : trans('message.success.statement_create');
             } elseif ($eventType == 'edit') {
                 $statement = self::editUpdatedStatement($all);
@@ -518,29 +518,6 @@ class StatementController extends Controller
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-    }
-
-    private function createOrUpdateStatement($all)
-    {
-        $goLiveTime = time();
-
-        if ($draftId = Statement::getDraftRecord($all['topic_num'], $all['camp_num'], [$all['nick_name']])) {
-            Statement::find($draftId)->delete();
-        }
-
-        $statement = new Statement();
-        $statement->value = $all['statement'] ?? "";
-        $statement->parsed_value = $all['statement'] ?? "";
-        $statement->topic_num = $all['topic_num'];
-        $statement->camp_num = $all['camp_num'];
-        $statement->note = $all['note'] ?? "";
-        $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
-        $statement->submitter_nick_id = $all['nick_name'];
-        $statement->go_live_time = $goLiveTime;
-        $statement->language = 'English';
-        $statement->grace_period = isset($all['is_draft']) && $all['is_draft'] ? 0 : 1;
-        $statement->is_draft = isset($all['is_draft']) && $all['is_draft'] ? true : false;
-        return $statement;
     }
 
     private function objectStatement($all)

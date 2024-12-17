@@ -214,6 +214,16 @@ class TopicController extends Controller
                     Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
                 }
 
+                // Save the template of statement using statement template
+                $templateData = [
+                    'topic_num' => $topic->topic_num,
+                    'camp_num' => 1,
+                    'record_title' => $input['topic_name'],
+                    'nick_name' => $input['submitter_nick_id']
+                ];
+
+                $saveTheStatementTemplate = Statement::createStatementTemplate($templateData);
+
                 Util::dispatchJob($topic, 1, 1);
                 // Eventline - topic create event saved
                 $timelineMessage = $nickName . " created a new topic " . $topic->topic_name;

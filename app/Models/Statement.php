@@ -322,4 +322,61 @@ class Statement extends Model
             throw new Exception($th->getMessage());
         }
     }
+
+    public static function createOrUpdateStatement($all)
+    {
+        $goLiveTime = time();
+
+        if ($draftId = Statement::getDraftRecord($all['topic_num'], $all['camp_num'], [$all['nick_name']])) {
+            Statement::find($draftId)->delete();
+        }
+
+        $statement = new Statement();
+        $statement->value = $all['statement'] ?? "";
+        $statement->parsed_value = $all['statement'] ?? "";
+        $statement->topic_num = $all['topic_num'];
+        $statement->camp_num = $all['camp_num'];
+        $statement->note = $all['note'] ?? "";
+        $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
+        $statement->submitter_nick_id = $all['nick_name'];
+        $statement->go_live_time = $goLiveTime;
+        $statement->language = 'English';
+        $statement->grace_period = isset($all['is_draft']) && $all['is_draft'] ? 0 : 1;
+        $statement->is_draft = isset($all['is_draft']) && $all['is_draft'] ? true : false;
+
+        if (isset($all['saving_auto_template']) && $all['saving_auto_template']) {
+            $statement->grace_period = 0;
+        }
+        return $statement;
+    }
+
+    public static function createStatementTemplate($templateData = []) {
+        
+        try {
+            /*
+            * Here implement the logic to create statement template ...
+            * On create of new topic , get the name of topic and add it as Header and paragraph.
+            * On create on new camp , take the name of camp and add it as Header and paragraph.
+            */
+            $filter['topicNum'] = $templateData['topic_num'];
+            $filter['asOf'] = 'default';
+            $filter['asOfDate'] = time();
+            $filter['campNum'] = $templateData['camp_num'];
+
+            $checkLiveStatement = self::getLiveStatement($filter);
+
+            if(empty($checkLiveStatement)) {
+                $statementTemplate = '<h3>'.$templateData["record_title"].'</h3><p><br>&nbsp;</p>';
+                $templateData['statement'] = $statementTemplate;
+                $templateData['is_draft'] = false;
+                $templateData['saving_auto_template'] = true;
+
+                $statement = self::createOrUpdateStatement($templateData);
+                $statement->save();
+            }
+
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
 }
