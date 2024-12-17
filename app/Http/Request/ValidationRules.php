@@ -596,6 +596,13 @@ class ValidationRules
         ];
     }
 
+    public function getMetaTagsKeywordsValidationRules(): array
+    {
+        return [
+            'keys.keywords' => 'required',
+        ];
+    }
+
     public function notifyIfTopicNotExistValidationRules(): array
     {
         return [
