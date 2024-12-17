@@ -610,6 +610,8 @@ return [
         'video_id_required' => "video_id is required.",
         'video_id_numeric' => "video_id should be a numeric.",
         'video_id_gt' => "video_id should be greater than :value.",
+
+        'keywords_required' => "keywords is required.",
     ],
     "validation_change_supporters" => [
         'topic_num_required' => "topic_num is required.",
