@@ -675,8 +675,8 @@ return [
         'user_tags_array' => 'The user tags must be an array.',
         'user_tags_integer' => 'Each user tag id must be an integer.',
         'user_id_exists' => 'The selected user ID is invalid.',
-        'created' => 'User tag created successfully.',
-        'failed' => 'Failed to create user tag.',
+        'created' => 'You have successfully updated the Topic tag(s).',
+        'failed' => 'Failed to update the Topic tag(s).',
         'user_tags_exists' => 'The selected user tag is invalid.',
     ],
     'sign_petition_validation' => [
