@@ -677,7 +677,7 @@ class ValidationRules
     {
         return ([
             'is_read' => 'required|string',
-            'ids' => 'reqired_if:is_read,selected|array'
+            'ids' => 'required_if:is_read,selected|array',
         ]);
     }
 
@@ -685,7 +685,7 @@ class ValidationRules
     {
         return ([
             'is_delete' => 'required|string',
-            'ids' => 'reqired_if:is_delete,selected|array'
+            'ids' => 'required_if:is_delete,selected|array'
         ]);
     }
 
