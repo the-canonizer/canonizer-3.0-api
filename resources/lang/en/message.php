@@ -539,6 +539,12 @@ return [
         "idsArray" => "The ids must be an array",
         "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
         "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
+        "isReadRequired" => "The isRead must be an required",
+        "isReadString" => "The isRead must be an string",
+        "isReadIn" => "The isRead must be an all or selected",
+        "isDeleteRequired" => "The isDelete must be an required",
+        "isDeleteString" => "The isDelete must be an string",
+        "isDeleteIn" => "The isDelete must be an all or selected",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",

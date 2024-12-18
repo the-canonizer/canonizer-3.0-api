@@ -2,6 +2,8 @@
 
 namespace App\Http\Request;
 
+use function OpenTelemetry\API\Trace\trace;
+
 class ValidationMessages
 {
     public function getTokenValidationMessages(): array
@@ -707,7 +709,7 @@ class ValidationMessages
             'keys.video_id.gt' => trans('message.validation_meta_tags.video_id_gt'),
 
             'keys.keywords.required' => trans('message.validation_meta_tags.keywords_required'),
-            
+
         ];
     }
 
@@ -820,16 +822,23 @@ class ValidationMessages
     public function updateReadAllValidationMessages(): array
     {
         return [
-            'ids.required' =>trans('message.notification_message.idsRequired'),
-            'ids.array' => trans('message.notification_message.idsArray')
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_read.required' => trans('message.notification_message.isReadRequired'),
+            'is_read.string' => trans('message.notification_message.isReadString'),
+            'is_read.in' => trans('message.notification_message.isReadIn')
+
         ];
     }
 
     public function updateDeleteAllValidationMessages(): array
     {
         return [
-            'ids.required' =>trans('message.notification_message.idsRequired'),
-            'ids.array' => trans('message.notification_message.idsArray')
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_delete.required' => trans('message.notification_message.isDeleteRequired'),
+            'is_delete.string' => trans('message.notification_message.isDeleteString'),
+            'is_delete.in' => trans('message.notification_message.isDeleteIn')
         ];
     }
 
@@ -844,7 +853,7 @@ class ValidationMessages
             'parent_camp_num.required' => trans('message.validation_get_camp_record.parent_camp_num_required')
         ];
     }
-    
+
     public function getSignPetitionMessages(): array
     {
         return ([
@@ -854,10 +863,10 @@ class ValidationMessages
             'topic_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.topic_num_max_numeric')
             ],
-            
+
             'camp_num.required' => trans('message.sign_petition_validation.camp_num_required'),
             'camp_num.numeric' => trans('message.sign_petition_validation.camp_num_numeric'),
-            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),    
+            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),
             'camp_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.camp_num_max_numeric')
             ],
@@ -870,7 +879,7 @@ class ValidationMessages
             ],
         ]);
     }
-    
+
     public function getEmailUpdateValidationMessages(): array
     {
         return ([

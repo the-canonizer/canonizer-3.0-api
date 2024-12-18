@@ -675,18 +675,18 @@ class ValidationRules
 
     public function updateReadAllValidationRules(): array
     {
-        return ([
-            'is_read' => 'required|string',
+        return [
+            'is_read' => 'required|string|in:all,selected',
             'ids' => 'required_if:is_read,selected|array',
-        ]);
+        ];
     }
 
     public function updateDeleteAllValidationRules(): array
     {
-        return ([
-            'is_delete' => 'required|string',
-            'ids' => 'required_if:is_delete,selected|array'
-        ]);
+        return [
+            'is_delete' => 'required|string|in:all,selected',
+            'ids' => 'required_if:is_delete,selected|array',
+        ];
     }
 
     public function getSiblingCampsValidationRules(): array
@@ -728,5 +728,4 @@ class ValidationRules
             'email' => 'required|string|email|max:225|unique:user_email'
         ]);
     }
-
 }
