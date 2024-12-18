@@ -712,5 +712,14 @@ return [
         "newemail_added" => "New email added successfully.",
         "newemail_added_verify" => "New email added successfully, please verify email by entering OTP sent on email to make this your primary/default email.",
         "newemail_added_verified" => "Email verified successfully, now this email is your primary/login/notification email"
-    ]
+    ],
+    'facebook_deletion_callback' => [
+        'signed_request_is_required' => 'Signed request is required.',
+    ],
+    'facebook_deletion_status' => [
+        'confirmation_code_is_required' => 'Confirmation code is required.',
+        'confirmation_code_is_invalid' => 'Confirmation code is invalid.',
+        'data_deleted_successfully' => 'Your data has been deleted successfully.',
+        'data_deletion_pending' => 'Your data deletion request is pending.',
+    ],
 ];

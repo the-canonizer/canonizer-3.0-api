@@ -902,4 +902,18 @@ class ValidationMessages
             'email.unique' => trans('message.validation_registration.email_unique')
         ]);
     }
+
+    public function getfacebookDeleteDataCallBackValidationMessages(): array
+    {
+        return ([
+            'signed_request.required' => trans('message.facebook_deletion_callback.signed_request_is_required'),
+        ]);
+    }
+
+    public function getfacebookDeleteDataStatusValidationMessages(): array
+    {
+        return ([
+            'confirmation_code.required' => trans('message.facebook_deletion_status.confirmation_code_is_required'),
+        ]);
+    }
 }
