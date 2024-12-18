@@ -22,7 +22,9 @@ class Nickname extends Model {
      * @var array
      */
     protected $fillable = [
-        'nick_name'
+        'nick_name',
+        'private',
+        'default'
     ];
 
 
@@ -65,35 +67,46 @@ class Nickname extends Model {
      * @param string $nickname
      * @return boolean
      */
-    public static function isNicknameExists($nickname) {
-
-        $nickname = self::where('nick_name', $nickname)->first();
-        return (empty($nickname)) ? false : true;
+    public static function isNicknameExists($nickname)
+    {
+        return self::where('nick_name', $nickname)->exists();
     }
 
-    public static function createNickname($userID, $input) {
+    public static function createNickname($userID, $input)
+    {
         // Create nickname
         $nickname = new Nickname();
         $nickname->user_id = $userID;
         $nickname->nick_name = substr($input['nick_name'], 0, 50);
         $nickname->private = $input['visibility_status'];
+        $nickname->default = 0;
         $nickname->create_time = time();
         $nickname->save();
 
+        if ($input['default']) {
+            return self::setDefaultNickname($nickname->id);
+        }
+        return $nickname;
+    }
+
+    public static function setDefaultNickname($nick_id)
+    {
+        $nickname = self::find($nick_id);
+        if ($nickname) {
+            self::where('user_id', $nickname->user_id)->update(['default' => 0]);
+
+            $nickname->default = 1;
+            $nickname->save();
+        }
         return $nickname;
     }
 
     public static function getAllNicknames($userID, $private = '')
     {
-        if(isset($private) && $private != '')
-        {
-            $nicknames = self::where('user_id', $userID)->where('private','=',$private)->orderBy('nick_name', 'ASC')->get();
-        }else
-        {
-            $nicknames = self::where('user_id', $userID)->orderBy('nick_name', 'ASC')->get();
-        }
-
-        return $nicknames;
+        return self::where('user_id', $userID)
+            ->when(isset($private) && $private != '', function ($query) use ($private) {
+                return $query->where('private', '=', $private);
+            })->orderBy('nick_name', 'ASC')->get();
     }
 
     public static function getNicknamesIdsByUserId($userID)
@@ -133,7 +146,7 @@ class Nickname extends Model {
     public static function personNickname()
     {
         if (Auth::check()) {
-            return self::select('id', 'nick_name')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->get();
+            return self::select('id', 'nick_name', 'default')->where('user_id', Auth::user()->id)->orderBy('nick_name', 'ASC')->get();
         }
         return [];
     }

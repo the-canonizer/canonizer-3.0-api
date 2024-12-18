@@ -182,13 +182,24 @@ class NotificationController extends Controller
         try {
             $perPage = $request->per_page;
             $isSeen = $request->is_seen ?? 0;
+            $type = $request->type ?? 'all';
+            $userId = $request->user()->id;
 
+            // Base query for notifications
+            $notificationQuery = PushNotification::where('user_id', $userId);
+            if ($type === 'unread') {
+                $notificationQuery->where('is_seen', 0);
+            } elseif ($type === 'read') {
+                $notificationQuery->where('is_seen', 1);
+            }
+
+            // Get notifications based on perPage
             if ($perPage > 0) {
-                $notificationList = PushNotification::where('user_id', $request->user()->id)->latest()->paginate($perPage);
+                $notificationList = $notificationQuery->latest()->paginate($perPage);
                 $paginatorResponse = Util::getPaginatorResponse($notificationList);
                 $notifications = $paginatorResponse->items;
             } else {
-                $notifications = PushNotification::where('user_id', $request->user()->id)->latest()->get();
+                $notifications = $notificationQuery->latest()->get();
             }
 
             foreach ($notifications as $key => $value) {
@@ -251,17 +262,19 @@ class NotificationController extends Controller
                     ->update(['is_seen' => 1, 'seen_time' => time()]);
             }
 
-            $unreadCount = collect($notifications)->filter(function ($notification) {
-                return $notification->is_seen == 0;
-            })->count();
+            $unreadCount = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 0)->count();
+            $readCount = PushNotification::where('user_id', $request->user()->id)->where('is_seen', 1)->count();
+            $allCount = PushNotification::where('user_id', $request->user()->id)->count();
             $notifications = (!is_array($notifications)) ? $notifications->toArray() : $notifications;
             $notifications = array_values($notifications);
             if ($perPage > 0) {
                 $paginatorResponse->items = $notifications;
                 $paginatorResponse->unread_count = $unreadCount;
+                $paginatorResponse->read_count = $readCount;
+                $paginatorResponse->all_count = $allCount;
                 $response = $paginatorResponse;
             } else {
-                $response = ['items' => $notifications, 'unread_count' => $unreadCount];
+                $response = ['items' => $notifications, 'unread_count' => $unreadCount, 'read_count' => $readCount, 'all_count' => $allCount];
             }
 
             $status = 200;
@@ -299,14 +312,23 @@ class NotificationController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        $readAll = $request->is_read ?? 'all'; // all or selected
+        $userId =  $request->user()->id;
         try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->update([
-                'is_read' => 1,
-                'is_seen' => 1,
-                'seen_time' => time(),
-            ]);
-            DB::commit();
+            if ($readAll === 'all') {
+                PushNotification::where('user_id', $userId)
+                    ->where('is_seen', 0)
+                    ->update(['is_seen' => 1, 'is_read' => 1, 'seen_time' => time()]);
+            } else {
+                PushNotification::whereIn('id', $request->ids)
+                    ->where('is_seen', 0)
+                    ->update([
+                        'is_read' => 1,
+                        'is_seen' => 1,
+                        'seen_time' => time(),
+                    ]);
+            }
+
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -325,10 +347,14 @@ class NotificationController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        $isDelete = $request->is_delete ?? 'all'; // all or selected
+        $userId =  $request->user()->id;
         try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->delete();
-            DB::commit();
+            if ($isDelete === 'all') {
+                PushNotification::where('user_id', $userId)->delete();
+            } else {
+                PushNotification::whereIn('id', $request->ids)->delete();
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);

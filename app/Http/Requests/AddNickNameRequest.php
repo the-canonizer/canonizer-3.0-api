@@ -37,10 +37,10 @@ class AddNickNameRequest extends FormRequest
         if (false === $this->authorize()) {
             $this->failedAuthorization();
         }
-      
+
 
         $this->validator = $this->app->make('validator')
-                                     ->make($this->sanitizeInput(), $this->rules(), $this->messages(), $this->attributes());
+            ->make($this->sanitizeInput(), $this->rules(), $this->messages(), $this->attributes());
 
         if ($this->validator->fails()) {
             $this->validationFailed();
@@ -61,38 +61,37 @@ class AddNickNameRequest extends FormRequest
         return [
             'nick_name' => 'required|unique:nick_name|max:50',
             'visibility_status' => 'required',
+            'default' => 'required|boolean',
         ];
     }
 
     protected function messages(): array
     {
         return [
-          'nick_name.required' => "Nick name is required",
-          'nick_name.unique' => "Nick name already exists, please try another one.",
-          'nick_name.max' => "Nick name can not be more than 50 characters."
-
+            'nick_name.required' => "Nick name is required",
+            'nick_name.unique' => "Nick name already exists, please try another one.",
+            'nick_name.max' => "Nick name can not be more than 50 characters.",
+            'default.required' => "Default field is required",
+            'default.boolean' => "Default field should be either 0|1 or true|false.",
         ];
     }
 
     protected function errorResponse(): ?JsonResponse
-    { 
+    {
         return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
-    } 
+    }
 
-     /**
+    /**
      * Sanitize the input.
      *
      * @return array
      */
     protected function sanitizeInput()
-    {   
-        foreach($this->all() as $key => $input){
-           $arr[$key] = trim($input);
+    {
+        foreach ($this->all() as $key => $input) {
+            $arr[$key] = trim($input);
         }
         $this->merge($arr);
         return $this->all();
-
     }
-
-    
 }

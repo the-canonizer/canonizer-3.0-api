@@ -227,6 +227,7 @@ class ValidationRules
             'nick_name' => 'required',
             'asof' => 'in:default,review,bydate',
             'tags' => 'array',
+            'is_rank_hidden' => 'boolean'
         ]);
     }
 
@@ -554,7 +555,8 @@ class ValidationRules
             'nick_name' => 'required',
             'namespace_id' => 'required_unless:event_type,objection',
             'event_type' => 'required|in:update,edit,objection',
-            'objection_reason' => 'required_if:event_type,objection'
+            'objection_reason' => 'required_if:event_type,objection',
+            'is_rank_hidden' => 'boolean'
         ];
     }
 
@@ -591,6 +593,13 @@ class ValidationRules
     {
         return [
             'keys.video_id' => 'required|numeric|gt:0',
+        ];
+    }
+
+    public function getMetaTagsKeywordsValidationRules(): array
+    {
+        return [
+            'keys.keywords' => 'required',
         ];
     }
 
@@ -666,16 +675,18 @@ class ValidationRules
 
     public function updateReadAllValidationRules(): array
     {
-        return ([
-            'ids' => 'required|array',
-        ]);
+        return [
+            'is_read' => 'required|string|in:all,selected',
+            'ids' => 'required_if:is_read,selected|array',
+        ];
     }
 
     public function updateDeleteAllValidationRules(): array
     {
-        return ([
-            'ids' => 'required|array',
-        ]);
+        return [
+            'is_delete' => 'required|string|in:all,selected',
+            'ids' => 'required_if:is_delete,selected|array',
+        ];
     }
 
     public function getSiblingCampsValidationRules(): array
@@ -686,7 +697,7 @@ class ValidationRules
             'parent_camp_num' => 'required|numeric',
         ]);
     }
-    
+
     public function getSignPetitionRules(): array
     {
         return [
@@ -695,7 +706,7 @@ class ValidationRules
             'nick_name_id' => 'required|numeric|gt:0|max:' . PHP_INT_MAX,
         ];
     }
-    
+
     public function getUpdateEmailRules(): array
     {
         return ([

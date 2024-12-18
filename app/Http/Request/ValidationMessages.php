@@ -2,6 +2,8 @@
 
 namespace App\Http\Request;
 
+use function OpenTelemetry\API\Trace\trace;
+
 class ValidationMessages
 {
     public function getTokenValidationMessages(): array
@@ -240,7 +242,8 @@ class ValidationMessages
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
             'asof.in' => trans('message.validation_topic_store.asof_in'),
-            'tags.array' => trans('message.tags.topic_tags_must_array')
+            'tags.array' => trans('message.tags.topic_tags_must_array'),
+            'is_rank_hidden.boolean' => trans('message.validation_topic_store.is_rank_hidden_boolean')
         ]);
     }
 
@@ -656,6 +659,7 @@ class ValidationMessages
             'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
             'namespace_id.required_unless' => trans('message.validation_manage_topic.namespace_id_required_unless'),
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+            'is_rank_hidden.boolean' => trans('message.validation_manage_topic.is_rank_hidden_boolean')
         ];
     }
 
@@ -700,11 +704,12 @@ class ValidationMessages
             'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
 
-
             'keys.video_id.required' => trans('message.validation_meta_tags.video_id_required'),
             'keys.video_id.numeric' => trans('message.validation_meta_tags.video_id_numeric'),
             'keys.video_id.gt' => trans('message.validation_meta_tags.video_id_gt'),
-            
+
+            'keys.keywords.required' => trans('message.validation_meta_tags.keywords_required'),
+
         ];
     }
 
@@ -817,16 +822,23 @@ class ValidationMessages
     public function updateReadAllValidationMessages(): array
     {
         return [
-            'ids.required' =>trans('message.notification_message.idsRequired'),
-            'ids.array' => trans('message.notification_message.idsArray')
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_read.required' => trans('message.notification_message.isReadRequired'),
+            'is_read.string' => trans('message.notification_message.isReadString'),
+            'is_read.in' => trans('message.notification_message.isReadIn')
+
         ];
     }
 
     public function updateDeleteAllValidationMessages(): array
     {
         return [
-            'ids.required' =>trans('message.notification_message.idsRequired'),
-            'ids.array' => trans('message.notification_message.idsArray')
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_delete.required' => trans('message.notification_message.isDeleteRequired'),
+            'is_delete.string' => trans('message.notification_message.isDeleteString'),
+            'is_delete.in' => trans('message.notification_message.isDeleteIn')
         ];
     }
 
@@ -841,7 +853,7 @@ class ValidationMessages
             'parent_camp_num.required' => trans('message.validation_get_camp_record.parent_camp_num_required')
         ];
     }
-    
+
     public function getSignPetitionMessages(): array
     {
         return ([
@@ -851,10 +863,10 @@ class ValidationMessages
             'topic_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.topic_num_max_numeric')
             ],
-            
+
             'camp_num.required' => trans('message.sign_petition_validation.camp_num_required'),
             'camp_num.numeric' => trans('message.sign_petition_validation.camp_num_numeric'),
-            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),    
+            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),
             'camp_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.camp_num_max_numeric')
             ],
@@ -867,7 +879,7 @@ class ValidationMessages
             ],
         ]);
     }
-    
+
     public function getEmailUpdateValidationMessages(): array
     {
         return ([
