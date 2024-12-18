@@ -312,14 +312,23 @@ class NotificationController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        $readAll = $request->is_read ?? 'all'; // all or selected
+        $userId =  $request->user()->id;
         try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->update([
-                'is_read' => 1,
-                'is_seen' => 1,
-                'seen_time' => time(),
-            ]);
-            DB::commit();
+            if ($readAll === 'all') {
+                PushNotification::where('user_id', $userId)
+                    ->where('is_seen', 0)
+                    ->update(['is_seen' => 1, 'is_read' => 1, 'seen_time' => time()]);
+            } else {
+                PushNotification::whereIn('id', $request->ids)
+                    ->where('is_seen', 0)
+                    ->update([
+                        'is_read' => 1,
+                        'is_seen' => 1,
+                        'seen_time' => time(),
+                    ]);
+            }
+
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -338,10 +347,14 @@ class NotificationController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
 
+        $isDelete = $request->is_delete ?? 'all'; // all or selected
+        $userId =  $request->user()->id;
         try {
-            DB::beginTransaction();
-            PushNotification::whereIn('id', $request->ids)->delete();
-            DB::commit();
+            if ($isDelete === 'all') {
+                PushNotification::where('user_id', $userId)->delete();
+            } else {
+                PushNotification::whereIn('id', $request->ids)->delete();
+            }
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
