@@ -14,11 +14,12 @@ class CreateSocialDataDeletionRequestsTable extends Migration
     public function up()
     {
         Schema::create('social_data_deletion_requests', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid('id')->nullable(false)->default(null);
             $table->string('provider');
             $table->string('provider_id');
             $table->tinyInteger('status')->comment('0: Pending, 1: Completed')->default(0);
-            $table->timestamps();
+            $table->integer('created_at');
+            $table->integer('updated_at');
         });
     }
 

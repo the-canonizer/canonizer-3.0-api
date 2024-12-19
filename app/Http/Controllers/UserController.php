@@ -31,6 +31,7 @@ use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
 use App\Models\SocialDataDeletionRequest;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -2121,6 +2122,8 @@ class UserController extends Controller
                 'provider_id' => $user_id,
                 'status' => 1
             ]);
+            $deletionRequest->id = (string) Str::uuid();
+            $deletionRequest->save();
             $status_url = config('global.APP_URL_FRONT_END') . '/social/facebook/deletion-status?confirmation_code=' . $deletionRequest->id;
             $confirmation_code = $deletionRequest->id;
             $data = array(
