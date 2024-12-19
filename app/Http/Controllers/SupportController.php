@@ -389,6 +389,9 @@ class SupportController extends Controller
 
             $support = Support::checkIfSupportExists($topicNum, $nickNames,[$campNum]);
             $data = TopicSupport::checkSupportValidaionAndWarning($topicNum, $campNum, $nickNames, $delegataedNickNameId);
+            if (isset($data['remove_camps'])) {
+                $data['remove_camps'] = collect($data['remove_camps'])->sortBy('support_order')->values()->all();
+            }
             
             if($support){
                 $data['support_flag'] = 1;
