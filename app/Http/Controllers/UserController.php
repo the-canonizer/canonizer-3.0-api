@@ -30,6 +30,7 @@ use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
+use App\Models\SocialDataDeletionRequest;
 
 class UserController extends Controller
 {
@@ -2115,7 +2116,7 @@ class UserController extends Controller
             $parsedData = Util::parse_facebook_signed_request($signed_request);
             $user_id = $parsedData['user_id'];
             SocialUser::where(['provider_id' => $user_id, 'provider' => 'facebook'])->delete();
-            $deletionRequest = DeletionRequest::create([
+            $deletionRequest = SocialDataDeletionRequest::create([
                 'provider' => 'facebook',
                 'provider_id' => $user_id,
                 'status' => 1
@@ -2188,6 +2189,7 @@ class UserController extends Controller
      */
     public function checkFacebookDataDeletionStatus(Request $request, Validate $validate)
     {
+        
         $validationErrors = $validate->validate($request, $this->rules->getfacebookDeleteDataStatusValidationRules(), $this->validationMessages->getfacebookDeleteDataStatusValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -2195,7 +2197,7 @@ class UserController extends Controller
 
         $confirmation_code = $request->query('confirmation_code');
 
-        $deletionRequest = DeletionRequest::where('id', $confirmation_code)->first();
+        $deletionRequest = SocialDataDeletionRequest::where('id', $confirmation_code)->first();
         $data = null;
         if (!$deletionRequest) {
             $status = 404;
