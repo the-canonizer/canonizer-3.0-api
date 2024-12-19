@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Helpers\Aws;
+use App\Models\CommandHistory;
 use App\Models\Upload;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -43,6 +44,14 @@ class FixTheDatesForUploadedFiles extends Command
     public function handle()
     {
         try {
+
+            $startTime = Carbon::now()->timestamp;
+
+            $commandHistory = (new CommandHistory())->create([
+                'name' => $this->signature,
+                'parameters' => [],
+                'started_at' => $startTime,
+            ]);
             /*
             * Get the records from database that are having issue in creation date.
             * After getting those files from database , we need to check instance of those files on AWS S3.
@@ -73,11 +82,17 @@ class FixTheDatesForUploadedFiles extends Command
                     $this->info("File {$file->file_id} updated successfully.");
                 }
             }
+            
+            $endTime = Carbon::now()->timestamp;
+            $commandHistory->finished_at = $endTime;
+            $commandHistory->save();
 
             $this->info("Script executed successfully.");
 
         } catch (\Throwable $th) {
             $this->error($th->getMessage());
+            $commandHistory->error_output = json_encode($th);
+            $commandHistory->save();
         }
     }
 }
