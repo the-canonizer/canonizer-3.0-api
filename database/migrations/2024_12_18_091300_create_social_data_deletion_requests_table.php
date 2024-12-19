@@ -14,7 +14,7 @@ class CreateSocialDataDeletionRequestsTable extends Migration
     public function up()
     {
         Schema::create('social_data_deletion_requests', function (Blueprint $table) {
-            $table->uuid();
+            $table->uuid()->primary();
             $table->string('provider');
             $table->string('provider_id');
             $table->tinyInteger('status')->comment('0: Pending, 1: Completed')->default(0);

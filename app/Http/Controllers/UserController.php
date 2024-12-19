@@ -2188,7 +2188,7 @@ class UserController extends Controller
      */
     public function checkFacebookDataDeletionStatus(Request $request, Validate $validate)
     {
-        $validationErrors = $validate->validate($request, $this->rules->getfacebookDeleteDataCallBackValidationRules(), $this->validationMessages->getfacebookDeleteDataCallBackValidationMessages());
+        $validationErrors = $validate->validate($request, $this->rules->getfacebookDeleteDataStatusValidationRules(), $this->validationMessages->getfacebookDeleteDataStatusValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
