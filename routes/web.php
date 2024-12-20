@@ -20,6 +20,7 @@ $router->get('/', function () use ($router) {
 });
 
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
+$router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
@@ -180,4 +181,5 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('commit/change','TopicController@commitAndNotifyChange');
         $router->post('agree-to-change','TopicController@agreeToChangeForLiveJob');
     });
+    $router->get('/check-facebook-delete-data-status','UserController@checkFacebookDataDeletionStatus');
 });

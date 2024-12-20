@@ -728,4 +728,19 @@ class ValidationRules
             'email' => 'required|string|email|max:225|unique:user_email'
         ]);
     }
+
+    public function getfacebookDeleteDataCallBackValidationRules(): array
+    {
+        return ([
+            'signed_request' => 'required'
+        ]);
+    }
+
+    public function getfacebookDeleteDataStatusValidationRules(): array
+    {
+        return ([
+            'confirmation_code' => 'required'
+        ]);
+    }
+    
 }
