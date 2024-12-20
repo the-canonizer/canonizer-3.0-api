@@ -539,6 +539,12 @@ return [
         "idsArray" => "The ids must be an array",
         "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
         "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
+        "isReadRequired" => "The isRead must be an required",
+        "isReadString" => "The isRead must be an string",
+        "isReadIn" => "The isRead must be an all or selected",
+        "isDeleteRequired" => "The isDelete must be an required",
+        "isDeleteString" => "The isDelete must be an string",
+        "isDeleteIn" => "The isDelete must be an all or selected",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
@@ -677,8 +683,8 @@ return [
         'user_tags_array' => 'The user tags must be an array.',
         'user_tags_integer' => 'Each user tag id must be an integer.',
         'user_id_exists' => 'The selected user ID is invalid.',
-        'created' => 'User tag created successfully.',
-        'failed' => 'Failed to create user tag.',
+        'created' => 'You have successfully updated the Topic tag(s).',
+        'failed' => 'Failed to update the Topic tag(s).',
         'user_tags_exists' => 'The selected user tag is invalid.',
     ],
     'sign_petition_validation' => [

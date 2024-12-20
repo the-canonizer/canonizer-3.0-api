@@ -33,6 +33,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateUserFCMTokenToOAuth',
         'App\Console\Commands\CorrectSupportOrder',
         'App\Console\Commands\FixTheDatesForUploadedFiles',
+        'App\Console\Commands\AssociateTopicTags',
     ];
 
     /**
