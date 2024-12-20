@@ -60,7 +60,7 @@ class Aws
                 'Key'    => $filename,
             ]);
 
-            return true;
+            return $result;
         } catch (AwsException $e) {
             if ($e->getAwsErrorCode() === 'NotFound') {
                 return false;
