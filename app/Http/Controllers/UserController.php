@@ -2114,7 +2114,9 @@ class UserController extends Controller
         }
         try {
             $signed_request = $request->signed_request;
+            Log::info("Facebook delete data callback request: " . json_encode($request->all()));
             $parsedData = Util::parse_facebook_signed_request($signed_request);
+            Log::info("Facebook delete data parsedData: " . json_encode($parsedData));
             $user_id = $parsedData['user_id'];
             SocialUser::where(['provider_id' => $user_id, 'provider' => 'facebook'])->delete();
             $deletionRequest = SocialDataDeletionRequest::create([
@@ -2122,6 +2124,7 @@ class UserController extends Controller
                 'provider_id' => $user_id,
                 'status' => 1
             ]);
+            Log::info("Facebook delete data request in table : " . json_encode($deletionRequest));
             $deletionRequest->id = (string) Str::uuid();
             $deletionRequest->save();
             $status_url = config('global.APP_URL_FRONT_END') . '/social/facebook/deletion-status?confirmation_code=' . $deletionRequest->id;
@@ -2130,8 +2133,10 @@ class UserController extends Controller
                 'url' => $status_url,
                 'confirmation_code' => $confirmation_code
             );
+            Log::info("Facebook delete data response : " . json_encode($data));
             return response()->json($data);
         } catch (Exception $ex) {
+            Log::error("Facebook delete data request exception : " . $ex->getMessage());
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
@@ -2197,10 +2202,11 @@ class UserController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
+        Log::info("Facebook delete data status request : " . json_encode($request->all()));
         $confirmation_code = $request->query('confirmation_code');
-
+        Log::info("Facebook delete data status confirmation code : " . $confirmation_code);
         $deletionRequest = SocialDataDeletionRequest::where('id', $confirmation_code)->first();
+        Log::info("Facebook delete data status request in table : " . json_encode($deletionRequest));
         $data = null;
         if (!$deletionRequest) {
             $status = 404;
