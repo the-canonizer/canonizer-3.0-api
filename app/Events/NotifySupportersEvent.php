@@ -9,13 +9,13 @@ class NotifySupportersEvent extends Event
     public $data;
     public $link;
     public $channel;
-    public $excludeNickNameId;
+    public $excludeNickNameIdForNotification;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($camp, $data, $type, $link = null, $channel = 0, $excludeNickNameId = [])
+    public function __construct($camp, $data, $type, $link = null, $channel = 0, $excludeNickNameIdForNotification = [])
     {
         //
         $this->camp = $camp;
@@ -23,6 +23,6 @@ class NotifySupportersEvent extends Event
         $this->data = $data;
         $this->link = $link;
         $this->channel = $channel;
-        $this->excludeNickNameId = $excludeNickNameId;
+        $this->excludeNickNameIdForNotification = $excludeNickNameIdForNotification;
     }
 }

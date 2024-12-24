@@ -972,7 +972,7 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null, $excludeNickNameId = [])
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null, $excludeNickNameIdForNotification = [])
     {
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
@@ -1037,7 +1037,7 @@ class TopicSupport
             ];
         }
         $channel = config('global.notify.both');
-        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel, $excludeNickNameId));
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel, $excludeNickNameIdForNotification));
         return true;
     }
 
