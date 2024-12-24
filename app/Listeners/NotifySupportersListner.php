@@ -58,6 +58,7 @@ class NotifySupportersListner implements ShouldQueue
         $data = $event->data;
         $link = $event->link;
         $channel = $event->channel;
+        $excludeNickNameId = $event->excludeNickNameId ?? [];
 
         $user = '';
         $userExist = [];
@@ -78,6 +79,9 @@ class NotifySupportersListner implements ShouldQueue
 
             $count = 0;
             foreach ($implicitSupporters as $supporter) {
+                if (in_array($supporter->nick_name_id, $excludeNickNameId)) {
+                    continue;
+                }
                 $user = CampForum::getUserFromNickId($supporter->nick_name_id);
                 $user_id = $user->id ?? null;
                 $nickName = Nickname::find($supporter->nick_name_id);
