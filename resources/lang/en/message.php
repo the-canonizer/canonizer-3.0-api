@@ -86,17 +86,17 @@ return [
         "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
         'first_name_string' => 'The first name should be string.',
 
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'middle_name_required' => 'The middle name field is required.',
         'middle_name_max' => 'The middle name can not be more than 100.',
         'middle_name_string' => 'The middle name should be string.',
 
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
         'last_name_required' => 'The last name field is required.',
         'last_name_max' => 'The last name can not be more than 100.',
         'last_name_string' => 'The last name should be string.',
@@ -127,10 +127,10 @@ return [
     ],
     'validation_update_profile' => [
         'first_name_required' => 'First name is required.',
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'last_name_required' => 'Last name is required.',
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'city_regex' => 'The city name must be in alphabets and space only.',
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
