@@ -2268,6 +2268,7 @@ class TopicController extends Controller
                     $hotTopic->namespace_id = $liveTopic->namespace_id;
                     $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
                     $hotTopic->supporterData = $supporterData;
+                    $hotTopic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
                 }
             }
             $collection = Util::getPaginatorResponse($hotTopics);
