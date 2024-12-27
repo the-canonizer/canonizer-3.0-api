@@ -2166,6 +2166,7 @@ class TopicController extends Controller
                 $topic->topicTags = $tags;
                 $topic->views = $topic->totalViews();
                 $topic->supporterData = $supporterData;
+                $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
                 $topic->statement = Statement::getLiveStatement([
                     'topicNum' => $topic->topic_num,
                     'campNum' => $liveCamp->camp_num,
@@ -2371,6 +2372,7 @@ class TopicController extends Controller
                     'topicTags' => $tags,
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
+                    'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
                     'statement' => Statement::getLiveStatement([
                         'topicNum' => $topic->topic_num,
                         'campNum' => $liveCamp->camp_num,
