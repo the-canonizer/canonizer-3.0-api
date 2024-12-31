@@ -58,10 +58,12 @@ class NotifySupportersListner implements ShouldQueue
         $data = $event->data;
         $link = $event->link;
         $channel = $event->channel;
+        $excludeNickNameIdForNotification = $event->excludeNickNameIdForNotification ?? [];
 
         $user = '';
         $userExist = [];
         $bcc_user = [];
+        $exclude_user_id_for_notification = [];
         $supporter_and_subscriber = [];
         $sub_bcc_user = [];
         $support_list = [];
@@ -98,6 +100,9 @@ class NotifySupportersListner implements ShouldQueue
                 }
 
                 $user->nick_ids = TopicSupport::getAllNickNamesOfNickID($supporter->nick_name_id) ?? [];
+                if (in_array($supporter->nick_name_id, $excludeNickNameIdForNotification)) {
+                    $exclude_user_id_for_notification[] = $user_id;
+                }
                 $bcc_user[] = $user;
                 $userExist[] = $user_id;
             }
@@ -147,7 +152,9 @@ class NotifySupportersListner implements ShouldQueue
                             break;
                         case config('global.notify.both'):
                             $this->dispatchEmail($user->email ?? null, $user, $data['email'], $type, $link);
-                            $this->dispatchPushNotification($user, $data['push_notification']);
+                            if (!in_array($user->id, $exclude_user_id_for_notification)) {
+                                $this->dispatchPushNotification($user, $data['push_notification']);
+                            }
                             break;
                     }
                 }
