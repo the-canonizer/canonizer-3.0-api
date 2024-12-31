@@ -503,7 +503,7 @@ class ProfileController extends Controller
                 foreach($privateFlags as $private)
                 {
                     // unset($userArray[$private]);
-                    $userArray[$private] = Str::mask($userArray[$private], '•', strlen($userArray[$private]) > 2 ? 1 : 0, strlen($userArray[$private]));
+                    $userArray[$private] = Str::mask($userArray[$private], '•', strlen($userArray[$private]) > 2 && ($private === 'first_name' || $private === 'last_name') ? 1 : 0, strlen($userArray[$private]));
                 }               
                 
                 $userArray['profile_picture'] = $nickName->private ? null : (empty($userArray['profile_picture_path']) ? null : $userArray['profile_picture_path']);
