@@ -1859,27 +1859,13 @@ class UserController extends Controller
             // $encode = Util::canon_encode($user_to_deactivate);
             // //get nicknames
             // $nicknames = Nickname::where('owner_code', '=', $encode)->get();
-            $userNickname = Nickname::personNicknameArray();
+
+            $userNicknameIds = Nickname::getNicknamesIdsByUserId($user_to_deactivate);
 
             $as_of_time = time() + 100;
-            $supportedTopic = Support::whereIn('nick_name_id', $userNickname)
+            Support::whereIn('nick_name_id', $userNicknameIds)
                 ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
-                ->groupBy('topic_num')->orderBy('start', 'DESC')->get();
-            if (count($supportedTopic) > 0) {
-                foreach ($supportedTopic as $k => $v) {
-                    $allUserSupports = Support::where('topic_num', $v->topic_num)
-                        ->whereIn('nick_name_id', $userNickname)
-                        ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
-                        ->orderBy('support_order', 'ASC')
-                        ->get();
-                    if (count($allUserSupports) > 0) {
-                        foreach ($allUserSupports as $key => $support) {
-                            $currentSupport = Support::where('support_id', $support->support_id);
-                            $currentSupport->update(array('end' => time()));
-                        }
-                    }
-                }
-            }
+                ->update(['end' => time()]);
 
             // removing linked social accounts 
             SocialUser::where('user_id', $user_to_deactivate)->delete();
