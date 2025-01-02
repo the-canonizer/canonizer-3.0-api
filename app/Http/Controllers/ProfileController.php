@@ -499,7 +499,7 @@ class ProfileController extends Controller
                 
                 $user = Nickname::getUserByNickName($id);
                 $userArray = $user->toArray();
-                $privateFlags = explode(",",$user->private_flags);
+                $privateFlags = $user->private_flags ? explode(",",$user->private_flags) : [];
                 foreach($privateFlags as $private)
                 {
                     // unset($userArray[$private]);
