@@ -86,17 +86,17 @@ return [
         "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
         'first_name_string' => 'The first name should be string.',
 
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'middle_name_required' => 'The middle name field is required.',
         'middle_name_max' => 'The middle name can not be more than 100.',
         'middle_name_string' => 'The middle name should be string.',
 
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
         'last_name_required' => 'The last name field is required.',
         'last_name_max' => 'The last name can not be more than 100.',
         'last_name_string' => 'The last name should be string.',
@@ -127,10 +127,10 @@ return [
     ],
     'validation_update_profile' => [
         'first_name_required' => 'First name is required.',
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'last_name_required' => 'Last name is required.',
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'city_regex' => 'The city name must be in alphabets and space only.',
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
@@ -178,6 +178,7 @@ return [
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default, review, bydate) or leave it empty",
+        'is_rank_hidden_boolean' => 'The Hide Rank field should be boolean.'
 
     ],
     'validation_get_statement' => [
@@ -538,6 +539,12 @@ return [
         "idsArray" => "The ids must be an array",
         "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
         "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
+        "isReadRequired" => "The isRead must be an required",
+        "isReadString" => "The isRead must be an string",
+        "isReadIn" => "The isRead must be an all or selected",
+        "isDeleteRequired" => "The isDelete must be an required",
+        "isDeleteString" => "The isDelete must be an string",
+        "isDeleteIn" => "The isDelete must be an all or selected",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
@@ -549,6 +556,7 @@ return [
         'topic_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
         'namespace_id_required_unless' => "Canon is required.",
+        'is_rank_hidden_boolean' => "The Hide Rank field should be boolean."
 
     ],
     'validation_parse_statement' => [
@@ -608,6 +616,8 @@ return [
         'video_id_required' => "video_id is required.",
         'video_id_numeric' => "video_id should be a numeric.",
         'video_id_gt' => "video_id should be greater than :value.",
+
+        'keywords_required' => "keywords is required.",
     ],
     "validation_change_supporters" => [
         'topic_num_required' => "topic_num is required.",
@@ -673,8 +683,8 @@ return [
         'user_tags_array' => 'The user tags must be an array.',
         'user_tags_integer' => 'Each user tag id must be an integer.',
         'user_id_exists' => 'The selected user ID is invalid.',
-        'created' => 'User tag created successfully.',
-        'failed' => 'Failed to create user tag.',
+        'created' => 'You have successfully updated the Topic tag(s).',
+        'failed' => 'Failed to update the Topic tag(s).',
         'user_tags_exists' => 'The selected user tag is invalid.',
     ],
     'sign_petition_validation' => [
@@ -712,5 +722,14 @@ return [
         "newemail_added" => "New email added successfully.",
         "newemail_added_verify" => "New email added successfully, please verify email by entering OTP sent on email to make this your primary/default email.",
         "newemail_added_verified" => "Email verified successfully, now this email is your primary/login/notification email"
-    ]
+    ],
+    'facebook_deletion_callback' => [
+        'signed_request_is_required' => 'Signed request is required.',
+    ],
+    'facebook_deletion_status' => [
+        'confirmation_code_is_required' => 'Confirmation code is required.',
+        'confirmation_code_is_invalid' => 'Confirmation code is invalid.',
+        'data_deleted_successfully' => 'Your data has been deleted successfully.',
+        'data_deletion_pending' => 'Your data deletion request is pending.',
+    ],
 ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AddNickNameRequest;
+use App\Http\Requests\SetDefaultNicknameRequest;
 use App\Http\Requests\UpdateNickNameRequest;
 use App\Models\Nickname;
 use Illuminate\Http\Request;
@@ -81,15 +82,21 @@ class NicknameController extends Controller
         $user = $request->user();
 
         try {
-
             $nickname = Nickname::createNickname($user->id, $request->all());
             return $this->resProvider->apiJsonResponse(200, trans('message.success.nick_name_add'), $nickname, '');
-
         } catch (\Throwable $e) {
-
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
 
+    public function setDefaultNickName(SetDefaultNicknameRequest $request)
+    {
+        try {
+            $nickname = Nickname::setDefaultNickname($request->nick_name_id);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.default_nick_name'), $nickname, '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
     }
 
     /**

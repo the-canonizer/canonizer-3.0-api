@@ -30,6 +30,8 @@ use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
+use App\Models\SocialDataDeletionRequest;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -641,6 +643,7 @@ class UserController extends Controller
             $nicknameObj->user_id = $userID;
             $nicknameObj->nick_name = substr($nickname, 0, 50);
             $nicknameObj->private = 0;
+            $nicknameObj->default = 1;
             $nicknameObj->create_time = time();
             $nicknameObj->save();
             $nicknameCreated = true;
@@ -2048,4 +2051,162 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), '', '');
         }
     }
+
+    /**
+     * @OA\POST(path="/social/facebook/delete-data/callback",
+     *   tags={"User"},
+     *   summary="Delete facebook data on callback",
+     *   description="This API is use to delete facebook data on callback received from facebook",
+     *   operationId="facebookDeleteDataCallBack",
+     *   @OA\Parameter(
+     *         name="signed_request",
+     *         in="path",
+     *         required=true,
+     *         description="Signed Request from facebook",
+     *         @OA\Schema(
+     *              type="string"
+     *         ) 
+     *    ),
+     *     @OA\Response(
+     *        response=200,
+     *        description = "Success",
+     *        @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                property="url",
+     *                type="string",
+     *             ),
+     *             @OA\Property(
+     *                property="confirmation_code",
+     *                type="string",
+     *             ),
+     *        ),
+     *     ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+
+    public function facebookDeleteDataCallBack(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getfacebookDeleteDataCallBackValidationRules(), $this->validationMessages->getfacebookDeleteDataCallBackValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        try {
+            $signed_request = $request->signed_request;
+            Log::info("Facebook delete data callback request: " . json_encode($request->all()));
+            $parsedData = Util::parse_facebook_signed_request($signed_request);
+            Log::info("Facebook delete data parsedData: " . json_encode($parsedData));
+            $user_id = $parsedData['user_id'];
+            SocialUser::where(['provider_id' => $user_id, 'provider' => 'facebook'])->delete();
+            $deletionRequest = SocialDataDeletionRequest::create([
+                'provider' => 'facebook',
+                'provider_id' => $user_id,
+                'status' => 1
+            ]);
+            Log::info("Facebook delete data request in table : " . json_encode($deletionRequest));
+            $deletionRequest->id = (string) Str::uuid();
+            $deletionRequest->save();
+            $status_url = config('global.APP_URL_FRONT_END') . '/social/facebook/deletion-status?confirmation_code=' . $deletionRequest->id;
+            $confirmation_code = $deletionRequest->id;
+            $data = array(
+                'url' => $status_url,
+                'confirmation_code' => $confirmation_code
+            );
+            Log::info("Facebook delete data response : " . json_encode($data));
+            return response()->json($data);
+        } catch (Exception $ex) {
+            Log::error("Facebook delete data request exception : " . $ex->getMessage());
+            $status = 400;
+            $message = trans('message.error.exception');
+            return $this->resProvider->apiJsonResponse($status, $message, null, $ex->getMessage());
+        }
+    }
+
+    /**
+     * @OA\GET(path="/check-facebook-delete-data-status",
+     *   tags={"User"},
+     *   summary="Delete facebook data on callback",
+     *   description="This API is use to delete facebook data on callback received from facebook",
+     *   operationId="facebookDeleteDataCallBack",
+     *   @OA\Parameter(
+     *         name="confirmation_code",
+     *         in="path",
+     *         required=true,
+     *         description="Confirmation code",
+     *         @OA\Schema(
+     *              type="string"
+     *         ) 
+     *    ),
+     *    @OA\Response(response=200,description="successful operation",
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(
+     *                      property="status_code",
+     *                      type="integer"
+     *              ),
+     *              @OA\Property(
+     *                   property="message",
+     *                   type="string"
+     *              ),
+     *              @OA\Property(
+     *                   property="error",
+     *                   type="string"
+     *              ),
+     *              @OA\Property(
+     *                   property="data",
+     *                   type="object"
+     *              )
+     *         )
+     *   ),
+     *    @OA\Response(
+     *     response=400,
+     *     description="Something went wrong",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   ),
+     *    @OA\Response(
+     *     response=403,
+     *     description="Exception Throwable",
+     *     @OA\JsonContent(
+     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     )
+     *   )
+     * )
+     */
+    public function checkFacebookDataDeletionStatus(Request $request, Validate $validate)
+    {
+        
+        $validationErrors = $validate->validate($request, $this->rules->getfacebookDeleteDataStatusValidationRules(), $this->validationMessages->getfacebookDeleteDataStatusValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        Log::info("Facebook delete data status request : " . json_encode($request->all()));
+        $confirmation_code = $request->query('confirmation_code');
+        Log::info("Facebook delete data status confirmation code : " . $confirmation_code);
+        $deletionRequest = SocialDataDeletionRequest::where('id', $confirmation_code)->first();
+        Log::info("Facebook delete data status request in table : " . json_encode($deletionRequest));
+        $data = null;
+        if (!$deletionRequest) {
+            $status = 404;
+            $message = trans('message.facebook_deletion_status.confirmation_code_is_invalid');
+            return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+        }
+        $deletionStatus = $deletionRequest->status;
+        if ($deletionStatus == 1) {
+            $message = trans('message.facebook_deletion_status.data_deleted_successfully');
+        } else {
+            $message = trans('message.facebook_deletion_status.data_deletion_pending');
+        }
+        $status = 200;
+        return $this->resProvider->apiJsonResponse($status, $message, $data, null);
+    }
+
 }

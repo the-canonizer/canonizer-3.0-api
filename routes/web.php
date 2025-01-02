@@ -20,6 +20,7 @@ $router->get('/', function () use ($router) {
 });
 
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
+$router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
@@ -99,6 +100,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('send-otp','ProfileController@sendOtp');
         $router->post('verify-otp','ProfileController@VerifyOtp');
         $router->post('add-nick-name','NicknameController@addNickName');
+        $router->post('set-default-nick-name','NicknameController@setDefaultNickName');
         $router->post('update-nick-name/{id}','NicknameController@UpdateNickName');
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
         $router->post('camp/save', ['uses' => 'CampController@store', 'middleware' => 'throttle:1,0.05']);
@@ -179,4 +181,5 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('commit/change','TopicController@commitAndNotifyChange');
         $router->post('agree-to-change','TopicController@agreeToChangeForLiveJob');
     });
+    $router->get('/check-facebook-delete-data-status','UserController@checkFacebookDataDeletionStatus');
 });
