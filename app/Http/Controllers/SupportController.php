@@ -57,7 +57,12 @@ class SupportController extends Controller
         try {
 
             $nickNames = Nickname::where('user_id', $userId)->pluck('id');
-            $topics = Support::select('topic_num')->whereIn('nick_name_id', $nickNames)->distinct()->orderBy('topic_num', 'desc')->paginate($perPage);
+            $topics = Support::select('topic_num')
+                ->distinct()
+                ->whereIn('nick_name_id', $nickNames)
+                ->where(['delegate_nick_name_id' => 0, 'end' => 0])
+                ->orderBy('topic_num', 'desc')
+                ->paginate($perPage);
             
             $userSupport = Support::select('topic_num', 'camp_num', 'support_order', 'nick_name_id')
             ->where(['delegate_nick_name_id' => 0, 'end' => 0])
