@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
-use DB;
 use App\Models\Camp;
-use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Reasons;
 use App\Models\Support;
@@ -13,18 +10,17 @@ use App\Models\Nickname;
 use Illuminate\Http\Request;
 use App\Helpers\TopicSupport;
 use App\Http\Request\Validate;
-use App\Facades\PushNotification;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\Gate;
 use App\Helpers\SupportAndScoreCount;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
-use App\Http\Resources\SuccessResource;
 use App\Http\Request\ValidationMessages;
 use App\Models\ActivityLog;
 use App\Models\ChangeAgreeLog;
 use App\Models\Statement;
-use Exception;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class SupportController extends Controller
 {
@@ -57,54 +53,109 @@ class SupportController extends Controller
     {
         $user = $request->user();
         $userId = $user->id;
+        $perPage = $request->per_page ?? 5;
         try {
+
+            $nickNames = Nickname::where('user_id', $userId)->pluck('id');
+            $topics = Support::select('topic_num')->whereIn('nick_name_id', $nickNames)->distinct()->orderBy('topic_num', 'desc')->paginate($perPage);
             
-            $response = DB::select("CALL user_support('direct', $userId)");
+            $userSupport = Support::select('topic_num', 'camp_num', 'support_order', 'nick_name_id')
+            ->where(['delegate_nick_name_id' => 0, 'end' => 0])
+            ->whereIn('nick_name_id', $nickNames)
+                ->whereIn('topic_num', $topics->pluck('topic_num'))
+                ->with('liveTopic:id,topic_num,topic_name')
+                ->orderBy('support_id', 'desc')
+                ->get();
+
             $directSupports = [];
-            foreach($response as $k => $support){
 
-                if(isset($directSupports[$support->topic_num])){
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
-                    $tempCamp = [
-                        'id' => $support->camp_num,
-                        'camp_num' => $support->camp_num,
-                        'camp_name' => $support->camp_name,
-                        'support_order'=> $support->support_order,
-                        'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-                        'recent_activity' => $recentActivityLog,
-                    ];
-                    array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
+            foreach ($userSupport as $key => $support) {
 
-                }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
-                    $directSupports[$support->topic_num] = array(
-                        'topic_num' => $support->topic_num,
-                        'title' => $support->title,
-                        'nick_name_id' => $support->nick_name_id,
-                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
-                        'camps' => array(
+                $liveCamp = Camp::getLiveCamp([
+                    'topicNum' => $support->topic_num,
+                    'campNum' => $support->camp_num
+                ]);
+
+                if ($liveCamp) {
+                    if (isset($directSupports[$support->topic_num])) {
+
+                        $tempCamp = [
+                            'id' => $liveCamp->camp_num,
+                            'camp_num' => $liveCamp->camp_num,
+                            'camp_name' => $liveCamp->camp_name,
+                            'support_order' => $support->support_order,
+                            'camp_link' => Camp::campLink($liveCamp->topic_num, $liveCamp->camp_num, $support->liveTopic->topic_name, $liveCamp->camp_name),
+                        ];
+
+                        array_push($directSupports[$support->topic_num]['camps'], $tempCamp);
+                    } else {
+                        $directSupports[$support->topic_num] = array(
+                            'topic_num' => $liveCamp->topic_num,
+                            'title' => $support->liveTopic->topic_name,
+                            'nick_name_id' => $support->nick_name_id,
+                            'title_link' => Topic::topicLink($support->topic_num, 1, $support->liveTopic->topic_name),
+                            'camps' => array(
                                 [
-                                    'id' => $support->camp_num,
-                                    'camp_num' => $support->camp_num,
-                                    'camp_name' => $support->camp_name,
+                                    'id' => $liveCamp->camp_num,
+                                    'camp_num' => $liveCamp->camp_num,
+                                    'camp_name' => $liveCamp->camp_name,
                                     'support_order' => $support->support_order,
-                                    'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
-                                    'recent_activity' => $recentActivityLog,
+                                    'camp_link' => Camp::campLink($liveCamp->topic_num, $liveCamp->camp_num, $support->liveTopic->topic_name, $liveCamp->camp_name),
                                 ]
-                        ),
-                    );
+                            ),
+                        );
+                    }
+                    $directSupports[$support->topic_num]['camps'] = collect($directSupports[$support->topic_num]['camps'])->sortBy('support_order')->values()->toArray();
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $directSupports, '');
 
-        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), ['items' => $directSupports, 'total' => $topics->total()], '');
+
+            // $response = DB::select("CALL user_support('direct', $userId)");
+            // $directSupports = [];
+            // foreach($response as $k => $support){
+
+            //     if(isset($directSupports[$support->topic_num])){
+            //         $recentActivityLog = ActivityLog::where('causer_id', $userId)
+            //             ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+            //             ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
+            //         $tempCamp = [
+            //             'id' => $support->camp_num,
+            //             'camp_num' => $support->camp_num,
+            //             'camp_name' => $support->camp_name,
+            //             'support_order'=> $support->support_order,
+            //             'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
+            //             'recent_activity' => $recentActivityLog,
+            //         ];
+            //         array_push($directSupports[$support->topic_num]['camps'],$tempCamp);
+
+            //     }else{
+            //         $recentActivityLog = ActivityLog::where('causer_id', $userId)
+            //             ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+            //             ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
+            //         $directSupports[$support->topic_num] = array(
+            //             'topic_num' => $support->topic_num,
+            //             'title' => $support->title,
+            //             'nick_name_id' => $support->nick_name_id,
+            //             'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+            //             'camps' => array(
+            //                     [
+            //                         'id' => $support->camp_num,
+            //                         'camp_num' => $support->camp_num,
+            //                         'camp_name' => $support->camp_name,
+            //                         'support_order' => $support->support_order,
+            //                         'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),
+            //                         'recent_activity' => $recentActivityLog,
+            //                     ]
+            //             ),
+            //         );
+            //     }
+            // }
+            // return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $directSupports, '');
+
+        } catch (Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
     }
 
 

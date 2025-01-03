@@ -9,6 +9,7 @@ use DB;
 use App\Helpers\ElasticSearch;
 use App\Helpers\TopicSupport;
 use App\Models\Nickname;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Support extends Model
 {
@@ -65,6 +66,23 @@ class Support extends Model
             ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $statementNum, $nickNameId, $supportCount);
 
         });
+    }
+
+    /**
+     * Gets the live topic related to the support record.
+     *
+     * Live topics are topics that have gone live (i.e. go_live_time is in the past), have no objector, and are not in their
+     * grace period.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function liveTopic(): BelongsTo
+    {
+        return $this->belongsTo(Topic::class, 'topic_num', 'topic_num')->where([
+            ['go_live_time', '<=', time()],
+            ['objector_nick_id', '=', null],
+            ['grace_period', '=', 0],
+        ])->orderBy('go_live_time')->latest('go_live_time');
     }
 
     public static function getAllDirectSupporters($topic_num,$camp_num=1){
