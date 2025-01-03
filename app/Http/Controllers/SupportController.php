@@ -65,8 +65,8 @@ class SupportController extends Controller
                 ->paginate($perPage);
             
             $userSupport = Support::select('topic_num', 'camp_num', 'support_order', 'nick_name_id')
-            ->where(['delegate_nick_name_id' => 0, 'end' => 0])
-            ->whereIn('nick_name_id', $nickNames)
+                ->where(['delegate_nick_name_id' => 0, 'end' => 0])
+                ->whereIn('nick_name_id', $nickNames)
                 ->whereIn('topic_num', $topics->pluck('topic_num'))
                 ->with('liveTopic:id,topic_num,topic_name')
                 ->orderBy('support_id', 'desc')
