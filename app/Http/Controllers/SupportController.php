@@ -55,19 +55,23 @@ class SupportController extends Controller
      */
 
 
-     public function getDirectSupportedCamps(Request $request)
-     {
-         $user = $request->user();
-         $userId = $user->id;
-     
-         $pageOffset = $request->get('page_offset', 0); // Default to 0 if not provided
-         $pageLimit = $request->get('page_limit', 10); // Default to 10 if not provided
-         $searchTopicName = $request->get('searchTopicName', '');
-         $supportType= 'direct';
-         
-         try {
+    public function getDirectSupportedCamps(Request $request)
+    {
+        $user = $request->user();
+        $userId = $user->id;
+        $per_page = $request->get('per_page', 10); // Default to 10 if not provided
+        $searchTopicName = $request->get('search', '');
+        $supportType= 'direct';
+         // Get current page from URL, default to page 1 if not set
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            if ($page <= 0) {
+                $page = 1;
+            }
+            $page = ($page - 1);
+
+        try {
             $sql = "CALL user_support(?, ?, ?, ?, ?)";
-            $params = [$supportType, $userId, $pageOffset, $pageLimit, $searchTopicName ];
+            $params = [$supportType, $userId, $page, $per_page, $searchTopicName ];
             $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
             // Prepare the query for stored procedure call
             $stmt = $connection->prepare($sql);
@@ -83,15 +87,14 @@ class SupportController extends Controller
 
             $directSupports = [];
 
-             foreach ($paginatedData as $k => $support) {
+            foreach ($paginatedData as $k => $support) {
                  // Fetch the recent activity log with pagination or limit
-                 $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                     ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                     ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
-                     ->orderBy('created_at', 'desc')
-                     ->limit(1) // Limit the results to just the latest record
-                     ->first();
-     
+                $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                    ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                    ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(1) // Limit the results to just the latest record
+                    ->first();
                  $campData = [
                      'id' => $support->camp_num,
                      'camp_num' => $support->camp_num,
@@ -100,29 +103,24 @@ class SupportController extends Controller
                      'camp_link' => Camp::campLink($support->topic_num, $support->camp_num, $support->title, $support->camp_name),
                      'recent_activity' => $recentActivityLog,
                  ];
-     
-                 if (isset($directSupports[$support->topic_num])) {
+    
+                if (isset($directSupports[$support->topic_num])) {
                      // If topic already exists, add the camp to the topic
                      array_push($directSupports[$support->topic_num]['camps'], $campData);
-                 } else {
+                } else {
                      // Otherwise, create a new entry for the topic
-                     $directSupports[$support->topic_num] = [
-                         'topic_num' => $support->topic_num,
-                         'title' => $support->title,
-                         'nick_name_id' => $support->nick_name_id,
-                         'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
-                         'camps' => [$campData]
-                     ];
-                 }
-             }
-        // Return the response as JSON
-            return response()->json([
-                'status_code' => 200,
-                'message' => trans('message.success.success'),
-                'error' => '',
-                'data' => array_values($directSupports),
-                'total_records' => $totalRecords
-            ], 200);
+                    $directSupports[$support->topic_num] = [
+                        'topic_num' => $support->topic_num,
+                        'title' => $support->title,
+                        'nick_name_id' => $support->nick_name_id,
+                        'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
+                        'camps' => [$campData]
+                    ];
+                }
+            }
+            $finalData= ['items' => $directSupports, 'total' => $totalRecords ];
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
          } catch (\Throwable $e) {
              return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
          }
@@ -142,46 +140,54 @@ class SupportController extends Controller
     {
         $user = $request->user();
         $userId = $user->id;
-         // Get pagination parameters from the request
-         $pageOffset = $request->get('page_offset', 0); // Default to 0 if not provided
-         $pageLimit = $request->get('page_limit', 10); // Default to 10 if not provided
-         $searchTopicName = $request->get('searchTopicName', '');
-         $supportType= 'delegate';
-         
-         try {
-            $sql = "CALL user_support(?, ?, ?, ?, ?)";
-            $params = [$supportType, $userId, $pageOffset, $pageLimit, $searchTopicName ];
-            $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
-            // Prepare the query for stored procedure call
-            $stmt = $connection->prepare($sql);
-            $stmt->execute($params);
-            // Fetch the first result set (paginated data)
-            $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
+        $per_page = $request->get('per_page', 10); // Default to 10 if not provided
+        $searchTopicName = $request->get('search', '');
+        $supportType= 'delegate';
+         // Get current page from URL, default to page 1 if not set
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            if ($page <= 0) {
+                $page = 1;
+            }
+            $page = ($page - 1);
 
-            $stmt->execute($params);
-            $stmt->nextRowset();  // Move to the second result set
-             // Fetch the second result set (total count) 
-            $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
-            $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
+            try {
+                $sql = "CALL user_support(?, ?, ?, ?, ?)";
+                $params = [$supportType, $userId, $page, $per_page, $searchTopicName ];
 
-            $delegateSupports = [];
+                $connection = \DB::connection()->getPdo();  
+                // Get the raw PDO connection
+                // Prepare the query for stored procedure call
+                $stmt = $connection->prepare($sql);
+                $stmt->execute($params);
+
+                // Fetch the first result set (paginated data)
+                $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
+
+                $stmt->execute($params);
+                $stmt->nextRowset();  // Move to the second result set
+
+                // Fetch the second result set (total count) 
             
-            foreach($paginatedData as $k => $support){
+                $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
+                $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
 
-                if(isset($delegateSupports[$support->topic_num])){
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->first();
-                    $tempCamp = [
-                        'camp_num' => $support->camp_num,
-                        'camp_name' => $support->camp_name,
-                        'support_order'=> $support->support_order,
-                        'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
-                        'support_added' => date('Y-m-d',$support->start),
-                        'recent_activity' => $recentActivityLog,
-                    ];
+                $delegateSupports = [];
+                
+                foreach($paginatedData as $k => $support)
+                {
+                    if(isset($delegateSupports[$support->topic_num])){
+                        $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                            ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                            ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->first();
+                        $tempCamp = [
+                            'camp_num' => $support->camp_num,
+                            'camp_name' => $support->camp_name,
+                            'support_order'=> $support->support_order,
+                            'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
+                            'support_added' => date('Y-m-d',$support->start),
+                            'recent_activity' => $recentActivityLog,
+                        ];
                     array_push($delegateSupports[$support->topic_num]['camps'],$tempCamp);
-
                 }else{
                     $recentActivityLog = ActivityLog::where('causer_id', $userId)
                         ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
@@ -210,14 +216,9 @@ class SupportController extends Controller
                 }
             }
            
-            return response()->json([
-                'status_code' => 200,
-                'message' => trans('message.success.success'),
-                'error' => '',
-                'data' => array_values($delegateSupports),
-                'total_records' => $totalRecords
-            ], 200);
-           // return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $delegateSupports, '');
+            $finalData = ['items' => $delegateSupports, 'total' => $totalRecords ];
+         
+           return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
