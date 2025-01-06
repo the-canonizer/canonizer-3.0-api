@@ -24,6 +24,6 @@ class UpdatePaginationUserSupport extends Migration
      */
     public function down()
     {
-      //  DB::unprepared('DROP PROCEDURE IF EXISTS user_support');
+        DB::unprepared(File::get("database/data/user_support_procedure_new.sql"));
     }
 }
