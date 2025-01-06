@@ -42,59 +42,49 @@ class SupportController extends Controller
         $this->resProvider = $resProvider;
     }
     
-
-    /**
-     * @OA\Get(path="/get-direct-supported-camps",
-     *   tags={"support"},
-     *   summary="Get list of all the direct supported camps",
-     *   description="Get list of all the direct supported camps",
-     *   operationId="directSupport",
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Something went wrong")
-     * )
-     */
-
-
-    public function getDirectSupportedCamps(Request $request)
-    {
-        $user = $request->user();
-        $userId = $user->id;
-        $per_page = $request->get('per_page', 10); // Default to 10 if not provided
-        $searchTopicName = $request->get('search', '');
-        $supportType= 'direct';
+     // Common function to get the supported camps
+    
+     private function getSupportedCampsData(Request $request, $supportType)
+     {
+         $user = $request->user();
+         $userId = $user->id;
+         $per_page = $request->get('per_page', 10); // Default to 10 if not provided
+         $searchTopicName = $request->get('search', '');
+         
          // Get current page from URL, default to page 1 if not set
-            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-            if ($page <= 0) {
-                $page = 1;
-            }
-            $page = ($page - 1);
-
-        try {
-            $sql = "CALL user_support(?, ?, ?, ?, ?)";
-            $params = [$supportType, $userId, $page, $per_page, $searchTopicName ];
-            $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
-            // Prepare the query for stored procedure call
-            $stmt = $connection->prepare($sql);
-            $stmt->execute($params);
-            // Fetch the first result set (paginated data)
-            $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-            $stmt->execute($params);
-            $stmt->nextRowset();  // Move to the second result set
-             // Fetch the second result set (total count) 
-            $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
-            $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
-
-            $directSupports = [];
-
-            foreach ($paginatedData as $k => $support) {
-                 // Fetch the recent activity log with pagination or limit
-                $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                    ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                    ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
-                    ->orderBy('created_at', 'desc')
-                    ->limit(1) // Limit the results to just the latest record
-                    ->first();
+         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+         if ($page <= 0) {
+             $page = 1;
+         }
+         $page = ($page - 1);
+ 
+         try {
+             $sql = "CALL user_support(?, ?, ?, ?, ?)";
+             $params = [$supportType, $userId, $page, $per_page, $searchTopicName];
+             $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
+             $stmt = $connection->prepare($sql);
+             $stmt->execute($params);
+ 
+             // Fetch the first result set (paginated data)
+             $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
+ 
+             $stmt->execute($params);
+             $stmt->nextRowset();  // Move to the second result set
+             // Fetch the second result set (total count)
+             $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
+             $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
+ 
+             $supports = [];
+ 
+             foreach ($paginatedData as $k => $support) {
+                 // Fetch the recent activity log
+                 $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                     ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                     ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
+                     ->orderBy('created_at', 'desc')
+                     ->limit(1)
+                     ->first();
+ 
                  $campData = [
                      'id' => $support->camp_num,
                      'camp_num' => $support->camp_num,
@@ -103,130 +93,96 @@ class SupportController extends Controller
                      'camp_link' => Camp::campLink($support->topic_num, $support->camp_num, $support->title, $support->camp_name),
                      'recent_activity' => $recentActivityLog,
                  ];
-    
-                if (isset($directSupports[$support->topic_num])) {
-                     // If topic already exists, add the camp to the topic
-                     array_push($directSupports[$support->topic_num]['camps'], $campData);
-                } else {
-                     // Otherwise, create a new entry for the topic
-                    $directSupports[$support->topic_num] = [
+ 
+                 // Check if the topic already exists
+                 if (isset($supports[$support->topic_num])) {
+                     // Add the camp to the existing topic
+                     array_push($supports[$support->topic_num]['camps'], $campData);
+                 } else {
+                     // Create a new topic with the camp
+                    $supports[$support->topic_num] = [
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
                         'nick_name_id' => $support->nick_name_id,
                         'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
-                        'camps' => [$campData]
+                        'camps' => [$campData],
                     ];
+                 }
+ 
+                 // If the support type is delegate, add delegate-specific data
+                if ($supportType == 'delegate') {
+                    $supports[$support->topic_num]['delegated_nick_name_id'] = $support->delegate_nick_name_id;
+                    $supports[$support->topic_num]['my_nick_name'] = $support->my_nick_name;
+                    $supports[$support->topic_num]['my_nick_name_link'] = Nickname::getNickNameLink(
+                        $support->nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num
+                    );
+                    $supports[$support->topic_num]['delegated_to_nick_name'] = $support->delegated_to_nick_name;
+                    $supports[$support->topic_num]['delegated_to_nick_name_link'] = Nickname::getNickNameLink(
+                        $support->delegate_nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num
+                    );
                 }
             }
-            $finalData= ['items' => $directSupports, 'total' => $totalRecords ];
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
+ 
+            return [
+                 'items' => $supports,
+                 'total' => $totalRecords
+             ];
+ 
          } catch (\Throwable $e) {
              return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
          }
      }
-     
-    /**
-     * @OA\Get(path="/get-delegate-supported-camps",
-     *   tags={"support"},
-     *   summary="Get list of all the direct supported camps",
-     *   description="Get list of all the direct supported camps",
-     *   operationId="delegateSupport",
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Something went wrong")
-     * )
-     */
-    public function getDelegatedSupportedCamps(Request $request)
-    {
-        $user = $request->user();
-        $userId = $user->id;
-        $per_page = $request->get('per_page', 10); // Default to 10 if not provided
-        $searchTopicName = $request->get('search', '');
-        $supportType= 'delegate';
-         // Get current page from URL, default to page 1 if not set
-            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-            if ($page <= 0) {
-                $page = 1;
-            }
-            $page = ($page - 1);
-
-            try {
-                $sql = "CALL user_support(?, ?, ?, ?, ?)";
-                $params = [$supportType, $userId, $page, $per_page, $searchTopicName ];
-
-                $connection = \DB::connection()->getPdo();  
-                // Get the raw PDO connection
-                // Prepare the query for stored procedure call
-                $stmt = $connection->prepare($sql);
-                $stmt->execute($params);
-
-                // Fetch the first result set (paginated data)
-                $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-                $stmt->execute($params);
-                $stmt->nextRowset();  // Move to the second result set
-
-                // Fetch the second result set (total count) 
-            
-                $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
-                $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
-
-                $delegateSupports = [];
-                
-                foreach($paginatedData as $k => $support)
-                {
-                    if(isset($delegateSupports[$support->topic_num])){
-                        $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                            ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                            ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->first();
-                        $tempCamp = [
-                            'camp_num' => $support->camp_num,
-                            'camp_name' => $support->camp_name,
-                            'support_order'=> $support->support_order,
-                            'camp_link' => Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                        
-                            'support_added' => date('Y-m-d',$support->start),
-                            'recent_activity' => $recentActivityLog,
-                        ];
-                    array_push($delegateSupports[$support->topic_num]['camps'],$tempCamp);
-                }else{
-                    $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                        ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                        ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)->latest()->first();
-                    $delegateSupports[$support->topic_num] = array(
-                        'topic_num' => $support->topic_num,
-                        'title' => $support->title,
-                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
-                        'nick_name_id' => $support->nick_name_id,
-                        'delegated_nick_name_id' => $support->delegate_nick_name_id,
-                        'my_nick_name' => $support->my_nick_name,
-                        'my_nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $support->namespace_id, $support->topic_num, $support->camp_num),
-                        'delegated_to_nick_name' => $support->delegated_to_nick_name,
-                        'delegated_to_nick_name_link' => Nickname::getNickNameLink($support->delegate_nick_name_id, $support->namespace_id, $support->topic_num,  $support->camp_num),
-                        'camps' => array(
-                                [
-                                    'camp_num' => $support->camp_num,
-                                    'camp_name' => $support->camp_name,
-                                    'support_order' => $support->support_order,
-                                    'camp_link' =>  Camp::campLink($support->topic_num,$support->camp_num,$support->title,$support->camp_name),                                   
-                                    'support_added' => date('Y-m-d',$support->start),
-                                    'recent_activity' => $recentActivityLog,
-                                ]
-                        ),
-                    );
-                }
-            }
+ 
+       /**
+      * @OA\Get(path="/get-direct-supported-camps",
+      *   tags={"support"},
+      *   summary="Get list of all the direct supported camps",
+      *   description="Get list of all the direct supported camps",
+      *   operationId="directSupport",
+      *   @OA\Response(response=200, description="Success"),
+      *   @OA\Response(response=400, description="Something went wrong")
+      * )
+      */
+ 
+      public function getDirectSupportedCamps(Request $request)
+      {
+        try{
+           $supportType = 'direct';  // Direct support type
+           $finalData = $this->getSupportedCampsData($request, $supportType); // Call the common function
            
-            $finalData = ['items' => $delegateSupports, 'total' => $totalRecords ];
-         
            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
 
-        } catch (\Throwable $e) {
+        }catch(\Throwable $e) {
+
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
-    }
-
-
+          
+      }
+ 
+     /**
+      * @OA\Get(path="/get-delegate-supported-camps",
+      *   tags={"support"},
+      *   summary="Get list of all the direct supported camps",
+      *   description="Get list of all the direct supported camps",
+      *   operationId="delegateSupport",
+      *   @OA\Response(response=200, description="Success"),
+      *   @OA\Response(response=400, description="Something went wrong")
+      * )
+      */
+ 
+     public function getDelegatedSupportedCamps(Request $request)
+     {
+        try{
+            $supportType = 'delegate';  // Delegate support type
+            $finalData = $this->getSupportedCampsData($request, $supportType); // Call the common function
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
+        }
+        catch(\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+       
+     }
+ 
     /** @OA\Get(path="/add-direct-support",
      *   tags={"addSupport"},
      * )
@@ -234,7 +190,6 @@ class SupportController extends Controller
      */
     public function addDirectSupport(Request $request, Validate $validate)
     {        
-        
         $validationErrors = $validate->validate($request, $this->rules->getAddDirectSupportRule(), $this->validationMessages->getAddDirectSupportMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -264,7 +219,6 @@ class SupportController extends Controller
            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
 
     /** @OA\Get(path="support/add-delegate",
      *   tags={"addSupport"},
@@ -763,4 +717,10 @@ class SupportController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+
+   
+    
+
+
 }
