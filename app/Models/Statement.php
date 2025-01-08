@@ -318,7 +318,7 @@ class Statement extends Model
                     ->first();
 
                 $propose_edit_response['edit_id'] = $getTheLatestStatementRecord->id ?? NULL;
-                if ($getTheLatestStatementRecord){
+                if ($getTheLatestStatementRecord) {
                     switch ($getTheLatestStatementRecord) {
                         case $getTheLatestStatementRecord->objector_nick_id !== NULL:
                             $propose_edit_response['status'] = "objected";
@@ -333,7 +333,7 @@ class Statement extends Model
                             break;
                         default:
                             $propose_edit_response['status'] = "old";
-                }
+                    }
                 }
             }
 
