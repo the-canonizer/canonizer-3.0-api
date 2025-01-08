@@ -25,7 +25,7 @@ class AddFulltextIndexToParsedValueStatement extends Migration
      */
     public function down()
     {
-        Schema::table('statememt', function (Blueprint $table) {
+        Schema::table('statement', function (Blueprint $table) {
             $table->dropIndex('parsed_value_fulltext_index');
         });
     }
