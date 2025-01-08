@@ -813,7 +813,7 @@ class StatementController extends Controller
                 $statement['latestRevision'] = ($latestRevision->submit_time);
             }
             if ($request->compare == 'topic') {
-                $campStatement =  Topic::whereIn('id', $request->ids)->with('topicTags.tag:id,title')->get();
+                $campStatement =  Topic::whereIn('id', $request->ids)->with('tags:id,title')->get();
 
                 foreach ($campStatement as $val) {
 
@@ -839,7 +839,7 @@ class StatementController extends Controller
                         'namespace_id' => $val->namespace_id,
                         'namespace' => Namespaces::find($val->namespace_id)->label,
                         'is_rank_hidden' => $val->is_rank_hidden,
-                        'topic_tags' => $val->topicTags,
+                        'topic_tags' => $val->tags,
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;

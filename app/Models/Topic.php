@@ -160,6 +160,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasMany(TopicTag::class, 'topic_num', 'topic_num');
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'topics_tags');
+    }
+
     public function topicTagFailures()
     {
         return $this->hasMany(TopicTagFailure::class, 'topic_num', 'topic_num');
@@ -277,7 +282,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             $q->where('submit_time', '<=', $filter['currentTime']);
         });
 
-        $topicHistoryQuery->with('topicTags.tag:id,title');
+        $topicHistoryQuery->with('tags');
         
         $response = Util::getPaginatorResponse($topicHistoryQuery->paginate($filter['per_page']));
         $response = self::filterTopicHistory($response, $filter, $liveTopic, $request);

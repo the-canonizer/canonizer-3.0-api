@@ -34,6 +34,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\CorrectSupportOrder',
         'App\Console\Commands\FixTheDatesForUploadedFiles',
         'App\Console\Commands\AssociateTopicTags',
+        'App\Console\Commands\UpdateTopicTagsRecordIds',
     ];
 
     /**
