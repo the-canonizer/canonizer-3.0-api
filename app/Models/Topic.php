@@ -277,6 +277,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             $q->where('submit_time', '<=', $filter['currentTime']);
         });
 
+        $topicHistoryQuery->with('topicTags.tag:id,title');
+        
         $response = Util::getPaginatorResponse($topicHistoryQuery->paginate($filter['per_page']));
         $response = self::filterTopicHistory($response, $filter, $liveTopic, $request);
         return $response;
