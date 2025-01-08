@@ -328,7 +328,6 @@ class Search extends Model
             array_push($camps, $temp);
          }
 
-
         return $camps;
     }
 
@@ -377,7 +376,7 @@ class Search extends Model
                     $query->where('a.camp_name', 'like', '%' . $search . '%');
                     $query->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]); 
                 }   
-        
+                $query->orderBy('b.live_time', "DESC");
                 //  dd($query->toSql());
                 $results = $query->get();
 
@@ -399,8 +398,6 @@ class Search extends Model
 
             return $data;
     }
-
-
 
     public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search)
     {
@@ -443,6 +440,8 @@ class Search extends Model
                     $query->orWhereRaw("MATCH(a.topic_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]); 
                 }   
 
+                $query->orderBy('b.live_time', "DESC");
+                
                 $results = $query->get();
                 $data = [];
 
