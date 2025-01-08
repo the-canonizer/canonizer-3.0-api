@@ -55,10 +55,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         parent::boot();
             
-        static::saved(function($item) {
-            //forget cache
+        static::saved(function($item) 
+        {
             self::forgetCache($item);
-
             $liveTopic = Topic::getLiveTopic($item->topic_num);            
             $namespace = Namespaces::find($liveTopic->namespace_id);            
             $namespaceLabel = 'no-namespace';
@@ -67,13 +66,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
             }
             $type = "camp";
-            $typeValue = $item->camp_name;
-            $topicNum = $item->topic_num;
-            $campNum = $item->camp_num;
-            $campName = $item->camp_name;
-            $goLiveTime = $item->go_live_time;
-            $namespace = $namespaceLabel; //fetch namespace
-            $breadcrumb = '';
+                $typeValue = $item->camp_name;
+                $topicNum = $item->topic_num;
+                $campNum = $item->camp_num;
+                $campName = $item->camp_name;
+                $goLiveTime = $item->go_live_time;
+                $namespace = $namespaceLabel; //fetch namespace
+                $breadcrumb = '';
             $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
             if($item->camp_num == 1){
                 $type = "topic";
@@ -86,13 +85,13 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
             }
 
-           
             if($item->is_archive && $item->go_live_time <= time()){
                 ElasticSearch::deleteData($id);
                 return;
             }
 
-            if($item->go_live_time <= time()){
+            if($item->go_live_time <= time())
+            {
                 ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
             }
 
@@ -270,34 +269,43 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             ->latest('go_live_time')->first();
     }
 
-    public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index = 0): array
+    public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index = 0, $visitedCamps = []): array
     {
         $as_of_time = time();
         if (isset($filter['asOf']) && $filter['asOf'] == 'bydate') {
             $as_of_time = strtotime($filter['asOfDate']);
         }
+
         if ($camp) {
+            // Avoid revisiting the same camp (prevent circular reference)
+            if (in_array($camp->camp_num, $visitedCamps)) {
+                return array_reverse($campNames); // Prevent infinite loop
+            }
+            $visitedCamps[] = $camp->camp_num;
+
             $campNames[$index]['camp_name'] = $camp->camp_name;
             $campNames[$index]['topic_num'] = $camp->topic_num;
             $campNames[$index]['camp_num'] = $camp->camp_num;
             $index++;
-            if ($camp->parent_camp_num) {
-                if(isset($filter['asOf']) && $filter['asOf'] == 'review') {
-                    $pCamp = Camp::where('topic_num', $camp->topic_num)
+
+        if ($camp->parent_camp_num) {
+            if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
+                $pCamp = Camp::where('topic_num', $camp->topic_num)
                     ->where('camp_num', $camp->parent_camp_num)
                     ->where('grace_period', 0)
                     ->where('objector_nick_id', '=', NULL)
                     ->orderBy('go_live_time', 'DESC')->first();
-                } else {
-                    $pCamp = Camp::where('topic_num', $camp->topic_num)
-                        ->where('camp_num', $camp->parent_camp_num)
-                        ->where('objector_nick_id', '=', NULL)
-                        ->where('go_live_time', '<=', $as_of_time)
-                        ->orderBy('submit_time', 'DESC')->first();
-                }
-                return self::campNameWithAncestors($pCamp, $filter, $campNames, $index);
+            } else {
+                $pCamp = Camp::where('topic_num', $camp->topic_num)
+                    ->where('camp_num', $camp->parent_camp_num)
+                    ->where('objector_nick_id', '=', NULL)
+                    ->where('go_live_time', '<=', $as_of_time)
+                    ->orderBy('submit_time', 'DESC')->first();
+            }
+                return self::campNameWithAncestors($pCamp, $filter, $campNames, $index, $visitedCamps);
             }
         }
+
         return array_reverse($campNames);
     }
 
