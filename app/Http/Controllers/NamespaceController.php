@@ -67,14 +67,10 @@ class NamespaceController extends Controller
     public function getAll()
     {
         try {
-            $cacheKey = 'all_namespaces';
-            $namespaces = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () {
                 $namespaces = Namespaces::orderBy('sort_order', 'ASC')->get();
                 foreach ($namespaces as $namespace) {
                     $namespace->label = Namespaces::getNamespaceLabel($namespace, $namespace->name);
                 }
-                return $namespaces;
-            });
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $namespaces, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
