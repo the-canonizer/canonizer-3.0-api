@@ -742,5 +742,13 @@ class ValidationRules
             'confirmation_code' => 'required'
         ]);
     }
+
+    public function getGravatarValidatonRules(): array
+    {
+        return ([
+            'email' => 'required'
+        ]);
+    }
+
     
 }

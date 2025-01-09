@@ -19,13 +19,16 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+
+
+
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
 $router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
 
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
-
+ 
     $router->post('/client-token','UserController@clientToken');
     $router->post('/embedded-code-tracking','EmbeddedCodeController@createEmbeddedCodeTracking');
 
@@ -33,6 +36,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/search-filter','SearchController@advanceSearchFilter');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
+  
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');
@@ -84,6 +88,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/featured-topic', 'TopicController@featuredTopic');
         $router->post('get-tags-list','TagController@getTagsList');
         $router->post('get-sibling-camps','CampController@getSiblingCamps');
+        $router->post('/gravatar', 'ProfileController@getGravatar');
         //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
@@ -164,6 +169,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/update-email','ProfileController@verifyAndUpdateEmail');
         $router->post('/add-email','ProfileController@addEmail');
         $router->get('/users-email','ProfileController@getAllEmail');
+       
     });
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('/edit-camp-newsfeed','NewsFeedController@editNewsFeed');
