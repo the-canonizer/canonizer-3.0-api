@@ -279,8 +279,9 @@ class Statement extends Model
         return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
     }
 
-    public static function getProposeStatementEditId(array $filter) {
-        
+    public static function getProposeStatementEditId(array $filter)
+    {
+
         try {
 
             /*
@@ -290,33 +291,52 @@ class Statement extends Model
             */
             $propose_edit_response = [
                 'edit_id' => NULL,
-                'grace_period' => 0
+                'grace_period' => 0,
+                'status' => '',
             ];
-            
+
             $nickNames = NickName::personNicknameArray();
             $checkCurrentUserNonCommitted = self::where('topic_num', $filter['topicNum'])
-                                            ->whereIn('submitter_nick_id', $nickNames)
-                                            ->where('camp_num', $filter['campNum'])
-                                            ->where('is_draft', 0)
-                                            ->where('grace_period', 1)
-                                            ->orderBy('submit_time', 'desc')
-                                            ->first();
-            
-            if(!empty($checkCurrentUserNonCommitted)) {
+                ->whereIn('submitter_nick_id', $nickNames)
+                ->where('camp_num', $filter['campNum'])
+                ->where('is_draft', 0)
+                ->where('grace_period', 1)
+                ->orderBy('submit_time', 'desc')
+                ->first();
+
+            if (!empty($checkCurrentUserNonCommitted)) {
                 $propose_edit_response['edit_id'] = $checkCurrentUserNonCommitted->id;
                 $propose_edit_response['grace_period'] = 1;
+                $propose_edit_response['status'] = 'in_grace_period';
             } else {
-    
+
                 $getTheLatestStatementRecord = self::where('topic_num', $filter['topicNum'])
-                                                ->where('camp_num', $filter['campNum'])
-                                                ->where('is_draft', 0)
-                                                ->where('grace_period', 0)
-                                                ->orderBy('submit_time', 'desc')
-                                                ->first();
-                                
+                    ->where('camp_num', $filter['campNum'])
+                    ->where('is_draft', 0)
+                    ->where('grace_period', 0)
+                    ->orderBy('submit_time', 'desc')
+                    ->first();
+
                 $propose_edit_response['edit_id'] = $getTheLatestStatementRecord->id ?? NULL;
-            }
+                if ($getTheLatestStatementRecord) {
+                    switch ($getTheLatestStatementRecord) {
+                        case $getTheLatestStatementRecord->objector_nick_id !== NULL:
+                            $propose_edit_response['status'] = "objected";
+                            break;
     
+                        case time() < $getTheLatestStatementRecord->go_live_time && time() >= $getTheLatestStatementRecord->submit_time:
+                            $propose_edit_response['status'] = "in_review";
+                            break;
+    
+                        case time() > $getTheLatestStatementRecord->go_live_time:
+                            $propose_edit_response['status'] = "live";
+                            break;
+                        default:
+                            $propose_edit_response['status'] = "old";
+                    }
+                }
+            }
+
             return $propose_edit_response;
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
