@@ -1812,9 +1812,9 @@ class TopicSupport
             $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
             if ($oldest_direct_supporter) {
                 $nickName = Nickname::getNickName($oldest_direct_supporter->nick_name_id)->nick_name;
-                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader. '
+                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'You will be added as direct supporter and assigned as camp leader. '
                 : "The oldest direct supporter <b>" . $nickName . "</b> will be assigned as new camp leader and your support will be delegated to the camp leader.";
-                $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>." . $oldestDirectSupportMessage;
+                $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. " . $oldestDirectSupportMessage;
                 return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null, $remove_camps, $haveWarning);
             }
         }
