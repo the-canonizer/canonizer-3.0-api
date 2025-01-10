@@ -71,7 +71,7 @@ class Search extends Model
                         'filter' => [
                             [
                                 'terms' => [
-                                    'type.keyword' => $type, // Use the custom type value here
+                                    'type' => $type, // Use the custom type value here
                                 ],
                             ],
                         ],
@@ -82,7 +82,7 @@ class Search extends Model
                 'aggs' => [
                     'type_counts' => [
                         'terms' => [
-                            'field' => 'type.keyword',
+                            'field' => 'type',
                             // No size parameter specified
                         ],
                     ],
