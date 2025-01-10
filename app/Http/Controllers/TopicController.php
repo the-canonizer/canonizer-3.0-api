@@ -2329,14 +2329,12 @@ class TopicController extends Controller
             $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
             $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
-            $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
-                $query->whereIn('tag_id', $userTags);
-            }])
-                ->whereHas('topicTags', function ($query) use ($userTags) {
+            
+            $topics = Topic::with(['tags' => function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
-                })
+                }])
                 ->whereNotIn('namespace_id', $namespaceIds)
-                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <= ' . time() . ' group by topic.topic_num)')
                 ->orderBy('submit_time', 'DESC');
             if ($isRandom) {
                 $topics = $topics->inRandomOrder()->paginate($perPage);
@@ -2356,8 +2354,6 @@ class TopicController extends Controller
                 $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                 // Get the tag IDs associated with $liveTopic
-                $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
 
                 return [
                     'id' => $liveTopic->id,
@@ -2367,7 +2363,7 @@ class TopicController extends Controller
                     'topic_name' => $topicTitle,
                     'camp_name' => $campTitle,
                     'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'topicTags' => $tags,
+                    'tags' => $liveTopic->tags->makeHidden(['pivot']),
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
