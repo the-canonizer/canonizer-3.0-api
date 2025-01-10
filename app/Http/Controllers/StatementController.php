@@ -839,7 +839,7 @@ class StatementController extends Controller
                         'namespace_id' => $val->namespace_id,
                         'namespace' => Namespaces::find($val->namespace_id)->label,
                         'is_rank_hidden' => $val->is_rank_hidden,
-                        'topic_tags' => $val->tags,
+                        'tags' => $val->tags->makeHidden(['pivot']),
                     );
                 }
                 $filter['topicNum'] = $request->topic_num;
@@ -847,6 +847,7 @@ class StatementController extends Controller
                 $filter['asOf'] = "";
                 $filter['asOfDate'] = "";
                 $liveStatement = Topic::getLiveTopic($request->topic_num, $request->asof ?? "default");
+                $liveStatement->tags->makeHidden(['pivot']);
                 $latestRevision = Topic::where('topic_num', $request->topic_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
