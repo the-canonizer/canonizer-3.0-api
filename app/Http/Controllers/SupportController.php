@@ -64,11 +64,12 @@ class SupportController extends Controller
              $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
              $stmt = $connection->prepare($sql);
              $stmt->execute($params);
-             
-             // Fetch the first result set (paginated data)
+           
+             // Fetch the first result set (paginated data
              $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
+           
              $stmt->nextRowset();  // Move to the second result set
-             // Fetch the second result set (total count)
+            // Fetch the second result set (total count)
              $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
              $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
  
