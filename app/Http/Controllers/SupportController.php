@@ -64,9 +64,10 @@ class SupportController extends Controller
              $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
              $stmt = $connection->prepare($sql);
              $stmt->execute($params);
-             // Fetch the first result set (paginated data)
+           
+             // Fetch the first result set (paginated data
              $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
-          
+           
              $stmt->nextRowset();  // Move to the second result set
             // Fetch the second result set (total count)
              $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
@@ -76,12 +77,12 @@ class SupportController extends Controller
  
              foreach ($paginatedData as $k => $support) {
                  // Fetch the recent activity log
-                 $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                     ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                     ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
-                     ->orderBy('created_at', 'desc')
-                     ->limit(1)
-                     ->first();
+                //  $recentActivityLog = ActivityLog::where('causer_id', $userId)
+                //      ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
+                //      ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
+                //      ->orderBy('created_at', 'desc')
+                //      ->limit(1)
+                //      ->first();
  
                  $campData = [
                      'id' => $support->camp_num,
@@ -89,7 +90,7 @@ class SupportController extends Controller
                      'camp_name' => $support->camp_name,
                      'support_order' => $support->support_order,
                      'camp_link' => Camp::campLink($support->topic_num, $support->camp_num, $support->title, $support->camp_name),
-                     'recent_activity' => $recentActivityLog,
+                   //  'recent_activity' => $recentActivityLog,
                  ];
  
                  // Check if the topic already exists
