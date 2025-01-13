@@ -797,84 +797,106 @@ class TopicSupport
 
     public static function groupCampsForNickId($results, $nickname,$namespaceId = 1)
     {
-        $supports[$nickname->id] = [];
-        $supports[$nickname->id]['nick_name_id'] = $nickname->id;
-        $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
-        $supports[$nickname->id]['private_status'] = $nickname->private;
+        try{
+
+            $supports[$nickname->id] = [];
+            $supports[$nickname->id]['nick_name_id'] = $nickname->id;
+            $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
+            $supports[$nickname->id]['private_status'] = $nickname->private;
+            if (!isset($supports[$nickname->id]['topic'])) {
+                $supports[$nickname->id]['topic'] = [];
+            }
+            foreach ($results as $rs) {
+                $topic_num = $rs->topic_num;
+                $camp_num = $rs->camp_num;
+                $filter['topicNum'] = $topic_num;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+                $delegatedToNickname = '';
+                if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
+                    continue;
+                }
+                //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+               // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
+                $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
+                $topic_id = $topic_num . "-" . $title;
+                $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
+                
+                if(isset($rs->delegate_nick_name_id) && $rs->delegate_nick_name_id){
+                    $dnModel = Nickname::getNickName($rs->delegate_nick_name_id);
+                    $delegatedToNickname = $dnModel->nick_name;
+                }
+    
+                if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
+    
+                    $tempCamp = [
+                                'camp_name' => $livecamp->camp_name, 
+                                'camp_num' => $camp_num, 
+                                'support_order' => $rs->support_order,
+                                'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
+                                'delegate_nick_name_id' => $rs->delegate_nick_name_id,
+                                'delegate_nick_name' => $delegatedToNickname
+                            ];
+                    
+                    if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
+                        array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
+                    }else{
+                        $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+                    }
+    
+                } else if ($camp_num == 1) { 
+    
+                    //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
+                    $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
+                    $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
+                    $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
+                    $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
+                    $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
+                    if($rs->delegate_nick_name_id){
+                        $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
+                        $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name'] = $delegatedToNickname;
+                    }
+                    
+                } else {
+    
+                    $tempCamp = [
+                        'camp_name' => $livecamp->camp_name, 
+                        'camp_num' => $camp_num, 
+                        'support_order' => $rs->support_order,
+                        'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
+                        'delegate_nick_name_id'=>$rs->delegate_nick_name_id,
+                        'delegate_nick_name' => $delegatedToNickname
+                    ];
+    
+                    if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
+                        array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
+                    }else{
+                        $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+                    }
+                }
+            }
+    
+            $hasCamps = false;
+            foreach ($supports[$nickname->id]['topic'] as $topic_data) {
+                if (!empty($topic_data['camps'])) {
+                    $hasCamps = true;
+                    break;  // If any topic has camps, we set this flag to true
+                }
+            }
         
-        foreach ($results as $rs) {
-            $topic_num = $rs->topic_num;
-            $camp_num = $rs->camp_num;
-            $filter['topicNum'] = $topic_num;
-            $filter['asOf'] = '';
-            $filter['campNum'] =  $camp_num;
-            $livecamp = Camp::getLiveCamp($filter);
-            $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-            $delegatedToNickname = '';
-            if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
-                continue;
+            // If no camps are found for the nickname, return null or empty array
+            if (!$hasCamps) {
+                return []; // Or return [] if you prefer an empty array
             }
-            //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-           // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
-            $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
-            $topic_id = $topic_num . "-" . $title;
-            $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
-            
-            if(isset($rs->delegate_nick_name_id) && $rs->delegate_nick_name_id){
-                $dnModel = Nickname::getNickName($rs->delegate_nick_name_id);
-                $delegatedToNickname = $dnModel->nick_name;
-            }
-
-            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
-
-                $tempCamp = [
-                            'camp_name' => $livecamp->camp_name, 
-                            'camp_num' => $camp_num, 
-                            'support_order' => $rs->support_order,
-                            'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
-                            'delegate_nick_name_id' => $rs->delegate_nick_name_id,
-                            'delegate_nick_name' => $delegatedToNickname
-                        ];
-                
-                if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
-                    array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
-                }else{
-                    $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
-                }
-
-            } else if ($camp_num == 1) { 
-
-                //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-                $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
-                $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
-                $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
-                $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-                $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
-                if($rs->delegate_nick_name_id){
-                    $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
-                    $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name'] = $delegatedToNickname;
-                }
-                
-            } else {
-
-                $tempCamp = [
-                    'camp_name' => $livecamp->camp_name, 
-                    'camp_num' => $camp_num, 
-                    'support_order' => $rs->support_order,
-                    'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
-                    'delegate_nick_name_id'=>$rs->delegate_nick_name_id,
-                    'delegate_nick_name' => $delegatedToNickname
-                ];
-
-                if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
-                    array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
-                }else{
-                    $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
-                }
-            }
+    
+            return $supports;
         }
-
-        return $supports;
+        catch (\Exception $e){
+            dd($e);
+        }
+     
     }
 
     /**
