@@ -563,7 +563,7 @@ class StatementController extends Controller
         $statement->note = $all['note'] ?? "";
         $statement->submitter_nick_id = $all['nick_name'];
         if (isset($all['is_draft']) && $all['is_draft']) {
-            // $statement->submit_time = time();
+            $statement->submit_time = time();
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
             $statement->grace_period = 0;
         }
