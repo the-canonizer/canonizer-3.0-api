@@ -39,10 +39,12 @@ class SearchController extends Controller
             }
             
             if(count($typesToSearch) ==  1){
-                $search_ids = self::getSearchIds($term, $type, $size, $page);
+                $all_size=10000;
+                $all_page=0;
+                $search_ids = self::getSearchIds($term, $type,$all_size, $all_page);
             }
 
-            $response = self::optimizeResponse($data, $total, $page, $size,$search_ids, $totalCounts,);
+            $response = self::optimizeResponse($data, $total, $page, $size, $search_ids, $totalCounts);
             $status = 200;
             $message =  trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $response, null);
@@ -81,7 +83,7 @@ class SearchController extends Controller
         $campIds    = $all['camp_ids'] ?? [];
         $topicIds   = $all['topic_ids'] ?? [];
         $pageNumber = $all['page_number'] ?? 1;
-        $pageSize   = $all['page_size'] ?? 2;
+        $pageSize   = $all['page_size'] ?? 20;
         $asofdate   = $all['asofdate'] ?? time();
 
         $status = 200;
@@ -94,19 +96,25 @@ class SearchController extends Controller
             case 'camp':
                 $response['camp'] = [];
                 if(!empty($topicIds) || !empty($campIds)){
-                    $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate, $search); 
+                    $result = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize); 
+                    $response['camp']  = $result['data'];
+                    $response['camp_total'] = $result['total'];
                 }
                 break;
             case 'topic':
                 $response['topic'] = [];
                 if(!empty($topicIds)){
-                    $response['topic'] = Search::advanceTopicSearch($topicIds, $campIds, $asof,$asofdate, $search);
+                    $result = Search::advanceTopicSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize);
+                    $response['topic']  = $result['data'];
+                    $response['topic_total'] = $result['total'];
                 }
                 break;
             case 'statement':
                 $response['statement'] = [];
                 if(!empty($topicIds) && !empty($campIds)){
-                    $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate, $search);
+                    $result = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize);
+                    $response['statement'] = $result['data'];
+                    $response['statement_total'] = $result['total'];
                 }
                 break;
             default:
@@ -128,9 +136,9 @@ class SearchController extends Controller
                     })->filter()->implode(',');
             }
             if($type == 'camp' || $type == 'statement'){
-                $camp_ids =  collect($result['data'])->pluck('camp_num')->filter()->implode(',');
-                $topic_ids = collect($result['data'])->pluck('topic_num')->filter()->implode(',');
-                }
+                $camp_ids =  collect($result['data'])->pluck('camp_num')->implode(',');
+                $topic_ids = collect($result['data'])->pluck('topic_num')->implode(',');
+            }
 
             return ['camp_ids' => $camp_ids, 'topic_ids' => $topic_ids];
 

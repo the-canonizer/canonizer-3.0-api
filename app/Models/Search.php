@@ -319,9 +319,10 @@ class Search extends Model
         return $camps;
     }
 
-    public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '')
+    public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
     {
         $asofdate = ($asofdate) ? $asofdate : time();
+        // Build the query
         $query = DB::table('camp as a')
                     ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
                     ->join(DB::raw('(SELECT
@@ -339,52 +340,57 @@ class Search extends Model
                                     GROUP BY
                                         topic_num,
                                         camp_num) b'), function ($join) {
-                                    $join->on('a.topic_num', '=', 'b.topic_num')
-                                        ->on('a.camp_num', '=', 'b.camp_num')
-                                        ->on('a.go_live_time', '=', 'b.live_time');
-                                });
-
-                if ($asof != 'review') {
-                    $query->where('b.live_time', '<=', $asofdate);
-                } else if($asof == 'default') {
-                    $query->where(function ($query) use ($asofdate) {
-                        // Include live records (go_live_time <= $asofdate)
-                        $query->where('b.live_time', '<=', $asofdate)
-                        // Include in-review records (go_live_time > $asofdate)
-                        ->orWhere('b.live_time', '>', $asofdate);
+                        $join->on('a.topic_num', '=', 'b.topic_num')
+                            ->on('a.camp_num', '=', 'b.camp_num')
+                            ->on('a.go_live_time', '=', 'b.live_time');
                     });
-                }else  if ($asof == 'bydate') {
-                    // Only include records that were live before or on $asofdate
-                    $query->where('b.live_time', '<=', $asofdate);
-                } 
-                if(!empty($search)){
-                    $query->where('a.camp_name', 'like', '%' . $search . '%');
-                    $query->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]); 
-                }   
-                $query->orderBy('b.live_time', "DESC");
-               //  dd($query->toSql());
-                $results = $query->get();
-                $data = [];
-                foreach($results as $result)
-                {
-                    $topicNum = $result->topic_num;
-                    $campNum = $result->camp_num;
-                    $liveTopic = Topic::getLiveTopic($topicNum);
-                    $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-                    if($checkTopicNum){
-                        $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                        $temp['topic_num'] = $topicNum;
-                        $temp['camp_num'] = $campNum;
-                        $temp['camp_name'] = $result->camp_name;
-                        $temp['breadcrumb'] = $breadcrumb;
-                    } 
-                    array_push($data,$temp);
-                }
 
-            return $data;
+        // Filter based on 'asof' and 'asofdate' conditions
+        if ($asof != 'review') {
+            $query->where('b.live_time', '<=', $asofdate);
+        } else if ($asof == 'default') {
+            $query->where(function ($query) use ($asofdate) {
+                $query->where('b.live_time', '<=', $asofdate)
+                    ->orWhere('b.live_time', '>', $asofdate);
+            });
+        } else if ($asof == 'bydate') {
+            $query->where('b.live_time', '<=', $asofdate);
+        }
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $query->where('a.camp_name', 'like', '%' . $search . '%');
+            $query->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]);
+        }
+        $query->orderBy('b.live_time', "DESC");
+        $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
+
+        $data = [];
+        foreach ($results as $result) {
+            $id = $result->id;
+            $topicNum = $result->topic_num;
+            $campNum = $result->camp_num;
+            $liveTopic = Topic::getLiveTopic($topicNum);
+            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+            if ($checkTopicNum) {
+                $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                $temp = [
+                    'id' => $id,
+                    'topic_num' => $topicNum,
+                    'camp_num' => $campNum,
+                    'camp_name' => $result->camp_name,
+                    'breadcrumb' => $breadcrumb
+                ];
+                array_push($data, $temp);
+            }
+        }
+        return [
+            'data' => $data,
+            'total' => $results->total()
+        ];
     }
 
-    public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search)
+
+    public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search, $pageNumber, $pageSize)
     {
         $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('topic as a')
@@ -426,15 +432,16 @@ class Search extends Model
                 }   
 
                 $query->orderBy('b.live_time', "DESC");
+                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
                 
-                $results = $query->get();
                 $data = [];
-
                 foreach($results as $result)
                 {
+                    $id= $result->id;
                     $topicNum = $result->topic_num;
                     $campNum = 1;
                     $namespace = Namespaces::find($result->namespace_id);
+                    $temp['id']=$id;
                     $temp['topic_num'] = $topicNum;
                     $temp['camp_num'] = $campNum;
                     $temp['camp_name'] = 'Agreement';
@@ -445,10 +452,13 @@ class Search extends Model
                     array_push($data,$temp);
                 }
 
-            return $data;
+            return [
+                'data' => $data,
+                'total' => $results->total()
+            ];
     }
 
-    public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search='')
+    public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search='', $pageNumber, $pageSize)
     {
         $data=[];
         $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
@@ -493,7 +503,6 @@ class Search extends Model
                         ->on('a.camp_num', '=', 'c.camp_num');
                 });
 
-
                 if ($asof != 'review') {
                     // When asof is not 'review', include only live records (go_live_time <= $asofdate)
                     $query->where('b.live_time', '<=', $asofdate);
@@ -510,16 +519,18 @@ class Search extends Model
                     $query->where('a.go_live_time', '<=', $asofdate);
                 }  
 
-                $results = $query->get();
+                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
 
                 foreach($results as $result)
                 {
+                    $id= $result->id;
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
                     $liveTopic = Topic::getLiveTopic($topicNum);
                     $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
                     if($checkTopicNum){
                         $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                        $temp['id'] = $id;
                         $temp['topic_num'] = $topicNum;
                         $temp['camp_num'] = $campNum;
                         $temp['camp_name'] = $result->camp_name;
@@ -528,7 +539,10 @@ class Search extends Model
                         array_push($data,$temp);
                     }
                 }
-            return $data;
+                return [
+                    'data' => $data,
+                    'total' => $results->total()
+                ];
     }
 
 
@@ -613,8 +627,4 @@ class Search extends Model
             Log::error("Empty response, something went wrong");
         }
     }  */
-
-    
-
-  
 }
