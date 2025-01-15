@@ -127,24 +127,31 @@ class SearchController extends Controller
     public function getSearchIds($term, $type, int $size = 10000, int $page = 0)
     {
         try {
-            $camp_ids='';
-            $result = Search::getSearchData($term, [$type], $size, $page);
-            if($type == 'topic'){
-                $topic_ids =  collect($result['data'])->pluck('id')->map(function ($id) { 
-                        preg_match('/\d+/', $id, $matches);
-                        return $matches[0] ?? null; 
-                    })->filter()->implode(',');
-            }
-            if($type == 'camp' || $type == 'statement'){
-                $camp_ids =  collect($result['data'])->pluck('camp_num')->implode(',');
-                $topic_ids = collect($result['data'])->pluck('topic_num')->implode(',');
-            }
+            $camp_ids = collect();  // Initialize empty collection
+            $topic_ids = collect(); // Initialize empty collection
 
-            return ['camp_ids' => $camp_ids, 'topic_ids' => $topic_ids];
+            $result = Search::getSearchData($term, [$type], $size, $page);
+
+            if ($type == 'topic') {
+                $topic_ids = collect($result['data'])->pluck('topic_num')->map(function ($item) {
+                    return (string) $item; // Ensure all topic_num are strings
+                });
+            }
+            // When the type is 'camp' or 'statement'
+            if (in_array($type, ['camp', 'statement'])) {
+                // Pluck and map camp_ids to strings
+                $camp_ids = collect($result['data'])->pluck('camp_num')->map(function ($item) {
+                    return (string) $item; 
+                });
+                // Pluck and map topic_ids to strings
+                $topic_ids = collect($result['data'])->pluck('topic_num')->map(function ($item) {
+                    return (string) $item; 
+                });
+            }
+            return ['camp_ids' => $camp_ids,  'topic_ids' => $topic_ids ];
 
         } catch (\Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
     }
-    
 }
