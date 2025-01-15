@@ -42,7 +42,7 @@ class SearchController extends Controller
                 $search_ids = self::getSearchIds($term, $type, $size, $page);
             }
 
-            $response = self::optimizeResponse($data, $total, $page, $size, $totalCounts, $search_ids);
+            $response = self::optimizeResponse($data, $total, $page, $size,$search_ids, $totalCounts,);
             $status = 200;
             $message =  trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $response, null);
@@ -51,7 +51,7 @@ class SearchController extends Controller
         }
     }
 
-    public static function optimizeResponse($data, $total, $page, $size, $totalCounts = [], $search_ids)
+    public static function optimizeResponse($data, $total, $page, $size, $search_ids, $totalCounts = [] )
     { 
         return $response = [
             'data' => $data,
@@ -125,14 +125,15 @@ class SearchController extends Controller
                 $topic_ids =  collect($result['data'])->pluck('id')->map(function ($id) { 
                         preg_match('/\d+/', $id, $matches);
                         return $matches[0] ?? null; 
-                    })->filter()->implode(','); 
+                    })->filter()->implode(',');
             }
             if($type == 'camp' || $type == 'statement'){
-                $camp_ids =  collect($result['data'])->pluck('camp_num')->filter()->implode(','); 
-                $topic_ids = collect($result['data'])->pluck('topic_num')->filter()->implode(','); 
-            }
-            $ids= ['camp_ids' => $camp_ids, 'topic_ids' => $topic_ids];
-            return $ids;
+                $camp_ids =  collect($result['data'])->pluck('camp_num')->filter()->implode(',');
+                $topic_ids = collect($result['data'])->pluck('topic_num')->filter()->implode(',');
+                }
+
+            return ['camp_ids' => $camp_ids, 'topic_ids' => $topic_ids];
+
         } catch (\Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
