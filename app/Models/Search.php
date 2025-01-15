@@ -32,16 +32,15 @@ class Search extends Model
     ];
 
     protected $fillable = ['id', 'type', 'type_value','topic_num', 'camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link', 'statement_num', 'breadcrum_data', 'support_count'];
-
-    public static function getSearchData($search, $type, $size = 25, $from = 1)
+    
+    public static function getSearchData($search, $type, $size, $from)
     {
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $size = (intval($size) ?: 25);
-        $from = $size * ((intval($from) ?: 1) - 1);
-
+        $size = intval($size) ? $size: 25 ;
+        $from = $size * ((intval($from) ? : 1) - 1);
         $searchFields = ['type_value'];
-
         $indexName = 'canonizer_elastic_search';
+
         $response = $elasticsearch->search([
             'index' => $indexName,
             'body' => [
@@ -77,12 +76,12 @@ class Search extends Model
                         ],
                     ],
                 ],
-                'size' => 100, // Use the custom size value here
-                'from' => 0, //$from, // Use the custom from value here
+                'size' => $size, // Use the custom size value here
+                'from' => $from, //$from, // Use the custom from value here
                 'aggs' => [
                     'type_counts' => [
                         'terms' => [
-                            'field' => 'type',
+                            'field' => 'types',
                             // No size parameter specified
                         ],
                     ],
@@ -93,22 +92,18 @@ class Search extends Model
         if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
             $parsedResponse = $response['hits']['hits'];
             $totalResponse = $response['hits']['total']['value'];
-
-             // Extract aggregation results
             $typeCounts = [];
             if (isset($response['aggregations']['type_counts']['buckets'])) {
                 foreach ($response['aggregations']['type_counts']['buckets'] as $bucket) {
                     $typeCounts[$bucket['key']] = $bucket['doc_count'];
                 }
             }
-        
             $data = [
                 'data' => collect($parsedResponse)->pluck('_source'),
                 'type' => $type,
                 'count' => $totalResponse,
                 'type_counts' => $typeCounts, // Include counts per type
             ];
-        
             return $data;
         } else {
             // Handle the case where the Elasticsearch response doesn't contain the expected data.
@@ -121,9 +116,7 @@ class Search extends Model
             
             return $data;
         }
-
     }
-
 
     public static function createOrUpdate($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
     {       
@@ -196,21 +189,17 @@ class Search extends Model
         $tempdata = [];
         foreach($breadcrumb as $k => $bd)
         {
-            
             $temp[$k+1] = [
                 'camp_num' =>  $bd['camp_num'],
                 'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name'], true),
                 'camp_name' => $bd['camp_name'],
                 'topic_num' => $bd['topic_num'],
                 'topic_name' => $liveTopic->topic_name
-
             ];
             $tempdata[$k] = $temp;
         }
 
-        // Convert the JSON object to a JSON array
         $jsonArray = array_values($tempdata);
-
         // Encode the resulting JSON array
         $jsonString = json_encode($jsonArray, JSON_UNESCAPED_SLASHES);
         return $jsonString;
@@ -274,7 +263,6 @@ class Search extends Model
         $topic = [];
         foreach($data as $dt)
         {
-
             $temp['title'] = $dt->topic_name;
             $temp['topic_num'] = $dt->topic_num;
             $temp['camp_num'] = 1;
@@ -311,26 +299,25 @@ class Search extends Model
                     ->where('a.go_live_time', DB::raw('b.live_time'))
                     ->where('a.camp_name', 'like', '%' . $query . '%')
                     ->get();
-
          $camps = [];
-
          foreach($results as $result)
          {
             $topicNum = $result->topic_num;
             $campNum  = $result->camp_num;
             $liveTopic = Topic::getLiveTopic($topicNum);  
-            $temp['camp_num'] = $result->camp_num;
-            $temp['topic_num'] = $topicNum;
-            $temp['title'] = $result->camp_name;
-            $temp['link'] = Camp::campLink($topicNum, $result->camp_num, $liveTopic->topic_name, $result->camp_name, true);
-            $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-            $temp['breadcrumb'] = $breadcrumb;
-            array_push($camps, $temp);
+            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+            if($checkTopicNum){
+                $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                $temp['camp_num'] = $result->camp_num;
+                $temp['topic_num'] = $topicNum;
+                $temp['title'] = $result->camp_name;
+                $temp['link'] = Camp::campLink($topicNum, $result->camp_num, $liveTopic->topic_name, $result->camp_name, true);
+                $temp['breadcrumb'] = $breadcrumb;
+                array_push($camps, $temp);
+            }
          }
-
         return $camps;
     }
-
 
     public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '')
     {
@@ -358,15 +345,13 @@ class Search extends Model
                                 });
 
                 if ($asof != 'review') {
-                    // When asof is not 'review', include only live records (go_live_time <= $asofdate)
                     $query->where('b.live_time', '<=', $asofdate);
                 } else if($asof == 'default') {
-                    // When asof is 'review', include both live and in-review records
                     $query->where(function ($query) use ($asofdate) {
                         // Include live records (go_live_time <= $asofdate)
                         $query->where('b.live_time', '<=', $asofdate)
-                            // Include in-review records (go_live_time > $asofdate)
-                            ->orWhere('b.live_time', '>', $asofdate);
+                        // Include in-review records (go_live_time > $asofdate)
+                        ->orWhere('b.live_time', '>', $asofdate);
                     });
                 }else  if ($asof == 'bydate') {
                     // Only include records that were live before or on $asofdate
@@ -377,22 +362,22 @@ class Search extends Model
                     $query->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]); 
                 }   
                 $query->orderBy('b.live_time', "DESC");
-                //  dd($query->toSql());
+               //  dd($query->toSql());
                 $results = $query->get();
-
                 $data = [];
-
                 foreach($results as $result)
                 {
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
                     $liveTopic = Topic::getLiveTopic($topicNum);
-                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                    $temp['topic_num'] = $topicNum;
-                    $temp['camp_num'] = $campNum;
-                    $temp['camp_name'] = $result->camp_name;
-                    $temp['breadcrumb'] = $breadcrumb;
-
+                    $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+                    if($checkTopicNum){
+                        $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                        $temp['topic_num'] = $topicNum;
+                        $temp['camp_num'] = $campNum;
+                        $temp['camp_name'] = $result->camp_name;
+                        $temp['breadcrumb'] = $breadcrumb;
+                    } 
                     array_push($data,$temp);
                 }
 
@@ -465,6 +450,7 @@ class Search extends Model
 
     public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search='')
     {
+        $data=[];
         $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
         $query = DB::table('statement as a')
                 ->select('a.id', 'a.parsed_value as type_value', 'a.topic_num', 'a.camp_num', 'a.go_live_time', 'c.camp_name')
@@ -517,39 +503,31 @@ class Search extends Model
                         // Include live records (go_live_time <= $asofdate)
                         $query->where('b.live_time', '<=', $asofdate)
                             // Include in-review records (go_live_time > $asofdate)
-                            ->orWhere('b.live_time', '>', $asofdate);
+                        ->orWhere('b.live_time', '>', $asofdate);
                     });
                 }else  if ($asof == 'bydate') {
                     // Only include records that were live before or on $asofdate
                     $query->where('a.go_live_time', '<=', $asofdate);
-                }   
-                    $results = $query->get();
+                }  
 
+                $results = $query->get();
 
-                $data = [];
-                //$algorithm = 'blind_popularity';
                 foreach($results as $result)
                 {
-                   
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;
-                   
-                   // $supportCount = new SupportAndScoreCount();
-                    //$scoreData = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asofdate,'default');
-                    //$scoreCount = $scoreData['score'];
-                    //if($scoreCount < $score){
-                        //continue;
-                    //}
                     $liveTopic = Topic::getLiveTopic($topicNum);
-                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                    $temp['topic_num'] = $topicNum;
-                    $temp['camp_num'] = $campNum;
-                    $temp['camp_name'] = $result->camp_name;
-                    $temp['breadcrumb'] = $breadcrumb;
-                    $temp['type_value'] = $result->type_value;
-                    array_push($data,$temp);
+                    $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+                    if($checkTopicNum){
+                        $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                        $temp['topic_num'] = $topicNum;
+                        $temp['camp_num'] = $campNum;
+                        $temp['camp_name'] = $result->camp_name;
+                        $temp['breadcrumb'] = $breadcrumb;
+                        $temp['type_value'] = $result->type_value;
+                        array_push($data,$temp);
+                    }
                 }
-
             return $data;
     }
 
@@ -635,6 +613,8 @@ class Search extends Model
             Log::error("Empty response, something went wrong");
         }
     }  */
+
+    
 
   
 }
