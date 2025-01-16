@@ -33,6 +33,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/search-filter','SearchController@advanceSearchFilter');
     $router->post('/dump-data-to-elasticsearch','SearchController@importDataToElasticSearch');
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
+    $router->post('gravatar', 'ProfileController@getGravatar');
+    
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) {
         $router->post('/register','UserController@createUser');

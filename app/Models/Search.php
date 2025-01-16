@@ -70,7 +70,7 @@ class Search extends Model
                         'filter' => [
                             [
                                 'terms' => [
-                                    'type' => $type, // Use the custom type value here
+                                    'type.keyword' => $type, // Use the custom type value here
                                 ],
                             ],
                         ],

@@ -19,7 +19,7 @@ class TopicTag extends Model
      *
      * @var array
      */
-    protected $fillable = ['topic_num','tag_id','created_at', 'updated_at'];
+    protected $fillable = ['topic_id', 'topic_num', 'tag_id', 'created_at', 'updated_at'];
 
     public static function boot()
     {

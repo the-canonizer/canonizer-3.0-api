@@ -499,7 +499,7 @@ class ProfileController extends Controller
                 
                 $user = Nickname::getUserByNickName($id);
                 $userArray = $user->toArray();
-                $privateFlags = explode(",",$user->private_flags);
+                $privateFlags = $user->private_flags ? explode(",",$user->private_flags) : [];
                 foreach($privateFlags as $private)
                 {
                     // unset($userArray[$private]);
@@ -721,18 +721,15 @@ class ProfileController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         $userEmail = new UserEmail;
         $userEmail->user_id = $user->id;
         $userEmail->email = $email;
         //$userEmail->is_primary = isset($all['is_primary']) && $all['is_primary'] ? $all['is_primary'] : 0;
         $userEmail->save();
-
         if($isPrimary){
             $otp = mt_rand(100000, 999999);
             $user->otp = $otp;
             $user->update();
-
             $data['email'] = $userEmail->email;
             $data['otp'] = $otp;
             //verify email by sending OTP to new Email
@@ -741,11 +738,8 @@ class ProfileController extends Controller
         }else{
             return $this->resProvider->apiJsonResponse(200, trans('message.email.newemail_added'), $userEmail, '');
         }
-
         return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $user, '');
-
     }
-
 
     public function getAllEmail(Request $request)
     {
@@ -753,4 +747,39 @@ class ProfileController extends Controller
         $emailList = UserEmail::getAll($user->id);
         return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $emailList, '');
     }
+
+    public function getGravatar(Request $request, Validate $validate)
+    {
+        try {
+            $input = $request->all();
+            $validationErrors = $validate->validate($request, $this->rules->getGravatarValidatonRules(), 
+            $this->validationMessages->getGravatarValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $emailHash = md5($input['email']);
+            $gravatarUrl = "https://www.gravatar.com/avatar/$emailHash?d=404";
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $gravatarUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        
+            $imageData = curl_exec($ch);
+            if ($imageData === "404 Not Found") {
+                return $this->resProvider->apiJsonResponse(200, trans('message.error.record_not_found'), null, '');
+            }
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+
+            $responseData = [
+                'image_data' => base64_encode($imageData), // or adjust based on your data
+                'content_type' => $contentType,
+            ];
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $responseData, '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+    
 }
