@@ -732,4 +732,8 @@ return [
         'data_deleted_successfully' => 'Your data has been deleted successfully.',
         'data_deletion_pending' => 'Your data deletion request is pending.',
     ],
+    'validation_gravatar_profile' => [
+        'email_required' => 'Email is required.',
+        
+    ],
 ];
