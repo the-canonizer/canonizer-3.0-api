@@ -73,6 +73,7 @@ return [
         'topic_commit'  => 'Your change to topic has been submitted to your supporters.',
         'topic_object'  => 'Objection submitted successfully.',
         'topic_update'  => 'Topic updated successfully.',
+        'camp_object'  => 'Objection submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
