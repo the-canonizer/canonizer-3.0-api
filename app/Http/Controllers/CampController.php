@@ -1584,10 +1584,11 @@ class CampController extends Controller
             $topic = $camp->topic;
             $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update   
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
-
+            $message = trans('message.success.success');
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
+                $message = trans('message.success.camp_object');
             } else if ($all['event_type'] == "update") {
                 if ($ifIamSingleSupporter && array_key_exists("from_test_case", $all)) {
                     Util::checkParentCampChanged($all, false, $liveCamp);
@@ -1649,7 +1650,7 @@ class CampController extends Controller
                     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            return $this->resProvider->apiJsonResponse(200, $message, $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
