@@ -525,23 +525,16 @@ class Search extends Model
                     }
 
                     if (!empty($search)) {
-                        // Step 1: Split the search string into words
-                        $words = preg_split('/\s+/', $search); // Split by spaces or any delimiter
-                        // Step 2: Escape each word for use in LIKE conditions
-                        $escapedWords = array_map(function($word) {
-                            return "%" . preg_quote($word, '/') . "%";  // Use % for wildcard in LIKE
-                        }, $words);
-
-                        $likeConditions = array_map(function($word) {
-                            return "a.parsed_value LIKE ?";
-                        }, $escapedWords);
-                    
-                        // Step 4: Combine LIKE conditions using OR
-                        $likeQuery = implode(" OR ", $likeConditions);
-                    
-                        // Step 5: Build the query with both MATCH ... AGAINST and LIKE
+                        // $words = preg_split('/\s+/', $search); // Split by spaces or any delimiter
+                        // $escapedWords = array_map(function($word) {
+                        //     return "%" . preg_quote($word, '/') . "%";  // Use % for wildcard in LIKE
+                        // }, $words);
+                        // $likeConditions = array_map(function($word) {
+                        //     return "a.parsed_value LIKE ?";
+                        // }, $escapedWords);
+                        // $likeQuery = implode(" OR ", $likeConditions);
                         $query->whereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
-                        $query->orWhereRaw($likeQuery, $escapedWords);
+                        //$query->orWhereRaw($likeQuery, $escapedWords);
                     }
                 }
 
