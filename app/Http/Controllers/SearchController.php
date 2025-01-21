@@ -40,7 +40,7 @@ class SearchController extends Controller
             }
             
             if(count($typesToSearch) ==  1){
-                $all_size=5000;
+                $all_size=4000;
                 $all_page=0;
                 $search_ids = self::getSearchIds($term, $type,$all_size, $all_page);
             }
