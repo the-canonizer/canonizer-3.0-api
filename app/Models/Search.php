@@ -30,7 +30,7 @@ class Search extends Model
         'support_count' => 'double'
     ];
 
-    protected $fillable = ['id', 'type', 'type_value','topic_num', 'camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link', 'statement_num', 'breadcrum_data', 'support_count'];
+    protected $fillable = ['id', 'type', 'type_value','topic_num','camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link','statement_num', 'breadcrum_data', 'support_count'];
     
     public static function getSearchData($search, $type, $size, $from)
     {
@@ -83,12 +83,11 @@ class Search extends Model
                         ],
                     ],
                 ],
-                // Add the sorting by `topic_num` here
-                'sort' => [
-                    'topic_num' => [
-                        'order' => 'desc' // or 'desc' depending on the sort order
-                    ],
-                ],
+                // 'sort' => [
+                //     'topic_num' => [
+                //         'order' => 'desc' // or 'desc' depending on the sort order
+                //     ],
+                // ],
             ],
         ]);
         
@@ -323,7 +322,6 @@ class Search extends Model
     public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
     {
         $asofdate = ($asofdate) ? $asofdate : time();
-        // Build the query
         $query = DB::table('camp as a')
                     ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
                     ->join(DB::raw('(SELECT
@@ -346,34 +344,31 @@ class Search extends Model
                             ->on('a.go_live_time', '=', 'b.live_time');
                     });
 
-            if ($asof == 'bydate') {
-                // Only include records that were live before or on $asofdate
-                $query->where('a.go_live_time', '<=', $asofdate);
-            } else {
-                // Handle 'review' and 'default' cases
-                $query->when($asof != 'review', function ($query) use ($asofdate) {
+                if ($asof == 'bydate') {
+                    $query->where('a.go_live_time', '<=', $asofdate);
+                } 
+                if ($asof != 'review') {
                     $query->where('b.live_time', '<=', $asofdate);
-                });
-                if ($asof == 'default') {
-                    // When asof is 'default', include both live and in-review records
-                    $query->where(function ($query) use ($asofdate) {
-                        $query->where('b.live_time', '<=', $asofdate)
-                            ->orWhere('b.live_time', '>', $asofdate);
-                    });
+                }   
+                else if ($asof == 'default') {
+                    $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
                 }
-                if (!empty($search)) {
+
+                if (!empty($search) ) {
                     $query->where(function ($query) use ($search) {
-                        $query->where('a.camp_name', 'like', '%' . $search . '%')
-                            ->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]);
-                    });
+                        // Split the search string into individual words and escape special characters
+                        $words = preg_split('/\s+/', $search); // Split by spaces or any delimiter
+                        $escapedWords = array_map(function($word) {
+                            // Escape special characters for REGEXP
+                            return preg_quote($word, '/');
+                        }, $words);
+                        
+                        $pattern = implode('|', $escapedWords);
+                        $query->where('a.camp_name', 'REGEXP', $pattern);
+                    }); 
                 }
-            }
-
-            // Order the results by live_time in descending order
-            $query->orderBy('b.live_time', 'DESC');
-            // Paginate the results
+                
             $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-
             // Format the results
             $data = [];
             foreach ($results as $result) {
@@ -385,7 +380,7 @@ class Search extends Model
                 if ($checkTopicNum) {
                     $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
                     $data[] = [
-                        'id' => $result->id,
+                        'id' => $topicNum. "-".$campNum,
                         'topic_num' => $topicNum,
                         'camp_num' => $campNum,
                         'camp_name' => $result->camp_name,
@@ -403,7 +398,6 @@ class Search extends Model
 
     public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search, $pageNumber, $pageSize)
     {
-        $data = [];
         $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('topic as a')
                     ->select('a.id', 'a.topic_name', 'a.topic_num', 'a.go_live_time', 'a.namespace_id')
@@ -440,15 +434,7 @@ class Search extends Model
                                         ->orWhere('b.live_time', '>', $asofdate);
                                 });
                             }
-                            if (!empty($search)) {
-                                $query->where(function ($query) use ($search) {
-                                    $query->where('a.topic_name', 'like', '%' . $search . '%')
-                                        ->orWhereRaw("MATCH(a.topic_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]);
-                                });
-                            }
                         }
-
-                $query->orderBy('b.live_time', "DESC");
                 $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
 
                 foreach ($results as $result) {
@@ -533,24 +519,26 @@ class Search extends Model
                     if ($asof == 'default') {
                         // When asof is 'default', include both live and in-review records
                         $query->where(function ($query) use ($asofdate) {
-                            // Include live records (go_live_time <= $asofdate)
                             $query->where('b.live_time', '<=', $asofdate)
-                                // Include in-review records (go_live_time > $asofdate)
                                 ->orWhere('b.live_time', '>', $asofdate);
                         });
                     }
+
                     if (!empty($search)) {
-                        $query->where(function ($query) use ($search) {
-                            $query->where('a.parsed_value', 'like', '%' . $search . '%')
-                                ->orWhereRaw("MATCH(a.parsed_value) AGAINST(? IN BOOLEAN MODE)", [$search]);
-                        });
+                        // $words = preg_split('/\s+/', $search); // Split by spaces or any delimiter
+                        // $escapedWords = array_map(function($word) {
+                        //     return "%" . preg_quote($word, '/') . "%";  // Use % for wildcard in LIKE
+                        // }, $words);
+                        // $likeConditions = array_map(function($word) {
+                        //     return "a.parsed_value LIKE ?";
+                        // }, $escapedWords);
+                        // $likeQuery = implode(" OR ", $likeConditions);
+                        $query->whereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+                        //$query->orWhereRaw($likeQuery, $escapedWords);
                     }
                 }
-             //   dd($query->toSql());
-                
-                $query->orderBy('a.topic_num', "DESC");
-                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
 
+                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
                 foreach ($results as $result) {
                     $topicNum = $result->topic_num;
                     $campNum = $result->camp_num;

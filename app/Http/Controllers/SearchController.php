@@ -34,12 +34,13 @@ class SearchController extends Controller
             foreach ($typesToSearch as $searchType) {
                 $result = Search::getSearchData($term, [$searchType], $size, $page);
                 $data[$searchType] = $result['data'];
+
                 $totalCounts[$searchType] = $result['count'];
                 $total += $result['count'];
             }
             
             if(count($typesToSearch) ==  1){
-                $all_size=10000;
+                $all_size=4000;
                 $all_page=0;
                 $search_ids = self::getSearchIds($term, $type,$all_size, $all_page);
             }
@@ -95,7 +96,7 @@ class SearchController extends Controller
                 break;
             case 'camp':
                 $response['camp'] = [];
-                if(!empty($topicIds) || !empty($campIds)){
+                if(!empty($topicIds) && !empty($campIds)){
                     $result = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize); 
                     $response['camp']  = $result['data'];
                     $response['camp_total'] = $result['total'];
@@ -109,7 +110,7 @@ class SearchController extends Controller
                     $response['topic_total'] = $result['total'];
                 }
                 break;
-            case 'statement':
+               case 'statement':
                 $response['statement'] = [];
                 if(!empty($topicIds) && !empty($campIds)){
                     $result = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize);
@@ -127,27 +128,16 @@ class SearchController extends Controller
     public function getSearchIds($term, $type, int $size = 10000, int $page = 0)
     {
         try {
+            
             $camp_ids = collect();  // Initialize empty collection
             $topic_ids = collect(); // Initialize empty collection
 
             $result = Search::getSearchData($term, [$type], $size, $page);
+            $data = collect($result['data']);
 
-            if ($type == 'topic') {
-                $topic_ids = collect($result['data'])->pluck('topic_num')->map(function ($item) {
-                    return (string) $item; // Ensure all topic_num are strings
-                });
-            }
-            // When the type is 'camp' or 'statement'
-            if (in_array($type, ['camp', 'statement'])) {
-                // Pluck and map camp_ids to strings
-                $camp_ids = collect($result['data'])->pluck('camp_num')->map(function ($item) {
-                    return (string) $item; 
-                });
-                // Pluck and map topic_ids to strings
-                $topic_ids = collect($result['data'])->pluck('topic_num')->map(function ($item) {
-                    return (string) $item; 
-                });
-            }
+            $topic_ids = $data->pluck('topic_num')->map(fn($item) => (string) $item);
+            $camp_ids =  $data->pluck('camp_num')->map(fn($item) => (string) $item);
+            
             return ['camp_ids' => $camp_ids,  'topic_ids' => $topic_ids ];
 
         } catch (\Exception $e) {
