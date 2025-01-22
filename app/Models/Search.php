@@ -360,6 +360,7 @@ class Search extends Model
             }   
             // Order by go_live_time (if you want to ensure the most recent results are returned first)
             $query->orderBy('a.go_live_time', 'desc');
+
             $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
 
                 foreach ($results as $result) {
@@ -432,7 +433,7 @@ class Search extends Model
                     }); 
                     $query->orwhereRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
                 }
-                
+            $query->orderByRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);    
             $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
             // Format the results
             $data = [];
@@ -530,7 +531,8 @@ class Search extends Model
                         $query->orwhereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
                     }
                 }
-
+                
+                $query->orderByRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
                 $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
                 
                 foreach ($results as $result) {
