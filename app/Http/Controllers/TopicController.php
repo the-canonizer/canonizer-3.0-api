@@ -42,6 +42,7 @@ use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
 use App\Models\HotTopic;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
+use Illuminate\Support\Str;
 
 class TopicController extends Controller
 {
@@ -2167,12 +2168,14 @@ class TopicController extends Controller
                 $topic->views = $topic->totalViews();
                 $topic->supporterData = $supporterData;
                 $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
-                $topic->statement = Statement::getLiveStatement([
+                $getLiveStatement = Statement::getLiveStatement([
                     'topicNum' => $topic->topic_num,
                     'campNum' => $liveCamp->camp_num,
                     'asOf' => 'default',
                     'asOfDate' => '',
                 ]);
+                $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                $topic->statement = Str::of($getLiveStatement)->trim();
             }
 
             $collection = Util::getPaginatorResponse($topics);
@@ -2353,6 +2356,14 @@ class TopicController extends Controller
 
                 $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
+                $getLiveStatement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
+                $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                $getLiveStatement = Str::of($getLiveStatement)->trim();
                 // Get the tag IDs associated with $liveTopic
 
                 return [
@@ -2367,12 +2378,7 @@ class TopicController extends Controller
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
-                    'statement' => Statement::getLiveStatement([
-                        'topicNum' => $topic->topic_num,
-                        'campNum' => $liveCamp->camp_num,
-                        'asOf' => 'default',
-                        'asOfDate' => '',
-                    ]),
+                    'statement' => $getLiveStatement,
                 ];
             });
             $paginatedResponse->items = $topics;
