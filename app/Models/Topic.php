@@ -160,6 +160,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $this->hasMany(TopicTag::class, 'topic_num', 'topic_num');
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'topics_tags');
+    }
+
     public function topicTagFailures()
     {
         return $this->hasMany(TopicTagFailure::class, 'topic_num', 'topic_num');
@@ -182,9 +187,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         switch ($filter) {
             case "default":
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::with(['topicTags.tag' => function ($query) {
-                            $query->select('id', 'title');
-                        }])
+                    return self::with(['tags:id,title'])
                         ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
@@ -194,9 +197,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             case "review":
                 $topic = Cache::remember($reviewTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::with(['topicTags.tag' => function ($query) {
-                            $query->select('id', 'title');
-                        }])
+                    return self::with(['tags:id,title'])
                         ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('grace_period', 0)
@@ -206,9 +207,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             case "bydate":
                 $asOfDate = strtotime(date('Y-m-d H:i:s', strtotime($asofdate)));
-                return self::with(['topicTags.tag' => function ($query) {
-                        $query->select('id', 'title');
-                    }])
+                return self::with(['tags:id,title'])
                     ->where('topic_num', $topicNum)
                     ->where('go_live_time', '<=', $asOfDate)
                     ->where(function($query) use($asOfDate) {
@@ -219,9 +218,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 break;
             default:
                 $topic = Cache::remember($liveTopicCacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () use ($topicNum) {
-                    return self::with(['topicTags.tag' => function ($query) {
-                            $query->select('id', 'title');
-                        }])
+                    return self::with(['tags:id,title'])
                         ->where('topic_num', $topicNum)
                         ->where('objector_nick_id', '=', NULL)
                         ->where('go_live_time', '<=', time())
@@ -277,6 +274,8 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
             $q->where('submit_time', '<=', $filter['currentTime']);
         });
 
+        $topicHistoryQuery->with('tags');
+        
         $response = Util::getPaginatorResponse($topicHistoryQuery->paginate($filter['per_page']));
         $response = self::filterTopicHistory($response, $filter, $liveTopic, $request);
         return $response;
@@ -295,6 +294,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $endtime = $submittime + 60 * 60;
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
+                $val->tags = $val->tags->makeHidden(['pivot']);
                 $namespace = Namespaces::find($val->namespace_id);
                 $namespaceLabel = '';
                 if (!empty($namespace)) {

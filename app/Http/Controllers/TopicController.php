@@ -212,7 +212,7 @@ class TopicController extends Controller
             if ($topic) {
                 // Check if the array exists for tags ...
                 if ($request->has('tags') && is_array($request->tags)) {
-                    Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
+                    $topic->tags()->sync($request->tags);
                 }
 
                 Util::dispatchJob($topic, 1, 1);
@@ -383,7 +383,8 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
-            $topic->tags = $topic->tags_array;
+            $topic->tags->makeHidden(['pivot']);
+            // $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
@@ -1719,7 +1720,7 @@ class TopicController extends Controller
 
             // Check if the array exists for tags ...
             if ($request->has('tags') && is_array($request->tags)) {
-                Tag::updateOrCreateTopicTags($request->tags, $topic->topic_num);
+                $topic->tags()->sync($request->tags);
             }
 
             DB::commit();
@@ -1928,11 +1929,10 @@ class TopicController extends Controller
             if ($validationErrors) {
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
             }
-            $topic = Topic::where('id', $request->record_id)->first();
+            $topic = Topic::find($request->record_id);
+            $topic->tags = TopicTag::select('tag_id')->where('topic_id', $topic->id)->pluck('tag_id');
 
             if ($topic) {
-                // If the topic is found attach the topic tags with it ...
-                $topic->tags = TopicTag::where('topic_num', $topic->topic_num)->pluck('tag_id')->toArray();
 
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
@@ -2022,6 +2022,9 @@ class TopicController extends Controller
             }
 
             if ($model->grace_period == 1) {
+                if ($model instanceof Topic) {
+                    $model->tags()->detach();
+                }
                 $model->delete();
             } else {
                 throw new Exception('The Change is already submitted. You cannot discard it.');
@@ -2153,9 +2156,6 @@ class TopicController extends Controller
                 $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                 // Get the tag IDs associated with $liveTopic
-                $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->get();
-
                 $topic->id = $liveTopic->id;
                 $topic->topic_num = $liveTopic->topic_num;
                 $topic->camp_num = $liveCamp->camp_num;
@@ -2163,7 +2163,7 @@ class TopicController extends Controller
                 $topic->topic_name = $topicTitle;
                 $topic->camp_name = $campTitle;
                 $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                $topic->topicTags = $tags;
+                $topic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
                 $topic->views = $topic->totalViews();
                 $topic->supporterData = $supporterData;
                 $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
@@ -2256,15 +2256,12 @@ class TopicController extends Controller
                     $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                     // Get the tag IDs associated with $liveTopic
-                    $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                    $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
-
                     $hotTopic->topic_name = $topicTitle ?? "";
                     $hotTopic->camp_name = $campTitle ?? "";
                     $hotTopic->topic_num = $liveTopic->topic_num;
                     $hotTopic->camp_num = $liveTopic->camp_num ?? 1;
                     $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
-                    $hotTopic->topicTags = $tags;
+                    $hotTopic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
                     $hotTopic->namespace_id = $liveTopic->namespace_id;
                     $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
                     $hotTopic->supporterData = $supporterData;
@@ -2332,14 +2329,12 @@ class TopicController extends Controller
             $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
             $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
-            $topics = Topic::with(['topicTags' => function ($query) use ($userTags) {
-                $query->whereIn('tag_id', $userTags);
-            }])
-                ->whereHas('topicTags', function ($query) use ($userTags) {
+            
+            $topics = Topic::with(['tags' => function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
-                })
+                }])
                 ->whereNotIn('namespace_id', $namespaceIds)
-                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <= ' . time() . ' group by topic.topic_num)')
                 ->orderBy('submit_time', 'DESC');
             if ($isRandom) {
                 $topics = $topics->inRandomOrder()->paginate($perPage);
@@ -2359,8 +2354,6 @@ class TopicController extends Controller
                 $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
 
                 // Get the tag IDs associated with $liveTopic
-                $tagIds = $liveTopic->topicTags->pluck('tag_id');
-                $tags = Tag::whereIn('id', $tagIds)->where('is_active', 1)->get();
 
                 return [
                     'id' => $liveTopic->id,
@@ -2370,7 +2363,7 @@ class TopicController extends Controller
                     'topic_name' => $topicTitle,
                     'camp_name' => $campTitle,
                     'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'topicTags' => $tags,
+                    'tags' => $liveTopic->tags->makeHidden(['pivot']),
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,

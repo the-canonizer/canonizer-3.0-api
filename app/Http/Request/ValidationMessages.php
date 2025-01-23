@@ -928,4 +928,12 @@ class ValidationMessages
             'confirmation_code.required' => trans('message.facebook_deletion_status.confirmation_code_is_required'),
         ]);
     }
+
+    public function getGravatarValidationMessages(): array
+    {
+        return ([
+            'email.required' => trans('message.validation_gravatar_profile.email_required'),
+        ]);
+    }
+
 }
