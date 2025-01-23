@@ -34,7 +34,6 @@ class SearchController extends Controller
             foreach ($typesToSearch as $searchType) {
                 $result = Search::getSearchData($term, [$searchType], $size, $page);
                 $data[$searchType] = $result['data'];
-
                 $totalCounts[$searchType] = $result['count'];
                 $total += $result['count'];
             }
@@ -128,7 +127,7 @@ class SearchController extends Controller
     public function getSearchIds($term, $type, int $size = 10000, int $page = 0)
     {
         try {
-            
+
             $camp_ids = collect();  // Initialize empty collection
             $topic_ids = collect(); // Initialize empty collection
 

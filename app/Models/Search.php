@@ -200,9 +200,6 @@ class Search extends Model
         return $jsonString;
     }
 
-    /**
-     * 
-     */
     public static function advanceTopicFilterByNickname($nickIds, $query)
     {
         $results = DB::table('topic as t')
@@ -231,26 +228,6 @@ class Search extends Model
             $topic = self::processResults($results,'topic');
 
         return $topic;
-
-
-
-       /* $sql = "SELECT t.topic_num, t.topic_name,t.id
-        FROM topic t
-        INNER JOIN (
-            SELECT topic_num 
-            FROM support 
-            WHERE nick_name_id in (357) 
-            AND end = 0 
-            AND camp_num = 1
-        ) s ON t.topic_num = s.topic_num
-        INNER JOIN (
-            SELECT topic_num,
-                   MAX(go_live_time) AS live_time
-            FROM topic
-            WHERE objector_nick_id IS NULL
-            AND go_live_time <= UNIX_TIMESTAMP(NOW())
-            GROUP BY topic_num
-        ) b ON t.topic_num = b.topic_num AND t.go_live_time = b.live_time AND t.topic_name like '%algo%'";*/
     }
 
     public static function processResults($data,$type)
@@ -374,6 +351,7 @@ class Search extends Model
     
         public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
         {
+            $data = [];
             $asofdate = ($asofdate) ? $asofdate : time();
             $query = DB::table('camp as a')
                         ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
@@ -412,7 +390,6 @@ class Search extends Model
             
             $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
             
-            $data = [];
             foreach ($results as $result) {
                 $topicNum = $result->topic_num;
                 $campNum = $result->camp_num;
