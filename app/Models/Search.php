@@ -12,7 +12,6 @@ use App\Facades\Util;
 
 class Search extends Model
 {
-   
     protected $table = 'elasticsearch_data';
     public $timestamps = false;
 
@@ -31,16 +30,15 @@ class Search extends Model
         'support_count' => 'double'
     ];
 
-    protected $fillable = ['id', 'type', 'type_value','topic_num', 'camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link', 'statement_num', 'breadcrum_data', 'support_count'];
+    protected $fillable = ['id', 'type', 'type_value','topic_num','camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link','statement_num', 'breadcrum_data', 'support_count'];
     
     public static function getSearchData($search, $type, $size, $from)
     {
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $size = intval($size) ? $size: 25 ;
+        $size = intval($size) ? $size: 15 ;
         $from = $size * ((intval($from) ? : 1) - 1);
         $searchFields = ['type_value'];
         $indexName = 'canonizer_elastic_search';
-
         $response = $elasticsearch->search([
             'index' => $indexName,
             'body' => [
@@ -81,14 +79,13 @@ class Search extends Model
                 'aggs' => [
                     'type_counts' => [
                         'terms' => [
-                            'field' => 'types',
-                            // No size parameter specified
+                            'field' => 'type' // No size parameter specified
                         ],
                     ],
                 ],
             ],
         ]);
-
+        
         if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
             $parsedResponse = $response['hits']['hits'];
             $totalResponse = $response['hits']['total']['value'];
@@ -163,11 +160,9 @@ class Search extends Model
                     ->update($data);
             return;
 
-          }
-          $search->save();
-          return;
-
-
+        }
+        $search->save();
+        return;
     }
 
     public static function deleteRecordIfExist($id)
@@ -205,9 +200,6 @@ class Search extends Model
         return $jsonString;
     }
 
-    /**
-     * 
-     */
     public static function advanceTopicFilterByNickname($nickIds, $query)
     {
         $results = DB::table('topic as t')
@@ -236,26 +228,6 @@ class Search extends Model
             $topic = self::processResults($results,'topic');
 
         return $topic;
-
-
-
-       /* $sql = "SELECT t.topic_num, t.topic_name,t.id
-        FROM topic t
-        INNER JOIN (
-            SELECT topic_num 
-            FROM support 
-            WHERE nick_name_id in (357) 
-            AND end = 0 
-            AND camp_num = 1
-        ) s ON t.topic_num = s.topic_num
-        INNER JOIN (
-            SELECT topic_num,
-                   MAX(go_live_time) AS live_time
-            FROM topic
-            WHERE objector_nick_id IS NULL
-            AND go_live_time <= UNIX_TIMESTAMP(NOW())
-            GROUP BY topic_num
-        ) b ON t.topic_num = b.topic_num AND t.go_live_time = b.live_time AND t.topic_name like '%algo%'";*/
     }
 
     public static function processResults($data,$type)
@@ -299,9 +271,9 @@ class Search extends Model
                     ->where('a.go_live_time', DB::raw('b.live_time'))
                     ->where('a.camp_name', 'like', '%' . $query . '%')
                     ->get();
-         $camps = [];
-         foreach($results as $result)
-         {
+        $camps = [];
+        foreach($results as $result)
+        {
             $topicNum = $result->topic_num;
             $campNum  = $result->camp_num;
             $liveTopic = Topic::getLiveTopic($topicNum);  
@@ -315,142 +287,126 @@ class Search extends Model
                 $temp['breadcrumb'] = $breadcrumb;
                 array_push($camps, $temp);
             }
-         }
+        }
         return $camps;
     }
 
-    public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
-    {
-        $asofdate = ($asofdate) ? $asofdate : time();
-        // Build the query
-        $query = DB::table('camp as a')
-                    ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
-                    ->join(DB::raw('(SELECT
-                                        topic_num,
-                                        camp_num,
-                                        MAX(go_live_time) AS live_time
-                                    FROM
-                                        camp
-                                    WHERE
-                                        objector_nick_id IS NULL
-                                        AND grace_period = 0
-                                        AND is_archive = 0
-                                        AND topic_num IN (' . implode(',', $topicIds) . ')
-                                        AND camp_num IN (' . implode(',', $campIds) . ')
-                                    GROUP BY
-                                        topic_num,
-                                        camp_num) b'), function ($join) {
-                        $join->on('a.topic_num', '=', 'b.topic_num')
-                            ->on('a.camp_num', '=', 'b.camp_num')
-                            ->on('a.go_live_time', '=', 'b.live_time');
-                    });
-
-        // Filter based on 'asof' and 'asofdate' conditions
-        if ($asof != 'review') {
-            $query->where('b.live_time', '<=', $asofdate);
-        } else if ($asof == 'default') {
-            $query->where(function ($query) use ($asofdate) {
-                $query->where('b.live_time', '<=', $asofdate)
-                    ->orWhere('b.live_time', '>', $asofdate);
-            });
-        } else if ($asof == 'bydate') {
-            $query->where('b.live_time', '<=', $asofdate);
-        }
-        // Apply search filter if provided
-        if (!empty($search)) {
-            $query->where('a.camp_name', 'like', '%' . $search . '%');
-            $query->orWhereRaw("MATCH(a.camp_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]);
-        }
-        $query->orderBy('b.live_time', "DESC");
-        $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-
-        $data = [];
-        foreach ($results as $result) {
-            $id = $result->id;
-            $topicNum = $result->topic_num;
-            $campNum = $result->camp_num;
-            $liveTopic = Topic::getLiveTopic($topicNum);
-            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-            if ($checkTopicNum) {
-                $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                $temp = [
-                    'id' => $id,
-                    'topic_num' => $topicNum,
-                    'camp_num' => $campNum,
-                    'camp_name' => $result->camp_name,
-                    'breadcrumb' => $breadcrumb
-                ];
-                array_push($data, $temp);
-            }
-        }
-        return [
-            'data' => $data,
-            'total' => $results->total()
-        ];
-    }
-
-
     public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search, $pageNumber, $pageSize)
     {
+        $data=[];       
         $asofdate = ($asofdate) ? $asofdate : time();
         $query = DB::table('topic as a')
-                    ->select('a.id', 'a.topic_name', 'a.topic_num', 'a.go_live_time', 'a.namespace_id')
-                    ->join(DB::raw('(SELECT
-                                        topic_num,
-                                        MAX(go_live_time) AS live_time
-                                    FROM
-                                        topic
-                                    WHERE
-                                        objector_nick_id IS NULL
-                                        AND grace_period = 0
-                                        AND topic_num IN (' . implode(',', $topicIds) . ')
-                                    GROUP BY
-                                        topic_num) b'), function ($join) {
-                                    $join->on('a.topic_num', '=', 'b.topic_num')
-                                        ->on('a.go_live_time', '=', 'b.live_time');
+            ->select('a.id', 'a.topic_name', 'a.topic_num', 'a.go_live_time', 'a.namespace_id')
+            ->join(DB::raw('(SELECT
+                                topic_num,
+                                MAX(go_live_time) AS live_time
+                            FROM
+                                topic
+                            WHERE
+                                objector_nick_id IS NULL
+                                AND grace_period = 0
+                                AND topic_num IN (' . implode(',', $topicIds) . ')
+                            GROUP BY
+                                topic_num) b'), function ($join) {
+                $join->on('a.topic_num', '=', 'b.topic_num')
+                    ->on('a.go_live_time', '=', 'b.live_time');
+            });
+
+            // Include live records (go_live_time <= $asofdate)
+            // Include in-review records (go_live_time > $asofdate)
+
+            if ($asof == 'bydate') {
+                $query->where('a.go_live_time', '<=', $asofdate);
+            } 
+            else if ($asof == 'default') {
+                    $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
+                }
+            if (!empty($search)) {
+                $query->orderByRaw('MATCH(a.topic_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
+            }   
+            $query->orderBy('a.go_live_time', 'desc');
+
+            $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
+
+                foreach ($results as $result) {
+                    $namespace = Namespaces::find($result->namespace_id);
+                    
+                    $data[] = [
+                        'id' => $result->id,
+                        'topic_num' => $result->topic_num,
+                        'camp_num' => 1,
+                        'camp_name' => 'Agreement',
+                        'namespace' => $namespace->name,
+                        'topic_name' => $result->topic_name,
+                        'link' => Topic::topicLink($result->topic_num, 1, $result->topic_name, 'Agreement', true),
+                    ];
+                }
+                
+            return [
+                'data' => $data,
+                'total' => $results->total()
+            ];
+        }
+
+    
+        public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
+        {
+            $data = [];
+            $asofdate = ($asofdate) ? $asofdate : time();
+            $query = DB::table('camp as a')
+                        ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
+                        ->join(DB::raw('(SELECT
+                                            topic_num,
+                                            camp_num,
+                                            MAX(go_live_time) AS live_time
+                                        FROM
+                                            camp
+                                        WHERE
+                                            objector_nick_id IS NULL
+                                            AND grace_period = 0
+                                            AND is_archive = 0
+                                            AND topic_num IN (' . implode(',', $topicIds) . ')
+                                            AND camp_num IN (' . implode(',', $campIds) . ')
+                                        GROUP BY
+                                            topic_num,
+                                            camp_num) b'), function ($join) {
+                            $join->on('a.topic_num', '=', 'b.topic_num')
+                                ->on('a.camp_num', '=', 'b.camp_num')
+                                ->on('a.go_live_time', '=', 'b.live_time');
                         });
 
-                if ($asof != 'review') {
-                    // When asof is not 'review', include only live records (go_live_time <= $asofdate)
-                    $query->where('b.live_time', '<=', $asofdate);
-                } else if($asof == 'default') {
-                    // When asof is 'review', include both live and in-review records
-                    $query->where(function ($query) use ($asofdate) {
-                        // Include live records (go_live_time <= $asofdate)
-                        $query->where('b.live_time', '<=', $asofdate)
-                            // Include in-review records (go_live_time > $asofdate)
-                            ->orWhere('b.live_time', '>', $asofdate);
-                    });
-                }else  if ($asof == 'bydate') {
-                    // Only include records that were live before or on $asofdate
+                if ($asof == 'bydate') {
                     $query->where('a.go_live_time', '<=', $asofdate);
-                }   
-
-                if(!empty($search)){
-                    $query->where('a.topic_name', 'like', '%' . $search . '%');
-                    $query->orWhereRaw("MATCH(a.topic_name) AGAINST(? IN NATURAL LANGUAGE MODE)", [$search]); 
-                }   
-
-                $query->orderBy('b.live_time', "DESC");
-                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-                
-                $data = [];
-                foreach($results as $result)
-                {
-                    $id= $result->id;
-                    $topicNum = $result->topic_num;
-                    $campNum = 1;
-                    $namespace = Namespaces::find($result->namespace_id);
-                    $temp['id']=$id;
-                    $temp['topic_num'] = $topicNum;
-                    $temp['camp_num'] = $campNum;
-                    $temp['camp_name'] = 'Agreement';
-                    $temp['namespace'] = $namespace->name;
-                    $temp['topic_name'] = $result->topic_name;
-                    $temp['link']       = Topic::topicLink($topicNum, 1, $result->topic_name, 'Agreement', true);
-
-                    array_push($data,$temp);
+                }  
+                else if ($asof == 'default') {
+                    $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
                 }
+
+                if (!empty($search) ) {
+                    $query->orwhereRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+                }
+            
+            $query->orderByRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);    
+            
+            $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
+            
+            foreach ($results as $result) {
+                $topicNum = $result->topic_num;
+                $campNum = $result->camp_num;
+                $liveTopic = Topic::getLiveTopic($topicNum);
+                $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+
+                if ($checkTopicNum) {
+                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                    $data[] = [
+                        'id' => $topicNum. "-".$campNum,
+                        'topic_num' => $topicNum,
+                        'camp_num' => $campNum,
+                        'camp_name' => $result->camp_name,
+                        'breadcrumb' => $breadcrumb
+                    ];
+                }
+            }
 
             return [
                 'data' => $data,
@@ -461,88 +417,98 @@ class Search extends Model
     public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search='', $pageNumber, $pageSize)
     {
         $data=[];
-        $asofdate = (!empty($asofdate)) ? strtotime($asofdate) : time();
+        $asofdate = !empty($asofdate) ? $asofdate : time();
         $query = DB::table('statement as a')
-                ->select('a.id', 'a.parsed_value as type_value', 'a.topic_num', 'a.camp_num', 'a.go_live_time', 'c.camp_name')
-                ->join(DB::raw('(SELECT
-                            topic_num,
-                            camp_num,
-                            MAX(go_live_time) AS live_time
-                        FROM
-                        statement
-                        WHERE
-                            objector_nick_id IS NULL
-                            AND grace_period = 0
-                            AND topic_num IN (' . implode(',', $topicIds) . ')
-                            AND camp_num IN (' . implode(',', $campIds) . ')
-                        GROUP BY
-                            topic_num,
-                            camp_num) b'), function ($join) {
-                    $join->on('a.topic_num', '=', 'b.topic_num')
-                        ->on('a.camp_num', '=', 'b.camp_num')
-                        ->on('a.go_live_time', '=', 'b.live_time');
-                });
-
-                $query->join(DB::raw('(SELECT
-                            topic_num,
-                            camp_num,
-                            MAX(go_live_time) AS live_time,
-                            camp_name
-                        FROM
-                        camp
-                        WHERE
-                            objector_nick_id IS NULL
-                            AND is_archive = 0
-                            AND grace_period = 0
-                            AND topic_num IN (' . implode(',', $topicIds) . ')
-                            AND camp_num IN (' . implode(',', $campIds) . ')
-                        GROUP BY
-                            topic_num,
-                            camp_num) c'), function ($join) {
-                    $join->on('a.topic_num', '=', 'c.topic_num')
-                        ->on('a.camp_num', '=', 'c.camp_num');
-                });
-
-                if ($asof != 'review') {
-                    // When asof is not 'review', include only live records (go_live_time <= $asofdate)
-                    $query->where('b.live_time', '<=', $asofdate);
-                } else if($asof == 'default') {
-                    // When asof is 'review', include both live and in-review records
-                    $query->where(function ($query) use ($asofdate) {
-                        // Include live records (go_live_time <= $asofdate)
-                        $query->where('b.live_time', '<=', $asofdate)
-                            // Include in-review records (go_live_time > $asofdate)
-                        ->orWhere('b.live_time', '>', $asofdate);
-                    });
-                }else  if ($asof == 'bydate') {
-                    // Only include records that were live before or on $asofdate
-                    $query->where('a.go_live_time', '<=', $asofdate);
-                }  
-
-                $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-
-                foreach($results as $result)
-                {
-                    $id= $result->id;
-                    $topicNum = $result->topic_num;
-                    $campNum = $result->camp_num;
-                    $liveTopic = Topic::getLiveTopic($topicNum);
-                    $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-                    if($checkTopicNum){
-                        $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                        $temp['id'] = $id;
-                        $temp['topic_num'] = $topicNum;
-                        $temp['camp_num'] = $campNum;
-                        $temp['camp_name'] = $result->camp_name;
-                        $temp['breadcrumb'] = $breadcrumb;
-                        $temp['type_value'] = $result->type_value;
-                        array_push($data,$temp);
+                ->select(
+                    'a.id',
+                    'a.parsed_value as type_value',
+                    'a.topic_num',
+                    'a.camp_num',
+                    'a.go_live_time',
+                    'c.camp_name'
+                )
+                ->join(
+                    DB::raw('(SELECT
+                                topic_num,
+                                camp_num,
+                                MAX(go_live_time) AS live_time
+                            FROM statement
+                            WHERE objector_nick_id IS NULL
+                                    AND grace_period = 0
+                                    AND topic_num IN (' . implode(',', $topicIds) . ')
+                                    AND camp_num IN (' . implode(',', $campIds) . ')
+                                GROUP BY topic_num, camp_num) b'),
+                    function ($join) {
+                        $join->on('a.topic_num', '=', 'b.topic_num')
+                            ->on('a.camp_num', '=', 'b.camp_num')
+                            ->on('a.go_live_time', '=', 'b.live_time');
                     }
-                }
-                return [
-                    'data' => $data,
-                    'total' => $results->total()
+                )
+                ->join(
+                    DB::raw('(SELECT
+                                    topic_num,
+                                    camp_num,
+                                    camp_name,
+                                    MAX(go_live_time) AS live_time
+                                FROM camp
+                                WHERE objector_nick_id IS NULL
+                                    AND is_archive = 0
+                                    AND grace_period = 0
+                                    AND topic_num IN (' . implode(',', $topicIds) . ')
+                                    AND camp_num IN (' . implode(',', $campIds) . ')
+                                GROUP BY topic_num, camp_num) c'),
+                    function ($join) {
+                        $join->on('a.topic_num', '=', 'c.topic_num')
+                            ->on('a.camp_num', '=', 'c.camp_num');
+                    }
+                );
+
+        if ($asof == 'bydate') {
+            // Only include records that were live before or on $asofdate
+            $query->where('a.go_live_time', '<=', $asofdate);
+        } 
+        else if ($asof == 'default') {
+                // When asof is 'default', include both live and in-review records
+                $query->where(function ($query) use ($asofdate) {
+                    $query->where('b.live_time', '<=', $asofdate)
+                        ->orWhere('b.live_time', '>', $asofdate);
+                });
+            }
+        
+        if (!empty($search)) {
+            $query->orwhereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+            $query->orWhere("a.parsed_value","like", "%". $search."%");
+        }
+
+        $query->orderByRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
+
+        $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
+            
+        foreach ($results as $result) {
+            $topicNum = $result->topic_num;
+            $campNum = $result->camp_num;
+            $liveTopic = Topic::getLiveTopic($topicNum);
+            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
+        
+            if ($checkTopicNum) {
+                $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                
+                $data[] = [
+                    'id' => $result->id,
+                    'topic_num' => $topicNum,
+                    'camp_num' => $campNum,
+                    'camp_name' => $result->camp_name,
+                    'breadcrumb' => $breadcrumb,
+                    'type_value' => $result->type_value
                 ];
+            }
+        }
+                
+        return [
+            'data' => $data,
+            'total' => $results->total()
+        ];
+                
     }
 
 
