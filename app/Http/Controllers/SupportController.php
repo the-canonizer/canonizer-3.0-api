@@ -59,54 +59,45 @@ class SupportController extends Controller
          $page = ($page - 1);
  
          try {
-             $sql = "CALL user_support(?, ?, ?, ?, ?)";
-             $params = [$supportType, $userId, $page, $per_page, $searchTopicName];
-             $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
-             $stmt = $connection->prepare($sql);
-             $stmt->execute($params);
-           
-             // Fetch the first result set (paginated data
-             $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
-           
-             $stmt->nextRowset();  // Move to the second result set
+            $sql = "CALL user_support(?, ?, ?, ?, ?)";
+            $params = [$supportType, $userId, $page, $per_page, $searchTopicName];
+            $connection = \DB::connection()->getPdo();  // Get the raw PDO connection
+            $stmt = $connection->prepare($sql);
+            $stmt->execute($params);
+        
+            // Fetch the first result set (paginated data
+            $paginatedData = $stmt->fetchAll(\PDO::FETCH_OBJ);
+        
+            $stmt->nextRowset();  // Move to the second result set
             // Fetch the second result set (total count)
-             $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
-             $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
- 
-             $supports = [];
- 
-             foreach ($paginatedData as $k => $support) {
-                 // Fetch the recent activity log
-                //  $recentActivityLog = ActivityLog::where('causer_id', $userId)
-                //      ->whereJsonContains(self::PROPERTIES_TOPIC_NUM, (int) $support->topic_num)
-                //      ->whereJsonContains(self::PROPERTIES_CAMP_NUM, (int) $support->camp_num)
-                //      ->orderBy('created_at', 'desc')
-                //      ->limit(1)
-                //      ->first();
- 
-                 $campData = [
-                     'id' => $support->camp_num,
-                     'camp_num' => $support->camp_num,
-                     'camp_name' => $support->camp_name,
-                     'support_order' => $support->support_order,
-                     'camp_link' => Camp::campLink($support->topic_num, $support->camp_num, $support->title, $support->camp_name),
-                   //  'recent_activity' => $recentActivityLog,
-                 ];
- 
-                 // Check if the topic already exists
-                 if (isset($supports[$support->topic_num])) {
-                     // Add the camp to the existing topic
-                     array_push($supports[$support->topic_num]['camps'], $campData);
-                 } else {
-                     // Create a new topic with the camp
-                    $supports[$support->topic_num] = [
-                        'topic_num' => $support->topic_num,
-                        'title' => $support->title,
-                        'nick_name_id' => $support->nick_name_id,
-                        'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
-                        'camps' => [$campData],
+            $totalRecordsResult = $stmt->fetchAll(\PDO::FETCH_OBJ);
+            $totalRecords = $totalRecordsResult[0]->total_records ?? 0;
+
+            $supports = [];
+            foreach ($paginatedData as $k => $support) 
+            {
+            $jsonString = '[' . $support->details . ']';
+            $result = json_decode($jsonString, true);
+                $camps = []; 
+                foreach ($result as $item) 
+                {
+                    $campData = [
+                        'id' => $item['camp_num'],
+                        'camp_num' => $item['camp_num'],
+                        'camp_name' => $item['camp_name'],
+                        'support_order' => $item['support_order'],
+
+                        'camp_link' => Camp::campLink($item['topic_num'], $item['camp_num'], $item['title'], $item['camp_name']),
                     ];
-                 }
+                    $camps[] = $campData;
+                }
+                $supports[$support->topic_num] = [
+                    'topic_num' => $support->topic_num,
+                    'title' => $support->title,
+                    'nick_name_id' => $support->nick_name_id,
+                    'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
+                    'camps' => $camps,
+                ];
  
                  // If the support type is delegate, add delegate-specific data
                 if ($supportType == 'delegate') {
@@ -128,7 +119,9 @@ class SupportController extends Controller
              ];
  
          } catch (\Throwable $e) {
+            dd($e);
              return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+
          }
      }
  
