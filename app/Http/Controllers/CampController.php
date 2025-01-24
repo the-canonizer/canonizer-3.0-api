@@ -416,8 +416,9 @@ class CampController extends Controller
                 $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
                 $livecamp->camp_leader_nick_name = NickName::getNickName($livecamp->camp_leader_nick_id)->nick_name ?? '';
                 $livecamp->parent_camp_name = $parentCampName;
+                ['is_disabled' => $livecamp->parent_is_disabled, 'is_one_level' => $livecamp->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($livecamp);
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name', 'is_disabled', 'is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id', 'note', 'camp_about_url', 'is_archive', 'direct_archive', 'submit_time', 'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name', 'is_disabled', 'is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id', 'note', 'camp_about_url', 'is_archive', 'direct_archive', 'submit_time', 'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name', 'parent_is_disabled', 'parent_is_one_level'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -1583,10 +1584,11 @@ class CampController extends Controller
             $topic = $camp->topic;
             $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update   
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
-
+            $message = trans('message.success.success');
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
+                $message = trans('message.success.camp_object');
             } else if ($all['event_type'] == "update") {
                 if ($ifIamSingleSupporter && array_key_exists("from_test_case", $all)) {
                     Util::checkParentCampChanged($all, false, $liveCamp);
@@ -1648,7 +1650,7 @@ class CampController extends Controller
                     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            return $this->resProvider->apiJsonResponse(200, $message, $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

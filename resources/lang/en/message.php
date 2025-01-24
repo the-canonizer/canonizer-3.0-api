@@ -73,6 +73,7 @@ return [
         'topic_commit'  => 'Your change to topic has been submitted to your supporters.',
         'topic_object'  => 'Objection submitted successfully.',
         'topic_update'  => 'Topic updated successfully.',
+        'camp_object'  => 'Objection submitted successfully.',
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -170,7 +171,7 @@ return [
         'topic_name_max' => 'Topic name can not be more than 80 characters.',
         'topic_name_regex' => 'Topic name can only contain space and alphanumeric characters.',
         'topic_name_unique' => 'The topic name has already been taken.',
-        'topic_name_under_review' => 'The topic name has already taken and under processing.',
+        'topic_name_under_review' => 'The topic name has already taken and is in review.',
         'namespace_required' => 'Namespace is required.',
         'create_namespace_required_if' => 'The Other Namespace Name field is required when namespace is other.',
         'create_namespace_max' => 'The Other Namespace Name can not be more than 100 characters.',
