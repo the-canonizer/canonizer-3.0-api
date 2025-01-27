@@ -321,9 +321,7 @@ class Search extends Model
             else if ($asof == 'default') {
                     $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
                 }
-            if (!empty($search)) {
-                $query->orderByRaw('MATCH(a.topic_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
-            }   
+                
             $query->orderBy('a.go_live_time', 'desc');
 
             $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
