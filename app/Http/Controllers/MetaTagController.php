@@ -187,7 +187,7 @@ class MetaTagController extends Controller
         ]);
 
         if (str_contains($metaTag->description, '[topic_description]')) {
-            $metaTag->description = Str::of(strip_tags($statement->value) ?? '')->limit(160);
+            $metaTag->description = Str::of($statement ? strip_tags($statement->value) : '')->limit(160);
         }
         return $metaTag;
     }
@@ -202,7 +202,7 @@ class MetaTagController extends Controller
         ]);
 
         if (str_contains($metaTag->description, '[camp_description]')) {
-            $metaTag->description = Str::of(strip_tags($statement->value) ?? '')->limit(160);
+            $metaTag->description = Str::of($statement ? strip_tags($statement->value) : '')->limit(160);
         }
         return $metaTag;
     }
