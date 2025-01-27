@@ -1865,9 +1865,8 @@ class UserController extends Controller
 
             $userNicknameIds = Nickname::getNicknamesIdsByUserId($user_to_deactivate);
 
-            $as_of_time = time() + 100;
             Support::whereIn('nick_name_id', $userNicknameIds)
-                ->whereRaw("(start < $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                ->where('end', 0)
                 ->update(['end' => time()]);
 
             // removing linked social accounts 
