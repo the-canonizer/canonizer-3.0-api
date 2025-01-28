@@ -31,6 +31,7 @@ use App\Http\Request\ValidationMessages;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Resources\Authentication\UserResource;
 use App\Models\SocialDataDeletionRequest;
+use App\Models\Topic;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -1864,11 +1865,18 @@ class UserController extends Controller
             // $nicknames = Nickname::where('owner_code', '=', $encode)->get();
 
             $userNicknameIds = Nickname::getNicknamesIdsByUserId($user_to_deactivate);
-
+            $uniqueTopicSupport = Support::select('topic_num')
+                ->whereIn('nick_name_id', $userNicknameIds)
+                ->where('end', 0)
+                ->groupBy('topic_num')
+                ->get();
             Support::whereIn('nick_name_id', $userNicknameIds)
                 ->where('end', 0)
                 ->update(['end' => time()]);
-
+            foreach ($uniqueTopicSupport as $support) {
+                $topic = Topic::getLiveTopic($support->topic_num);
+                Util::dispatchJob($topic, 1, 1);
+            }
             // removing linked social accounts 
             SocialUser::where('user_id', $user_to_deactivate)->delete();
             $status = 200;
