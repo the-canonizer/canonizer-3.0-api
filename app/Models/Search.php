@@ -381,7 +381,8 @@ class Search extends Model
                 }
 
                 if (!empty($search) ) {
-                    $query->orwhereRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+                    $query->whereRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+                    $query->orWhere('a.camp_name', 'like', "%". $search."%");
                 }
             
             $query->orderByRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);    
@@ -472,14 +473,13 @@ class Search extends Model
                         ->orWhere('b.live_time', '>', $asofdate);
                 });
             }
-        
+      
         if (!empty($search)) {
-            $query->orwhereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
-            $query->orWhere("a.parsed_value","like", "%". $search."%");
+            $query->whereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
+            $query->orWhere('a.parsed_value', 'like', "%". $search."%");
         }
 
-        $query->orderByRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
-
+       $query->orderByRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
         $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
             
         foreach ($results as $result) {

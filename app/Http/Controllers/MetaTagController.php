@@ -15,6 +15,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Cache;
 use App\Helpers\{ResourceInterface, ResponseInterface};
 use App\Http\Request\{ValidationRules, ValidationMessages};
+use App\Models\Statement;
 use App\Models\Video;
 
 class MetaTagController extends Controller
@@ -102,7 +103,7 @@ class MetaTagController extends Controller
             $submitterNick = null;
 
             if (in_array($page_name, ['TopicDetailsPage', 'TopicHistoryPage', 'CampHistoryPage', 'CampForumListPage', 'CampForumPage', 'TopicAnimationPage'])) {
-              
+
                 $validationErrors = $validate->validate($request, $this->rules->getMetaTagsByTopicCampValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                 if ($validationErrors) {
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -121,14 +122,13 @@ class MetaTagController extends Controller
                     return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_not_found'));
                 }
 
-                $submitterNick = $this->getSubmitterById($topic->submitter_nick_id);
+                $submitterNick = $this->getSubmitterById($camp->submitter_nick_id);
 
                 $metaTag = $this->replaceTopicName($metaTag, $topic);
                 $metaTag = $this->replaceCampName($metaTag, $camp);
-                $metaTag = $this->replaceTopicDescription($metaTag, $topic);
+                $metaTag = $this->replaceTopicDescription($metaTag, $camp);
                 $metaTag = $this->replaceCampDescription($metaTag, $camp);
             } elseif (in_array($page_name, ['VideosPage'])) {
-              
                 $validationErrors = $validate->validate($request, $this->rules->getMetaTagsVideoValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                 if ($validationErrors) {
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -143,7 +143,7 @@ class MetaTagController extends Controller
                 $metaTag = $this->replaceVideoName($metaTag, $video);
                 $metaTag = $this->replaceVideoNameInDescription($metaTag, $video);
             } elseif (in_array($page_name, ['SearchResultsPage'])) {
-              
+
                 $validationErrors = $validate->validate($request, $this->rules->getMetaTagsKeywordsValidationRules(), $this->validationMessages->getMetaTagsValidationMessages());
                 if ($validationErrors) {
                     return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -179,13 +179,31 @@ class MetaTagController extends Controller
 
     public function replaceTopicDescription($metaTag, $camp)
     {
-        $metaTag->description = Str::of($metaTag->description)->replace('[topic_description]', "");
+        $statement = Statement::getLiveStatement([
+            'topicNum' => $camp->topic_num,
+            'campNum' => $camp->camp_num,
+            'asOf' => 'default',
+            'asOfDate' => Carbon::now()->timestamp
+        ]);
+
+        if (str_contains($metaTag->description, '[topic_description]')) {
+            $metaTag->description = Str::of($statement ? strip_tags($statement->value) : '')->limit(160);
+        }
         return $metaTag;
     }
 
     public function replaceCampDescription($metaTag, $camp)
     {
-        $metaTag->description = Str::of($metaTag->description)->replace('[camp_description]', "");
+        $statement = Statement::getLiveStatement([
+            'topicNum' => $camp->topic_num,
+            'campNum' => $camp->camp_num,
+            'asOf' => 'default',
+            'asOfDate' => Carbon::now()->timestamp
+        ]);
+
+        if (str_contains($metaTag->description, '[camp_description]')) {
+            $metaTag->description = Str::of($statement ? strip_tags($statement->value) : '')->limit(160);
+        }
         return $metaTag;
     }
 
@@ -200,8 +218,6 @@ class MetaTagController extends Controller
         $metaTag->description = Str::of($metaTag->description)->replace('[video_name]', $video->title);
         return $metaTag;
     }
-
-
 
     public function replaceKeywordsInTitle($metaTag, $keywords)
     {

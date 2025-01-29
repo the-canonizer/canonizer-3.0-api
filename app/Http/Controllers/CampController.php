@@ -1874,15 +1874,15 @@ class CampController extends Controller
                     $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
 
                     $filter['campNum'] = $camp->camp_num;
-                    $campStatement =  Statement::getLiveStatement($filter);
-                    $campStatement = Helpers::stripTagsExcept($campStatement->value ?? "", ['figure', 'table']);
-                    $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', $campStatement);
-                    $campStatement = Str::of($campStatement)->trim();
+
+                    $getLiveStatement = Statement::getLiveStatement($filter);
+                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                    $getLiveStatement = Str::of($getLiveStatement)->trim();
 
                     $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
                     $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
-                    $camp->statement = $campStatement ?? NULL;
+                    $camp->statement = $getLiveStatement ?? NULL;
                     $camp->supporterData = $supporters ?? [];
                 }
             }
