@@ -2154,7 +2154,11 @@ class TopicController extends Controller
                 $topicTitle = $liveTopic->topic_name ?? '';
                 $campTitle = $liveCamp->camp_name ?? '';
 
-                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
+                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                    $supporter->first_name = $supporter->first_name[0] ?? '';
+                    $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                    $supporter->last_name = $supporter->last_name[0] ?? '';
+                });
 
                 // Get the tag IDs associated with $liveTopic
                 $topic->id = $liveTopic->id;
@@ -2256,7 +2260,12 @@ class TopicController extends Controller
                     if (!empty($liveCamp)) {
                         $campTitle = $liveCamp->camp_name;
                     }
-                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
+
+                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                        $supporter->first_name = $supporter->first_name[0] ?? '';
+                        $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                        $supporter->last_name = $supporter->last_name[0] ?? '';
+                    });
 
                     // Get the tag IDs associated with $liveTopic
                     $hotTopic->topic_name = $topicTitle ?? "";
@@ -2354,7 +2363,11 @@ class TopicController extends Controller
                 $campTitle = $liveCamp->camp_name ?? '';
                 $supporterLimit = $request->supporter_limit ?? 5;
 
-                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit);
+                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                    $supporter->first_name = $supporter->first_name[0] ?? '';
+                    $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                    $supporter->last_name = $supporter->last_name[0] ?? '';
+                });
 
                 $getLiveStatement = Statement::getLiveStatement([
                     'topicNum' => $topic->topic_num,

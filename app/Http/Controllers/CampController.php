@@ -1871,7 +1871,11 @@ class CampController extends Controller
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
                     $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
 
-                    $nicknames = Nickname::with('user:id,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get();
+                    $nicknames = Nickname::select('id', 'user_id', 'nick_name')->with('user:id,first_name,middle_name,last_name,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get()->each(function ($nickname) {
+                        $nickname->user->first_name = $nickname->user->first_name[0] ?? '';
+                        $nickname->user->middle_name = $nickname->user->middle_name[0] ?? '';
+                        $nickname->user->last_name = $nickname->user->last_name[0] ?? '';
+                    });
 
                     $filter['campNum'] = $camp->camp_num;
 
