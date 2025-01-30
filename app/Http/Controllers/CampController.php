@@ -1870,7 +1870,7 @@ class CampController extends Controller
                 foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
                     $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
-                    $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
+                    $userColumnsToSelect = ['id', 'email', 'profile_picture_path'];
                     $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
 
                     $filter['campNum'] = $camp->camp_num;
