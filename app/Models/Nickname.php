@@ -57,6 +57,10 @@ class Nickname extends Model {
         });
     }
 
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
     public function getCreateTimeAttribute($value){
         return date("Y-m-d", strtotime($value));
     }
