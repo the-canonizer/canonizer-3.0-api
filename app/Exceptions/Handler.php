@@ -41,9 +41,8 @@ class Handler extends ExceptionHandler
             // Handle AuthenticationException specifically
             // Log the exception (or send it to a notification service)
             Log::error('AuthenticationException: ' . $exception->getMessage());
-        } else {
-            parent::report($exception);
         }
+        parent::report($exception);
     }
 
     /**
