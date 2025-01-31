@@ -149,21 +149,27 @@ class UploadController extends Controller
                 ];
                 array_push($uploadFiles,$data);
 
+                $responseData[] = [
+                    'file_name' => trim($all['name'][$k]),
+                    'short_code' => $fileShortCode,
+                    'file_id' => $fileShortCode,
+                    'file_type' => $file->getMimeType(),
+                    'file_path' => $filename,
+                    'base_path' => env('SHORT_CODE_BASE_PATH'),
+                    'short_code_path' => env('SHORT_CODE_BASE_PATH') . $filename, // Include short_code_path in the 
+                ];
             }
-            Upload::insert($uploadFiles);
-
+             Upload::insert($uploadFiles);
             if($request->has('from_test_case')) {
-                $test_case_response = ["file_name" => $filename];
+                    $test_case_response = ["file_name" => $filename];
             }
 
-            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), $test_case_response ?? '', '');
+            return $this->resProvider->apiJsonResponse(200, trans('message.uploads.success'), $responseData, '');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-  
-
 
     /**
      * @OA\Delete(path="/folder/delete/{id}",
@@ -233,19 +239,15 @@ class UploadController extends Controller
     public function folderDelete($id)
     {
         try{
-
             $files = Upload::where('folder_id','=', $id)->get();
-
             if(count($files) > 0){
                 $status = 400;
                 $message = trans('message.uploads.folder_has_files_can_not_delete');
             }else{
                 $folder = FileFolder::where('id',$id)->first();
-
                 if(!$folder){
                     return $this->resProvider->apiJsonResponse(400, trans('message.uploads.folder_not_found'), null, null);
                 }
-
                 $folder->delete();
                 $status = 200;
                 $message = trans('message.uploads.folder_deleted');
