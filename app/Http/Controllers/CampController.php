@@ -1870,8 +1870,12 @@ class CampController extends Controller
                 foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
                     $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
-                    $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
-                    $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
+
+                    $nicknames = Nickname::select('id', 'user_id', 'nick_name')->with('user:id,first_name,middle_name,last_name,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get()->each(function ($nickname) {
+                        $nickname->user->first_name = $nickname->user->first_name[0] ?? '';
+                        $nickname->user->middle_name = $nickname->user->middle_name[0] ?? '';
+                        $nickname->user->last_name = $nickname->user->last_name[0] ?? '';
+                    });
 
                     $filter['campNum'] = $camp->camp_num;
 
@@ -1883,7 +1887,7 @@ class CampController extends Controller
                     $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
                     $camp->statement = $getLiveStatement ?? NULL;
-                    $camp->supporterData = $supporters ?? [];
+                    $camp->supporterData = $nicknames ?? [];
                 }
             }
 
