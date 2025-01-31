@@ -90,7 +90,8 @@ $app->middleware([
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
-    'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+    // 'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+    'client' => \App\Http\Middleware\CheckClientCredentialsMiddleware::class,
     'Xss' => \App\Http\Middleware\Xss::class,
     'admin' => \App\Http\Middleware\IsAdmin::class,
     'checkstatus' => \App\Http\Middleware\CheckStatus::class,
