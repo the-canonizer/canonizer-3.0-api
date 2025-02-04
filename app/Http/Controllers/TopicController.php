@@ -213,7 +213,11 @@ class TopicController extends Controller
             if ($topic) {
                 // Check if the array exists for tags ...
                 if ($request->has('tags') && is_array($request->tags)) {
-                    $topic->tags()->sync($request->tags);
+                    $syncData = collect($request->tags)->mapWithKeys(function ($tagId) use ($topic) {
+                        return [$tagId => ['topic_num' => $topic->topic_num]];
+                    })->toArray();
+                
+                    $topic->tags()->sync($syncData);
                 }
 
                 Util::dispatchJob($topic, 1, 1);
@@ -1721,7 +1725,11 @@ class TopicController extends Controller
 
             // Check if the array exists for tags ...
             if ($request->has('tags') && is_array($request->tags)) {
-                $topic->tags()->sync($request->tags);
+                $syncData = collect($request->tags)->mapWithKeys(function ($tagId) use ($topic) {
+                    return [$tagId => ['topic_num' => $topic->topic_num]];
+                })->toArray();
+            
+                $topic->tags()->sync($syncData);
             }
 
             DB::commit();
