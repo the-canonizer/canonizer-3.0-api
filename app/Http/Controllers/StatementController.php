@@ -112,7 +112,7 @@ class StatementController extends Controller
                 $statement = $this->resourceProvider->jsonResponse($indexes, $statement);
             }
 
-            if ($filter['asOf'] === 'default') {
+            if ($filter['asOf'] === 'default' || $filter['asOf'] === 'review' ) {
                 $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
                 if (!$campStatement && !$inReviewChangesCount) {
                     $message = trans('message.error.camp_live_statement_not_found');
@@ -121,6 +121,15 @@ class StatementController extends Controller
                 $statement[0]['grace_period_record_count'] = Statement::getGracePeriodRecordCount($filter['topicNum'], $filter['campNum']);
                 $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
             }
+            // if ($filter['asOf'] === 'review') {
+            //     $inReviewChangesCount = Helpers::getChangesCount((new Statement()), $request->topic_num, $request->camp_num);
+            //     if (!$campStatement && !$inReviewChangesCount) {
+            //         $message = trans('message.error.camp_live_statement_not_found');
+            //     }
+            //     $statement[0]['draft_record_id'] = Statement::getDraftRecord($filter['topicNum'], $filter['campNum']);
+            //     $statement[0]['grace_period_record_count'] = Statement::getGracePeriodRecordCount($filter['topicNum'], $filter['campNum']);
+            //     $statement[0] = array_merge(empty($statement) ? $statement : $statement[0], ['in_review_changes' => $inReviewChangesCount]);
+            // }
             return $this->resProvider->apiJsonResponse(200, $message ?? trans('message.success.success'), $statement, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
