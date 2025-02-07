@@ -1,5 +1,5 @@
 <?php
-
+use Illuminate\Support\Facades\Artisan;
 /** @var \Laravel\Lumen\Routing\Router $router */
 
 /*
@@ -17,6 +17,11 @@ $router->get('/key', function() {
 });
 $router->get('/', function () use ($router) {
     return $router->app->version();
+});
+//Added route to test new es modifications
+$router->get('/es-data', function () {
+    Artisan::call('elasticsearch:import');
+    return "✅ Migration ran successfully!";
 });
 
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
