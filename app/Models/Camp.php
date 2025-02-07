@@ -284,22 +284,23 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $campNames[$index]['camp_name'] = $camp->camp_name;
             $campNames[$index]['topic_num'] = $camp->topic_num;
             $campNames[$index]['camp_num'] = $camp->camp_num;
+            $campNames[$index]['camp_is_archive'] = $camp->is_archive;
             $index++;
 
-        if ($camp->parent_camp_num) {
-            if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
-                $pCamp = Camp::where('topic_num', $camp->topic_num)
-                    ->where('camp_num', $camp->parent_camp_num)
-                    ->where('grace_period', 0)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->orderBy('go_live_time', 'DESC')->first();
-            } else {
-                $pCamp = Camp::where('topic_num', $camp->topic_num)
-                    ->where('camp_num', $camp->parent_camp_num)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', $as_of_time)
-                    ->orderBy('submit_time', 'DESC')->first();
-            }
+            if ($camp->parent_camp_num) {
+                if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
+                    $pCamp = Camp::where('topic_num', $camp->topic_num)
+                        ->where('camp_num', $camp->parent_camp_num)
+                        ->where('grace_period', 0)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->orderBy('go_live_time', 'DESC')->first();
+                } else {
+                    $pCamp = Camp::where('topic_num', $camp->topic_num)
+                        ->where('camp_num', $camp->parent_camp_num)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time', '<=', $as_of_time)
+                        ->orderBy('submit_time', 'DESC')->first();
+                }
                 return self::campNameWithAncestors($pCamp, $filter, $campNames, $index, $visitedCamps);
             }
         }
