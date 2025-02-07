@@ -66,36 +66,34 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
             }
             $type = "camp";
-                $typeValue = $item->camp_name;
-                $topicNum = $item->topic_num;
-                $campNum = $item->camp_num;
-                $campName = $item->camp_name;
-                $goLiveTime = $item->go_live_time;
-                $namespace = $namespaceLabel; //fetch namespace
-                $breadcrumb = '';
+            $typeValue = $item->camp_name;
+            $topicNum =  $item->topic_num;
+            $campNum =   $item->camp_num;
+            $campName =  $item->camp_name;
+            $goLiveTime = $item->go_live_time;
+            $namespace = $namespaceLabel; //fetch namespace
+            $breadcrumb = '';
             $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($item->camp_num == 1){
-                $type = "topic";
-                $typeValue = $liveTopic->topic_name;
-                $id = "topic-". $topicNum;
-                $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
-            }else{             
-                $id = "camp-". $topicNum . "-" . $campNum;
-                // breadcrumb
-                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-            }
-
-            if($item->is_archive && $item->go_live_time <= time()){
-                ElasticSearch::deleteData($id);
-                return;
-            }
-
+            $liveId = "camp-". $topicNum . "-" . $campNum."-live";
+            $reviewId="camp-". $topicNum . "-" . $campNum."-review";
+            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            $isArchive = ($item->is_archive) ? true: false;
             if($item->go_live_time <= time())
             {
-                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+                $isLive=true;
+                ElasticSearch::ingestData($liveId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+
+                $isLive=false;
+                ElasticSearch::ingestData($reviewId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
             }
 
-         });
+              //Added Pending Review
+            if($item->go_live_time > time() && $item->grace_period!=1){
+                $isLive=false;
+                ElasticSearch::ingestData($reviewId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+            }
+
+        });
     }
 
     public static function forgetCache($item)

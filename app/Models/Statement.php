@@ -17,10 +17,11 @@ class Statement extends Model
     protected $table = 'statement';
     public $timestamps = false;
 
+   /* The above PHP code is defining a static method `boot()` within a class. Inside this method, there
+   is a callback function attached to the `saved` event of the model. When an item is saved, the
+   callback function is triggered. Here is a breakdown of what the code is doing within the callback
+   function: */
 
-    /**
-     * 
-     */ 
     public static function boot() 
     {
         parent::boot();
@@ -29,31 +30,36 @@ class Statement extends Model
         {
             //forget cache
             self::forgetCache($item);
-            
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
             $liveTopic = Topic::getLiveTopic($item->topic_num);
-            $filter['topicNum'] = $item->topic_num;
-            $filter['asOf'] = '';
-            $filter['campNum'] = $item->camp_num;
-            $liveCamp = Camp::getLiveCamp($filter);
-            $id = "statement-" .$item->topic_num ."-" . $item->camp_num;
+            // $filter['topicNum'] = $item->topic_num;
+            // $filter['asOf'] = '';
+            // $filter['campNum'] = $item->camp_num;
+            // $liveCamp = Camp::getLiveCamp($filter);
+            // $campName = $liveCamp->camp_name;
+            $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-live';
             $type = "statement";
-            $typeValue = $item->parsed_value;
+            $typeValue  = $item->parsed_value;
             $goLiveTime = $item->go_live_time;
-            $namespace = '';
-            $campName = $liveCamp->camp_name;
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-            }            
-            $link = '';  //Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
-            // breadcrumb
             $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            $link = '';  
+            $namespace = '';
             
-            if($item->go_live_time <= time()){ 
-                // then update table
-                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            if($goLiveTime <= time())
+            { 
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive=true, $isArchive=0, $statementNum = '', $nickNameId = '', $supportCount = '');
+
+                $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-review';
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive=false, $isArchive=0, $statementNum = '', $nickNameId = '', $supportCount = '');
+                return true;
+            }
+
+            if($goLiveTime > time() && $item->grace_period!=1){
+                $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-review';
+                $isLive=false;
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive=0,$statementNum = '', $nickNameId = '', $supportCount = '');
+                return true;
             }
         });
     }
