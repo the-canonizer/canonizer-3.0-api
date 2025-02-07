@@ -52,7 +52,8 @@ class Nickname extends Model {
                 ElasticSearch::deleteData($id);
                 return;
             }
-            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive = true, $isArchive=0, $statementNum = '', $nickNameId = '', $supportCount = '');
 
         });
     }

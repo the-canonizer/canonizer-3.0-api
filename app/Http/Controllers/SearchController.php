@@ -23,27 +23,18 @@ class SearchController extends Controller
         $size = $request->get('size') ?? 0;
         $page = $request->get('page') ?? 1;
         $totalCounts = [];
+        $total = 0;
+        $data = [];
+        $search_ids=[];
         try{
             // Define types when $type is empty or not set
             $typesToSearch = isset($type) && empty(trim($type)) ? ['topic', 'camp', 'statement', 'nickname'] : [$type];
-            $data = [];
-            $totalCounts = [];
-            $total = 0;
-            $search_ids=[];
-
             foreach ($typesToSearch as $searchType) {
-                $result = Search::getSearchData($term, [$searchType], $size, $page);
+                $result = Search::getSearchData($term, [$searchType], $size, $page, $isLive = true,$asof = 'default', $asofdate = time());
                 $data[$searchType] = $result['data'];
                 $totalCounts[$searchType] = $result['count'];
                 $total += $result['count'];
             }
-            
-            if(count($typesToSearch) ==  1){
-                $all_size=4000;
-                $all_page=0;
-                $search_ids = self::getSearchIds($term, $type,$all_size, $all_page);
-            }
-
             $response = self::optimizeResponse($data, $total, $page, $size, $search_ids, $totalCounts);
             $status = 200;
             $message =  trans('message.success.success');
@@ -75,16 +66,14 @@ class SearchController extends Controller
         $all        = $request->all();
         $type       = $all['type'];
         $nickIds    = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
-        $search     = $all['search'];
+        $search     = $all['search'] ?? '';
         $algorithm  = $all['algo'] ??  '';
-        $asof       = $all['asof'] ??  '';   //search type
+        $asof       = $all['asof'] ??  'default';   //search type
         $score      = $all['score'] ??  0;
         $query      = $all['query'] ?? '';
-        $campIds    = $all['camp_ids'] ?? [];
-        $topicIds   = $all['topic_ids'] ?? [];
         $pageNumber = $all['page_number'] ?? 1;
         $pageSize   = $all['page_size'] ?? 20;
-        $asofdate   = $all['asofdate'] ?? time();
+        $asofdate   = $all['asofdate'];
 
         $status = 200;
         $message =  trans('message.success.success');
@@ -93,30 +82,24 @@ class SearchController extends Controller
                 $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
                 $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
                 break;
-            case 'camp':
-                $response['camp'] = [];
-                if(!empty($topicIds) && !empty($campIds)){
-                    $result = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize); 
-                    $response['camp']  = $result['data'];
-                    $response['camp_total'] = $result['total'];
-                }
-                break;
             case 'topic':
                 $response['topic'] = [];
-                if(!empty($topicIds)){
-                    $result = Search::advanceTopicSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize);
-                    $response['topic']  = $result['data'];
-                    $response['topic_total'] = $result['total'];
-                }
+                $result = Search::advanceSearchFilter('topic', $asof, $asofdate, $search, $pageNumber, $pageSize);
+                $response['topic']  = $result['data'];
+                $response['topic_total'] = $result['total'];
                 break;
-               case 'statement':
-                $response['statement'] = [];
-                if(!empty($topicIds) && !empty($campIds)){
-                    $result = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate, $search, $pageNumber, $pageSize);
-                    $response['statement'] = $result['data'];
-                    $response['statement_total'] = $result['total'];
-                }
+            case 'camp':
+                    $response['camp'] = [];
+                    $result = Search::advanceSearchFilter('camp', $asof, $asofdate, $search, $pageNumber, $pageSize); 
+                    $response['camp']  = $result['data'];
+                    $response['camp_total'] = $result['total'];
                 break;
+            case 'statement':
+            $response['statement'] = [];
+                $result = Search::advanceSearchFilter('statement', $asof, $asofdate, $search, $pageNumber, $pageSize);
+                $response['statement'] = $result['data'];
+                $response['statement_total'] = $result['total'];
+            break;
             default:
                 // Do something if none of the above cases match
                 break;
@@ -124,23 +107,4 @@ class SearchController extends Controller
         return $this->resProvider->apiJsonResponse($status, $message, $response, null);
     }
 
-    public function getSearchIds($term, $type, int $size = 10000, int $page = 0)
-    {
-        try {
-
-            $camp_ids = collect();  // Initialize empty collection
-            $topic_ids = collect(); // Initialize empty collection
-
-            $result = Search::getSearchData($term, [$type], $size, $page);
-            $data = collect($result['data']);
-
-            $topic_ids = $data->pluck('topic_num')->map(fn($item) => (string) $item);
-            $camp_ids =  $data->pluck('camp_num')->map(fn($item) => (string) $item);
-            
-            return ['camp_ids' => $camp_ids,  'topic_ids' => $topic_ids ];
-
-        } catch (\Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
-        }
-    }
 }

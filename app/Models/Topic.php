@@ -44,81 +44,86 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     public static function boot()
     {
         static::created(function ($model) {
-            ## while creating topic for very first time ##
-            ## this will not run when updating ##
-           // dd($model);
-            if ($model->topic_num == '' || $model->topic_num == null) {
-                $nextTopicNum = DB::table('topic')->max('topic_num');
-                $nextTopicNum++;
-                $model->topic_num = $nextTopicNum;
-                $model->update();
 
-                ## create agreement ##
-                $camp = new Camp();
-                $camp->topic_num = $model->topic_num;
-                $camp->parent_camp_num = null;
-                $camp->camp_num = 1;
-                $camp->key_words = '';
-                $camp->language = $model->language;
-                $camp->note = $model->note;
-                $camp->submit_time = time();
-                $camp->submitter_nick_id = $model->submitter_nick_id;
-                $camp->go_live_time = $model->go_live_time;
-                $camp->title = $model->topic_name;
-                $camp->camp_name = Camp::AGREEMENT_CAMP;
-                $camp->camp_leader_nick_id = $model->submitter_nick_id;
+            if ($model->topic_num == '' || $model->topic_num == null) 
+            {
+                $model->topic_num = DB::table('topic')->max('topic_num') + 1;
+                $model->update();
+                
+                $camp = new Camp([
+                    'topic_num' => $model->topic_num,
+                    'parent_camp_num' => null,
+                    'camp_num' => 1,
+                    'camp_name' => Camp::AGREEMENT_CAMP,
+                    'title' => $model->topic_name,
+                    'language' => $model->language,
+                    'note' => $model->note,
+                    'submit_time' => time(),
+                    'submitter_nick_id' => $model->submitter_nick_id,
+                    'camp_leader_nick_id' => $model->submitter_nick_id,
+                    'go_live_time' => $model->go_live_time,
+                    'key_words' => ''
+                ]);
 
                 $camp->save();
-
                 Camp::dispatchCampLeaderActivityLogJob($model, $camp, $camp->camp_leader_nick_id, request()->user(), 'assigned');
-            }
+            }   
         });
 
-        static::saved(function($item) {
-            //forget cache
-            self::forgetCache($item);
-
-            $liveTopic = Topic::getLiveTopic($item->topic_num);
-            $namespace = Namespaces::find($liveTopic->namespace_id);
-            $namespaceLabel = 'no-namespace';
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-            }
-            $type = "camp";
-            $typeValue = $item->topic_name;
-            $topicNum = $item->topic_num;
-            $campNum = 1;
-            $campName = 'Agreement';
-            $goLiveTime = $item->go_live_time;
-            $namespace = $namespaceLabel; //fetch namespace
-            $breadcrumb = '';
-            $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($campNum == 1){
-                $type = "topic";
-                $typeValue = $liveTopic->topic_name;
-                $id = "topic-". $topicNum;
-                $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
-            }else{
-                $id = "camp-". $topicNum . "-" . $campNum;
-                // breadcrumb
-                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-            }
-
-            if($item->is_archive && $item->go_live_time <= time()){
-                ElasticSearch::deleteData($id);
-                return;
-            }
-
-            if($item->go_live_time <= time()){
-                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
-            }
-
-         });
-
-
-
+        static::saved(function ($item) {
+            self::updateElasticSearch($item);
+        });
         parent::boot();
+    }
+
+    public static function updateElasticSearch($item)
+    {
+        self::forgetCache($item);
+        $liveTopic = Topic::getLiveTopic($item->topic_num);
+        $namespace = Namespaces::find($liveTopic->namespace_id);
+        $namespaceLabel = $namespace ? Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name)) : 'no-namespace';
+        $type = "camp";
+        $typeValue = $item->topic_name;
+        $topicNum = $item->topic_num;
+        $campNum = 1;
+        $campName = 'Agreement';
+        $goLiveTime = $item->go_live_time;
+        $namespace = $namespaceLabel; //fetch namespace
+        $breadcrumb = '';
+        $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
+        $isArchive=0;
+        if($campNum == 1){
+            $type = "topic";
+            $typeValue = $liveTopic->topic_name;
+            $id = "topic-". $topicNum."-live";
+            $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
+        }else{
+            $id = "camp-". $topicNum . "-" . $campNum;
+            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+        }
+        if($item->go_live_time <= time() && $type == 'topic')
+        {
+            $isLive=true;
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+            
+            $isLive=false;
+            $id = "topic-". $topicNum."-review";
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive,$isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+        
+            return true;
+        }
+
+        if($item->go_live_time > time() && $item->grace_period!=1 &&  $type == 'topic')
+        {
+            $id = "topic-". $topicNum."-review";
+            $typeValue = $item->topic_name;
+            $isLive=false;
+            
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive,$isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+            
+            return true;
+        }
+        return false;
     }
 
     public static function forgetCache($item)
@@ -281,7 +286,6 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         return $response;
     }
 
-
     public static function filterTopicHistory($response, $filter, $liveTopic, $request)
     {
         $topicHistory = [];
@@ -400,54 +404,4 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     public static function getTopicFirstName($topicNumber) {
         return self::where('topic_num', $topicNumber)->pluck('topic_name')->first();
     }
-
-
-
-    public static function updateElasticSearch($item)
-    {
-        //forget cache
-        self::forgetCache($item);
-
-        $liveTopic = Topic::getLiveTopic($item->topic_num);
-        $namespace = Namespaces::find($liveTopic->namespace_id);
-        $namespaceLabel = 'no-namespace';
-        if (!empty($namespace)) {
-            $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-            $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-        }
-        $type = "camp";
-        $typeValue = $item->topic_name;
-        $topicNum = $item->topic_num;
-        $campNum = 1;
-        $campName = 'Agreement';
-        $goLiveTime = $item->go_live_time;
-        $namespace = $namespaceLabel; //fetch namespace
-        $breadcrumb = '';
-        $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-        if($campNum == 1){
-            $type = "topic";
-            $typeValue = $liveTopic->topic_name;
-            $id = "topic-". $topicNum;
-            $link = self::topicLink($topicNum, $campNum, $typeValue, $campName, true);
-        }else{
-            $id = "camp-". $topicNum . "-" . $campNum;
-            // breadcrumb
-            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-        }
-
-        if($item->is_archive && $item->go_live_time <= time()){
-            ElasticSearch::deleteData($id);
-            return true;
-        }
-
-        if($item->go_live_time <= time()){
-            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
-            return true;
-        }
-
-        return false;
-
-    }
-
-
 }

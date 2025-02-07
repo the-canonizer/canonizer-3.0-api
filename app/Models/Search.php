@@ -21,24 +21,30 @@ class Search extends Model
         'type_value' => 'string',
         'topic_num' => 'integer',
         'camp_num' => 'integer',
-        'go_live_time' => 'string',
+        'go_live_time' => 'integer',
         'nick_name_id' => 'integer',
         'namespace' => 'string',
         'link' => 'string',
         'statement_num' => 'integer',
         'breadcrum_data' => 'json',
-        'support_count' => 'double'
+        'support_count' => 'double',
+        'is_live' => 'boolean',
+        'is_archive' => 'boolean'
     ];
 
     protected $fillable = ['id', 'type', 'type_value','topic_num','camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link','statement_num', 'breadcrum_data', 'support_count'];
     
-    public static function getSearchData($search, $type, $size, $from)
+    public static function getSearchData($search, $type, $size, $from, $isLive, $asof = 'default', $asofdate = '')
     {
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $size = intval($size) ? $size: 15 ;
+        $size = intval($size) ? $size: 20 ;
         $from = $size * ((intval($from) ? : 1) - 1);
         $searchFields = ['type_value'];
         $indexName = 'canonizer_elastic_search';
+        $rangeValue = '';
+        if($asof === 'bydate'){
+            $rangeValue = intval($asofdate);
+        }
         $response = $elasticsearch->search([
             'index' => $indexName,
             'body' => [
@@ -65,17 +71,39 @@ class Search extends Model
                                 ],
                             ],
                         ],
-                        'filter' => [
+                        'filter' => array_merge(
                             [
-                                'terms' => [
-                                    'type' => $type, // Use the custom type value here
+                                [
+                                    'term' => [
+                                        'is_live' => $isLive, // Use the custom type value here
+                                    ],
+                                ],
+                                [
+                                    'term' => [
+                                        'is_archive' => false, // Use the custom type value here
+                                    ],
+                                ],
+                                [
+                                    'terms' => [
+                                        'type' => $type, // Use the custom type value here
+                                    ],
                                 ],
                             ],
-                        ],
+                            // Add the range filter conditionally
+                            $rangeValue ? [
+                                [
+                                    'range' => [
+                                        'go_live_time' => [
+                                            'lte' => $rangeValue, // Ensure it's an integer
+                                        ],
+                                    ],
+                                ]
+                            ] : []
+                        ),
                     ],
                 ],
                 'size' => $size, // Use the custom size value here
-                'from' => $from, //$from, // Use the custom from value here
+                'from' => $from, // Use the custom from value here
                 'aggs' => [
                     'type_counts' => [
                         'terms' => [
@@ -83,9 +111,16 @@ class Search extends Model
                         ],
                     ],
                 ],
+                'sort' => [
+                    [
+                        'topic_num' => [
+                            'order' => 'desc' // Sorting in descending order
+                        ]
+                    ]
+                ],
             ],
         ]);
-        
+     
         if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
             $parsedResponse = $response['hits']['hits'];
             $totalResponse = $response['hits']['total']['value'];
@@ -101,7 +136,6 @@ class Search extends Model
                 'count' => $totalResponse,
                 'type_counts' => $typeCounts, // Include counts per type
             ];
-            return $data;
         } else {
             // Handle the case where the Elasticsearch response doesn't contain the expected data.
             $data = [
@@ -110,67 +144,26 @@ class Search extends Model
                 'count' => 0,
                 'type_counts' => 0
             ]; 
-            
-            return $data;
         }
+
+        return $data;
+
     }
 
-    public static function createOrUpdate($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
-    {       
-        if($type == 'nickname'){
-            $queryArray = ['type' => 'nickname','nick_name_id' => $nickNameId];  
-          }else if($type == 'statement'){
-              $queryArray = ['type' => 'statement','statement_num'=>$statementNum];   
-          }else{
-              $queryArray = ['type' => $type,'topic_num' => $topicNum, 'camp_num' => $campNum];   
-          }
-          $modelEvent = 'create';
-          $search = Search::updateOrCreate($queryArray);
-          if(!empty($search)){
-            $modelEvent = 'update';
-          }
-          $search->id = $id;
-          $search->type = $type;
-          $search->type_value = $typeValue;
-          $search->topic_num = $topicNum;
-          $search->camp_num = $campNum;
-          $search->statement_num = $statementNum;
-          $search->nick_name_id = $nickNameId;
-          $search->go_live_time = $goLiveTime;
-          $search->namespace = $namespace;
-          $search->link = $link;
-          $search->breadcrumb_data = $breadcrumb;
-          $search->support_count = $supportCount;
-          if($modelEvent == 'update'){
-            $data = [
-                'id' => $id,
-                'type' => $type,
-                'type_value' => $typeValue,
-                'topic_num' => $topicNum,
-                'camp_num' => $campNum,
-                'statement_num' => $statementNum,
-                'go_live_time' => $goLiveTime,
-                'namespace' => $namespace,
-                'link' => $link,
-                'breadcrumb_data' => json_encode($breadcrumb),
-                'nick_name_id' => $nickNameId,
-                'support_count' => $supportCount
-            ];
-            Search::where($queryArray)
-                    ->update($data);
-            return;
-
-        }
-        $search->save();
-        return;
-    }
-
-    public static function deleteRecordIfExist($id)
+    public static function processResults($data,$type)
     {
-        Search::where(['id'=>$id])->delete();
-        return;
+        $topic = [];
+        foreach($data as $dt)
+        {
+            $temp['title'] = $dt->topic_name;
+            $temp['topic_num'] = $dt->topic_num;
+            $temp['camp_num'] = 1;
+            $temp['camp_name'] = 'Agreement';
+            $temp['link'] = Topic::topicLink($dt->topic_num, 1, $dt->topic_name, 'Agreement', true);
+            array_push($topic, $temp);
+        }
+        return $topic;
     }
-
     /**
      * Return breadcrum data for elastic search 
      */
@@ -230,22 +223,6 @@ class Search extends Model
         return $topic;
     }
 
-    public static function processResults($data,$type)
-    {
-        $topic = [];
-        foreach($data as $dt)
-        {
-            $temp['title'] = $dt->topic_name;
-            $temp['topic_num'] = $dt->topic_num;
-            $temp['camp_num'] = 1;
-            $temp['camp_name'] = 'Agreement';
-            $temp['link'] = Topic::topicLink($dt->topic_num, 1, $dt->topic_name, 'Agreement', true);
-            array_push($topic, $temp);
-        }
-
-        return $topic;
-    }
-
     public static function advanceCampFilterByNickname($nickIds, $query)
     {
         $results = DB::table('camp as a')
@@ -291,304 +268,68 @@ class Search extends Model
         return $camps;
     }
 
-    public static function advanceTopicSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search, $pageNumber, $pageSize)
+    public static function advanceSearchFilter($type, $asof, $asofdate, $search, $pageNumber, $pageSize)
     {
-        $data=[];       
-        $asofdate = ($asofdate) ? $asofdate : time();
-        $query = DB::table('topic as a')
-            ->select('a.id', 'a.topic_name', 'a.topic_num', 'a.go_live_time', 'a.namespace_id')
-            ->join(DB::raw('(SELECT
-                                topic_num,
-                                MAX(go_live_time) AS live_time
-                            FROM
-                                topic
-                            WHERE
-                                objector_nick_id IS NULL
-                                AND grace_period = 0
-                                AND topic_num IN (' . implode(',', $topicIds) . ')
-                            GROUP BY
-                                topic_num) b'), function ($join) {
-                $join->on('a.topic_num', '=', 'b.topic_num')
-                    ->on('a.go_live_time', '=', 'b.live_time');
-            });
-
-            // Include live records (go_live_time <= $asofdate)
-            // Include in-review records (go_live_time > $asofdate)
-
-            if ($asof == 'bydate') {
-                $query->where('a.go_live_time', '<=', $asofdate);
-            } 
-            else if ($asof == 'default') {
-                    $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
-                }
-                
-            $query->orderBy('a.go_live_time', 'desc');
-
-            $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-
-                foreach ($results as $result) {
-                    $namespace = Namespaces::find($result->namespace_id);
-                    
-                    $data[] = [
-                        'id' => $result->id,
-                        'topic_num' => $result->topic_num,
-                        'camp_num' => 1,
-                        'camp_name' => 'Agreement',
-                        'namespace' => $namespace->name,
-                        'topic_name' => $result->topic_name,
-                        'link' => Topic::topicLink($result->topic_num, 1, $result->topic_name, 'Agreement', true),
-                    ];
-                }
-                
-            return [
-                'data' => $data,
-                'total' => $results->total()
-            ];
-        }
-
-    
-        public static function advanceCampSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search = '', $pageNumber, $pageSize)
-        {
-            $data = [];
-            $asofdate = ($asofdate) ? $asofdate : time();
-            $query = DB::table('camp as a')
-                        ->select('a.id', 'a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
-                        ->join(DB::raw('(SELECT
-                                            topic_num,
-                                            camp_num,
-                                            MAX(go_live_time) AS live_time
-                                        FROM
-                                            camp
-                                        WHERE
-                                            objector_nick_id IS NULL
-                                            AND grace_period = 0
-                                            AND is_archive = 0
-                                            AND topic_num IN (' . implode(',', $topicIds) . ')
-                                            AND camp_num IN (' . implode(',', $campIds) . ')
-                                        GROUP BY
-                                            topic_num,
-                                            camp_num) b'), function ($join) {
-                            $join->on('a.topic_num', '=', 'b.topic_num')
-                                ->on('a.camp_num', '=', 'b.camp_num')
-                                ->on('a.go_live_time', '=', 'b.live_time');
-                        });
-
-                if ($asof == 'bydate') {
-                    $query->where('a.go_live_time', '<=', $asofdate);
-                }  
-                else if ($asof == 'default') {
-                    $query->where('b.live_time', '<=', $asofdate)->orWhere('b.live_time', '>', $asofdate);
-                }
-
-                if (!empty($search) ) {
-                    $query->whereRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
-                    $query->orWhere('a.camp_name', 'like', "%". $search."%");
-                }
-            
-            $query->orderByRaw('MATCH(a.camp_name) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);    
-            
-            $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-            
-            foreach ($results as $result) {
-                $topicNum = $result->topic_num;
-                $campNum = $result->camp_num;
-                $liveTopic = Topic::getLiveTopic($topicNum);
-                $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-
-                if ($checkTopicNum) {
-                    $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                    $data[] = [
-                        'id' => $topicNum. "-".$campNum,
-                        'topic_num' => $topicNum,
-                        'camp_num' => $campNum,
-                        'camp_name' => $result->camp_name,
-                        'breadcrumb' => $breadcrumb
-                    ];
-                }
-            }
-
-            return [
-                'data' => $data,
-                'total' => $results->total()
-            ];
-    }
-
-    public static function advanceStatementSearch($topicIds, $campIds, $asof = 'default', $asofdate = '', $search='', $pageNumber, $pageSize)
-    {
-        $data=[];
-        $asofdate = !empty($asofdate) ? $asofdate : time();
-        $query = DB::table('statement as a')
-                ->select(
-                    'a.id',
-                    'a.parsed_value as type_value',
-                    'a.topic_num',
-                    'a.camp_num',
-                    'a.go_live_time',
-                    'c.camp_name'
-                )
-                ->join(
-                    DB::raw('(SELECT
-                                topic_num,
-                                camp_num,
-                                MAX(go_live_time) AS live_time
-                            FROM statement
-                            WHERE objector_nick_id IS NULL
-                                    AND grace_period = 0
-                                    AND topic_num IN (' . implode(',', $topicIds) . ')
-                                    AND camp_num IN (' . implode(',', $campIds) . ')
-                                GROUP BY topic_num, camp_num) b'),
-                    function ($join) {
-                        $join->on('a.topic_num', '=', 'b.topic_num')
-                            ->on('a.camp_num', '=', 'b.camp_num')
-                            ->on('a.go_live_time', '=', 'b.live_time');
-                    }
-                )
-                ->join(
-                    DB::raw('(SELECT
-                                    topic_num,
-                                    camp_num,
-                                    camp_name,
-                                    MAX(go_live_time) AS live_time
-                                FROM camp
-                                WHERE objector_nick_id IS NULL
-                                    AND is_archive = 0
-                                    AND grace_period = 0
-                                    AND topic_num IN (' . implode(',', $topicIds) . ')
-                                    AND camp_num IN (' . implode(',', $campIds) . ')
-                                GROUP BY topic_num, camp_num) c'),
-                    function ($join) {
-                        $join->on('a.topic_num', '=', 'c.topic_num')
-                            ->on('a.camp_num', '=', 'c.camp_num');
-                    }
-                );
-
-        if ($asof == 'bydate') {
-            // Only include records that were live before or on $asofdate
-            $query->where('a.go_live_time', '<=', $asofdate);
-        } 
-        else if ($asof == 'default') {
-                // When asof is 'default', include both live and in-review records
-                $query->where(function ($query) use ($asofdate) {
-                    $query->where('b.live_time', '<=', $asofdate)
-                        ->orWhere('b.live_time', '>', $asofdate);
-                });
-            }
-      
-        if (!empty($search)) {
-            $query->whereRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE)', [$search]);
-            $query->orWhere('a.parsed_value', 'like', "%". $search."%");
-        }
-
-       $query->orderByRaw('MATCH(a.parsed_value) AGAINST (? IN NATURAL LANGUAGE MODE) DESC', [$search]);
-        $results = $query->paginate($pageSize, ['*'], 'page', $pageNumber);
-            
-        foreach ($results as $result) {
-            $topicNum = $result->topic_num;
-            $campNum = $result->camp_num;
-            $liveTopic = Topic::getLiveTopic($topicNum);
-            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-        
-            if ($checkTopicNum) {
-                $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                
-                $data[] = [
-                    'id' => $result->id,
-                    'topic_num' => $topicNum,
-                    'camp_num' => $campNum,
-                    'camp_name' => $result->camp_name,
-                    'breadcrumb' => $breadcrumb,
-                    'type_value' => $result->type_value
-                ];
-            }
-        }
-                
+        $isLive = ($asof === 'bydate');
+        $result = self::getSearchData($search, [$type], $pageSize, $pageNumber, $isLive, $asof, $asofdate);
         return [
-            'data' => $data,
-            'total' => $results->total()
+            'data'  => $result['data'] ?? [],  
+            'total' => $result['count'] ?? 0,  
         ];
-                
     }
 
-
-   /* public static function advanceTopicSearch($search, $algorithm, $asof, $filter, $asofdate='', $page_number = 1, $page_size = 5)
-    {
-        /*$requestBody = [
-            'algorithm'     =>  $algorithm,
-            'search'        =>  $search,
-            'asof'          =>  $asof,
-            'asofdate'      =>  ($asofdate) ? $asofdate : time(),
-            'filter'        =>  $filter,
-            'page_number'   =>  $page_number,
-            'page_size'     =>  $page_size,
-            'namespace_id'  =>  "",
-        ]; /
-
-        $requestBody = [
-            'algorithm'     => 'blind_popularity',
-            'asofdate'      => ($asofdate) ? $asofdate : time(),
-            'namespace_id'  => '1',
-            'page_number'   => $page_number,
-            'page_size'     => $page_size,
-            'search'        => $search,
-            'filter'        => $filter,
-            'asof'          => $asof,
-            'user_email'    => '',
-            'is_archive'    => 0,
-            'sort'          => false,
-        ];
-        
-        $endpointCSGetdata = env('CS_GET_HOME_PAGE_DATA'); 
-        $appURL = env('CS_APP_URL');
-        $apiToken = env('API_TOKEN');
-
-        if(empty($appURL) || empty($endpointCSGetdata) || empty($apiToken)) {
-            Log::error("App url or endpoints or API Token of store tree is not defined");
+    public static function createOrUpdate($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
+    {       
+        if($type == 'nickname'){
+            $queryArray = ['type' => 'nickname','nick_name_id' => $nickNameId];  
+        }else if($type == 'statement'){
+            $queryArray = ['type' => 'statement','statement_num'=>$statementNum];   
+        }else{
+            $queryArray = ['type' => $type,'topic_num' => $topicNum, 'camp_num' => $campNum];   
+        }
+        $modelEvent = 'create';
+        $search = Search::updateOrCreate($queryArray);
+        if(!empty($search)){
+            $modelEvent = 'update';
+        }
+        $search->id = $id;
+        $search->type = $type;
+        $search->type_value = $typeValue;
+        $search->topic_num = $topicNum;
+        $search->camp_num = $campNum;
+        $search->statement_num = $statementNum;
+        $search->nick_name_id = $nickNameId;
+        $search->go_live_time = $goLiveTime;
+        $search->namespace = $namespace;
+        $search->link = $link;
+        $search->breadcrumb_data = $breadcrumb;
+        $search->support_count = $supportCount;
+        if($modelEvent == 'update'){
+            $data = [
+                'id' => $id,
+                'type' => $type,
+                'type_value' => $typeValue,
+                'topic_num' => $topicNum,
+                'camp_num' => $campNum,
+                'statement_num' => $statementNum,
+                'go_live_time' => $goLiveTime,
+                'namespace' => $namespace,
+                'link' => $link,
+                'breadcrumb_data' => json_encode($breadcrumb),
+                'nick_name_id' => $nickNameId,
+                'support_count' => $supportCount
+            ];
+            Search::where($queryArray)
+                    ->update($data);
             return;
         }
-        $endpoint = $appURL."/".$endpointCSGetdata;
-      //  return $endpoint;
-        $headers = []; // Prepare headers for request
-        $headers[] = 'Content-Type:multipart/form-data';
-        $headers[] = 'X-Api-Token:'.$apiToken.'';
-        $response = Util::execute('POST', $endpoint, $headers, $requestBody);
+        $search->save();
+        return;
+    }
 
-        // Check the unauthorized request here...
-       /* if(isset($response)) {
-            $checkRes = json_decode($response, true);
-            if(array_key_exists("status_code", $checkRes) && $checkRes["status_code"] == 401) {
-                Log::error("Unauthorized action.");
-                throw new ServiceAuthenticationException('Authentication Issue!');
-                return;
-            }
-        } /
-        if(isset($response)) {
-            $responseData = json_decode($response, true)['data'];
-            $responseMessage = json_decode($response, true)['message'];
-            $responseCode = json_decode($response, true)['status_code'] ? json_decode($response, true)['status_code'] : 404;
-            //echo "<pre>"; print_r($response); exit;
-            //process the respponse
-            $topics = [];
-            foreach($responseData['topic'] as $topic){
-                $namespace = Namespaces::find($topic['namespace_id']);
-                //$liveTopic = Topic::getLiveTopic($topic['topic_id']);
-                $temp['topic_num']     = $topic['topic_id'];
-                $temp['topic_name']    = $topic['topic_name'];
-                $temp['camp_num']      = 1; 
-                $temp['namespace']     = $namespace->name;
-                $temp['link']          = Topic::topicLink($topic['topic_id'], 1, $topic['topic_name'], 'Agreement', true);
-
-
-                array_push($topics, $temp);
-
-            }
-            return $data = [ 
-                'data' => $topics,
-                'code' => $responseCode,
-                'message' => $responseMessage
-            ];
-            return $data;
-        } else {
-            Log::error("Empty response, something went wrong");
-        }
-    }  */
+    public static function deleteRecordIfExist($id)
+    {
+        Search::where(['id'=>$id])->delete();
+        return;
+    }
 }
