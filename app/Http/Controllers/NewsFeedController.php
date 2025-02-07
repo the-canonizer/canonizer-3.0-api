@@ -105,7 +105,7 @@ class NewsFeedController extends Controller
             $news = $this->resourceProvider->jsonResponse($indexes, $news);
             
             if (count($news) < 1)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_news_feed_not_found'));
+                return $this->resProvider->apiJsonResponse(200, '', null, trans('message.error.camp_news_feed_not_found'));
             
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $news, '',);
         } catch (Exception $e) {
