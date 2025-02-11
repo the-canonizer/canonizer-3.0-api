@@ -34,8 +34,8 @@ class AuthServiceProvider extends ServiceProvider
         //$this->registerPolicies();
         LumenPassport::routes($this->app);
 
-        Passport::tokensExpireIn(Carbon::now()->addMinutes(1));
-        Passport::personalAccessTokensExpireIn(Carbon::now()->addMinutes(1));
+        Passport::tokensExpireIn(Carbon::now()->addMonths(6));
+        Passport::personalAccessTokensExpireIn(Carbon::now()->addMonths(6));
 
         $this->setPassportConfiguration();
 
