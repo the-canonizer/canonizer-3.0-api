@@ -902,7 +902,7 @@ class Support extends Model
     }
     public static function getAllSupporterNicknames($topic_num, $camp_num = null, $limit = null)
     {
-        return self::select('nick_name.id as nick_name_id', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')
+        return self::select('nick_name.id as nick_name_id', 'nick_name.nick_name', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')
             ->join('nick_name', 'support.nick_name_id', '=', 'nick_name.id')
             ->join('person', 'nick_name.user_id', '=', 'person.id') // Assuming nicknames have a relationship with users.
             ->where('support.topic_num', $topic_num)

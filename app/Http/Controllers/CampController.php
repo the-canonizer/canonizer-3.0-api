@@ -416,8 +416,9 @@ class CampController extends Controller
                 $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
                 $livecamp->camp_leader_nick_name = NickName::getNickName($livecamp->camp_leader_nick_id)->nick_name ?? '';
                 $livecamp->parent_camp_name = $parentCampName;
+                ['is_disabled' => $livecamp->parent_is_disabled, 'is_one_level' => $livecamp->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($livecamp);
                 $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name', 'is_disabled', 'is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id', 'note', 'camp_about_url', 'is_archive', 'direct_archive', 'submit_time', 'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name'];
+                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name', 'is_disabled', 'is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id', 'note', 'camp_about_url', 'is_archive', 'direct_archive', 'submit_time', 'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name', 'parent_is_disabled', 'parent_is_one_level'];
                 $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
                 $camp = $camp[0];
                 $camp['parentCamps'] = $parentCamp;
@@ -1583,10 +1584,11 @@ class CampController extends Controller
             $topic = $camp->topic;
             $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update   
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
-
+            $message = trans('message.success.success');
             if ($all['event_type'] == "objection") {
                 Util::dispatchJob($topic, $camp->camp_num, 1);
                 $this->objectCampNotification($camp, $all, $link, $liveCamp, $request);
+                $message = trans('message.success.camp_object');
             } else if ($all['event_type'] == "update") {
                 if ($ifIamSingleSupporter && array_key_exists("from_test_case", $all)) {
                     Util::checkParentCampChanged($all, false, $liveCamp);
@@ -1648,7 +1650,7 @@ class CampController extends Controller
                     Util::dispatchJob($topic, $camp->camp_num, 1, $delayCommitTimeInSeconds);
                 }
             }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            return $this->resProvider->apiJsonResponse(200, $message, $camp, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
@@ -1868,20 +1870,24 @@ class CampController extends Controller
                 foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
                     $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
-                    $userColumnsToSelect = ['id', 'first_name', 'last_name', 'middle_name', 'profile_picture_path'];
-                    $supporters = Nickname::getUsersByNickNameIds($supporters, $userColumnsToSelect);
+
+                    $nicknames = Nickname::select('id', 'user_id', 'nick_name')->with('user:id,first_name,middle_name,last_name,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get()->each(function ($nickname) {
+                        $nickname->user->first_name = $nickname->user->first_name[0] ?? '';
+                        $nickname->user->middle_name = $nickname->user->middle_name[0] ?? '';
+                        $nickname->user->last_name = $nickname->user->last_name[0] ?? '';
+                    });
 
                     $filter['campNum'] = $camp->camp_num;
-                    $campStatement =  Statement::getLiveStatement($filter);
-                    $campStatement = Helpers::stripTagsExcept($campStatement->value ?? "", ['figure', 'table']);
-                    $campStatement = preg_replace('/[^a-zA-Z0-9_ %\.\?%&-]/s', '', $campStatement);
-                    $campStatement = Str::of($campStatement)->trim();
+
+                    $getLiveStatement = Statement::getLiveStatement($filter);
+                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                    $getLiveStatement = Str::of($getLiveStatement)->trim();
 
                     $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
                     $camp->namespace_id = $liveTopic->namespace_id;
                     $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
-                    $camp->statement = $campStatement ?? NULL;
-                    $camp->supporterData = $supporters ?? [];
+                    $camp->statement = $getLiveStatement ?? NULL;
+                    $camp->supporterData = $nicknames ?? [];
                 }
             }
 
