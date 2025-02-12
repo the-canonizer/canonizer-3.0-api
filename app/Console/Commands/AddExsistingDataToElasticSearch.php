@@ -26,7 +26,7 @@ class AddExsistingDataToElasticSearch extends Command
         try {
             // Sync data using stored procedure
             DB::select("CALL sp_sync_data_to_elasticsearch");
-
+            
             $indexName = 'canonizer_elastic_search';
             $elasticsearch = (new Elasticsearch())->elasticsearchClient;
 
@@ -76,7 +76,12 @@ class AddExsistingDataToElasticSearch extends Command
                             'type_value'    => [
                                 'type'     => 'text',
                                 'analyzer' => 'my_analyzer',
-                                'fields'   => ['keyword' => ['type' => 'keyword']]
+                                'fields'   => [
+                                    'keyword' => [
+                                        'type' => 'keyword',
+                                        'ignore_above' => 256
+                                        ]
+                                    ]
                             ],
                             'topic_num'     => ['type' => 'integer'],
                             'camp_num'      => ['type' => 'integer'],
