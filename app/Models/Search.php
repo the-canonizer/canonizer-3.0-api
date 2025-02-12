@@ -217,54 +217,74 @@ class Search extends Model
                         ->where('t.topic_name', 'like', '%' . $query . '%');
                 })
             ->get();
-
+          
             $topic = self::processResults($results,'topic');
+            $topic = array_values(array_unique($topic, SORT_REGULAR));
 
         return $topic;
     }
 
     public static function advanceCampFilterByNickname($nickIds, $query)
     {
-        $results = DB::table('camp as a')
-                    ->select('a.camp_name', 'a.topic_num', 'a.camp_num', 'a.go_live_time')
-                    ->join(DB::raw('(SELECT topic_num, camp_num
-                                    FROM support 
-                                    WHERE nick_name_id IN (' . implode(',', $nickIds) . ')
-                                    AND end = 0 
-                                    AND camp_num != 1) as s'), function ($join) {
-                        $join->on('a.topic_num', '=', 's.topic_num')
-                            ->on('a.camp_num', '=', 's.camp_num');
-                    })
-                    ->join(DB::raw('(SELECT topic_num, camp_num, MAX(go_live_time) AS live_time
-                                    FROM camp
-                                    WHERE objector_nick_id IS NULL
-                                    AND go_live_time <= UNIX_TIMESTAMP(NOW())
-                                    AND grace_period = 0
-                                    GROUP BY topic_num, camp_num) as b'), function ($join) {
-                        $join->on('a.topic_num', '=', 'b.topic_num')
-                            ->on('a.camp_num', '=', 'b.camp_num');
-                    })
-                    ->where('a.is_archive', 0)
-                    ->where('a.go_live_time', DB::raw('b.live_time'))
-                    ->where('a.camp_name', 'like', '%' . $query . '%')
-                    ->get();
+        // Fetch distinct topic numbers first to reduce redundant queries
+        $topicNums = Topic::whereIn("topic_num", function ($subquery) use ($nickIds) {
+            $subquery->select("topic_num")
+                ->from("support")
+                ->whereIn("nick_name_id", $nickIds)
+                ->where("end", 0)
+                ->where("camp_num", "!=", 1);
+        })->pluck("topic_num")->toArray();
+
+        if (empty($topicNums)) {
+            return [];
+        }
+
+        // Fetch camp records efficiently
+        $results = DB::table("camp as a")
+            ->select("a.camp_name", "a.topic_num", "a.camp_num", "a.go_live_time")
+            ->join("support as s", function ($join) use ($nickIds) {
+                $join->on("a.topic_num", "=", "s.topic_num")
+                    ->on("a.camp_num", "=", "s.camp_num")
+                    ->whereIn("s.nick_name_id", $nickIds)
+                    ->where("s.end", 0)
+                    ->where("s.camp_num", "!=", 1);
+            })
+            ->join(DB::raw("(SELECT topic_num, camp_num, MAX(go_live_time) AS live_time
+                            FROM camp
+                            WHERE objector_nick_id IS NULL
+                            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                            AND grace_period = 0
+                            GROUP BY topic_num, camp_num) as b"), function ($join) {
+                $join->on("a.topic_num", "=", "b.topic_num")
+                    ->on("a.camp_num", "=", "b.camp_num");
+            })
+            ->where("a.is_archive", 0)
+            ->where("a.go_live_time", DB::raw("b.live_time"))
+            ->where("a.camp_name", "like", "%{$query}%")
+            ->get();
+
+        // Prepare response array
         $camps = [];
-        foreach($results as $result)
-        {
+
+        // Get all live topics before looping
+        $liveTopics = Topic::whereIn("topic_num", $topicNums)->get()->keyBy("topic_num");
+
+        foreach ($results as $result) {
             $topicNum = $result->topic_num;
-            $campNum  = $result->camp_num;
-            $liveTopic = Topic::getLiveTopic($topicNum);  
-            $checkTopicNum = Topic::where("topic_num", $topicNum)->first();
-            if($checkTopicNum){
+            $campNum = $result->camp_num;
+            $liveTopic = $liveTopics[$topicNum] ?? null;
+            if ($liveTopic) {
                 $breadcrumb = self::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-                $temp['camp_num'] = $result->camp_num;
-                $temp['topic_num'] = $topicNum;
-                $temp['title'] = $result->camp_name;
-                $temp['link'] = Camp::campLink($topicNum, $result->camp_num, $liveTopic->topic_name, $result->camp_name, true);
-                $temp['breadcrumb'] = $breadcrumb;
-                array_push($camps, $temp);
+                $camps[] = [
+                    "camp_num" => $campNum,
+                    "topic_num" => $topicNum,
+                    "title" => $result->camp_name,
+                    "link" => Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $result->camp_name, true),
+                    "breadcrumb_data" => $breadcrumb,
+                ];
             }
         }
+        $camps = array_values(array_unique($camps, SORT_REGULAR));
         return $camps;
     }
 

@@ -73,14 +73,14 @@ class SearchController extends Controller
         $query      = $all['query'] ?? '';
         $pageNumber = $all['page_number'] ?? 1;
         $pageSize   = $all['page_size'] ?? 20;
-        $asofdate   = $all['asofdate'];
+        $asofdate   = $all['asofdate'] ?? '';
 
         $status = 200;
         $message =  trans('message.success.success');
         switch ($type) {
             case 'nickname':
-                $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
-                $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
+                    $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
+                    $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
                 break;
             case 'topic':
                 $response['topic'] = [];
