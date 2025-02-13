@@ -83,7 +83,6 @@ BEGIN
             0 AS nick_name_id,
             REPLACE(TRIM(BOTH '/' FROM c.label), '/', ' > ') AS namespace,
             CONCAT('topic/',a.topic_num,'-',REPLACE(REPLACE(REPLACE(a.topic_name,'https://','https---'),'.','-'),'/','-'),'/1-Agreement') AS link,
-            CONCAT('topic/',a.topic_num,'-',REPLACE(a.topic_name,' ','-'),'/1-Agreement') AS link,
             JSON_OBJECT() AS breadcrumb_data,
             '' AS support_count,
             'topic' AS `type`
