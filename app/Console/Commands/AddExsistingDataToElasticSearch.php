@@ -141,6 +141,9 @@ class AddExsistingDataToElasticSearch extends Command
             // Use the Bulk API for batch indexing
             $params   = ['body' => $bulkData];
             $response = $elasticsearch->bulk($params);
+            
+            //Force refresh so data is immediately available
+            $elasticsearch->indices()->refresh(['index' => $indexName]);    
 
             if ($response['errors']) {
                 Log::error('Bulk indexing had errors:', $response['items']);
