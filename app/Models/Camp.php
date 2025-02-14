@@ -66,36 +66,34 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
                 $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
             }
             $type = "camp";
-                $typeValue = $item->camp_name;
-                $topicNum = $item->topic_num;
-                $campNum = $item->camp_num;
-                $campName = $item->camp_name;
-                $goLiveTime = $item->go_live_time;
-                $namespace = $namespaceLabel; //fetch namespace
-                $breadcrumb = '';
+            $typeValue = $item->camp_name;
+            $topicNum =  $item->topic_num;
+            $campNum =   $item->camp_num;
+            $campName =  $item->camp_name;
+            $goLiveTime = $item->go_live_time;
+            $namespace = $namespaceLabel; //fetch namespace
+            $breadcrumb = '';
             $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
-            if($item->camp_num == 1){
-                $type = "topic";
-                $typeValue = $liveTopic->topic_name;
-                $id = "topic-". $topicNum;
-                $link = self::campLink($topicNum, $campNum, $typeValue, $campName, true);
-            }else{             
-                $id = "camp-". $topicNum . "-" . $campNum;
-                // breadcrumb
-                $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
-            }
-
-            if($item->is_archive && $item->go_live_time <= time()){
-                ElasticSearch::deleteData($id);
-                return;
-            }
-
+            $liveId = "camp-". $topicNum . "-" . $campNum."-live";
+            $reviewId="camp-". $topicNum . "-" . $campNum."-review";
+            $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            $isArchive = ($item->is_archive) ? true: false;
             if($item->go_live_time <= time())
             {
-                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+                $isLive=true;
+                ElasticSearch::ingestData($liveId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+
+                $isLive=false;
+                ElasticSearch::ingestData($reviewId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
             }
 
-         });
+              //Added Pending Review
+            if($item->go_live_time > time() && $item->grace_period!=1){
+                $isLive=false;
+                ElasticSearch::ingestData($reviewId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
+            }
+
+        });
     }
 
     public static function forgetCache($item)
@@ -286,22 +284,23 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             $campNames[$index]['camp_name'] = $camp->camp_name;
             $campNames[$index]['topic_num'] = $camp->topic_num;
             $campNames[$index]['camp_num'] = $camp->camp_num;
+            $campNames[$index]['camp_is_archive'] = $camp->is_archive;
             $index++;
 
-        if ($camp->parent_camp_num) {
-            if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
-                $pCamp = Camp::where('topic_num', $camp->topic_num)
-                    ->where('camp_num', $camp->parent_camp_num)
-                    ->where('grace_period', 0)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->orderBy('go_live_time', 'DESC')->first();
-            } else {
-                $pCamp = Camp::where('topic_num', $camp->topic_num)
-                    ->where('camp_num', $camp->parent_camp_num)
-                    ->where('objector_nick_id', '=', NULL)
-                    ->where('go_live_time', '<=', $as_of_time)
-                    ->orderBy('submit_time', 'DESC')->first();
-            }
+            if ($camp->parent_camp_num) {
+                if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
+                    $pCamp = Camp::where('topic_num', $camp->topic_num)
+                        ->where('camp_num', $camp->parent_camp_num)
+                        ->where('grace_period', 0)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->orderBy('go_live_time', 'DESC')->first();
+                } else {
+                    $pCamp = Camp::where('topic_num', $camp->topic_num)
+                        ->where('camp_num', $camp->parent_camp_num)
+                        ->where('objector_nick_id', '=', NULL)
+                        ->where('go_live_time', '<=', $as_of_time)
+                        ->orderBy('submit_time', 'DESC')->first();
+                }
                 return self::campNameWithAncestors($pCamp, $filter, $campNames, $index, $visitedCamps);
             }
         }
