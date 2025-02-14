@@ -13,6 +13,7 @@ BEGIN
 
     -- Adjust start index for pagination
     SET start_index = page_offset * page_limit;
+    SET SESSION group_concat_max_len = 1000000;  
 
      CREATE TEMPORARY TABLE IF NOT EXISTS temp_filtered_topics AS
         SELECT
