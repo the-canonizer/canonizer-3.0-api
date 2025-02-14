@@ -49,7 +49,7 @@ class AddExsistingDataToElasticSearch extends Command
                             "tokenizer" => [
                                 "my_tokenizer" => [
                                     "type" => "whitespace"
-                                ],
+                                ]
                             ],
                             "char_filter" => [
                                 "replace_special_chars" => [
@@ -65,8 +65,8 @@ class AddExsistingDataToElasticSearch extends Command
                                     "char_filter" => ["replace_special_chars"],
                                     "filter"      => ["lowercase"]
                                 ]
-                            ],
-                        ],
+                            ]
+                        ]
                     ],
                     'mappings' => [
                         'properties' => [
@@ -80,8 +80,8 @@ class AddExsistingDataToElasticSearch extends Command
                                     'keyword' => [
                                         'type' => 'keyword',
                                         'ignore_above' => 256
-                                        ]
                                     ]
+                                ]
                             ],
                             'topic_num'     => ['type' => 'integer'],
                             'camp_num'      => ['type' => 'integer'],
@@ -99,60 +99,58 @@ class AddExsistingDataToElasticSearch extends Command
                                     'camp_name'   => ['type' => 'keyword'],
                                     'topic_name'  => ['type' => 'keyword'],
                                     'camp_link'   => ['type' => 'keyword'],
-                                    'go_live_time'=> ['type' => 'long'],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
+                                    'go_live_time'=> ['type' => 'long']
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ];
-
-            // Create a new index
+            
             $elasticsearch->indices()->create($mapping);
             Log::info("Index '{$indexName}' created successfully.");
 
-            // Prepare bulk data
-            $bulkData = [];
-            foreach ($body as $val) {
-                $bulkData[] = [
-                    'index' => [
-                        '_index' => $indexName,
-                        '_id'    => $val->id,
-                    ]
-                ];
-                $bulkData[] = [
-                    'id'             => $val->id,
-                    'type_value'     => $val->type_value,
-                    'type'           => $val->type,
-                    'camp_num'       => $val->camp_num,
-                    'topic_num'      => $val->topic_num,
-                    'statement_num'  => $val->statement_num,
-                    'go_live_time'   => $val->go_live_time,
-                    'nick_name_id'   => $val->nick_name_id,
-                    'support_count'  => $val->support_count,
-                    'namespace'      => $val->namespace,
-                    'link'           => $val->link,
-                    'is_live'        => $val->is_live,
-                    'is_archive'     => $val->is_archive,
-                    'breadcrumb_data'=> $val->breadcrumb_data
-                ];
+            // Process data in chunks
+            $batchSize = 500;
+            $records = $body->toArray();
+            $chunks = array_chunk($records, $batchSize);
+
+            foreach ($chunks as $chunk) {
+                $bulkData = [];
+                foreach ($chunk as $val) {
+                    $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
+                    $bulkData[] = [
+                        'id'             => $val['id'],
+                        'type_value'     => $val['type_value'],
+                        'type'           => $val['type'],
+                        'camp_num'       => $val['camp_num'],
+                        'topic_num'      => $val['topic_num'],
+                        'statement_num'  => $val['statement_num'],
+                        'go_live_time'   => $val['go_live_time'],
+                        'nick_name_id'   => $val['nick_name_id'],
+                        'support_count'  => $val['support_count'],
+                        'namespace'      => $val['namespace'],
+                        'link'           => $val['link'],
+                        'is_live'        => $val['is_live'],
+                        'is_archive'     => $val['is_archive'],
+                        'breadcrumb_data'=> $val['breadcrumb_data']
+                    ];
+                }
+
+                $params = ['body' => $bulkData];
+                $response = $elasticsearch->bulk($params);
+
+                if (!empty($response['errors'])) {
+                    Log::error('Bulk indexing encountered errors:', ['errors' => $response['items']]);
+                    $this->error('Some records failed to index. Check logs.');
+                }
+
+                // Refresh index after each batch
+                $elasticsearch->indices()->refresh(['index' => $indexName]);
             }
 
-            // Use the Bulk API for batch indexing
-            $params   = ['body' => $bulkData];
-            $response = $elasticsearch->bulk($params);
-            
-            //Force refresh so data is immediately available
-            $elasticsearch->indices()->refresh(['index' => $indexName]);    
-
-            if ($response['errors']) {
-                Log::error('Bulk indexing had errors:', $response['items']);
-                $this->error('Bulk indexing had errors. Check logs.');
-            } else {
-                Log::info('Bulk indexing completed successfully.');
-                $this->info('Bulk indexing completed successfully.');
-            }
-
+            Log::info('Bulk indexing completed successfully.');
+            $this->info('Bulk indexing completed successfully.');
         } catch (Exception $e) {
             Log::error('Elasticsearch import error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             $this->error('An error occurred. Check logs for details.');
