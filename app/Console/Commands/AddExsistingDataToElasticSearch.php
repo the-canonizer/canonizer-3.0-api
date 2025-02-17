@@ -8,6 +8,10 @@ use App\Models\Search;
 use DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use App\Models\Topic;
+use App\Models\Nickname;
+use App\Models\Camp;
+use App\Models\Statement;
 
 class AddExsistingDataToElasticSearch extends Command
 {
@@ -21,7 +25,7 @@ class AddExsistingDataToElasticSearch extends Command
 
     public function handle()
     {
-        Log::info('Starting Elasticsearch import at: ' . time());
+        Log::info('Starting Elasticsearch import at: ' . date('y-m-d-h-i-s'));
 
         try {
             // Sync data using stored procedure
@@ -39,7 +43,7 @@ class AddExsistingDataToElasticSearch extends Command
             // Fetch data from MySQL
             $body = Search::get();
             Log::info('Fetched ' . $body->count() . ' records from MySQL.');
-
+            
             // Define index mapping
             $mapping = [
                 'index' => $indexName,
@@ -83,6 +87,7 @@ class AddExsistingDataToElasticSearch extends Command
                                     ]
                                 ]
                             ],
+                            'record_id'     => ['type' => 'integer'],
                             'topic_num'     => ['type' => 'integer'],
                             'camp_num'      => ['type' => 'integer'],
                             'statement_num' => ['type' => 'integer'],
@@ -117,11 +122,51 @@ class AddExsistingDataToElasticSearch extends Command
 
             foreach ($chunks as $chunk) {
                 $bulkData = [];
+                // Pre-fetch necessary data
+                $topicNames = Topic::whereIn("id", array_column($chunk, 'record_id'))->pluck('topic_name', 'id');
+                $nickNames =  Nickname::whereIn("id", array_column($chunk, 'record_id'))->pluck('nick_name', 'id');
+                $campNames = Camp::whereIn("id", array_column($chunk, 'record_id'))->pluck('camp_name', 'id');
+                $statementValues = Statement::whereIn("id", array_column($chunk, 'record_id'))->pluck('parsed_value', 'id');
+            
                 foreach ($chunk as $val) {
+                    $type_value = '';
+                    $breadcrumb_data = '';
+            
                     $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
+                    
+                    switch ($val['type']) {
+                        case 'topic':
+                            $type_value = $topicNames[$val['record_id']] ?? '';
+                            break;
+                        
+                        case 'nickname':
+                            $type_value = $nickNames[$val['record_id']] ?? '';
+                            break;
+                        
+                        case 'camp':
+                            $campNum = $val['camp_num'];
+                            $topicNum = $val['topic_num'];
+                            $type_value = $campNames[$val['record_id']] ?? '';
+                            $liveTopic = Topic::getLiveTopic($topicNum);
+                            if ($liveTopic) {
+                                $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }
+                            break;
+                        
+                        case 'statement':
+                            $campNum = $val['camp_num'];
+                            $topicNum = $val['topic_num'];
+                            $type_value = $statementValues[$val['record_id']] ?? '';
+                            $liveTopic = Topic::getLiveTopic($topicNum);
+                            if ($liveTopic) {
+                                $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }
+                            break;
+                    }
+            
                     $bulkData[] = [
                         'id'             => $val['id'],
-                        'type_value'     => $val['type_value'],
+                        'type_value'     => $type_value,
                         'type'           => $val['type'],
                         'camp_num'       => $val['camp_num'],
                         'topic_num'      => $val['topic_num'],
@@ -133,22 +178,24 @@ class AddExsistingDataToElasticSearch extends Command
                         'link'           => $val['link'],
                         'is_live'        => $val['is_live'],
                         'is_archive'     => $val['is_archive'],
-                        'breadcrumb_data'=> $val['breadcrumb_data']
+                        'breadcrumb_data'=> $breadcrumb_data,
+                        'record_id'      => $val['record_id']
                     ];
                 }
-
+            
+                // Send bulk request to Elasticsearch
                 $params = ['body' => $bulkData];
                 $response = $elasticsearch->bulk($params);
-
+            
                 if (!empty($response['errors'])) {
-                    Log::error('Bulk indexing encountered errors:', ['errors' => $response['items']]);
+                    Log::error('Bulk indexing encountered errors:', ['errors' => json_encode($response['items'], JSON_PRETTY_PRINT)]);
                     $this->error('Some records failed to index. Check logs.');
                 }
-
+            
                 // Refresh index after each batch
                 $elasticsearch->indices()->refresh(['index' => $indexName]);
             }
-
+            
             Log::info('Bulk indexing completed successfully.');
             $this->info('Bulk indexing completed successfully.');
         } catch (Exception $e) {
@@ -156,6 +203,6 @@ class AddExsistingDataToElasticSearch extends Command
             $this->error('An error occurred. Check logs for details.');
         }
 
-        Log::info('Elasticsearch import finished at: ' . time());
+        Log::info('Elasticsearch import finished at: ' . date('y-m-d-h-i-s'));
     }
 }
