@@ -116,7 +116,7 @@ class AddExsistingDataToElasticSearch extends Command
             Log::info("Index '{$indexName}' created successfully.");
 
             // Process data in chunks
-            $batchSize = 500;
+            $batchSize = 250;
             $records = $body->toArray();
             $chunks = array_chunk($records, $batchSize);
 
@@ -156,7 +156,7 @@ class AddExsistingDataToElasticSearch extends Command
                         case 'statement':
                             $campNum = $val['camp_num'];
                             $topicNum = $val['topic_num'];
-                            $type_value = $statementValues[$val['record_id']] ?? '';
+                            $type_value = substr($statementValues[$val['record_id']] ?? '', 0, 500);
                             $liveTopic = Topic::getLiveTopic($topicNum);
                             if ($liveTopic) {
                                 $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
@@ -182,20 +182,37 @@ class AddExsistingDataToElasticSearch extends Command
                         'record_id'      => $val['record_id']
                     ];
                 }
-            
-                // Send bulk request to Elasticsearch
+                
+                   // Log the payload size
+                $payloadSize = strlen(json_encode($bulkData)); // Get the payload size in bytes
+                Log::info('Payload size: ' . $payloadSize . ' bytes');
+                // Send bulk request to Elasticsearch with retry logic
                 $params = ['body' => $bulkData];
-                $response = $elasticsearch->bulk($params);
-            
-                if (!empty($response['errors'])) {
-                    Log::error('Bulk indexing encountered errors:', ['errors' => json_encode($response['items'], JSON_PRETTY_PRINT)]);
-                    $this->error('Some records failed to index. Check logs.');
+                $maxRetries = 3;
+                $retries = 0;
+                $response = null;
+
+                while ($retries < $maxRetries) {
+                    try {
+                        $response = $elasticsearch->bulk($params);
+                        if (!empty($response['errors'])) {
+                            throw new Exception("Bulk indexing encountered errors.");
+                        }
+                        break;
+                    } catch (Exception $e) {
+                        $retries++;
+                        Log::warning("Bulk indexing attempt {$retries} failed: " . $e->getMessage());
+                        if ($retries >= $maxRetries) {
+                            Log::error('Bulk indexing failed after ' . $maxRetries . ' attempts.');
+                            $this->error('Some records failed to index. Check logs.');
+                        }
+                    }
                 }
             
                 // Refresh index after each batch
                 $elasticsearch->indices()->refresh(['index' => $indexName]);
             }
-            
+
             Log::info('Bulk indexing completed successfully.');
             $this->info('Bulk indexing completed successfully.');
         } catch (Exception $e) {
