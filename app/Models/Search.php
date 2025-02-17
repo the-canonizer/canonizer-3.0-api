@@ -26,10 +26,11 @@ class Search extends Model
         'namespace' => 'string',
         'link' => 'string',
         'statement_num' => 'integer',
-        'breadcrum_data' => 'json',
+        'breadcrumb_data' => 'json',
         'support_count' => 'double',
         'is_live' => 'boolean',
-        'is_archive' => 'boolean'
+        'is_archive' => 'boolean',
+        'record_id' => 'integer'
     ];
 
     protected $fillable = ['id', 'type', 'type_value','topic_num','camp_num', 'go_live_time', 'nick_name_id', 'namespace', 'link','statement_num', 'breadcrum_data', 'support_count'];
@@ -111,13 +112,6 @@ class Search extends Model
                         ],
                     ],
                 ],
-                'sort' => [
-                    [
-                        'topic_num' => [
-                            'order' => 'desc' // Sorting in descending order
-                        ]
-                    ]
-                ],
             ],
         ]);
      
@@ -182,7 +176,9 @@ class Search extends Model
                 'camp_link' => Camp::campLink($bd['topic_num'], $bd['camp_num'], $liveTopic->topic_name, $bd['camp_name'], true),
                 'camp_name' => $bd['camp_name'],
                 'topic_num' => $bd['topic_num'],
-                'topic_name' => $liveTopic->topic_name
+                'topic_name' => $liveTopic->topic_name,
+                'go_live_time' => $liveTopic->go_live_time
+                
             ];
             $tempdata[$k] = $temp;
         }
