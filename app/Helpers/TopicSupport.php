@@ -1297,7 +1297,7 @@ class TopicSupport
                 if ($parent->camp_num != $campNum) {
 
                     $returnData['is_confirm'] = 1;  
-                    $returnData['warning'] = '"' . $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
+                    $returnData['warning'] = '"' . $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the explicit support of the parent camp "' .$parentCampName .'" will be removed.';
                 }
             }
         } else {
@@ -1525,8 +1525,12 @@ class TopicSupport
                 $filter['topicNum'] = $topicNum;
                 $filter['asOf'] = '';
                 $filter['campNum'] = $rmCamp;
-                $camp = self::getLiveCamp($filter, ['camp_name']); 
-                $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                $camp = self::getLiveCamp($filter, ['camp_name']);
+                if(!empty($add)) {
+                    $msg = trans('message.support.remove_direct_support_updated', ['camp_name' => $camp->camp_name]);
+                } else {
+                    $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                }
                 $message['remove'][] = $msg;
             }
          }
