@@ -130,9 +130,9 @@ class AddExsistingDataToElasticSearch extends Command
             
                 foreach ($chunk as $val) {
                     $type_value = '';
-                    $breadcrumb_data = [];
+                    $breadcrumb_data = "";
             
-                    $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
+                  
                     
                     switch ($val['type']) {
                         case 'topic':
@@ -150,6 +150,8 @@ class AddExsistingDataToElasticSearch extends Command
                             $liveTopic = Topic::getLiveTopic($topicNum);
                             if ($liveTopic) {
                                 $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }else{
+                                $breadcrumb_data = "";
                             }
                             break;
                         
@@ -160,10 +162,18 @@ class AddExsistingDataToElasticSearch extends Command
                             $liveTopic = Topic::getLiveTopic($topicNum);
                             if ($liveTopic) {
                                 $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }else{
+                                $breadcrumb_data = "";
                             }
                             break;
                     }
-            
+                    // **Fix Filtering Condition**
+                    if (($val['type'] === 'camp' || $val['type'] === 'statement') && (empty($breadcrumb_data))) {
+                        Log::info("Skipping Record ID: {$val['record_id']} {$val['type']} due to empty breadcrumb data.");
+                        continue; // Skip this record
+                    }
+                    $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
+
                     $bulkData[] = [
                         'id'             => $val['id'],
                         'type_value'     => $type_value,
