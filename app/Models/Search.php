@@ -166,6 +166,9 @@ class Search extends Model
         $filter['topicNum'] = $topicNum;
         $filter['campNum'] = $campNum;
         $livecamp = Camp::getLiveCamp($filter);
+        if(!$livecamp){
+            return [];
+        }
         $breadcrumb = array_reverse(Camp::campNameWithAncestors($livecamp, $filter));
         $data = [];
         $tempdata = [];

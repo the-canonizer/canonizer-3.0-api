@@ -130,7 +130,7 @@ class AddExsistingDataToElasticSearch extends Command
             
                 foreach ($chunk as $val) {
                     $type_value = '';
-                    $breadcrumb_data = '';
+                    $breadcrumb_data = [];
             
                     $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
                     
