@@ -167,7 +167,7 @@ class AddExsistingDataToElasticSearch extends Command
                             }
                             break;
                     }
-                    // 🛑 **Fix Filtering Condition**
+                    // **Fix Filtering Condition**
                     if (($val['type'] === 'camp' || $val['type'] === 'statement') && (empty($breadcrumb_data))) {
                         Log::info("Skipping Record ID: {$val['record_id']} {$val['type']} due to empty breadcrumb data.");
                         continue; // Skip this record
