@@ -20,7 +20,7 @@ $router->get('/', function () use ($router) {
 });
 //Added route to test new es modifications
 $router->get('/es-data', function () {
-    Artisan::call('elasticsearch:import');
+   // Artisan::call('elasticsearch:import');
     return "✅ Migration ran successfully!";
 });
 
