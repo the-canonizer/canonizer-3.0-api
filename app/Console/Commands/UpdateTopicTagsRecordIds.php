@@ -39,7 +39,7 @@ class UpdateTopicTagsRecordIds extends Command
      */
     public function handle()
     {
-        $this->withProgressBar(TopicTag::orderBy('topic_num', 'desc')->get(), function (TopicTag $topicTag) {
+        $this->withProgressBar(TopicTag::whereNull('topic_id')->orWhere('topic_id', 0)->orderBy('topic_num', 'desc')->get(), function (TopicTag $topicTag) {
             $liveTopic = Topic::getLiveTopic($topicTag->topic_num, 'default');
             if ($liveTopic) {
                 $topicTag->topic_id = $liveTopic->id;
