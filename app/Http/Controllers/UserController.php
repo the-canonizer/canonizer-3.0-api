@@ -1854,6 +1854,7 @@ class UserController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
+            $loggedInUser = $request->user();
             $user_to_deactivate = $request->user_id;
             // deactivate user
             $user = User::where('id', '=', $user_to_deactivate)->first();
@@ -1878,7 +1879,18 @@ class UserController extends Controller
                 Util::dispatchJob($topic, 1, 1);
             }
             // removing linked social accounts 
-            SocialUser::where('user_id', $user_to_deactivate)->delete();
+            if (!empty($loggedInUser) && !empty($loggedInUser->id) && !empty($request->provider)) {
+                SocialUser::where('user_id', $user_to_deactivate)
+                    ->where('provider', $request->provider)
+                    ->update([
+                        'user_id' => $loggedInUser->id
+                    ]); 
+                SocialUser::where('user_id', $user_to_deactivate)
+                    ->where('provider', '!=', $request->provider)
+                    ->delete();    
+            } else {
+                SocialUser::where('user_id', $user_to_deactivate)->delete();
+            }
             $status = 200;
             $message = trans('message.success.user_remove');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
