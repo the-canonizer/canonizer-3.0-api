@@ -384,6 +384,7 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
+            $topic->load('tags');
             $topic->tags->makeHidden(['pivot']);
             // $topic->tags = $topic->tags_array;
             if ($request->user()) {
