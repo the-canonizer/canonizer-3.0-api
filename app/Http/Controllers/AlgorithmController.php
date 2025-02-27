@@ -9,15 +9,38 @@ use Illuminate\Support\Facades\Cache;
 
 class AlgorithmController extends Controller
 {
-    /**
-     * Get the All Algorithms.
-     *
-     * @return \Illuminate\Http\Response
-     */
 
+    /**
+     * @OA\Get(
+     *     path="/api/algorithms",
+     *     summary="Get all algorithms",
+     *     tags={"Algorithms"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Algorithm")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Algorithms not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Algorithms not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Exception",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Exception message")
+     *         )
+     *     )
+     * )
+     */
     public function getAll()
     {
-
         try {
             $cacheKey = 'all_algorithm';
             $algorithms = Cache::remember($cacheKey, (int)env('CACHE_TIMEOUT_IN_SECONDS'), function () {
@@ -30,7 +53,5 @@ class AlgorithmController extends Controller
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
     }
-
 }
