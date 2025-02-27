@@ -233,7 +233,7 @@ class ReplyController extends Controller
      *    ),
      *   @OA\Parameter(
      *         name="page",
-     *         in="url",
+     *         in="query",
      *         required=false,
      *         description="Add page field in query parameters",
      *         @OA\Schema(
@@ -242,7 +242,7 @@ class ReplyController extends Controller
      *    ),
      *   @OA\Parameter(
      *         name="per_page",
-     *         in="url",
+     *         in="query",
      *         required=false,
      *         description="Add per_page field in query parameters",
      *         @OA\Schema(
@@ -251,7 +251,7 @@ class ReplyController extends Controller
      *    ),
      *   @OA\Parameter(
      *         name="like",
-     *         in="url",
+     *         in="query",
      *         required=false,
      *         description="Add like field in query parameters",
      *         @OA\Schema(

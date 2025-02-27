@@ -15,6 +15,62 @@ class SearchController extends Controller
     {
         $this->resProvider = $respProvider;
     }
+    /**
+ * @OA\Get(
+ *     path="/search",
+ *     summary="Get search results",
+ *     tags={"Search"},
+ *     @OA\Parameter(
+ *         name="term",
+ *         in="query",
+ *         required=true,
+ *         description="Search term",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="type",
+ *         in="query",
+ *         required=false,
+ *         description="Type of search (topic, camp, statement, nickname)",
+ *         @OA\Schema(type="string", enum={"topic", "camp", "statement", "nickname"})
+ *     ),
+ *     @OA\Parameter(
+ *         name="size",
+ *         in="query",
+ *         required=false,
+ *         description="Number of results per page",
+ *         @OA\Schema(type="integer", default=0)
+ *     ),
+ *     @OA\Parameter(
+ *         name="page",
+ *         in="query",
+ *         required=false,
+ *         description="Page number for pagination",
+ *         @OA\Schema(type="integer", default=1)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="status", type="integer", example=200),
+ *             @OA\Property(property="message", type="string", example="Success"),
+ *             @OA\Property(property="data", type="object", additionalProperties=true),
+ *             @OA\Property(property="total", type="integer", example=100)
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="status", type="integer", example=400),
+ *             @OA\Property(property="message", type="string", example="Error message"),
+ *             @OA\Property(property="data", type="null")
+ *         )
+ *     )
+ * )
+ */
 
     public function getSearchResults(Request $request)
     {

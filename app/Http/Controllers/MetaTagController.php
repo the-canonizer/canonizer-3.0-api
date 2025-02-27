@@ -34,7 +34,7 @@ class MetaTagController extends Controller
     }
 
     /**
-     * @OA\Post(path="/meta-tagst",
+     * @OA\Post(path="/meta-tags",
      *   tags={"MetaTag"},
      *   summary="Get meta tags",
      *   description="This API is used to get meta tags.",
