@@ -11,16 +11,30 @@
 <script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
 <script>
     (function () {
-        SwaggerUIBundle({
+        const ui = SwaggerUIBundle({
             url: "canonizer_api.json",
             dom_id: '#swagger-ui',
+            deepLinking: true,
             presets: [
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIStandalonePreset
             ],
-            layout: "StandaloneLayout"
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout",
+            requestInterceptor: function (req) {
+                let token = sessionStorage.getItem("swagger_auth_token");
+                if (token) {
+                    req.headers["Authorization"] = "Bearer " + token;
+                }
+                return req;
+            }
         });
+
+        window.ui = ui;
     })();
 </script>
+
 </body>
 </html>

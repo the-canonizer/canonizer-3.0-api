@@ -46,14 +46,14 @@ class SupportController extends Controller
     
      private function getSupportedCampsData(Request $request, $supportType)
      {
-         $user = $request->user();
-         $userId = $user->id;
-         $per_page = $request->get('per_page', 10); // Default to 10 if not provided
-         $searchTopicName = $request->get('search', '');
+        $user = $request->user();
+        $userId = $user->id;
+        $per_page = $request->get('per_page', 10); // Default to 10 if not provided
+        $searchTopicName = $request->get('search', '');
          
          // Get current page from URL, default to page 1 if not set
-         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-         if ($page <= 0) {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($page <= 0) {
              $page = 1;
          }
          $page = ($page - 1);
@@ -175,10 +175,71 @@ class SupportController extends Controller
        
      }
  
-    /** @OA\Get(path="/add-direct-support",
+
+    /**
+     * @OA\Post(path="/add-direct-support",
      *   tags={"addSupport"},
+     *   summary="Add direct support",
+     *   description="Add direct support to a camp",
+     *   operationId="addDirectSupport",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Add direct support",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="nick_name_id",
+     *                   description="Nickname ID",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="add_camp",
+     *                   description="Camp to add support to",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="remove_camps",
+     *                   description="Camps to remove support from",
+     *                   type="array",
+     *                   @OA\Items(type="integer"),
+     *               ),
+     *               @OA\Property(
+     *                   property="order_update",
+     *                   description="Order update",
+     *                   type="array",
+     *                   @OA\Items(type="integer"),
+     *               ),
+     *               @OA\Property(
+     *                   property="reason",
+     *                   description="Reason for support",
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="reason_summary",
+     *                   description="Summary of the reason",
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="citation_link",
+     *                   description="Citation link",
+     *                   type="string",
+     *               ),
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Validation error"),
+     *   @OA\Response(response=403, description="Forbidden")
      * )
-     * 
      */
     public function addDirectSupport(Request $request, Validate $validate)
     {        
@@ -201,9 +262,8 @@ class SupportController extends Controller
         $reason = $all['reason'] ?? null; 
         $reason_summary = $all['reason_summary'] ?? null; 
         $citation_link = $all['citation_link'] ?? null; 
-        // dd($all);
         try{            
-            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate,$reason,$reason_summary,$citation_link);
+            TopicSupport::addDirectSupport($topicNum, $nickNameId, $addCamp, $user, $removedCamps, $orderUpdate, $reason, $reason_summary,$citation_link);
             $message =TopicSupport::getMessageBasedOnAction($addCamp, $removedCamps, $orderUpdate, $topicNum);            
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
     

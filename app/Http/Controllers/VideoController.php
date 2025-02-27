@@ -17,35 +17,35 @@ class VideoController extends Controller
     }
 
     /**
-     * @OA\Get(path="/videos",
+     * @OA\Get(
+     *   path="/videos",
      *   tags={"videos"},
-     *   summary="",
+     *   summary="Get list of videos",
      *   description="Get list of videos",
      *   operationId="videos",
-     *   @OA\Response(response=200, description="Sucsess")
-     *   @OA\Response(response=400, description="Something went wrog")
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Something went wrong")
      * )
      */
     public function getVideos(Request $request)
     {
         try {
-
             $categories = Category::with(['videos:id,title,thumbnail'])->get();
-
             return $this->resProvider->apiJsonResponse(!count($categories) ? 404 : 200, trans('message.success.success'),  $categories, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
-        /**
-     * @OA\Get(path="/videos/{category}/{categoryId}",
+    /**
+     * @OA\Get(
+     *   path="/videos/{category}/{categoryId}",
      *   tags={"getVideosByCategory"},
-     *   summary="",
+     *   summary="Get list of videos by category",
      *   description="Get list of videos by category",
      *   operationId="getVideosByCategory",
-     *   @OA\Response(response=200, description="Sucsess")
-     *   @OA\Response(response=400, description="Something went wrog")
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Something went wrong")
      * )
      */
     public function getVideosByCategory($category, $categoryId)

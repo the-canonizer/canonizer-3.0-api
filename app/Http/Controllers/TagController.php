@@ -60,18 +60,18 @@ class TagController extends Controller
      *                   description="page number",
      *                   required=false,
      *                   type="integer",
-     *               )
+     *               ),
      *               @OA\Property(
      *                   property="search_term",
      *                   description="search specific records",
      *                   required=false,
      *                   type="text",
-     *               )
-     *                @OA\Property(
+     *               ),
+     *               @OA\Property(
      *                   property="sort_by",
      *                   description="sorting of records",
      *                   required=false,
-     *                   type="ASC|DESC",
+     *                   type="string",
      *               )
      *           )
      *       )
