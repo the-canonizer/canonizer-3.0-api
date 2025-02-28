@@ -61,15 +61,7 @@ class TopicController extends Controller
      *   summary="save topic",
      *   description="This is use for save topic",
      *   operationId="topicSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -412,15 +404,7 @@ class TopicController extends Controller
      *   summary="Commit a change",
      *   description="Used to commit a change for camp, topic and statement.",
      *   operationId="commitChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Commit change",
@@ -1019,15 +1003,7 @@ class TopicController extends Controller
      *   summary="Agree to change",
      *   description="Used to agree on a change for camp, topic and statement.",
      *   operationId="agreeToChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
      *       description="Agree to change",
@@ -1342,6 +1318,7 @@ class TopicController extends Controller
      *   summary="Agree to change",
      *   description="Used to agree on a change for camp, topic and statement from live job.",
      *   operationId="agreeToChangeForLiveJob",
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *       required=true,https://canonizer3.canonizer.com/statement/history/88/1
      *       description="Agree to change",
@@ -1563,6 +1540,7 @@ class TopicController extends Controller
      *   summary="edit, update and object topic record",
      *   description="This API is used to edit, update and object topic record.",
      *   operationId="edit, update, object-TopicHistory",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get topic record history",
@@ -1800,6 +1778,7 @@ class TopicController extends Controller
      *   summary="get topic history",
      *   description="This API is used to get topic history.",
      *   operationId="getTopicHistory",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get topic history",
@@ -1894,15 +1873,7 @@ class TopicController extends Controller
      *   summary="Get topic record",
      *   description="Get topic details for editing",
      *   operationId="editTopicRecord",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Edit topic",
@@ -1970,15 +1941,7 @@ class TopicController extends Controller
      *   summary="discard a change",
      *   description="Used to discard a change for camp, topic and statement.",
      *   operationId="discardChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Discard change",
@@ -2087,16 +2050,8 @@ class TopicController extends Controller
      *   tags={"Topic"},
      *   summary="Get Hot Topic",
      *   description="This api used to get hot-topic",
-     *   operationId="countrylist",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   operationId="hotTopic",
+     *   security={{"bearerAuth":{}}},
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
@@ -2204,15 +2159,7 @@ class TopicController extends Controller
      *   summary="Get featured Topic",
      *   description="This api used to get featured topic",
      *   operationId="featuredTopic",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
@@ -2291,22 +2238,14 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
+    
     /**
      * @OA\Get(path="/preferred-topic",
      *   tags={"Topic"},
      *   summary="Get preferred Topic",
      *   description="This api used to get preferred topic",
      *   operationId="preferredTopic",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",

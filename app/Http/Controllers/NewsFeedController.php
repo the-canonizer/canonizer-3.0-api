@@ -35,6 +35,7 @@ class NewsFeedController extends Controller
      *   summary="get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get Newsfeed",
@@ -119,15 +120,7 @@ class NewsFeedController extends Controller
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Update Camp Newsfeed",
@@ -240,15 +233,7 @@ class NewsFeedController extends Controller
      *   summary="Store camp newsfeed",
      *   description="This is used to store camp newsfeed.",
      *   operationId="storeCampNewsFeed",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Store Camp Newsfeed",
@@ -353,15 +338,7 @@ class NewsFeedController extends Controller
      *   summary="delete camp newsfeed",
      *   description="This is used to delete camp newsfeed.",
      *   operationId="deleteCampNewsFeed",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="delete camp newsfeed",
@@ -428,15 +405,7 @@ class NewsFeedController extends Controller
      *   summary="edit camp newsfeed",
      *   description="This is used to get  a record for updating camp newsfeed.",
      *   operationId="editCampNewsFeed",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="edit camp newsfeed",

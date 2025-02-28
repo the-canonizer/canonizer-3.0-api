@@ -149,14 +149,7 @@ class UserController extends Controller
      *   description="This is used to register the user.",
      *   operationId="createUser",
      *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *    security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -322,15 +315,7 @@ class UserController extends Controller
      *   summary="Logs user into the system",
      *   description="",
      *   operationId="loginUser",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -660,15 +645,7 @@ class UserController extends Controller
      *   summary="For verify Otp after login details",
      *   description="This api used to verify Otp after login details",
      *   operationId="verifyOtp",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -862,15 +839,7 @@ class UserController extends Controller
      *   summary="For get social token url",
      *   description="This api used to create social token url and we are using this url for generating code",
      *   operationId="usersociallogin",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1004,15 +973,7 @@ class UserController extends Controller
      *   summary="For get social user details",
      *   description="This api used to get social social users detauls and auth details",
      *   operationId="usersocialcallback",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="password"
-     *         ) 
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1271,15 +1232,7 @@ class UserController extends Controller
      *   summary="For get country list",
      *   description="This api used to get country list",
      *   operationId="countrylist",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
@@ -1343,15 +1296,7 @@ class UserController extends Controller
      *   summary="User Resend Otp",
      *   description="This api used to Resend Otp",
      *   operationId="userReSend",
-     *  @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     * security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1439,15 +1384,7 @@ class UserController extends Controller
      *   summary="Get User Social Link Account List",
      *   description="This API is use for get user social link account list",
      *   operationId="socialList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     * security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *        description = "Success",
@@ -1541,15 +1478,7 @@ class UserController extends Controller
      *   summary="Unlink Social User",
      *   description="This API is use for unlink soical account and delete social user",
      *   operationId="socialDelete",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -1622,15 +1551,7 @@ class UserController extends Controller
      *   summary="For link social user",
      *   description="This api used to link social users",
      *   operationId="usersocialsociallink",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="password"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1785,15 +1706,7 @@ class UserController extends Controller
      *   summary="For deactivate user",
      *   description="This api used to deactivate users",
      *   operationId="deactivateuser",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="password"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -2015,15 +1928,7 @@ class UserController extends Controller
      *   summary="get user access token for login as user",
      *   description="This is used to get user access token for login as user from admin.",
      *   operationId="loginAsUser",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}}, 
      *   @OA\RequestBody(
      *       required=true,
      *       description="login as user",
@@ -2153,7 +2058,7 @@ class UserController extends Controller
      *   tags={"User"},
      *   summary="Delete facebook data on callback",
      *   description="This API is use to delete facebook data on callback received from facebook",
-     *   operationId="facebookDeleteDataCallBack",
+     *   operationId="checkFacebookDataDeletionStatus",
      *   @OA\Parameter(
      *         name="confirmation_code",
      *         in="path",

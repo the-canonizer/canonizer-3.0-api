@@ -17,6 +17,7 @@ class NicknameController extends Controller
      *   summary="Add New nick name",
      *   description="",
      *   operationId="addNickName",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Unique nickname required with max 50 characters",
@@ -105,6 +106,7 @@ class NicknameController extends Controller
      *   summary="update nick name visibility status",
      *   description="",
      *   operationId="updatenickName",
+     *  security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Unique nickname required with max 50 characters",
@@ -177,12 +179,10 @@ class NicknameController extends Controller
             if ($allNicknames == 'not_found') {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
             }
-           
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $allNicknames, '');
 
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
     }
 }

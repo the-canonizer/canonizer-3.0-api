@@ -56,15 +56,7 @@ class CampController extends Controller
      *   summary="save camp",
      *   description="This API is use for save camp",
      *   operationId="campSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -452,15 +444,7 @@ class CampController extends Controller
      *   summary="Get All Parent",
      *   description="This API is use for get all parent",
      *   operationId="allParent",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -656,15 +640,7 @@ class CampController extends Controller
      *     path="/camp/allAboutNickName",
      *     summary="API For Get all About Nick Name",
      *     tags={"Camp"},
-     *      @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *        description = "Success",
@@ -764,15 +740,7 @@ class CampController extends Controller
      *   summary="Get Topic Nick Name Used",
      *   description="This API is use for get Topic Nick Name Used",
      *   operationId="getTopicNickNameUsed",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -869,15 +837,7 @@ class CampController extends Controller
      *   summary="Subscribe or unsubscribe to a camp or all topic camps",
      *   description="This API is used to subscribe or unsubscribe to a specific camp or all topic camps.",
      *   operationId="campSubscription",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Subscribe or unsubscribe to a camp or topic",
@@ -977,15 +937,7 @@ class CampController extends Controller
      *   summary="list posubscriptionst",
      *   description="This is use for get subscription list",
      *   operationId="subscriptionList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="page",
      *         in="url",
@@ -1297,15 +1249,7 @@ class CampController extends Controller
      *   summary="Get camp record",
      *   description="Get camp details for editing",
      *   operationId="editCampRecord",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Edit camp",

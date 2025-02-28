@@ -45,15 +45,7 @@ class ReplyController extends Controller
      *   summary="save thread",
      *   description="This is use for save post",
      *   operationId="postSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -222,15 +214,7 @@ class ReplyController extends Controller
      *   summary="list post",
      *   description="This is use for get post list",
      *   operationId="postList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="page",
      *         in="query",
@@ -410,15 +394,7 @@ class ReplyController extends Controller
      *   summary="update thread",
      *   description="This is use for update post",
      *   operationId="updateSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -563,15 +539,7 @@ class ReplyController extends Controller
      *   summary="delete post",
      *   description="This API is use for delete post",
      *   operationId="postDelete",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",

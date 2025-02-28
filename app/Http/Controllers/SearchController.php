@@ -39,7 +39,7 @@ class SearchController extends Controller
  *         in="query",
  *         required=false,
  *         description="Number of results per page",
- *         @OA\Schema(type="integer", default=0)
+ *         @OA\Schema(type="integer", default=20)
  *     ),
  *     @OA\Parameter(
  *         name="page",
@@ -117,6 +117,60 @@ class SearchController extends Controller
         ];
     }
     
+    /**
+     * @OA\Post(
+     *     path="/search-filter",
+     *     summary="Get advanced search filter results",
+     *     tags={"Search"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="type", 
+     *                 type="string", 
+     *                 description="Type of search", 
+     *                 enum={"topic", "camp", "statement", "nickname"}
+     *             ),
+     *             @OA\Property(
+     *                 property="nick_ids", 
+     *                 type="array", 
+     *                 @OA\Items(type="integer"), 
+     *                 description="Nickname IDs for advanced filter search"
+     *             ),
+     *             @OA\Property(property="search", type="string", description="Search term"),
+     *             @OA\Property(property="query", type="string", description="Query (optional)"),
+     *             @OA\Property(property="algo", type="string", description="Algorithm"),
+     *             @OA\Property(property="asof", type="string", description="As of date type", default="default"),
+     *             @OA\Property(property="score", type="integer", description="Score"),
+     *             @OA\Property(property="asofdate", type="number", description="As of date (timestamp)"),
+     *             @OA\Property(property="page_number", type="integer", description="Page number for pagination", default=1),
+     *             @OA\Property(property="page_size", type="integer", description="Number of results per page", default=20)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="data", type="object", additionalProperties=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Error message"),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     )
+     * )
+     */
+
     public function advanceSearchFilter(Request $request)
     {
         $all        = $request->all();

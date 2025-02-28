@@ -263,15 +263,7 @@ class StatementController extends Controller
      *   summary="Get statement",
      *   description="Used to get statement details.",
      *   operationId="getStatement",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Edit Statement",
@@ -280,7 +272,7 @@ class StatementController extends Controller
      *           @OA\Schema(
      *              @OA\Property(
      *                  property="record_id",
-     *                  description="Record id is required",
+     *                  description="Record_ID is required",
      *                  required=true,
      *                  type="integer",
      *               ),
@@ -348,6 +340,7 @@ class StatementController extends Controller
      *   summary="Store/update/object camp statement",
      *   description="This API is used to store, update and object camp statement.",
      *   operationId="Store/update/object-CampStatementHistory",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp statement history",
@@ -698,15 +691,7 @@ class StatementController extends Controller
      *   summary="get statement comparison",
      *   description="This API is used for compare two statement.",
      *   operationId="get-statement-comparison",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -979,6 +964,7 @@ class StatementController extends Controller
      *   summary="Parse a string using wiki parser",
      *   description="This API is used to parse a string through wiki parser.",
      *   operationId="wiki-parser",
+     *  security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="parse sting",
