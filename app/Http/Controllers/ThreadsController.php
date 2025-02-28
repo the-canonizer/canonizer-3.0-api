@@ -45,15 +45,7 @@ class ThreadsController extends Controller
      *   summary="save thread",
      *   description="This is use for save thread",
      *   operationId="threadSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -225,15 +217,7 @@ class ThreadsController extends Controller
      *   summary="list thread",
      *   description="This is use for get thread list",
      *   operationId="threadList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="camp_num",
      *         in="url",
@@ -567,15 +551,7 @@ class ThreadsController extends Controller
      *   summary="update thread",
      *   description="This is use for update thread",
      *   operationId="threadUpdate",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *  security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="url",

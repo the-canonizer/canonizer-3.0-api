@@ -9,18 +9,27 @@ use OpenApi\Annotations as OA;
  *     @OA\Info(
  *         version="1.0.0",
  *         title="Canonizer API",
- *         description="Canonizer API documentation",
- *         termsOfService="http://canonizer.com/termsandservice",
+ *         description="API documentation for Canonizer",
+ *         termsOfService="http://canonizer.com/terms",
  *         @OA\Contact(
  *             email="support@canonizer.com"
  *         )
  *     ),
  *     @OA\Server(
- *         description="Canonizer API",
- *         url="https://api.canonizer.com/api/v3/"
+ *         description="Local API Server",
+ *         url="http://canonizer3.local/api/v3"
+ *     ),
+ *     @OA\Components(
+ *         @OA\SecurityScheme(
+ *             securityScheme="bearerAuth",
+ *             type="http",
+ *             scheme="bearer",
+ *             bearerFormat="JWT"
+ *         )
  *     )
  * )
  */
 class OpenApiSpec
 {
 }
+

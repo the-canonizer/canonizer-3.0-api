@@ -34,10 +34,11 @@ class UploadController extends Controller
 
     /**
      * @OA\POST(path="/add-folder",
-     *   tags={"uploads"},
+     *   tags={"upload"},
      *   summary="Add New folder",
      *   description="",
      *   operationId="addFolder",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="folder name is required.",     *    
@@ -88,6 +89,7 @@ class UploadController extends Controller
      *   summary="Upload files to s3 ",
      *   description="This is used to upload files in bulk",
      *   operationId="uploadFiles",
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="",
@@ -177,15 +179,7 @@ class UploadController extends Controller
      *   summary="Delete  folder",
      *   description="This API is used to delete a created folder if no file exists inside that folder",
      *   operationId="folderDelete",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -267,15 +261,7 @@ class UploadController extends Controller
      *   summary="get uploaded files and folder",
      *   description="This is used to get uploaded files and folder with count of files uploaded inside folder.",
      *   operationId="getUploadedFiles",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *  @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -321,16 +307,8 @@ class UploadController extends Controller
      *   tags={"upload"},
      *   summary="get uploaded files inside folder",
      *   description="This is used to get uploaded files inside a folder.",
-     *   operationId="getUploadedFiles",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   operationId="getFolderFiles",
+     *   security={{"bearerAuth":{}}},
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
@@ -369,16 +347,8 @@ class UploadController extends Controller
      *   tags={"upload"},
      *   summary="Delete  file",
      *   description="This API is used to delete a uploaded file if not used in any statement",
-     *   operationId="folderDelete",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   operationId="fileDelete",
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -466,15 +436,7 @@ class UploadController extends Controller
      *   summary="get-global-search-uploaded-files",
      *   description="This is used to get Global Search uploaded files and folder with count of files uploaded inside folder.",
      *   operationId="getGlobalSearchUploadedFiles",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *  @OA\Parameter(
      *         name="id",
      *         in="path",

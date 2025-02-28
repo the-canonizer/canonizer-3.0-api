@@ -46,15 +46,7 @@ class NotificationController extends Controller
      *   summary="list thread",
      *   description="This is use for get thread list",
      *   operationId="threadList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         )
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="page",
      *         in="url",

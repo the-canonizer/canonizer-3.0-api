@@ -36,15 +36,7 @@ class ForgotPasswordController extends Controller
      *   summary="forgot password send Otp",
      *   description="This api used to forgot password send Otp",
      *   operationId="forgotPassword",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *  @OA\RequestBody(
      *     required=true,
      *     description="User Email Id",
@@ -138,15 +130,7 @@ class ForgotPasswordController extends Controller
      *   summary="forgot password verify Otp",
      *   description="This api used to forgot password verify Otp",
      *   operationId="forgotPasswordVerifyOtp",
-     * @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -247,15 +231,7 @@ class ForgotPasswordController extends Controller
      *   summary="forgot password update",
      *   description="This api used to forgot password update",
      *   operationId="forgotPasswordupdate",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"bearerAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
