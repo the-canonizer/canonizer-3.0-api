@@ -93,13 +93,13 @@ class ActivityController extends Controller
         }
     }
 
-
     /**
      * @OA\Post(path="/get-camp-activity-log",
      *   tags={"Activity Log"},
      *   summary="Get 10 recent camp activity logs",
      *   description="This is used to get 10 recent camp activity logs.",
-     *   operationId="GetCamp10RecentActivityLog",
+     *   operationId="GetCampActivityLog",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp recent activities",
