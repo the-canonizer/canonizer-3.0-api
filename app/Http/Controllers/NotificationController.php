@@ -27,9 +27,7 @@ use Illuminate\Support\Str;
 
 class NotificationController extends Controller
 {
-
     private ValidationRules $rules;
-
     private ValidationMessages $validationMessages;
 
     public function __construct(ResponseInterface $resProvider)
@@ -41,134 +39,79 @@ class NotificationController extends Controller
 
 
     /**
-     * @OA\GET(path="/thread/list",
-     *   tags={"Thread"},
-     *   summary="list thread",
-     *   description="This is use for get thread list",
-     *   operationId="threadList",
-     *   security={{"bearerAuth":{}}},
-     *   @OA\Parameter(
+     * @OA\Get(
+     *     path="/notification-list",
+     *     tags={"Notification"},
+     *     summary="List notifications",
+     *     description="This API retrieves a paginated list of notifications.",
+     *     operationId="threadList",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
      *         name="page",
-     *         in="url",
+     *         in="query",
      *         required=false,
-     *         description="Add page field in query parameters",
-     *         @OA\Schema(
-     *              type="Query Parameters"
-     *         )
-     *    ),
-     *   @OA\Parameter(
+     *         description="Page number for pagination",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
      *         name="per_page",
-     *         in="url",
+     *         in="query",
      *         required=false,
-     *         description="Add per_page field in query parameters",
-     *         @OA\Schema(
-     *              type="Query Parameters"
+     *         description="Number of items per page",
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="items",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="user_id", type="integer", example=10),
+     *                         @OA\Property(property="camp_num", type="integer", example=5),
+     *                         @OA\Property(property="topic_num", type="integer", example=3),
+     *                         @OA\Property(property="message_title", type="string", example="New Notification"),
+     *                         @OA\Property(property="message_body", type="string", example="You have a new message"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time", example="2024-02-29T12:34:56Z"),
+     *                         @OA\Property(property="updated_at", type="string", format="date-time", example="2024-02-29T14:00:00Z"),
+     *                         @OA\Property(property="notification_type", type="string", example="info"),
+     *                         @OA\Property(property="fcm_token", type="string", example="some-fcm-token"),
+     *                         @OA\Property(property="is_read", type="integer", example=0)
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="last_page", type="integer", example=5),
+     *                 @OA\Property(property="total_rows", type="integer", example=50),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="to", type="integer", example=10)
+     *             )
      *         )
-     *    ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                          @OA\Property(
-     *                                              property="items",
-     *                                              type="object",
-     *                                                  @OA\Property(
-     *                                                      property="id",
-     *                                                      type="integer"
-     *                                                  ),
-     *                                                  @OA\Property(
-     *                                                      property="user_id",
-     *                                                      type="integer"
-     *                                                  ),
-     *                                                  @OA\Property(
-     *                                                      property="camp_num",
-     *                                                      type="integer"
-     *                                                  ),
-     *                                                  @OA\Property(
-     *                                                      property="topic_num",
-     *                                                      type="integer"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="message_title",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="message_body",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="created_at",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="updated_at",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="notification_type",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="fcm_token",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="is_read",
-     *                                                      type="integer"
-     *                                                 )
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="current_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="per_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="last_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="total_rows",
-     *                                              type=""
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="from",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="to",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Something went wrong",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Error fetching notifications"),
+     *             @OA\Property(property="error", type="string", example="Invalid request"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
      *     )
-     *   )
-     *
      * )
      */
+
 
     public function notificationList(Request $request, Validate $validate)
     {
@@ -280,6 +223,46 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path= "/notification-is-read/update/{id}",
+     *     tags={"Notification"},
+     *     summary="Mark notification as read",
+     *     description="Updates the read status of a notification",
+     *     operationId="updateIsRead",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Notification ID",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Something went wrong",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Exception occurred"),
+     *             @OA\Property(property="error", type="string", example="Database error"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     )
+     * )
+     */
+
     public function updateIsRead(Request $request, $id)
     {
         try {
@@ -297,6 +280,47 @@ class NotificationController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/notification/read/all",
+     *     tags={"Notification"},
+     *     summary="Mark all or selected notifications as read",
+     *     description="Marks all notifications as read for the authenticated user or updates selected notifications.",
+     *     operationId="updateReadAll",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="is_read", type="string", enum={"all", "selected"}, example="all", description="Pass 'all' to mark all notifications as read, or 'selected' to mark specific notifications."),
+     *             @OA\Property(property="ids", type="array", @OA\Items(type="integer"), example={1,2,3}, description="Required if 'is_read' is 'selected'. List of notification IDs to mark as read.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error or exception",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="error", type="string", example="Invalid data"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     )
+     * )
+     */
 
     public function updateReadAll(Request $request, Validate $validate)
     {
@@ -333,6 +357,48 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/notification/delete/all",
+     *     tags={"Notification"},
+     *     summary="Delete all or selected notifications",
+     *     description="Deletes all notifications for the authenticated user or deletes selected notifications.",
+     *     operationId="deleteAllNotifications",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="is_delete", type="string", enum={"all", "selected"}, example="all", description="Pass 'all' to delete all notifications, or 'selected' to delete specific notifications."),
+     *             @OA\Property(property="ids", type="array", @OA\Items(type="integer"), example={1,2,3}, description="Required if 'is_delete' is 'selected'. List of notification IDs to delete.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error or exception",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="error", type="string", example="Invalid data"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     )
+     * )
+     */
+
+
     public function deleteAll(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->updateDeleteAllValidationRules(), $this->validationMessages->updateDeleteAllValidationMessages());
@@ -358,6 +424,46 @@ class NotificationController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/update-fcm-token",
+     *     tags={"User"},
+     *     summary="Update FCM token",
+     *     description="Updates the Firebase Cloud Messaging (FCM) token for push notifications. Pass 'disabled' to remove the token.",
+     *     operationId="updateFcmToken",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="fcm_token", type="string", example="abcd1234xyz", description="FCM token for push notifications. Pass 'disabled' to remove the token.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error or exception",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="error", type="string", example="Invalid FCM token"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     )
+     * )
+     */
 
     public function updateFcmToken(Request $request, Validate $validate)
     {
@@ -387,6 +493,56 @@ class NotificationController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/notify-if-url-not-exist",
+     *     tags={"Notification"},
+     *     summary="Notify if a URL does not exist",
+     *     description="Checks if a topic, statement, nickname, or thread exists. If not, it triggers an administrator notification event.",
+     *     operationId="notifyIfUrlNotExist",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="url", type="string", example="/topic/123", description="Relative or full URL to check"),
+     *             @OA\Property(property="refererURL", type="string", example="https://example.com", description="Referrer URL"),
+     *             @OA\Property(property="is_type", type="string", enum={"topic", "statement", "nickname", "thread"}, example="topic", description="Type of entity to check"),
+     *             @OA\Property(property="topic_num", type="integer", example=123, description="Topic number (if applicable)"),
+     *             @OA\Property(property="camp_num", type="integer", example=1, description="Camp number (if applicable)"),
+     *             @OA\Property(property="asof", type="string", example="default", description="Timestamp or 'default' for latest data"),
+     *             @OA\Property(property="asOfDate", type="string", example="2025-03-01", description="Specific date for filtering"),
+     *             @OA\Property(property="nick_id", type="integer", example=456, description="Nickname ID (if applicable)"),
+     *             @OA\Property(property="thread_id", type="integer", example=789, description="Thread ID (if applicable)")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="is_exist", type="boolean", example=true, description="Indicates if the entity exists")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error or exception",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status_code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="error", type="string", example="Invalid request data"),
+     *             @OA\Property(property="data", type="string", nullable=true, example=null)
+     *         )
+     *     )
+     * )
+     */
 
     public function notifyIfUrlNotExist(Request $request, Validate $validate)
     {

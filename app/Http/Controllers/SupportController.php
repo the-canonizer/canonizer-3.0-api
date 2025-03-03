@@ -681,11 +681,12 @@ class SupportController extends Controller
     }
 
     /**
-     * @OA\Post(path="get-change-supporters",
+     * @OA\Post(
+     *   path="get-change-supporters",
      *   tags={"Support"},
-     *   summary="get supporter with count",
-     *   description="Used to get supporter with count for camp, topic and statement.",
-     *   operationId="get-change-supporters",
+     *   summary="Get supporter count",
+     *   description="Used to get supporter count for camp, topic, and statement.",
+     *   operationId="getChangeSupporters",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
@@ -693,37 +694,35 @@ class SupportController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "change_id", "type"},
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="topic_num id is required",
-     *                   required=true,
-     *                   type="integer",
+     *                   description="Topic number is required",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
-     *                   description="camp_num id is required",
-     *                   required=true,
-     *                   type="integer",
+     *                   description="Camp number is required",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="change_id",
-     *                   description="change_id id is required",
-     *                   required=true,
-     *                   type="integer",
+     *                   description="Change ID is required",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="type",
      *                   description="Type (topic, camp, statement)",
-     *                   required=true,
-     *                   type="string",
+     *                   type="string"
      *               ),
-     *         )
-     *      )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function getChangeSupporters(Request $request, Validate $validate)
     {
         try {

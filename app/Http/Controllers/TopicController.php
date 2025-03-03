@@ -1535,11 +1535,12 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/manage-topic",
+     * @OA\Post(
+     *   path="/manage-topic",
      *   tags={"Topic"},
-     *   summary="edit, update and object topic record",
-     *   description="This API is used to edit, update and object topic record.",
-     *   operationId="edit, update, object-TopicHistory",
+     *   summary="Edit, update, and object topic record",
+     *   description="This API is used to edit, update, and object topic record.",
+     *   operationId="manageTopicHistory",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
@@ -1547,61 +1548,55 @@ class TopicController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *              @OA\Property(
-     *                  property="topic_id",
-     *                  description="Topic id is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
+     *               required={"topic_num", "topic_id", "nick_name", "submitter", "namespace_id", "event_type"}, // ✅ Correct placement
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="topic_id",
+     *                   description="Topic ID is required",
+     *                   type="integer",
+     *               ),
      *               @OA\Property(
      *                   property="nick_name",
      *                   description="Nick name of the user",
-     *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="note",
-     *                   description="Note for topic",
-     *                   required=false,
+     *                   description="Note for topic (optional)",
      *                   type="string",
      *               ),
-     *              @OA\Property(
+     *               @OA\Property(
      *                   property="submitter",
-     *                   description="Nick name id of user who previously added statement",
-     *                   required=true,
+     *                   description="Nick name ID of user who previously added statement",
      *                   type="integer",
      *               ),
-     *              @OA\Property(
+     *               @OA\Property(
      *                   property="namespace_id",
-     *                   description="TOpic namespace id",
-     *                   required=true,
+     *                   description="Topic namespace ID",
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="event_type",
-     *                   description="Possible values objection, edit, update",
-     *                   required=true,
+     *                   description="Possible values: objection, edit, update",
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="objection_reason",
-     *                   description="Objection reason in case user is objecting to a statement",
-     *                   required=false,
+     *                   description="Objection reason if the user is objecting to a statement (optional)",
      *                   type="string",
      *               )
-     *         )
-     *      )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function manageTopic(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageTopicValidationRules(), $this->validationMessages->getManageTopicValidationMessages());
@@ -1868,7 +1863,8 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/edit-topic",
+     * @OA\Post(
+     *   path="/edit-topic",
      *   tags={"Topic"},
      *   summary="Get topic record",
      *   description="Get topic details for editing",
@@ -1880,25 +1876,25 @@ class TopicController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="record_id",
-     *                  description="Record id is required",
-     *                  required=true,
-     *                  type="integer",
+     *               required={"record_id", "event_type"},
+     *               @OA\Property(
+     *                   property="record_id",
+     *                   description="Record ID",
+     *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="event_type",
      *                   description="Possible values are edit, objected, live, in_review, old, all",
-     *                   required=true,
      *                   type="string",
-     *               ),
-     *         )
-     *      )
+     *               )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function editTopicRecord(Request $request, Validate $validate)
     {
         try {
@@ -1934,12 +1930,12 @@ class TopicController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
     /**
-     * @OA\Post(path="/discard/change",
+     * @OA\Post(
+     *   path="/discard/change",
      *   tags={"Topic"},
-     *   summary="discard a change",
-     *   description="Used to discard a change for camp, topic and statement.",
+     *   summary="Discard a change",
+     *   description="Used to discard a change for camp, topic, and statement.",
      *   operationId="discardChange",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
@@ -1948,25 +1944,25 @@ class TopicController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"id", "type"}, 
      *               @OA\Property(
      *                   property="id",
-     *                   description="Record id is required",
-     *                   required=true,
+     *                   description="Record ID",
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="type",
      *                   description="Type (topic, camp, statement)",
-     *                   required=true,
      *                   type="string",
-     *               ),
-     *         )
-     *      )
+     *               )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function discardChange(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getDiscardChangeValidationRules(), $this->validationMessages->getDiscardChangeValidationMessages());

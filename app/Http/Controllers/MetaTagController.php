@@ -34,7 +34,8 @@ class MetaTagController extends Controller
     }
 
     /**
-     * @OA\Post(path="/meta-tags",
+     * @OA\Post(
+     *   path="/meta-tags",
      *   tags={"MetaTag"},
      *   summary="Get meta tags",
      *   description="This API is used to get meta tags.",
@@ -43,40 +44,35 @@ class MetaTagController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *              required={"page_name"},
      *              @OA\Property(
      *                  property="page_name",
-     *                  description="Page Name is required",
-     *                  required=true,
      *                  type="string",
+     *                  description="Page Name is required"
      *              ), 
-     *              @OA\Keys(
-     *                  @OA\Property(
-     *                      property="topic_num",
-     *                      description="Topic Number is required",
-     *                      required=false,
-     *                      type="integer",
-     *                  ),
-     *                  @OA\Property(
-     *                      property="camp_num",
-     *                      description="Camp Number is required",
-     *                      required=false,
-     *                      type="integer",
-     *                  ),
-     *                  @OA\Property(
-     *                      property="forum_num",
-     *                      description="Forum Number is required conditionally for page name CampForumPostPage",
-     *                      required=false,
-     *                      type="integer",
-     *                  ),
-     *               ) 
-     *            )  
-     *         )
-     *      )
+     *              @OA\Property(
+     *                  property="topic_num",
+     *                  type="integer",
+     *                  description="Topic Number (optional)"
+     *              ),
+     *              @OA\Property(
+     *                  property="camp_num",
+     *                  type="integer",
+     *                  description="Camp Number (optional)"
+     *              ),
+     *              @OA\Property(
+     *                  property="forum_num",
+     *                  type="integer",
+     *                  description="Forum Number is required conditionally for page name CampForumPostPage"
+     *              )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function getMetaTags(Request $request, Validate $validate)
     {
         try {

@@ -30,9 +30,10 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-camp-newsfeed",
-     *   tags={"Camp"},
-     *   summary="get camp newsfeed",
+     * @OA\Post(
+     *   path="/get-camp-newsfeed",
+     *   tags={"NewsFeed"},
+     *   summary="Get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
      *   security={{"bearerAuth":{}}},
@@ -42,25 +43,25 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *              @OA\Property(
-     *                  property="camp_num",
-     *                  description="Camp number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              )
-     *         )
-     *      )
+     *               required={"topic_num", "camp_num"},
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   type="integer",
+     *                   description="Topic number is required"
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   type="integer",
+     *                   description="Camp number is required"
+     *               )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
 
     public function getNewsFeed(Request $request, Validate $validate)
     {
@@ -115,8 +116,9 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * @OA\Post(path="/update-camp-newsfeed",
-     *   tags={"Camp"},
+     * @OA\Post(
+     *   path="/update-camp-newsfeed",
+     *   tags={"NewsFeed"},
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
@@ -127,36 +129,35 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"newsfeed_id", "submitter_nick_id", "display_text", "link", "available_for_child"},
      *               @OA\Property(
      *                   property="newsfeed_id",
-     *                   description="ID of the newsfeed",
-     *                   required=true,
      *                   type="integer",
+     *                   description="ID of the newsfeed"
      *               ),
      *               @OA\Property(
      *                   property="submitter_nick_id",
-     *                   description="Submitter nick name id",
-     *                   required=true,
      *                   type="integer",
+     *                   description="Submitter nick name ID"
      *               ),
      *               @OA\Property(
-     *                  property="display_text",
-     *                  description="Display text is required",
-     *                  required=true,
-     *                  type="array",
+     *                   property="display_text",
+     *                   type="array",
+     *                   description="Display text is required",
+     *                   @OA\Items(type="string")  
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="Link is required",
-     *                   required=true,
      *                   type="array",
+     *                   description="Link is required",
+     *                   @OA\Items(type="string")
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="Availability for child is required",
-     *                   required=true,
      *                   type="array",
-     *               ),
+     *                   description="Availability for child is required",
+     *                   @OA\Items(type="boolean")
+     *               )
      *           )
      *       )
      *   ), 
@@ -165,6 +166,7 @@ class NewsFeedController extends Controller
      *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
+
 
     public function updateNewsFeed(Request $request, Validate $validate)
     {
@@ -228,8 +230,9 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * @OA\Post(path="/store-camp-newsfeed",
-     *   tags={"Camp"},
+     * @OA\Post(
+     *   path="/store-camp-newsfeed",
+     *   tags={"NewsFeed"},
      *   summary="Store camp newsfeed",
      *   description="This is used to store camp newsfeed.",
      *   operationId="storeCampNewsFeed",
@@ -240,42 +243,37 @@ class NewsFeedController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "display_text", "link", "available_for_child", "submitter_nick_id"},
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="Topic number is required",
-     *                   required=true,
      *                   type="integer",
+     *                   description="Topic number is required"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   required=true,
      *                   type="integer",
+     *                   description="Camp number is required"
      *               ),
      *               @OA\Property(
-     *                  property="display_text",
-     *                  description="Display text is required",
-     *                  required=true,
-     *                  type="string",
+     *                   property="display_text",
+     *                   type="string",
+     *                   description="Display text is required"
      *               ),
      *               @OA\Property(
      *                   property="link",
-     *                   description="Link is required",
-     *                   required=true,
      *                   type="string",
+     *                   description="Link is required"
      *               ),
      *               @OA\Property(
      *                   property="available_for_child",
-     *                   description="Availability for child is required",
-     *                   required=true,
      *                   type="boolean",
+     *                   description="Availability for child is required"
      *               ),
      *               @OA\Property(
      *                   property="submitter_nick_id",
-     *                   description="Nick name id of the submitter",
-     *                   required=true,
      *                   type="integer",
-     *               ),
+     *                   description="Nick name ID of the submitter"
+     *               )
      *           )
      *       )
      *   ), 
@@ -284,6 +282,7 @@ class NewsFeedController extends Controller
      *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
+
 
     public function storeNewsFeed(Request $request, Validate $validate)
     {
@@ -333,41 +332,44 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * @OA\Post(path="/delete-camp-newsfeed",
-     *   tags={"Camp"},
-     *   summary="delete camp newsfeed",
+     * @OA\Post(
+     *   path="/delete-camp-newsfeed",
+     *   tags={"NewsFeed"},
+     *   summary="Delete camp newsfeed",
      *   description="This is used to delete camp newsfeed.",
      *   operationId="deleteCampNewsFeed",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="delete camp newsfeed",
+     *       description="Delete camp newsfeed",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"id"},
      *               @OA\Property(
      *                   property="id",
-     *                   description="Camp newsfeed id is required",
-     *                   required=true,
      *                   type="integer",
+     *                   description="Camp newsfeed ID is required"
      *               )
      *           )
      *       )  
-     *    ),
+     *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message"),
      *   @OA\Response(response=401, description="Unauthenticated")
-     *  )
+     * )
      */
+
 
     public function deleteNewsFeed(Request $request, Validate $validate)
     {
+        $newsId = $request->newsfeed_id;
+        $userId = $request->user()->id;
+       // echo  $userId;
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedDeleteValidationRules(), $this->validationMessages->getNewsFeedDeleteValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $newsId = $request->newsfeed_id;
-        $userId = $request->user()->id;
         $newsFeed = NewsFeed::findOrFail($newsId);
         try {
             if ($newsFeed->author_id == $userId || $request->user()->type == "admin") {
@@ -400,33 +402,44 @@ class NewsFeedController extends Controller
     }
 
     /**
-     * @OA\Post(path="/edit-camp-newsfeed",
-     *   tags={"Camp"},
-     *   summary="edit camp newsfeed",
-     *   description="This is used to get  a record for updating camp newsfeed.",
-     *   operationId="editCampNewsFeed",
-     *   security={{"bearerAuth":{}}},
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="edit camp newsfeed",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="id",
-     *                   description="Camp newsfeed id is required",
-     *                   required=true,
-     *                   type="integer",
-     *               )
-     *           )
-     *       )  
-     *    ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message"),
-     *   @OA\Response(response=401, description="Unauthenticated")
-     *  )
+     * @OA\Post(
+     *     path="/edit-camp-newsfeed",
+     *     tags={"NewsFeed"},
+     *     summary="Edit Camp Newsfeed",
+     *     description="This API is used to update a camp newsfeed record.",
+     *     operationId="editCampNewsFeed",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Edit Camp Newsfeed",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"id"},
+     *                 @OA\Property(
+     *                     property="id",
+     *                     description="Camp newsfeed ID",
+     *                     type="integer",
+     *                     example=101
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error message"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
-    public function editNewsFeed(Request $request, Validate $validate)
+public function editNewsFeed(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getNewsFeedEditValidationRules(), $this->validationMessages->getNewsFeedEditValidationMessages());
         if ($validationErrors) {

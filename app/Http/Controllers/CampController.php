@@ -328,9 +328,10 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-camp-record",
+     * @OA\Post(
+     *   path="/get-camp-record",
      *   tags={"Camp"},
-     *   summary="get camp record",
+     *   summary="Get camp record",
      *   description="Used to get camp record.",
      *   operationId="getCampRecord",
      *   @OA\RequestBody(
@@ -339,37 +340,49 @@ class CampController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num"},
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
+     *                   description="Topic number is required",
      *                   type="integer",
+     *                   example=5
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
-     *                   required=true,
      *                   type="integer",
+     *                   example=2
      *               ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
-     *                   required=false,
      *                   type="string",
+     *                   example="latest"
      *               ),
      *               @OA\Property(
      *                   property="as_of_date",
      *                   description="As of filter date",
-     *                   required=false,
      *                   type="string",
+     *                   format="date",
+     *                   example="2025-03-01"
      *               )
      *          )
      *      )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Camp record retrieved successfully"),
+     *           @OA\Property(property="data", type="object")
+     *       )
+     *   ),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
 
     public function getCampRecord(Request $request, Validate $validate)
     {
@@ -439,148 +452,81 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\POST(path="/camp/allParent",
+     * @OA\Post(
+     *   path="/camp/all-parent",
      *   tags={"Camp"},
      *   summary="Get All Parent",
-     *   description="This API is use for get all parent",
+     *   description="This API is used to get all parent camps",
      *   operationId="allParent",
      *   security={{"bearerAuth":{}}},
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Request Body JSON Parameter",
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *           @OA\Schema(
+     *               required={"topic_num"},
      *               @OA\Property(
-     *                  property="topic_num",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *                   property="topic_num",
+     *                   type="string",
+     *                   example="12345"
+     *               )
+     *           )
+     *       )
      *   ),
-     *     @OA\Response(
-     *         response=200,
-     *        description = "Success",
-     *        @OA\JsonContent(
-     *             type="object",
-     *              @OA\Property(
-     *                   property="status_code",
-     *                   type="integer"
-     *               ),
-     *               @OA\Property(
-     *                   property="message",
-     *                   type="string"
-     *               ),
-     *              @OA\Property(
-     *                   property="error",
-     *                   type="string"
-     *              ),
-     *             @OA\Property(
-     *                property="data",
-     *                type="array",
-     *                @OA\Items(
-     *                    @OA\Property(
-     *                          property="id",
-     *                          type="integer"
-     *                    ),
-     *                    @OA\Property(
-     *                          property="topic_num",
-     *                          type="integer"
-     *                    ),
-     *                    @OA\Property(
-     *                          property="parent_camp_num",
-     *                          type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="key_words",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="language",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="camp_num",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="note",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="submit_time",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="submitter_nick_id",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="go_live_time",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="objector_nick_id",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="object_time",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="object_reason",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="proposed",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="replacement",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="title",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="camp_name",
-     *                           type="string" 
-     *                     ),
-     *                     @OA\Property(
-     *                           property="camp_about_url",
-     *                           type="string"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="camp_about_nick_id",
-     *                           type="integer"
-     *                     ),
-     *                     @OA\Property(
-     *                           property="grace_period",
-     *                           type="integer"
-     *                     )
-     *                ),
-     *             ),
-     *        ),
-     *     ),
-     *
-     *
-     *     @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="All parent camps retrieved successfully"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="array",
+     *               @OA\Items(
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer", example=1),
+     *                   @OA\Property(property="topic_num", type="integer", example=12345),
+     *                   @OA\Property(property="parent_camp_num", type="integer", example=5),
+     *                   @OA\Property(property="key_words", type="string", example="example keyword"),
+     *                   @OA\Property(property="language", type="string", example="en"),
+     *                   @OA\Property(property="camp_num", type="integer", example=10),
+     *                   @OA\Property(property="note", type="string", example="Some note"),
+     *                   @OA\Property(property="submit_time", type="integer", example=1700000000),
+     *                   @OA\Property(property="submitter_nick_id", type="integer", example=42),
+     *                   @OA\Property(property="go_live_time", type="integer", example=1700000100),
+     *                   @OA\Property(property="objector_nick_id", type="string", example="N/A"),
+     *                   @OA\Property(property="object_time", type="integer", example=1700000200),
+     *                   @OA\Property(property="object_reason", type="string", example="Objection reason"),
+     *                   @OA\Property(property="proposed", type="string", example="Proposed change"),
+     *                   @OA\Property(property="replacement", type="string", example="Replacement suggestion"),
+     *                   @OA\Property(property="title", type="string", example="Camp Title"),
+     *                   @OA\Property(property="camp_name", type="string", example="Parent Camp"),
+     *                   @OA\Property(property="camp_about_url", type="string", example="https://example.com"),
+     *                   @OA\Property(property="camp_about_nick_id", type="integer", example=50),
+     *                   @OA\Property(property="grace_period", type="integer", example=48)
+     *               )
+     *           )
+     *       )
      *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=400,
+     *       description="Something went wrong",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Exception Throwable",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
      *   )
      * )
      */
+
 
     public function getAllParentCamp(Request $request, Validate $validate)
     {
@@ -637,76 +583,46 @@ class CampController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/camp/allAboutNickName",
-     *     summary="API For Get all About Nick Name",
+     *     path="/camp/all-about-nickname",
+     *     summary="API to get all nicknames",
      *     tags={"Camp"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *        description = "Success",
-     *        @OA\JsonContent(
+     *         description="Success",
+     *         @OA\JsonContent(
      *             type="object",
-     *              @OA\Property(
-     *                   property="status_code",
-     *                   type="integer"
-     *               ),
-     *               @OA\Property(
-     *                   property="message",
-     *                   type="string"
-     *               ),
-     *              @OA\Property(
-     *                   property="error",
-     *                   type="string"
-     *              ),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Nicknames retrieved successfully"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
      *             @OA\Property(
-     *                property="data",
-     *                type="array",
-     *                @OA\Items(
-     *                      @OA\Property(
-     *                         property="id",
-     *                         type="integer",
-     *                         example=""
-     *                      ),
-     *                      @OA\Property(
-     *                         property="user_id",
-     *                         type="string",
-     *                         example=""
-     *                      ),
-     *                      @OA\Property(
-     *                         property="nick_name",
-     *                         type="string",
-     *                         example=""
-     *                      ),
-     *                      @OA\Property(
-     *                         property="create_time",
-     *                         type="string",
-     *                         example=""
-     *                      ),
-     *                      @OA\Property(
-     *                         property="private",
-     *                         type="integer",
-     *                         example=""
-     *                      ),
-     *                ),
-     *             ),
-     *        ),
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="user_id", type="string", example="12345"),
+     *                     @OA\Property(property="nick_name", type="string", example="JohnDoe"),
+     *                     @OA\Property(property="create_time", type="string", format="date-time", example="2025-03-03T12:34:56Z"),
+     *                     @OA\Property(property="private", type="integer", example=0)
+     *                 )
+     *             )
+     *         )
      *     ),
-     *
-     *
      *     @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         response=400,
+     *         description="Something went wrong",
+     *         @OA\JsonContent(
+     *             oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized access",
+     *         @OA\JsonContent(
+     *             oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         )
      *     )
-     *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
-     *   )
      * )
      */
 
@@ -735,74 +651,61 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\POST(path="/camp/getTopicNickNameUsed",
-     *   tags={"Camp"},
-     *   summary="Get Topic Nick Name Used",
-     *   description="This API is use for get Topic Nick Name Used",
-     *   operationId="getTopicNickNameUsed",
-     *   security={{"bearerAuth":{}}},
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="topic_num",
-     *                  type="string"
-     *              )
-     *          )
+     * @OA\Post(
+     *     path="/camp/get-topic-nickname-used",
+     *     tags={"Camp"},
+     *     summary="Get Topic Nick Name Used",
+     *     description="This API retrieves the nicknames used for a specific topic.",
+     *     operationId="getTopicNickNameUsed",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Request Body JSON Parameter",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"topic_num"},
+     *                 @OA\Property(
+     *                     property="topic_num",
+     *                     type="integer",
+     *                     example=123
+     *                 )
+     *             )
+     *         )
      *     ),
-     *   ),
      *     @OA\Response(
      *         response=200,
-     *        description = "Success",
-     *        @OA\JsonContent(
+     *         description="Success",
+     *         @OA\JsonContent(
      *             type="object",
-     *              @OA\Property(
-     *                   property="status_code",
-     *                   type="integer"
-     *               ),
-     *               @OA\Property(
-     *                   property="message",
-     *                   type="string"
-     *               ),
-     *              @OA\Property(
-     *                   property="error",
-     *                   type="string"
-     *              ),
+     *             @OA\Property(property="status_code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Nicknames retrieved successfully"),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
      *             @OA\Property(
-     *                property="data",
-     *                type="array",
-     *                @OA\Items(
-     *                    @OA\Property(
-     *                          property="id",
-     *                          type="integer"
-     *                    ),
-     *                     @OA\Property(
-     *                           property="nick_name",
-     *                           type="string"
-     *                     )
-     *                ),
-     *             ),
-     *        ),
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="nick_name", type="string", example="JohnDoe")
+     *                 )
+     *             )
+     *         )
      *     ),
-     *
-     *
      *     @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         response=400,
+     *         description="Something went wrong",
+     *         @OA\JsonContent(
+     *             oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized access",
+     *         @OA\JsonContent(
+     *             oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         )
      *     )
-     *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
-     *   )
      * )
      */
 
@@ -832,7 +735,8 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\POST(path="/camp/subscription",
+     * @OA\POST(
+     *   path="/camp/subscription",
      *   tags={"Camp"},
      *   summary="Subscribe or unsubscribe to a camp or all topic camps",
      *   description="This API is used to subscribe or unsubscribe to a specific camp or all topic camps.",
@@ -844,30 +748,28 @@ class CampController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "checked"},
      *               @OA\Property(
      *                   property="topic_num",
      *                   description="Topic number is required",
-     *                   required=true,
-     *                   type="integer",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
-     *                   required=true,
-     *                   type="integer",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="checked",
-     *                   description="Subscribe or unsubscribe",
-     *                   required=true,
-     *                   type="boolean",
+     *                   description="Subscribe (true) or unsubscribe (false)",
+     *                   type="boolean"
      *               ),
      *               @OA\Property(
      *                   property="subscription_id",
-     *                   description="Previous subscription id",
-     *                   required=false,
+     *                   description="Previous subscription ID",
      *                   type="integer",
-     *               ),
+     *                   nullable=true
+     *               )
      *           )
      *       )
      *   ), 
@@ -876,6 +778,7 @@ class CampController extends Controller
      *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
+
     public function campSubscription(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAllCampSubscriptionValidationRules(), $this->validationMessages->getAllCampSubscriptionValidationMessages());
@@ -930,114 +833,76 @@ class CampController extends Controller
         }
     }
 
-
     /**
-     * @OA\GET(path="/camp/subscription/list/",
+     * @OA\Get(
+     *   path="/camp/subscription/list/",
      *   tags={"Camp"},
-     *   summary="list posubscriptionst",
-     *   description="This is use for get subscription list",
+     *   summary="List subscriptions",
+     *   description="This is used to get the subscription list",
      *   operationId="subscriptionList",
      *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *         name="page",
-     *         in="url",
+     *         in="query",
      *         required=false,
      *         description="Add page field in query parameters",
      *         @OA\Schema(
-     *              type="Query Parameters"
+     *              type="integer"
      *         ) 
-     *    ),
+     *   ),
      *   @OA\Parameter(
      *         name="per_page",
-     *         in="url",
+     *         in="query",
      *         required=false,
      *         description="Add per_page field in query parameters",
      *         @OA\Schema(
-     *              type="Query Parameters"
+     *              type="integer"
      *         ) 
-     *    ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                          @OA\Property(
-     *                                              property="items",
-     *                                              type="object",
-     *                                                  @OA\Property(
-     *                                                      property="topic_num",
-     *                                                      type="integer"
-     *                                                  ),
-     *                                                 @OA\Property(
-     *                                                      property="title",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="title_link",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="is_remove_subscription",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="subscription_id",
-     *                                                      type="string"
-     *                                                 ),
-     *                                                 @OA\Property(
-     *                                                      property="camps",
-     *                                                      type="object"
-     *                                                 )
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="current_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="per_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="last_page",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="total_rows",
-     *                                              type=""
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="from",
-     *                                              type="integer"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="to",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(
+     *                   property="items",
+     *                   type="array",
+     *                   @OA\Items(
+     *                       type="object",
+     *                       @OA\Property(property="topic_num", type="integer"),
+     *                       @OA\Property(property="title", type="string"),
+     *                       @OA\Property(property="title_link", type="string"),
+     *                       @OA\Property(property="is_remove_subscription", type="string"),
+     *                       @OA\Property(property="subscription_id", type="string"),
+     *                       @OA\Property(
+     *                           property="camps",
+     *                           type="array",
+     *                           @OA\Items(type="object")
+     *                       )
+     *                   )
+     *               ),
+     *               @OA\Property(property="current_page", type="integer"),
+     *               @OA\Property(property="per_page", type="integer"),
+     *               @OA\Property(property="last_page", type="integer"),
+     *               @OA\Property(property="total_rows", type="integer"),
+     *               @OA\Property(property="from", type="integer"),
+     *               @OA\Property(property="to", type="integer")
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Something went wrong",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
      *   )
-     *
      * )
      */
 
@@ -1093,48 +958,57 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-camp-breadcrumb",
+     * @OA\Post(
+     *   path="/get-camp-breadcrumb",
      *   tags={"Camp"},
-     *   summary="get camp bread crumb",
-     *   description="Used to get camp bread crumb.",
+     *   summary="Get camp breadcrumb",
+     *   description="Used to get camp breadcrumb.",
      *   operationId="getCampBreadCrumb",
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get camp bread crumb",
+     *       description="Get camp breadcrumb",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num"},
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
+     *                   description="Topic number is required",
      *                   type="integer",
+     *                   example=1
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
-     *                   required=true,
      *                   type="integer",
+     *                   example=2
      *               ),
      *               @OA\Property(
      *                   property="as_of",
      *                   description="As of filter type",
-     *                   required=false,
      *                   type="string",
+     *                   example="latest"
      *               ),
      *               @OA\Property(
      *                   property="as_of_date",
      *                   description="As of filter date",
-     *                   required=false,
      *                   type="string",
+     *                   example="2025-03-01"
      *               )
      *          )
      *      )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success"
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Error message"
+     *   )
      * )
      */
+
     public function getCampBreadCrumb(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getCampBreadCrumbValidationRules(), $this->validationMessages->getCampBreadCrumbValidationMessages());
@@ -1244,7 +1118,8 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\Post(path="/edit-camp",
+     * @OA\Post(
+     *   path="/edit-camp",
      *   tags={"Camp"},
      *   summary="Get camp record",
      *   description="Get camp details for editing",
@@ -1256,25 +1131,25 @@ class CampController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="record_id",
-     *                  description="Record id is required",
-     *                  required=true,
-     *                  type="integer",
+     *               required={"record_id", "event_type"},
+     *               @OA\Property(
+     *                   property="record_id",
+     *                   description="Record ID is required",
+     *                   type="integer"
      *               ),
      *               @OA\Property(
      *                   property="event_type",
      *                   description="Possible values are edit, objected, live, in_review, old, all",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *         )
-     *      )
+     *                   type="string"
+     *               )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function editCampRecord(Request $request, Validate $validate)
     {
         try {
@@ -1315,7 +1190,8 @@ class CampController extends Controller
     }
 
     /**
-     * @OA\Post(path="/manage-camp",
+     * @OA\Post(
+     *   path="/manage-camp",
      *   tags={"Camp"},
      *   summary="Edit/update/object camp",
      *   description="This API is used to edit, update and object a camp.",
@@ -1326,83 +1202,76 @@ class CampController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *              required={"topic_num", "camp_num", "nick_name", "parent_camp_num", "old_parent_camp_num", "camp_name", "submitter", "event_type"},
      *              @OA\Property(
      *                  property="topic_num",
      *                  description="Topic number is required",
-     *                  required=true,
      *                  type="integer",
      *              ),
      *              @OA\Property(
      *                  property="camp_num",
      *                  description="Camp number is required",
-     *                  required=true,
      *                  type="integer",
      *              ),
      *               @OA\Property(
      *                   property="nick_name",
      *                   description="Nick name of the user",
-     *                   required=true,
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="parent_camp_num",
      *                   description="Parent camp num",
-     *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="old_parent_camp_num",
      *                   description="Old parent camp num",
-     *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="camp_name",
      *                   description="Camp name",
-     *                   required=true,
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="keywords",
      *                   description="Keywords",
-     *                   required=false,
      *                   type="string",
+     *                   nullable=true
      *               ),
      *               @OA\Property(
      *                   property="camp_about_url",
      *                   description="Camp about url",
-     *                   required=false,
      *                   type="string",
+     *                   nullable=true
      *               ),
      *               @OA\Property(
      *                   property="note",
      *                   description="Note for camp",
-     *                   required=false,
      *                   type="string",
+     *                   nullable=true
      *               ),
      *              @OA\Property(
      *                   property="submitter",
      *                   description="Nick name id of user who previously added camp",
-     *                   required=true,
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="event_type",
-     *                   description="Possible values objection, edit, update",
-     *                   required=true,
+     *                   description="Possible values: objection, edit, update",
      *                   type="string",
      *               ),
      *               @OA\Property(
      *                   property="objection_reason",
      *                   description="Objection reason in case user is objecting to a camp change",
-     *                   required=false,
      *                   type="string",
+     *                   nullable=true
      *               ),
      *               @OA\Property(
      *                   property="camp_id",
      *                   description="Id of camp",
-     *                   required=false,
      *                   type="integer",
+     *                   nullable=true
      *               )
      *         )
      *      )
@@ -1411,6 +1280,7 @@ class CampController extends Controller
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function manageCamp(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageCampValidationRules(), $this->validationMessages->getManageCampValidationMessages());
@@ -1727,10 +1597,11 @@ class CampController extends Controller
         return $result;
     }
 
-        /**
-     * @OA\Post(path="/get-sibling-camps",
+    /**
+     * @OA\Post(
+     *   path="/get-sibling-camps",
      *   tags={"Camp"},
-     *   summary="get sibling camps",
+     *   summary="Get sibling camps",
      *   description="Used to get sibling camps of a camp.",
      *   operationId="getSiblingCamps",
      *   @OA\RequestBody(
@@ -1739,31 +1610,30 @@ class CampController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "parent_camp_num"},
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
+     *                   description="Topic number is required",
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
      *                   description="Camp number is required",
-     *                   required=true,
      *                   type="integer",
      *               ),
-     *              @OA\Property(
+     *               @OA\Property(
      *                   property="parent_camp_num",
      *                   description="Parent Camp number is required",
-     *                   required=true,
      *                   type="integer",
      *               )
-     *          )
-     *      )
+     *           )
+     *       )
      *   ),
      *   @OA\Response(response=200, description="Success"),
      *   @OA\Response(response=400, description="Error message")
      * )
      */
+
     public function getSiblingCamps(Request $request, Validate $validate) {
         
         try {

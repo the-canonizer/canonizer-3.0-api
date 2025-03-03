@@ -134,7 +134,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->delete('update-profile-picture','ProfileController@deleteProfilePicture');
         $router->get('user/profile','ProfileController@getProfile');
         $router->post('send-otp','ProfileController@sendOtp');
-        $router->post('verify-otp','ProfileController@VerifyOtp');
+        $router->post('verify-otp','ProfileController@verifyOtp');
         $router->get('/change-email-request','ProfileController@changeEmailRequest');
         $router->post('/emailchange-verify-otp','ProfileController@emailChangeOtpVerification');
         $router->post('/update-email-request','ProfileController@updateEmailRequest');
