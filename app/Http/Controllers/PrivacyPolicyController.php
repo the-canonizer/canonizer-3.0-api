@@ -26,7 +26,13 @@ class PrivacyPolicyController extends Controller
      *           @OA\Property(
      *               property="data",
      *               type="array",
-     *               @OA\Items(ref="#/components/schemas/PrivacyPolicy")
+     *               @OA\Items(
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer", example=1),
+     *                   @OA\Property(property="content", type="string", example="This is the privacy policy content."),
+     *                   @OA\Property(property="created_at", type="string", format="date-time", example="2024-03-04T12:00:00Z"),
+     *                   @OA\Property(property="updated_at", type="string", format="date-time", example="2024-03-04T12:30:00Z")
+     *               )
      *           ),
      *           @OA\Property(property="error", type="string", nullable=true)
      *       )
@@ -43,6 +49,7 @@ class PrivacyPolicyController extends Controller
      *   )
      * )
      */
+
     public function getPrivacyPolicyContent()
     {
         try {

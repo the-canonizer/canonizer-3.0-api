@@ -13,7 +13,7 @@ class NicknameController extends Controller
 {
     /**
      * @OA\POST(path="/add-nick-name",
-     *   tags={"User"},
+     *   tags={"Nickname"},
      *   summary="Add New nick name",
      *   description="",
      *   operationId="addNickName",
@@ -31,8 +31,13 @@ class NicknameController extends Controller
      *              @OA\Property(
      *                  property="visibility_status",
      *                  type="integer"
+     *              ),
+     *              @OA\Property(
+     *                  property="default",
+     *                  type="integer",
+     *                  example=0
      *              )
-     *          )
+     *          ),
      *     ),
      *   ),
      *   @OA\Response(
@@ -178,15 +183,27 @@ class NicknameController extends Controller
      *   @OA\Response(
      *     response=400,
      *     description="Something went wrong",
-     *     @OA\JsonContent(ref="#/components/schemas/ExceptionRes")
+     *     @OA\JsonContent(
+     *         @OA\Property(property="message", type="string", example="Something went wrong"),
+     *         @OA\Property(property="errors", type="object")
+     *     )
      *   ),
      *   @OA\Response(
      *     response=200,
      *     description="Update successful",
-     *     @OA\JsonContent(ref="#/components/schemas/Nickname")
+     *     @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=1),
+     *         @OA\Property(property="user_id", type="integer", example=123),
+     *         @OA\Property(property="nickname", type="string", example="JohnDoe"),
+     *         @OA\Property(property="visibility_status", type="integer", example=1, description="1 for visible, 0 for hidden"),
+     *         @OA\Property(property="created_at", type="string", format="date-time", example="2024-03-04T12:34:56Z"),
+     *         @OA\Property(property="updated_at", type="string", format="date-time", example="2024-03-05T14:56:30Z")
+     *     )
      *   )
      * )
      */
+
 
     public function updateNickName($id, UpdateNickNameRequest $request){
 
