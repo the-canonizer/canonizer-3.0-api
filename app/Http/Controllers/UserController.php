@@ -1626,7 +1626,7 @@ class UserController extends Controller
      *     summary="Verify social email with OTP",
      *     description="This endpoint verifies a social email using an OTP and generates an access token upon successful verification.",
      *     tags={"Authentication"},
-     *     operationId="postVerifyEmail"
+     *     operationId="postVerifyEmail",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
