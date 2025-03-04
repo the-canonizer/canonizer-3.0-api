@@ -7,62 +7,60 @@ use App\Models\VideoPodcast;
 class VideoPodcastController extends Controller
 {
    
-     /**
-     * @OA\Post(path="/get_whats_new_content",
-     *   tags={"NewSection"},
-     *   summary="Get data for What's new section",
-     *   description="This api used to get data for What's new section",
+    /**
+     * @OA\GET(
+     *   path="/get-whats-new-content",
+     *   tags={"News Section"},
+     *   summary="Get data for What's New section",
+     *   description="This API fetches data for the 'What's New' section.",
      *   operationId="GetDataForNewSection",
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
-     *                                    )
-     *                                 )
-     *                            )
-     *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
-     * 
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(
+     *               property="data",
+     *               type="array",
+     *               @OA\Items(
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer", description="Podcast ID"),
+     *                   @OA\Property(property="title", type="string", description="Podcast title"),
+     *                   @OA\Property(property="thumbnail", type="string", description="Podcast thumbnail URL"),
+     *                   @OA\Property(property="description", type="string", description="Podcast description")
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Exception occurs",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(property="data", type="string", nullable=true)
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=500,
+     *       description="Server error",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(property="data", type="string", nullable=true)
+     *       )
+     *   )
      * )
      */
 
-     /**
-      * Get data for What's new section
-      */
     public function getNewContent()
     {
         try {

@@ -13,7 +13,7 @@ class AlgorithmController extends Controller
 /**
  * @OA\Get(
  *     path="/get-algorithms",
- *     tags={"algorithms"},
+ *     tags={"Algorithms"},
  *     summary="Get all algorithms",
  *     description="This API retrieves a list of algorithms",
  *     operationId="GetAllAlgorithms",
