@@ -25,9 +25,6 @@ use App\Models\UserTag;
 use DB;
 use Illuminate\Support\Str;
 
-/**
- * @OA\Info(title="Account Setting API", version="1.0.0")
- */
 class ProfileController extends Controller
 {
     private ValidationRules $rules;
@@ -522,7 +519,7 @@ class ProfileController extends Controller
      *   tags={"Profile"},
      *   summary="Get user profile",
      *   description="Fetches the profile details of a user by their ID. Some fields may be hidden based on privacy settings.",
-     *   operationId="getUserProfile",
+     *   operationId="getUserProfileByID",
      *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
      *       name="id",

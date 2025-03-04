@@ -63,7 +63,7 @@ class Nickname extends Model {
     }
 
     public function getCreateTimeAttribute($value){
-        return date("Y-m-d", strtotime($value));
+        return date("Y-m-d", $value);
     }
 
 

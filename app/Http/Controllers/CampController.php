@@ -49,96 +49,58 @@ class CampController extends Controller
         $this->resProvider = $respProvider;
     }
 
-
     /**
-     * @OA\POST(path="/camp/save",
+     * @OA\Post(
+     *   path="/camp/save",
      *   tags={"Camp"},
-     *   summary="save camp",
-     *   description="This API is use for save camp",
+     *   summary="Save camp",
+     *   description="This API is used to save a camp.",
      *   operationId="campSave",
      *   security={{"bearerAuth":{}}},
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="camp_name",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="parent_camp_num",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="topic_num",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="nick_name",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="note",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="key_words",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="camp_about_url",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="camp_about_nick_id",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Request Body JSON Parameter",
+     *       @OA\JsonContent(
+     *           required={"camp_name", "topic_num", "nick_name"},
+     *           @OA\Property(property="camp_name", type="string", example="New Camp"),
+     *           @OA\Property(property="parent_camp_num", type="integer", nullable=true, example=2),
+     *           @OA\Property(property="topic_num", type="integer", example=101),
+     *           @OA\Property(property="nick_name", type="string", example="JohnDoe"),
+     *           @OA\Property(property="note", type="string", nullable=true, example="Some notes about the camp."),
+     *           @OA\Property(property="key_words", type="string", nullable=true, example="science, physics"),
+     *           @OA\Property(property="camp_about_url", type="string", nullable=true, format="url", example="https://example.com/camp-info"),
+     *           @OA\Property(property="camp_about_nick_id", type="integer", nullable=true, example=55)
+     *       )
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                           @OA\Property(
-     *                                              property="camp_num",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Camp saved successfully"),
+     *           @OA\Property(property="error", type="string", nullable=true, example=null),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="camp_num", type="integer", example=12)
+     *           )
+     *       )
      *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Forbidden - Exception Throwable",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
      *   )
-     *
      * )
      */
 
@@ -334,6 +296,7 @@ class CampController extends Controller
      *   summary="Get camp record",
      *   description="Used to get camp record.",
      *   operationId="getCampRecord",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp records",
@@ -357,14 +320,14 @@ class CampController extends Controller
      *                   property="as_of",
      *                   description="As of filter type",
      *                   type="string",
-     *                   example="latest"
+     *                   example="default"
      *               ),
      *               @OA\Property(
      *                   property="as_of_date",
-     *                   description="As of filter date",
+     *                   description="As of filter date [Use unix timestamp]",
      *                   type="string",
      *                   format="date",
-     *                   example="2025-03-01"
+     *                   example="1723038363"
      *               )
      *          )
      *      )
@@ -469,7 +432,7 @@ class CampController extends Controller
      *               @OA\Property(
      *                   property="topic_num",
      *                   type="string",
-     *                   example="12345"
+     *                   example="1"
      *               )
      *           )
      *       )
@@ -635,11 +598,7 @@ class CampController extends Controller
                 )->orderBy('nick_name', 'ASC')->get();
             if (empty($allNicknames)) {
                 return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
-                //                $status = 400;
-                //                $message = trans('message.error.exception');
-                //                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $allNicknames, null);
@@ -746,7 +705,7 @@ class CampController extends Controller
      *       required=true,
      *       description="Subscribe or unsubscribe to a camp or topic",
      *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
+     *           mediaType="application/json",
      *           @OA\Schema(
      *               required={"topic_num", "camp_num", "checked"},
      *               @OA\Property(
@@ -762,7 +721,8 @@ class CampController extends Controller
      *               @OA\Property(
      *                   property="checked",
      *                   description="Subscribe (true) or unsubscribe (false)",
-     *                   type="boolean"
+     *                   type="boolean",
+     *                   example=true
      *               ),
      *               @OA\Property(
      *                   property="subscription_id",
@@ -773,9 +733,34 @@ class CampController extends Controller
      *           )
      *       )
      *   ), 
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message"),
-     *   @OA\Response(response=401, description="Unauthenticated")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="string", example="success"),
+     *           @OA\Property(property="message", type="string", example="Subscription updated successfully."),
+     *           @OA\Property(property="data", type="object")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad request",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Invalid input data.")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=401,
+     *       description="Unauthenticated",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Unauthorized access.")
+     *       )
+     *   )
      * )
      */
 
@@ -964,6 +949,7 @@ class CampController extends Controller
      *   summary="Get camp breadcrumb",
      *   description="Used to get camp breadcrumb.",
      *   operationId="getCampBreadCrumb",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp breadcrumb",
@@ -1064,6 +1050,88 @@ class CampController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *   path="/get-camp-history",
+     *   tags={"Camp"},
+     *   summary="Get Camp History",
+     *   description="Fetches the history of a camp based on topic and camp numbers.",
+     *   operationId="getCampHistory",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Request parameters for fetching camp history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number",
+     *                   type="integer",
+     *                   example=101
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number",
+     *                   type="integer",
+     *                   example=5
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type of the camp history request(live ,objected, in_review, old, all)",
+     *                   type="string",
+     *                   example="live"
+     *               ),
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Number of records per page",
+     *                   type="integer",
+     *                   example=10
+     *               ), 
+     *                  @OA\Property(
+     *                   property="page",
+     *                   description="Page Number",
+     *                   type="integer",
+     *                   example=1
+     *               )
+     * 
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful response",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="topic", type="object"),
+     *           @OA\Property(property="statement", type="array", @OA\Items(type="object")),
+     *           @OA\Property(property="ifIAmImplicitSupporter", type="boolean", nullable=true, example=false),
+     *           @OA\Property(property="ifIamSupporter", type="boolean", nullable=true, example=true),
+     *           @OA\Property(property="ifSupportDelayed", type="boolean", nullable=true, example=false),
+     *           @OA\Property(property="ifIAmExplicitSupporter", type="boolean", nullable=true, example=false),
+     *           @OA\Property(property="live_record_id", type="integer", nullable=true, example=22),
+     *           @OA\Property(property="total_counts", type="integer", example=50)
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="message", type="string", example="Validation error")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Record Not Found",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="message", type="string", example="Camp history not found")
+     *       )
+     *   )
+     * )
+     */
 
     public function getCampHistory(Request $request, Validate $validate)
     {
@@ -1196,6 +1264,7 @@ class CampController extends Controller
      *   summary="Edit/update/object camp",
      *   description="This API is used to edit, update and object a camp.",
      *   operationId="edit/update/object-CampHistory",
+     *  security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Manage camp",
@@ -1470,6 +1539,224 @@ class CampController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *   path="/get-sibling-camps",
+     *   tags={"Camp"},
+     *   summary="Get sibling camps",
+     *   description="Used to get sibling camps of a camp.",
+     *   operationId="getSiblingCamps",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get sibling camps records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "parent_camp_num"},
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   type="integer",
+     *                   example=1
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   type="integer",
+     *                   example=2
+     *               ),
+     *               @OA\Property(
+     *                   property="parent_camp_num",
+     *                   description="Parent Camp number is required",
+     *                   type="integer",
+     *                   example=1
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
+    public function getSiblingCamps(Request $request, Validate $validate) {
+        
+        try {
+            $validationErrors = $validate->validate($request, $this->rules->getSiblingCampsValidationRules(), $this->validationMessages->getSiblingCampsValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $filter['topicNum'] = $request->topic_num;
+            $filter['campNum'] = $request->camp_num;
+            $filter['parentCampNum'] = $request->parent_camp_num;
+            $filter['asOf'] = 'default';
+            $filter['asOfDate'] = time();
+
+            if($request->camp_num == 1) {
+                // in case of root Agreement camp, there's no sibling camps
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), [], '');
+            }
+            
+            $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
+                        ->where([
+                            ['topic_num', '=', $filter['topicNum']],
+                            ['parent_camp_num', '=', $filter['parentCampNum']],
+                            ['objector_nick_id', '=', NULL],
+                            ['camp_num', '!=', $filter['campNum']],
+                            ['go_live_time', '<=', time()],
+                        ])
+                        ->whereIn('go_live_time', function ($query) use ($filter) {
+
+                            // Find out the latest live camp in multiple camps...
+                            $query->selectRaw('MAX(go_live_time)')
+                                ->from('camp')
+                                ->where([
+                                    ['topic_num', '=', $filter['topicNum']],
+                                    ['objector_nick_id', '=', NULL],
+                                    ['go_live_time', '<=', time()],
+                                ])
+                                ->groupBy('camp_num');
+
+                        })
+                        ->orderBy('go_live_time', 'desc')
+                        ->take(3)
+                        ->get();
+                    
+            if (count($siblingCamps)) {
+                $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
+                
+
+                foreach ($siblingCamps as $camp) {
+                    $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
+                    $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
+
+                    $nicknames = Nickname::select('id', 'user_id', 'nick_name')->with('user:id,first_name,middle_name,last_name,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get()->each(function ($nickname) {
+                        $nickname->user->first_name = $nickname->user->first_name[0] ?? '';
+                        $nickname->user->middle_name = $nickname->user->middle_name[0] ?? '';
+                        $nickname->user->last_name = $nickname->user->last_name[0] ?? '';
+                    });
+
+                    $filter['campNum'] = $camp->camp_num;
+
+                    $getLiveStatement = Statement::getLiveStatement($filter);
+                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                    $getLiveStatement = Str::of($getLiveStatement)->trim();
+
+                    $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
+                    $camp->namespace_id = $liveTopic->namespace_id;
+                    $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
+                    $camp->statement = $getLiveStatement ?? NULL;
+                    $camp->supporterData = $nicknames ?? [];
+                }
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $siblingCamps, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *   path="/camp/sign",
+     *   tags={"Petition"},
+     *   summary="Sign a Petition",
+     *   description="Allows a user to sign a petition for a specific topic and camp.",
+     *   operationId="signPetition",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Sign petition request",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               required={"topic_num", "camp_num", "nick_name_id"},
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number",
+     *                   type="integer",
+     *                   example=6475
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number",
+     *                   type="integer",
+     *                   example=1
+     *               ),
+     *               @OA\Property(
+     *                   property="nick_name_id",
+     *                   description="Nickname ID of the user signing the petition",
+     *                   type="integer",
+     *                   example=985
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successfully signed the petition",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="message", type="string", example="Petition signed successfully.")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="message", type="string", example="Validation error or petition sign failure")
+     *       )
+     *   )
+     * )
+     */
+
+    public function signPetition(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getSignPetitionRules(), $this->validationMessages->getSignPetitionMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $all = $request->post();
+        try {
+            // Sign Petition
+            $returnValue = TopicSupport::signPetition($request->user(), $all['topic_num'], $all['camp_num'], $all['nick_name_id']);
+            return $this->resProvider->apiJsonResponse(200, trans('message.support.sign_petition'), '', '');
+        } catch (\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, $e->getMessage() ?? trans('message.error.exception'), '', '');
+        }
+    }
+
+    public function getEligibleCampLeaders(int $topic_num, int $camp_num, array $additionalNickNameIds = [])
+    {
+        $liveCamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
+
+        $eligibleCampLeaders = collect(Support::getDirectSupporter($topic_num, $camp_num))
+            ->map(function ($eligibleCampLeader) use ($liveCamp) {
+                $eligibleCampLeader->nick_name = NickName::getNickName($eligibleCampLeader->nick_name_id)->nick_name ?? '';
+                $eligibleCampLeader->camp_leader = $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $eligibleCampLeader->nick_name_id;
+                return $eligibleCampLeader;
+            })
+            ->all();
+
+        if (!empty($additionalNickNameIds)) {
+            foreach ($additionalNickNameIds as $nick_name_id) {
+                if (!in_array($nick_name_id, array_column($eligibleCampLeaders, 'nick_name_id'))) {
+                    $eligibleCampLeaders[] = [
+                        "topic_num" => $topic_num,
+                        "camp_num" => $camp_num,
+                        'nick_name_id' => $nick_name_id,
+                        'nick_name' => NickName::getNickName($nick_name_id)->nick_name ?? '',
+                        'camp_leader' => !is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $nick_name_id,
+                    ];
+                }
+            }
+        }
+
+        return $eligibleCampLeaders;
+    }
+
     private function editCamp($all)
     {
         $camp = Camp::where('id', $all['camp_id'])->first();
@@ -1597,165 +1884,4 @@ class CampController extends Controller
         return $result;
     }
 
-    /**
-     * @OA\Post(
-     *   path="/get-sibling-camps",
-     *   tags={"Camp"},
-     *   summary="Get sibling camps",
-     *   description="Used to get sibling camps of a camp.",
-     *   operationId="getSiblingCamps",
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Get sibling camps records",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               required={"topic_num", "camp_num", "parent_camp_num"},
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number is required",
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="parent_camp_num",
-     *                   description="Parent Camp number is required",
-     *                   type="integer",
-     *               )
-     *           )
-     *       )
-     *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
-     * )
-     */
-
-    public function getSiblingCamps(Request $request, Validate $validate) {
-        
-        try {
-            $validationErrors = $validate->validate($request, $this->rules->getSiblingCampsValidationRules(), $this->validationMessages->getSiblingCampsValidationMessages());
-            if ($validationErrors) {
-                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-            }
-            $filter['topicNum'] = $request->topic_num;
-            $filter['campNum'] = $request->camp_num;
-            $filter['parentCampNum'] = $request->parent_camp_num;
-            $filter['asOf'] = 'default';
-            $filter['asOfDate'] = time();
-
-            if($request->camp_num == 1) {
-                // in case of root Agreement camp, there's no sibling camps
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), [], '');
-            }
-            
-            $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
-                        ->where([
-                            ['topic_num', '=', $filter['topicNum']],
-                            ['parent_camp_num', '=', $filter['parentCampNum']],
-                            ['objector_nick_id', '=', NULL],
-                            ['camp_num', '!=', $filter['campNum']],
-                            ['go_live_time', '<=', time()],
-                        ])
-                        ->whereIn('go_live_time', function ($query) use ($filter) {
-
-                            // Find out the latest live camp in multiple camps...
-                            $query->selectRaw('MAX(go_live_time)')
-                                ->from('camp')
-                                ->where([
-                                    ['topic_num', '=', $filter['topicNum']],
-                                    ['objector_nick_id', '=', NULL],
-                                    ['go_live_time', '<=', time()],
-                                ])
-                                ->groupBy('camp_num');
-
-                        })
-                        ->orderBy('go_live_time', 'desc')
-                        ->take(3)
-                        ->get();
-                    
-            if (count($siblingCamps)) {
-                $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
-                
-
-                foreach ($siblingCamps as $camp) {
-                    $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
-                    $supporters = collect($supporters)->pluck('nick_name_id')->toArray();
-
-                    $nicknames = Nickname::select('id', 'user_id', 'nick_name')->with('user:id,first_name,middle_name,last_name,email,profile_picture_path')->whereHas('user')->whereIn('id', $supporters)->get()->each(function ($nickname) {
-                        $nickname->user->first_name = $nickname->user->first_name[0] ?? '';
-                        $nickname->user->middle_name = $nickname->user->middle_name[0] ?? '';
-                        $nickname->user->last_name = $nickname->user->last_name[0] ?? '';
-                    });
-
-                    $filter['campNum'] = $camp->camp_num;
-
-                    $getLiveStatement = Statement::getLiveStatement($filter);
-                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
-                    $getLiveStatement = Str::of($getLiveStatement)->trim();
-
-                    $camp->namespace = $liveTopic->nameSpace->label ?? NULL;
-                    $camp->namespace_id = $liveTopic->namespace_id;
-                    $camp->views = Helpers::getCampViewsByDate($camp->topic_num, $camp->camp_num) ??  0;
-                    $camp->statement = $getLiveStatement ?? NULL;
-                    $camp->supporterData = $nicknames ?? [];
-                }
-            }
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $siblingCamps, '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-    
-    public function getEligibleCampLeaders(int $topic_num, int $camp_num, array $additionalNickNameIds = [])
-    {
-        $liveCamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
-
-        $eligibleCampLeaders = collect(Support::getDirectSupporter($topic_num, $camp_num))
-            ->map(function ($eligibleCampLeader) use ($liveCamp) {
-                $eligibleCampLeader->nick_name = NickName::getNickName($eligibleCampLeader->nick_name_id)->nick_name ?? '';
-                $eligibleCampLeader->camp_leader = $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $eligibleCampLeader->nick_name_id;
-                return $eligibleCampLeader;
-            })
-            ->all();
-
-        if (!empty($additionalNickNameIds)) {
-            foreach ($additionalNickNameIds as $nick_name_id) {
-                if (!in_array($nick_name_id, array_column($eligibleCampLeaders, 'nick_name_id'))) {
-                    $eligibleCampLeaders[] = [
-                        "topic_num" => $topic_num,
-                        "camp_num" => $camp_num,
-                        'nick_name_id' => $nick_name_id,
-                        'nick_name' => NickName::getNickName($nick_name_id)->nick_name ?? '',
-                        'camp_leader' => !is_null($liveCamp->camp_leader_nick_id) && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $nick_name_id,
-                    ];
-                }
-            }
-        }
-
-        return $eligibleCampLeaders;
-    }
-
-    public function signPetition(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->getSignPetitionRules(), $this->validationMessages->getSignPetitionMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-
-        $all = $request->post();
-
-        try {
-            // Sign Petition
-            $returnValue = TopicSupport::signPetition($request->user(), $all['topic_num'], $all['camp_num'], $all['nick_name_id']);
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.support.sign_petition'), '', '');
-        } catch (\Throwable $e) {
-            return $this->resProvider->apiJsonResponse(400, $e->getMessage() ?? trans('message.error.exception'), '', '');
-        }
-    }
 }

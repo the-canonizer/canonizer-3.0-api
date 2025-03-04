@@ -149,13 +149,14 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('get-nick-name-list','NicknameController@getNickNameList');
 
         //UploadController
-        $router->post('add-folder','UploadController@addFolder');
-        $router->post('upload-files','UploadController@uploadFileToS3');
-        $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
         $router->get('/uploaded-files', 'UploadController@getUploadedFiles');
         $router->get('folder/files/{id}', 'UploadController@getFolderFiles');
+        
+        $router->post('add-folder','UploadController@addFolder');
+        $router->post('upload-files','UploadController@uploadFileToS3');
         $router->delete('/file/delete/{id}', ['uses' => 'UploadController@FileDelete']);
-
+        $router->delete('/folder/delete/{id}', ['uses' => 'UploadController@folderDelete']);
+     
         //ThreadsController
         $router->post('thread/save', ['uses' => 'ThreadsController@store', 'middleware' => 'throttle:1,0.05']);
         $router->put('thread/update/{id}', ['uses' => 'ThreadsController@update', 'middleware' => 'throttle:1,0.05']);

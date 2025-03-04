@@ -40,109 +40,73 @@ class ThreadsController extends Controller
     }
 
     /**
-     * @OA\POST(path="/thread/save",
+     * @OA\POST(
+     *   path="/thread/save",
      *   tags={"Thread"},
-     *   summary="save thread",
-     *   description="This is use for save thread",
-     *   operationId="threadSave",
+     *   summary="Create a new thread",
+     *   description="This API is used to create a new thread.",
+     *   operationId="storeThread",
      *   security={{"bearerAuth":{}}},
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="title",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="nick_name",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="camp_num",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="topic_num",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="topic_name",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Thread creation payload",
+     *       @OA\JsonContent(
+     *           required={"title", "topic_num", "camp_num", "camp_name", "topic_name", "nick_name"},
+     *           @OA\Property(property="title", type="string", description="Thread title"),
+     *           @OA\Property(property="topic_num", type="integer", description="Topic number"),
+     *           @OA\Property(property="camp_num", type="integer", description="Camp number"),
+     *           @OA\Property(property="camp_name", type="string", description="Camp name"),
+     *           @OA\Property(property="topic_name", type="string", description="Topic name"),
+     *           @OA\Property(property="nick_name", type="integer", description="Nickname ID of the thread creator")
+     *       )
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                          @OA\Property(
-     *                                              property="user_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="title",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="body",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="camp_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="topic_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="created_at",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="updated_at",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="id",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=201,
+     *       description="Thread created successfully",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=201),
+     *           @OA\Property(property="message", type="string", example="Thread created successfully"),
+     *           @OA\Property(property="data", type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="title", type="string", example="My new thread"),
+     *               @OA\Property(property="topic_id", type="integer", example=101),
+     *               @OA\Property(property="camp_id", type="integer", example=202),
+     *               @OA\Property(property="user_id", type="integer", example=5),
+     *               @OA\Property(property="created_at", type="string", format="date-time"),
+     *               @OA\Property(property="updated_at", type="string", format="date-time")
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad request - validation error or title conflict",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Thread title must be unique")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Unauthorized - User is not allowed to create a thread",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=403),
+     *           @OA\Property(property="message", type="string", example="Invalid nickname provided")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=500,
+     *       description="Internal server error",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=500),
+     *           @OA\Property(property="message", type="string", example="An unexpected error occurred")
+     *       )
      *   )
-     *
      * )
      */
 
     public function store(Request $request, Validate $validate)
     {
-
         $validationErrors = $validate->validate($request, $this->rules->getThreadStoreValidationRules(), $this->validationMessages->getThreadStoreValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -443,129 +407,106 @@ class ThreadsController extends Controller
 
     private function updateThreadsInfo($threads)
     {
-        foreach ($threads->items as $thread) {
-            $postCount = Reply::where('c_thread_id', $thread->id)
-                ->where('post.is_delete', 0)
-                ->count();
-
-            $namspaceId = Topic::select('namespace_id')
-                ->where('topic_num', $thread->topic_id)
-                ->get();
-
-            foreach ($namspaceId as $nId) {
-                $thread->namespace_id = $nId->namespace_id;
-            }
-
-            $thread->post_count = $postCount;
-
-            if ($postCount > 0) {
-                $latestPost = Reply::where('c_thread_id', $thread->id)
+        if(isset($threads)){
+            foreach ($threads->items as $thread) {
+                $postCount = Reply::where('c_thread_id', $thread->id)
                     ->where('post.is_delete', 0)
-                    ->orderBy('post.updated_at', 'DESC')
-                    ->first();
+                    ->count();
 
-                $thread->post_updated_at = $latestPost->updated_at;
-                $thread->nick_name_id = $latestPost->user_id;
+                $namspaceId = Topic::select('namespace_id')
+                    ->where('topic_num', $thread->topic_id)
+                    ->get();
 
-                $nickName = Nickname::find($latestPost->user_id);
-                if (!empty($nickName)) {
-                    $thread->nick_name = $nickName->nick_name;
+                foreach ($namspaceId as $nId) {
+                    $thread->namespace_id = $nId->namespace_id;
+                }
+
+                $thread->post_count = $postCount;
+
+                if ($postCount > 0) {
+                    $latestPost = Reply::where('c_thread_id', $thread->id)
+                        ->where('post.is_delete', 0)
+                        ->orderBy('post.updated_at', 'DESC')
+                        ->first();
+
+                    $thread->post_updated_at = $latestPost->updated_at;
+                    $thread->nick_name_id = $latestPost->user_id;
+
+                    $nickName = Nickname::find($latestPost->user_id);
+                    if (!empty($nickName)) {
+                        $thread->nick_name = $nickName->nick_name;
+                    }
                 }
             }
         }
     }
 
     /**
-     * @OA\PUT(path="/thread/update",
+     * @OA\PUT(
+     *   path="/thread/update/{id}",
      *   tags={"Thread"},
-     *   summary="update thread",
-     *   description="This is use for update thread",
-     *   operationId="threadUpdate",
-     *  security={{"bearerAuth":{}}},
+     *   summary="Update an existing thread",
+     *   description="This API is used to update a thread's title.",
+     *   operationId="updateThread",
+     *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
-     *         name="id",
-     *         in="url",
-     *         required=true,
-     *         description="send thread id in url",
-     *         @OA\Schema(
-     *              type="Value Parameters"
-     *         ) 
-     *    ),
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="title",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *       name="id",
+     *       in="path",
+     *       required=true,
+     *       description="Thread ID",
+     *       @OA\Schema(type="integer")
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                          @OA\Property(
-     *                                              property="user_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="title",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="body",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="camp_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="topic_id",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="created_at",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="updated_at",
-     *                                              type="string"
-     *                                          ),
-     *                                          @OA\Property(
-     *                                              property="id",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Thread update payload",
+     *       @OA\JsonContent(
+     *           required={"title", "topic_num", "camp_num"},
+     *           @OA\Property(property="title", type="string", description="Updated thread title"),
+     *           @OA\Property(property="topic_num", type="integer", description="Topic number"),
+     *           @OA\Property(property="camp_num", type="integer", description="Camp number"),
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Thread updated successfully",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Thread updated successfully"),
+     *           @OA\Property(property="data", type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="title", type="string", example="Updated thread title"),
+     *               @OA\Property(property="topic_id", type="integer", example=101),
+     *               @OA\Property(property="camp_id", type="integer", example=202),
+     *               @OA\Property(property="created_at", type="string", format="date-time"),
+     *               @OA\Property(property="updated_at", type="string", format="date-time")
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad request - validation error or title conflict",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Thread title must be unique")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Thread not found",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=404),
+     *           @OA\Property(property="message", type="string", example="Thread ID does not exist")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=500,
+     *       description="Internal server error",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status_code", type="integer", example=500),
+     *           @OA\Property(property="message", type="string", example="An unexpected error occurred")
+     *       )
      *   )
-     *
      * )
      */
 
@@ -620,7 +561,79 @@ class ThreadsController extends Controller
         }
     }
 
-
+    /**
+     * @OA\Get(
+     *   path="/thread/{id}",
+     *   tags={"Thread"},
+     *   summary="Get thread details by ID",
+     *   description="Fetches thread details based on the provided thread ID.",
+     *   operationId="getThreadById",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *       name="id",
+     *       in="path",
+     *       required=true,
+     *       description="Thread ID",
+     *       @OA\Schema(type="integer", example=51)
+     *   ),
+     *   @OA\Parameter(
+     *       name="camp_num",
+     *       in="query",
+     *       required=true,
+     *       description="Camp number",
+     *       @OA\Schema(type="integer", example=1)
+     *   ),
+     *   @OA\Parameter(
+     *       name="topic_num",
+     *       in="query",
+     *       required=true,
+     *       description="Topic number",
+     *       @OA\Schema(type="integer", example=88)
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful response",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="id", type="integer", example=1),
+     *           @OA\Property(property="title", type="string", example="Thread Title"),
+     *           @OA\Property(property="camp_id", type="integer", example=3),
+     *           @OA\Property(property="topic_id", type="integer", example=2),
+     *           @OA\Property(property="namespace_id", type="integer", example=5),
+     *           @OA\Property(property="post_count", type="integer", example=10),
+     *           @OA\Property(property="post_updated_at", type="string", format="date-time", example="2025-03-03T12:00:00Z"),
+     *           @OA\Property(property="nick_name_id", type="integer", example=7),
+     *           @OA\Property(property="nick_name", type="string", example="User123"),
+     *           @OA\Property(property="creation_nick_name_id", type="integer", example=9),
+     *           @OA\Property(property="creation_nick_name", type="string", example="CreatorUser")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad request",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Invalid input data.")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Thread not found",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Thread not found or not related to this camp/topic.")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=401,
+     *       description="Unauthorized",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Unauthorized access.")
+     *       )
+     *   )
+     * )
+     */
     public function getThreadById(Request $request, $id, Validate $validate)
     {
         try {
@@ -665,13 +678,74 @@ class ThreadsController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
         }
     }
+
+    /**
+     * @OA\Post(
+     *   path="/thread/latest5",
+     *   tags={"Thread"},
+     *   summary="Get the latest 5 threads",
+     *   description="Fetches the latest 5 threads for a given camp and topic.",
+     *   operationId="getLatest5Threads",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *       name="camp_num",
+     *       in="query",
+     *       required=true,
+     *       description="Camp number",
+     *       @OA\Schema(type="integer", example=1)
+     *   ),
+     *   @OA\Parameter(
+     *       name="topic_num",
+     *       in="query",
+     *       required=true,
+     *       description="Topic number",
+     *       @OA\Schema(type="integer", example=2)
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful response",
+     *       @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *               type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="title", type="string", example="Thread Title"),
+     *               @OA\Property(property="camp_id", type="integer", example=3),
+     *               @OA\Property(property="topic_id", type="integer", example=2),
+     *               @OA\Property(property="post_count", type="integer", example=10),
+     *               @OA\Property(property="post_updated_at", type="string", format="date-time", example="2025-03-03T12:00:00Z"),
+     *               @OA\Property(property="nick_name_id", type="integer", example=5),
+     *               @OA\Property(property="nick_name", type="string", example="User123"),
+     *               @OA\Property(property="creation_nick_name_id", type="integer", example=7),
+     *               @OA\Property(property="creation_nick_name", type="string", example="CreatorUser")
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad request",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Invalid input data.")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=401,
+     *       description="Unauthorized",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="status", type="string", example="error"),
+     *           @OA\Property(property="message", type="string", example="Unauthorized access.")
+     *       )
+     *   )
+     * )
+     */
+
     public function getLatest5Threads(Request $request)
     {
-        
         return Thread::leftJoin('post', function ($join) {
             $join->on('thread.id', '=', 'post.c_thread_id')
                 ->where('post.is_delete', 0);
-        })
+            })
             ->leftJoin('nick_name as n1', 'n1.id', '=', 'post.user_id')
             ->leftJoin('nick_name as n2', 'n2.id', '=', 'thread.user_id')
             ->select('thread.*', DB::raw('count(post.c_thread_id) as post_count, max(COALESCE(post.updated_at, thread.created_at)) as post_updated_at'), 'n1.id as nick_name_id', 'n1.nick_name as nick_name', 'n2.id as creation_nick_name_id', 'n2.nick_name as creation_nick_name')

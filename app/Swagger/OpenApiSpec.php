@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Swagger;
 
 use OpenApi\Annotations as OA;
@@ -25,6 +24,26 @@ use OpenApi\Annotations as OA;
  *             type="http",
  *             scheme="bearer",
  *             bearerFormat="JWT"
+ *         ),
+ *         @OA\Response(
+ *             response="400BadRequest",
+ *             description="Bad Request",
+ *             @OA\JsonContent(
+ *                 type="object",
+ *                 @OA\Property(property="status_code", type="integer", example=400),
+ *                 @OA\Property(property="message", type="string", example="Invalid request parameters"),
+ *                 @OA\Property(property="error", type="string", nullable=true)
+ *             )
+ *         ),
+ *         @OA\Response(
+ *             response="404NotFound",
+ *             description="Resource Not Found",
+ *             @OA\JsonContent(
+ *                 type="object",
+ *                 @OA\Property(property="status_code", type="integer", example=404),
+ *                 @OA\Property(property="message", type="string", example="Record not found"),
+ *                 @OA\Property(property="error", type="string", nullable=true)
+ *             )
  *         )
  *     )
  * )
@@ -32,4 +51,3 @@ use OpenApi\Annotations as OA;
 class OpenApiSpec
 {
 }
-
