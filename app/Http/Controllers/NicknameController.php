@@ -102,7 +102,7 @@ class NicknameController extends Controller
 
     /**
      * @OA\POST(path="/update-nick-name",
-     *   tags={"nickname"},
+     *   tags={"Nickname"},
      *   summary="update nick name visibility status",
      *   description="",
      *   operationId="updatenickName",

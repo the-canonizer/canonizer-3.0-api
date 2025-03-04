@@ -44,7 +44,7 @@ class ProfileController extends Controller
     /**
      * @OA\Post(
      *     path="/change-password",
-     *     tags={"changepassword"},
+     *     tags={"Change Password"},
      *     summary="Update Password",
      *     description="This is used to update the user password.",
      *     operationId="changePassword",
@@ -114,7 +114,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Get(path="/mobile-carrier",
-     *   tags={"profile"},
+     *   tags={"Profile"},
      *   summary="",
      *   description="Get list of mobile carrier",
      *   operationId="loginUser",
@@ -136,7 +136,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(path="/update-profile",
-     *   tags={"profile"},
+     *   tags={"Profile"},
      *   summary="Update Profile",
      *   description="This is used to update the user profile.",
      *   operationId="updateprofile",
@@ -208,7 +208,7 @@ class ProfileController extends Controller
 
      /**
      * @OA\Get(path="/user/profile",
-     *   tags={"profile"},
+     *   tags={"Profile"},
      *   summary="Get looged in user profile",
      *   description="",
      *   operationId="userProfile",
@@ -533,7 +533,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(path="/update-profile-picture",
-     *   tags={"profile-picture"},
+     *   tags={"Profile Picture"},
      *   summary="Upload and update user profile picture",
      *   description="Upload and update user profile picture",
      *   operationId="updateProfilePicture",
@@ -593,7 +593,7 @@ class ProfileController extends Controller
 
     /**
      * @OA\Delete(path="/update-profile-picture",
-     *   tags={"profile-picture"},
+     *   tags={"Profile Picture"},
      *   summary="Delete user profile picture",
      *   description="Delete user profile picture",
      *   operationId="deleteProfilePicture",

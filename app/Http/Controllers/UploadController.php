@@ -34,7 +34,7 @@ class UploadController extends Controller
 
     /**
      * @OA\POST(path="/add-folder",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="Add New folder",
      *   description="",
      *   operationId="addFolder",
@@ -85,7 +85,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Post(path="/upload-files",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="Upload files to s3 ",
      *   description="This is used to upload files in bulk",
      *   operationId="uploadFiles",
@@ -175,7 +175,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Delete(path="/folder/delete/{id}",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="Delete  folder",
      *   description="This API is used to delete a created folder if no file exists inside that folder",
      *   operationId="folderDelete",
@@ -257,7 +257,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Get(path="/get-uploaded-files",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="get uploaded files and folder",
      *   description="This is used to get uploaded files and folder with count of files uploaded inside folder.",
      *   operationId="getUploadedFiles",
@@ -304,7 +304,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Get(path="/folder/files/{id}",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="get uploaded files inside folder",
      *   description="This is used to get uploaded files inside a folder.",
      *   operationId="getFolderFiles",
@@ -344,7 +344,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Delete(path="/file/delete/{id}",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="Delete  file",
      *   description="This API is used to delete a uploaded file if not used in any statement",
      *   operationId="fileDelete",
@@ -432,7 +432,7 @@ class UploadController extends Controller
 
     /**
      * @OA\Get(path="/get-global-search-uploaded-files",
-     *   tags={"upload"},
+     *   tags={"Upload"},
      *   summary="get-global-search-uploaded-files",
      *   description="This is used to get Global Search uploaded files and folder with count of files uploaded inside folder.",
      *   operationId="getGlobalSearchUploadedFiles",

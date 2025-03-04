@@ -9,61 +9,47 @@ use Illuminate\Support\Facades\Cache;
 class NamespaceController extends Controller
 {
     /**
-     * @OA\Post(path="/get_all_namespaces",
-     *   tags={"namespaces"},
-     *   summary="Get all namespaces",
-     *   description="This api used to get all the namespaces available in system.",
-     *   operationId="GetAllNamespaces",
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
-     *                                    )
-     *                                 )
-     *                            )
-     *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
-     *
+     * @OA\Get(
+     *   path="/get-all-namespaces",
+     *   tags={"Canon"},
+     *   summary="Get all canons",
+     *   description="This API retrieves all available canons in the system.",
+     *   operationId="GetAllCanons",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(
+     *               property="data",
+     *               type="array",
+     *               @OA\Items(
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer"),
+     *                   @OA\Property(property="name", type="string"),
+     *                   @OA\Property(property="label", type="string"),
+     *                   @OA\Property(property="sort_order", type="integer")
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Exception occurs",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(property="data", type="string", nullable=true)
+     *       )
+     *   )
      * )
-     */
-
-    /**
-     * Get all namespaces
-     */
+    */
     public function getAll()
     {
         try {

@@ -11,7 +11,7 @@ class SocialMediaLinkController extends Controller
     /**
      * @OA\Get(
      *     path="/get-social-media-links",
-     *     tags={"social media links"},
+     *     tags={"Social Media Links"},
      *     summary="Get social media links",
      *     description="This API retrieves a list of social media links.",
      *     operationId="GetAllSocialLinks",
