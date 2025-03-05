@@ -46,7 +46,7 @@ class ThreadsController extends Controller
      *   summary="Create a new thread",
      *   description="This API is used to create a new thread.",
      *   operationId="storeThread",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Thread creation payload",
@@ -448,7 +448,7 @@ class ThreadsController extends Controller
      *   summary="Update an existing thread",
      *   description="This API is used to update a thread's title.",
      *   operationId="updateThread",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",

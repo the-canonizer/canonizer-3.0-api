@@ -50,7 +50,7 @@ class SupportController extends Controller
      *     description="Adds direct support to a topic.",
      *     tags={"Support"},
      *     operationId="support/add",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody( 
      *         required=true,
      *         @OA\JsonContent(
@@ -158,7 +158,7 @@ class SupportController extends Controller
      *     description="Adds delegate support to a topic.",
      *     tags={"Support"},
      *     operationId="support/add-delegate",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -234,7 +234,7 @@ class SupportController extends Controller
      *     description="Removes support from a topic.",
      *     tags={"Support"},
      *     operationId="support/update",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -309,7 +309,6 @@ class SupportController extends Controller
         }
     }
     
-
     /**
      * @OA\Post(
      *     path="/support/remove-delegate",
@@ -317,7 +316,7 @@ class SupportController extends Controller
      *     description="Removes delegate support from a topic.",
      *     tags={"Support"},
      *     operationId="support/remove-delegate",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -377,7 +376,6 @@ class SupportController extends Controller
         }
     }
 
-
     /**
      * @OA\Post(
      *     path="support-order/update",
@@ -385,7 +383,7 @@ class SupportController extends Controller
      *     description="Updates the order of support for a topic.",
      *     tags={"Support"},
      *     operationId="support-order/update",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -445,7 +443,7 @@ class SupportController extends Controller
      *     description="Retrieve the list of camps supported by the user in a specific topic.",
      *     tags={"Support"},
      *     operationId="getSupportInTopic",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Retrieve support information for a given topic",
@@ -1011,8 +1009,7 @@ class SupportController extends Controller
         }  
     }
 
-        // Common function to get the supported camps
-
+    // Common function to get the supported camps
     private function getSupportedCampsData(Request $request, $supportType)
     {
         $user = $request->user();
@@ -1090,67 +1087,68 @@ class SupportController extends Controller
         }
     }
 
-        /**
-          * @OA\Get(
-          *     path="/get-direct-supported-camps",
-          *     tags={"Support"},
-          *     summary="Fetch direct supported camps",
-          *     description="Retrieves a list of camps directly supported by the user.",
-          *     operationId="getDirectSupportedCamps",
-          *     security={{"clientAuth":{}}},
-          *     @OA\Parameter(
-          *         name="page",
-          *         in="query",
-          *         required=true,
-          *         description="Page number to fetch direct supported camps",
-          *         @OA\Schema(type="integer", default=1)
-          *     ),
-          *     @OA\Parameter(
-          *         name="per_page",
-          *         in="query",
-          *         required=true,
-          *         description="Per page records to fetch direct supported camps",
-          *       @OA\Schema(type="integer", default=10)
-          *     ),
-          *     @OA\Parameter(
-          *         name="search",
-          *         in="query",
-          *         required=false,
-          *         description="Search Param to fetch direct supported camps",
-          *         @OA\Schema(type="string")
-          *     ),
-          *     @OA\Response(
-          *         response=200,
-          *         description="Successful operation",
-          *         @OA\JsonContent(
-          *             type="object",
-          *             @OA\Property(property="status_code", type="integer"),
-          *             @OA\Property(property="message", type="string"),
-          *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
-          *         )
-          *     ),
-          *     @OA\Response(
-          *         response=400,
-          *         description="Bad request",
-          *         @OA\JsonContent(
-          *             @OA\Property(property="status_code", type="integer"),
-          *             @OA\Property(property="message", type="string"),
-          *             @OA\Property(property="error", type="string")
-          *         )
-          *     )
-          * )
-          */
+    /**
+         * @OA\Get(
+        *     path="/get-direct-supported-camps",
+        *     tags={"Support"},
+        *     summary="Fetch direct supported camps",
+        *     description="Retrieves a list of camps directly supported by the user.",
+        *     operationId="getDirectSupportedCamps",
+        *     security={{"clientAuth":{}}},
+        *     @OA\Parameter(
+        *         name="page",
+        *         in="query",
+        *         required=true,
+        *         description="Page number to fetch direct supported camps",
+        *         @OA\Schema(type="integer", default=1)
+        *     ),
+        *     @OA\Parameter(
+        *         name="per_page",
+        *         in="query",
+        *         required=true,
+        *         description="Per page records to fetch direct supported camps",
+        *       @OA\Schema(type="integer", default=10)
+        *     ),
+        *     @OA\Parameter(
+        *         name="search",
+        *         in="query",
+        *         required=false,
+        *         description="Search Param to fetch direct supported camps",
+        *         @OA\Schema(type="string")
+        *     ),
+        *     @OA\Response(
+        *         response=200,
+        *         description="Successful operation",
+        *         @OA\JsonContent(
+        *             type="object",
+        *             @OA\Property(property="status_code", type="integer"),
+        *             @OA\Property(property="message", type="string"),
+        *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+        *         )
+        *     ),
+        *     @OA\Response(
+        *         response=400,
+        *         description="Bad request",
+        *         @OA\JsonContent(
+        *             @OA\Property(property="status_code", type="integer"),
+        *             @OA\Property(property="message", type="string"),
+        *             @OA\Property(property="error", type="string")
+        *         )
+        *     )
+        * )
+        */
 
-        public function getDirectSupportedCamps(Request $request)
-        {
-            try{
-                $supportType = 'direct';  // Direct support type
-                $finalData = $this->getSupportedCampsData($request, $supportType); // Call the common function
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
-            }catch(\Throwable $e) {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-            }
+    public function getDirectSupportedCamps(Request $request)
+    {
+        try{
+            $supportType = 'direct';  // Direct support type
+            $finalData = $this->getSupportedCampsData($request, $supportType); // Call the common function
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $finalData, '');
+        }catch(\Throwable $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
+    }
+    
     /**
      * @OA\Get(
      *     path="/get-delegated-supported-camps",

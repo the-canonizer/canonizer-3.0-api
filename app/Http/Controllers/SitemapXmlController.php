@@ -19,6 +19,7 @@ class SitemapXmlController extends Controller
      *   summary="Get the sitemap index",
      *   description="Retrieve a list of available sitemaps with their last modified dates.",
      *   operationId="getSitemapIndex",
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Sitemap index retrieved successfully",

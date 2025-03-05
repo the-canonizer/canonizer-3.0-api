@@ -31,6 +31,8 @@ class EmbeddedCodeController extends Controller
  *     path="/embedded-code-tracking",
  *     summary="Create Embedded Code Tracking",
  *     tags={"Embedded Code"},
+ *     operationId="EmbeddedCodeTracking",
+ *     security={{"clientAuth":{}}},
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(

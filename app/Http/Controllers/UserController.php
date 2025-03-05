@@ -116,7 +116,6 @@ class UserController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         try {
             $postUrl = URL::to('/') . '/oauth/token';
             $isFromTestCases = $request->get('from_test_case', null);
@@ -140,7 +139,6 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
-
 
     /**
      * @OA\Post(
@@ -447,7 +445,7 @@ class UserController extends Controller
      *   summary="User Logout",
      *   description="Logs out the authenticated user by revoking their access token.",
      *   operationId="logoutUser",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="User logged out successfully",
@@ -494,13 +492,10 @@ class UserController extends Controller
     {
         $nicknameCreated = false;
         if (empty($userID) || empty($nickname)) {
-
             return $nicknameCreated;
         }
         // Check whether user exists or not for the given id
         $user = User::getUserById($userID);
-
-
         if (empty($user)) {
             return $nicknameCreated;
         }
@@ -1072,17 +1067,13 @@ class UserController extends Controller
 
     public function countryList(Request $request)
     {
-
         try {
-
             $result = Country::where('status', 1)->get();
-
             if (empty($result)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $result, null);
@@ -1092,7 +1083,6 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
-
 
     /**
      * @OA\POST(
@@ -1178,7 +1168,7 @@ class UserController extends Controller
      *   summary="Get User Social Link Account List",
      *   description="This API is use for get user social link account list",
      *   operationId="socialList",
-     * security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *     @OA\Response(
      *         response=200,
      *        description = "Success",
@@ -1247,15 +1237,12 @@ class UserController extends Controller
     public function socialList(Request $request)
     {
         try {
-
             $result = SocialUser::where('user_id', $request->user()->id)->get();
-
             if (empty($result)) {
                 $status = 400;
                 $message = trans('message.error.exception');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-
             $status = 200;
             $message = trans('message.success.success');
             return $this->resProvider->apiJsonResponse($status, $message, $result, null);
@@ -1272,7 +1259,7 @@ class UserController extends Controller
      *   summary="Unlink Social User",
      *   description="This API is use for unlink soical account and delete social user",
      *   operationId="socialDelete",
-     *security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -1345,7 +1332,7 @@ class UserController extends Controller
      *   summary="For link social user",
      *   description="This api used to link social users",
      *   operationId="usersocialsociallink",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1498,7 +1485,7 @@ class UserController extends Controller
      *   summary="For deactivate user",
      *   description="This api used to deactivate users",
      *   operationId="deactivateuser",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",

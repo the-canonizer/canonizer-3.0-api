@@ -39,7 +39,7 @@ class UploadController extends Controller
      *   summary="Create or update a folder",
      *   description="Creates a new folder or updates an existing folder's name for the authenticated user.",
      *   operationId="addFolder",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Folder data",
@@ -140,7 +140,7 @@ class UploadController extends Controller
      *   summary="Upload files to s3 ",
      *   description="This is used to upload files in bulk",
      *   operationId="uploadFiles",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="",
@@ -227,7 +227,7 @@ class UploadController extends Controller
      *   summary="Delete  folder",
      *   description="This API is used to delete a created folder if no file exists inside that folder",
      *   operationId="folderDelete",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -310,7 +310,7 @@ class UploadController extends Controller
      *   summary="Retrieve uploaded files and folders",
      *   description="Fetches the list of uploaded files and folders for the authenticated user.",
      *   operationId="getUploadedFiles",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Successful retrieval of files and folders",
@@ -396,7 +396,7 @@ class UploadController extends Controller
      *   summary="Retrieve files from a specific folder",
      *   description="Fetches the list of files within a specified folder by folder ID.",
      *   operationId="getFolderFiles",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -471,14 +471,13 @@ class UploadController extends Controller
         }
     }
 
-
     /**
      * @OA\Delete(path="/file/delete/{id}",
      *   tags={"upload"},
      *   summary="Delete  file",
      *   description="This API is used to delete a uploaded file if not used in any statement",
      *   operationId="fileDelete",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -552,8 +551,6 @@ class UploadController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
-
-
 
     /**
      * @OA\Get(
