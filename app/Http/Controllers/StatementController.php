@@ -41,49 +41,87 @@ class StatementController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-camp-statement",
+     * @OA\Post(
+     *   path="/get-camp-statement",
      *   tags={"Statement"},
-     *   summary="get camp statement",
-     *   description="Used to get statement.",
-     *   operationId="getCampStatement",
+     *   summary="Get the live statement of a camp",
+     *   description="Retrieves the live statement for a specific topic and camp.",
+     *   operationId="getStatement",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get topics",
+     *       description="Get the statement for a topic and camp",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
      *               @OA\Property(
      *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
+     *                   description="The topic number",
      *                   type="integer",
+     *                   example=123
      *               ),
      *               @OA\Property(
      *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   required=true,
+     *                   description="The camp number",
      *                   type="integer",
+     *                   example=10
      *               ),
      *               @OA\Property(
      *                   property="as_of",
-     *                   description="As of filter type",
-     *                   required=false,
+     *                   description="As of filter type (default, review)",
      *                   type="string",
+     *                   example="default"
      *               ),
      *               @OA\Property(
      *                   property="as_of_date",
-     *                   description="As of filter date",
-     *                   required=false,
+     *                   description="As of filter date (YYYY-MM-DD)",
      *                   type="string",
+     *                   format="date",
+     *                   example="2025-03-01"
      *               )
-     *          )
-     *      )
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful response",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="value", type="string", example="Sample statement content"),
+     *               @OA\Property(property="parsed_value", type="string", example="Parsed statement content"),
+     *               @OA\Property(property="note", type="string", nullable=true),
+     *               @OA\Property(property="go_live_time", type="string", format="date-time", example="2025-03-03T12:00:00Z"),
+     *               @OA\Property(property="submit_time", type="string", format="date-time", example="2025-03-03T12:00:00Z"),
+     *               @OA\Property(property="submitter_nick_name", type="string", example="JohnDoe"),
+     *               @OA\Property(property="draft_record_id", type="integer", nullable=true, example=5),
+     *               @OA\Property(property="grace_period_record_count", type="integer", nullable=true, example=2),
+     *               @OA\Property(property="in_review_changes", type="integer", nullable=true, example=1)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request",
+     *       @OA\JsonContent(ref="#/components/schemas/ExceptionRes")
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Camp live statement not found",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=404),
+     *           @OA\Property(property="message", type="string", example="Camp live statement not found"),
+     *           @OA\Property(property="error", type="string", nullable=true)
+     *       )
+     *   )
      * )
      */
-
     public function getStatement(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementValidationRules(), $this->validationMessages->getStatementValidationMessages());
@@ -137,66 +175,81 @@ class StatementController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-statement-history",
+     * @OA\Post(
+     *   path="/get-statement-history",
      *   tags={"Statement"},
-     *   summary="get camp statement",
+     *   summary="Get camp statement history",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp statement history",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *              @OA\Property(
-     *                  property="camp_num",
-     *                  description="Camp number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *               @OA\Property(
-     *                   property="event_type",
-     *                   description="Possible values objected, live, in_review, old, all",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of",
-     *                   description="As of filter type",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of_date",
-     *                   description="As of filter date",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="per_page",
-     *                   description="Records per page",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="page",
-     *                   description="Page number",
-     *                   required=true,
-     *                   type="string",
-     *               )
-     *         )
-     *      )
+     *       @OA\JsonContent(
+     *           required={"topic_num", "camp_num", "event_type", "per_page", "page"},
+     *           @OA\Property(
+     *               property="topic_num",
+     *               description="Topic number is required",
+     *               type="integer",
+     *               example=123
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               description="Camp number is required",
+     *               type="integer",
+     *               example=10
+     *           ),
+     *           @OA\Property(
+     *               property="event_type",
+     *               description="Possible values: objected, live, in_review, old, all",
+     *               type="string",
+     *               example="live"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of",
+     *               description="As of filter type",
+     *               type="string",
+     *               example="date"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of_date",
+     *               description="As of filter date (YYYY-MM-DD)",
+     *               type="string",
+     *               format="date",
+     *               example="2025-03-01"
+     *           ),
+     *           @OA\Property(
+     *               property="per_page",
+     *               description="Records per page",
+     *               type="integer",
+     *               example=10
+     *           ),
+     *           @OA\Property(
+     *               property="page",
+     *               description="Page number",
+     *               type="integer",
+     *               example=1
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request",
+     *       @OA\JsonContent(ref="#/components/schemas/ExceptionRes")
+     *   )
      * )
      */
+
     public function getStatementHistory(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementHistoryValidationRules(), $this->validationMessages->getStatementHistoryValidationMessages());
@@ -258,11 +311,12 @@ class StatementController extends Controller
     }
 
     /**
-     * @OA\Post(path="/edit-camp-statement",
+     * @OA\Post(
+     *   path="/edit-camp-statement",
      *   tags={"Statement"},
-     *   summary="Get statement",
-     *   description="Used to get statement details.",
-     *   operationId="getStatement",
+     *   summary="Edit camp statement",
+     *   description="This API allows editing a camp statement.",
+     *   operationId="editCampStatement",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
@@ -270,25 +324,40 @@ class StatementController extends Controller
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="record_id",
-     *                  description="Record_ID is required",
-     *                  required=true,
-     *                  type="integer",
+     *               required={"record_id", "event_type"},
+     *               @OA\Property(
+     *                   property="record_id",
+     *                   description="The ID of the statement to edit",
+     *                   type="integer",
+     *                   example=123
      *               ),
      *               @OA\Property(
      *                   property="event_type",
-     *                   description="Possible values are edit, objected, live, in_review, old, all",
-     *                   required=true,
+     *                   description="Possible values: edit, objected, live, in_review, old, all",
      *                   type="string",
-     *               ),
-     *         )
-     *      )
+     *                   example="edit"
+     *               )
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="message", type="string", example="Statement updated successfully"),
+     *           @OA\Property(property="statement_id", type="integer", example=123)
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Error message",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="error", type="string", example="Invalid record_id provided")
+     *       )
+     *   )
      * )
      */
+
     public function editStatement(Request $request, Validate $validate)
     {
         try {
@@ -334,80 +403,127 @@ class StatementController extends Controller
         }
     }
 
-    /**
-     * @OA\Post(path="/store-camp-statement",
+        /**
+     * @OA\Post(
+     *   path="/store-camp-statement",
      *   tags={"Statement"},
-     *   summary="Store/update/object camp statement",
-     *   description="This API is used to store, update and object camp statement.",
-     *   operationId="Store/update/object-CampStatementHistory",
+     *   summary="Create, update, or object to a camp statement",
+     *   description="This API allows users to create, update, or object to a camp statement.",
+     *   operationId="storeStatement",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get camp statement history",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *              @OA\Property(
-     *                  property="camp_num",
-     *                  description="Camp number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *               @OA\Property(
-     *                   property="nick_name",
-     *                   description="Nick name of the user",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="note",
-     *                   description="Note for camp statement",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *              @OA\Property(
-     *                   property="submitter",
-     *                   description="Nick name id of user who previously added statement",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *              @OA\Property(
-     *                   property="statement",
-     *                   description="Camp statement",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="event_type",
-     *                   description="Possible values objection, edit, create, update",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="objection_reason",
-     *                   description="Objection reason in case user is objecting to a statement",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="statement_id",
-     *                   description="Id of statement objected",
-     *                   required=false,
-     *                   type="integer",
-     *               )
-     *         )
-     *      )
+     *       description="Statement data",
+     *       @OA\JsonContent(
+     *           required={"topic_num", "camp_num", "event_type", "statement", "nick_name", "submitter"},
+     *           @OA\Property(
+     *               property="topic_num",
+     *               description="The topic number",
+     *               type="integer",
+     *               example=116
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               description="The camp number",
+     *               type="integer",
+     *               example=1
+     *           ),
+     *           @OA\Property(
+     *               property="event_type",
+     *               description="Event type (create, update, edit, objection)",
+     *               type="string",
+     *               example="update"
+     *           ),
+     *           @OA\Property(
+     *               property="statement",
+     *               description="The statement content",
+     *               type="string",
+     *               example="<p>The statement content goes here.</p>"
+     *           ),
+     *           @OA\Property(
+     *               property="nick_name",
+     *               description="Nickname ID of the submitter",
+     *               type="integer",
+     *               example=709
+     *           ),
+     *           @OA\Property(
+     *               property="submitter",
+     *               description="Submitter's ID",
+     *               type="integer",
+     *               example=1
+     *           ),
+     *           @OA\Property(
+     *               property="note",
+     *               description="Additional notes",
+     *               type="string",
+     *               example="Continuously improving."
+     *           ),
+     *           @OA\Property(
+     *               property="objection_reason",
+     *               description="Reason for objection (if applicable)",
+     *               type="string",
+     *               nullable=true,
+     *               example=null
+     *           ),
+     *           @OA\Property(
+     *               property="camp_id",
+     *               description="Camp ID",
+     *               type="integer",
+     *               nullable=true,
+     *               example=null
+     *           ),
+     *           @OA\Property(
+     *               property="key_words",
+     *               description="Keywords related to the statement",
+     *               type="string",
+     *               nullable=true,
+     *               example=null
+     *           ),
+     *           @OA\Property(
+     *               property="is_draft",
+     *               description="Set to true if saving as a draft",
+     *               type="boolean",
+     *               example=false
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Statement successfully created or updated",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Statement created successfully"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="draft_record_id", type="integer", example=5, nullable=true)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid request parameters"),
+     *           @OA\Property(property="error", type="object")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Unauthorized action",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=403),
+     *           @OA\Property(property="message", type="string", example="Invalid data or permission denied")
+     *       )
+     *   )
      * )
      */
+
+
     public function storeStatement(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getStatementStoreValidationRules(), $this->validationMessages->getStatementStoreValidationMessages());
@@ -416,7 +532,7 @@ class StatementController extends Controller
         }
 
         if (!Gate::allows('nickname-check', $request->nick_name)) {
-            //return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
 
         $all = $request->all();
@@ -497,6 +613,58 @@ class StatementController extends Controller
         }
     }
 
+    /**
+     * @OA\POST(
+     *   path="/post-statement-count",
+     *   tags={"Statement"},
+     *   summary="Get count of post-submission changes",
+     *   description="This API checks if there are any live or in-review statements submitted after a given statement ID.",
+     *   operationId="postStatementCount",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Provide topic number, camp number, and statement ID",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number is required",
+     *                   type="integer",
+     *                   example=1
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   type="integer",
+     *                   example=2
+     *               ),
+     *               @OA\Property(
+     *                   property="statement_id",
+     *                   description="Statement ID to check for newer submissions",
+     *                   type="integer",
+     *                   example=10
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="post_changes_count", type="integer", example=3)
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Validation error or exception",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="error", type="string", example="Invalid request data")
+     *       )
+     *   )
+     * )
+     */
+
     public function postStatementCount(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getPostStatementCountValidationRules(), $this->validationMessages->getPostStatementCountValidationMessages());
@@ -522,197 +690,63 @@ class StatementController extends Controller
         }
     }
 
-    private function createOrUpdateStatement($all)
-    {
-        $goLiveTime = time();
-
-        if ($draftId = Statement::getDraftRecord($all['topic_num'], $all['camp_num'], [$all['nick_name']])) {
-            Statement::find($draftId)->delete();
-        }
-
-        $statement = new Statement();
-        $statement->value = $all['statement'] ?? "";
-        $statement->parsed_value = $all['statement'] ?? "";
-        $statement->topic_num = $all['topic_num'];
-        $statement->camp_num = $all['camp_num'];
-        $statement->note = $all['note'] ?? "";
-        $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
-        $statement->submitter_nick_id = $all['nick_name'];
-        $statement->go_live_time = $goLiveTime;
-        $statement->language = 'English';
-        $statement->grace_period = isset($all['is_draft']) && $all['is_draft'] ? 0 : 1;
-        $statement->is_draft = isset($all['is_draft']) && $all['is_draft'] ? true : false;
-        return $statement;
-    }
-
-    private function objectStatement($all)
-    {
-        $goLiveTime = time();
-        $statement = Statement::where('id', $all['statement_id'])->first();
-        $statement->objector_nick_id = $all['nick_name'];
-        $statement->object_reason = $all['objection_reason'];
-        $statement->go_live_time = $goLiveTime;
-        $statement->object_time = time();
-        $statement->grace_period = 0;
-        return $statement;
-    }
-
-    private function editUpdatedStatement($all)
-    {
-        $statement = Statement::where('id', $all['statement_id'])->first();
-        $statement->value = $all['statement'] ?? "";
-        $statement->parsed_value = $all['statement'] ?? "";
-        $statement->note = $all['note'] ?? "";
-        $statement->submitter_nick_id = $all['nick_name'];
-        if (isset($all['is_draft']) && $all['is_draft']) {
-            // $statement->submit_time = time();
-            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-            $statement->grace_period = 0;
-        }
-        return $statement;
-    }
-
-    private function createdStatementNotification($livecamp, $link, $statement, $request)
-    {
-        // $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
-        // $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
-        $dataObject['topic_num'] = $statement->topic_num;
-        $dataObject['camp_num'] = $statement->camp_num;
-        $dataObject['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
-        $dataObject['support_camp'] = $livecamp->camp_name;
-        $dataObject['go_live_time'] = $statement->go_live_time;
-        $dataObject['type'] = 'statement : for camp ';
-        $dataObject['typeobject'] = 'statement';
-        $dataObject['note'] = $statement->note;
-        $nickName = Nickname::getNickName($statement->submitter_nick_id);
-        $dataObject['nick_name'] = $nickName->nick_name;
-        $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " >> " . $livecamp->camp_name . " submitted";
-        $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
-        $dataObject['nick_name_id'] = $nickName->id;
-        $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
-        $topic = Topic::getLiveTopic($livecamp->topic->topic_num, "");
-        $notificationData = [
-            "email" => [],
-            "push_notification" => []
-        ];
-        $notificationData['email'] = $dataObject;
-
-        $liveThread =  null;
-        $threadId =  null;
-        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $livecamp, $liveThread, $threadId, config('global.notification_type.Statement'), $nickName->nick_name, null);
-        if (!empty($getMessageData)) {
-            $notificationData['push_notification'] = [
-                "topic_num" => $livecamp->topic_num,
-                "camp_num" => $livecamp->camp_num,
-                "notification_type" => $getMessageData->notification_type,
-                "title" => $getMessageData->title,
-                "message_body" => $getMessageData->message_body,
-                "link" => $getMessageData->link,
-                "thread_id" => !empty($threadId) ? $threadId : null,
-            ];
-        }
-
-        Event::dispatch(new NotifySupportersEvent($livecamp, $notificationData, config('global.notification_type.Statement'), $link, config('global.notify.both')));
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.statement_create', ['nick_name' =>  $nickName->nick_name]),
-            'url' => $link,
-            'model' => $statement,
-            'topic_num' => $statement->topic_num,
-            'camp_num' =>  $statement->camp_num,
-            'user' => $request->user(),
-            'nick_name' => $nickName->nick_name,
-            'description' => $statement->value
-        ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
-        // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
-    }
-
-    private function updatedStatementNotification($livecamp, $link, $statement, $request)
-    {
-        $nickName = Nickname::getNickName($statement->submitter_nick_id);
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.statement_update', ['nick_name' =>  $nickName->nick_name]),
-            'url' => $link,
-            'model' => $statement,
-            'topic_num' => $statement->topic_num,
-            'camp_num' =>  $statement->camp_num,
-            'user' => $request->user(),
-            'nick_name' => $nickName->nick_name,
-            'description' => $statement->value
-        ];
-        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
-    }
-
-    private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
-    {
-        $user = Nickname::getUserByNickName($all['submitter']);
-        $nickName = Nickname::getNickName($all['nick_name']);
-        $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
-        $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
-        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
-        $data['type'] = "Camp";
-
-        // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
-        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, 'statement');
-
-        $data['object_type'] = "statement";
-        $data['nick_name'] = $nickName->nick_name;
-        $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
-        $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
-        $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
-        $data['nick_name_id'] = $nickName->id;
-        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
-        $activityLogData = [
-            'log_type' =>  "topic/camps",
-            'activity' => trans('message.activity_log_message.statement_object', ['nick_name' =>  $nickName->nick_name]),
-            'url' => $link,
-            'model' => $statement,
-            'topic_num' => $statement->topic_num,
-            'camp_num' =>  $statement->camp_num,
-            'user' => $request->user(),
-            'nick_name' =>  $nickName->nick_name,
-            'description' => $statement->value
-        ];
-        try {
-            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
-            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
-            GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'], $all['nick_name'], config('global.notification_type.objectStatement'));
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Post(path="/get-statement-comparison",
+        /**
+     * @OA\Post(
+     *   path="/get-statement-comparison",
      *   tags={"Statement"},
-     *   summary="get statement comparison",
-     *   description="This API is used for compare two statement.",
-     *   operationId="get-statement-comparison",
+     *   summary="Compare two statements",
+     *   description="This API compares two statements based on provided IDs, topic number, and camp number.",
+     *   operationId="getStatementComparison",
      *   security={{"bearerAuth":{}}},
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="ids",
-     *                  type="object",
-     *                  @OA\Property(
-     *                          property="status_code",
-     *                          type="array"
-     *                   ),
-     *              )
-     *          )
-     *     ),
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Request Body JSON Parameters",
+     *       @OA\JsonContent(
+     *           required={"ids", "topic_num", "camp_num", "compare"},
+     *           @OA\Property(
+     *               property="ids",
+     *               type="array",
+     *               description="Array of statement IDs to compare",
+     *               @OA\Items(type="integer", example=818)
+     *           ),
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               description="Topic number",
+     *               example=116
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               type="integer",
+     *               description="Camp number",
+     *               example=1
+     *           ),
+     *           @OA\Property(
+     *               property="compare",
+     *               type="string",
+     *               description="Comparison type (e.g., statement, summary)",
+     *               example="statement"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="comparison_result", type="string", example="Statements are 85% similar."),
+     *           @OA\Property(property="differences", type="array", @OA\Items(type="string", example="Sentence X is different in Statement A"))
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Error message",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="error", type="string", example="Invalid statement IDs provided.")
+     *       )
+     *   )
      * )
      */
+
 
     public function getStatementComparison(Request $request, Validate $validate)
     {
@@ -722,18 +756,14 @@ class StatementController extends Controller
         }
         $statement = [];
         try {
-
             $compare = !empty($request->compare) ? $request->compare : 'statement';
-
             if ($compare == 'statement') {
                 $campStatement =  Statement::whereIn('id', $request->ids)->get();
-
                 $WikiParser = new wikiParser;
                 $currentTime = time();
                 $currentLive = 0;
                 if ($campStatement) {
                     foreach ($campStatement as $val) {
-
                         switch ($val) {
                             case $val->objector_nick_id !== NULL:
                                 $status = "objected";
@@ -959,31 +989,46 @@ class StatementController extends Controller
     }
 
     /**
-     * @OA\Post(path="/parse-camp-statement",
+     * @OA\POST(
+     *   path="/parse-camp-statement",
      *   tags={"Statement"},
      *   summary="Parse a string using wiki parser",
-     *   description="This API is used to parse a string through wiki parser.",
+     *   description="This API parses a string through the wiki parser and returns the parsed result.",
      *   operationId="wiki-parser",
-     *  security={{"bearerAuth":{}}},
+     *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="parse sting",
+     *       description="String to be parsed",
      *       @OA\MediaType(
      *           mediaType="application/x-www-form-urlencoded",
      *           @OA\Schema(
+     *               required={"value"},
      *               @OA\Property(
      *                   property="value",
-     *                   description="string to be parsed is required",
-     *                   required=true,
+     *                   description="String to be parsed",
      *                   type="string",
+     *                   example="'''Bold Text'''"
      *               )
-     *          )
-     *      )
+     *           )
+     *       )
      *   ), 
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="parsed_value", type="string", example="<b>Bold Text</b>")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Error message",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="error", type="string", example="Invalid input")
+     *       )
+     *   )
      * )
      */
+
     public function parseStatement(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getParseStatementValidationRules(), $this->validationMessages->getParseStatementValidationMessages());
@@ -998,4 +1043,168 @@ class StatementController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+    private function createOrUpdateStatement($all)
+    {
+        $goLiveTime = time();
+
+        if ($draftId = Statement::getDraftRecord($all['topic_num'], $all['camp_num'], [$all['nick_name']])) {
+            Statement::find($draftId)->delete();
+        }
+
+        $statement = new Statement();
+        $statement->value = $all['statement'] ?? "";
+        $statement->parsed_value = $all['statement'] ?? "";
+        $statement->topic_num = $all['topic_num'];
+        $statement->camp_num = $all['camp_num'];
+        $statement->note = $all['note'] ?? "";
+        $statement->submit_time = strtotime(date('Y-m-d H:i:s'));
+        $statement->submitter_nick_id = $all['nick_name'];
+        $statement->go_live_time = $goLiveTime;
+        $statement->language = 'English';
+        $statement->grace_period = isset($all['is_draft']) && $all['is_draft'] ? 0 : 1;
+        $statement->is_draft = isset($all['is_draft']) && $all['is_draft'] ? true : false;
+        return $statement;
+    }
+
+    private function objectStatement($all)
+    {
+        $goLiveTime = time();
+        $statement = Statement::where('id', $all['statement_id'])->first();
+        $statement->objector_nick_id = $all['nick_name'];
+        $statement->object_reason = $all['objection_reason'];
+        $statement->go_live_time = $goLiveTime;
+        $statement->object_time = time();
+        $statement->grace_period = 0;
+        return $statement;
+    }
+
+    private function editUpdatedStatement($all)
+    {
+        $statement = Statement::where('id', $all['statement_id'])->first();
+        $statement->value = $all['statement'] ?? "";
+        $statement->parsed_value = $all['statement'] ?? "";
+        $statement->note = $all['note'] ?? "";
+        $statement->submitter_nick_id = $all['nick_name'];
+        if (isset($all['is_draft']) && $all['is_draft']) {
+            // $statement->submit_time = time();
+            $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+            $statement->grace_period = 0;
+        }
+        return $statement;
+    }
+
+    private function createdStatementNotification($livecamp, $link, $statement, $request)
+    {
+        // $directSupporter = Support::getAllDirectSupporters($statement->topic_num, $statement->camp_num);
+        // $subscribers = Camp::getCampSubscribers($statement->topic_num, $statement->camp_num);
+        $dataObject['topic_num'] = $statement->topic_num;
+        $dataObject['camp_num'] = $statement->camp_num;
+        $dataObject['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
+        $dataObject['support_camp'] = $livecamp->camp_name;
+        $dataObject['go_live_time'] = $statement->go_live_time;
+        $dataObject['type'] = 'statement : for camp ';
+        $dataObject['typeobject'] = 'statement';
+        $dataObject['note'] = $statement->note;
+        $nickName = Nickname::getNickName($statement->submitter_nick_id);
+        $dataObject['nick_name'] = $nickName->nick_name;
+        $dataObject['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+        $dataObject['subject'] = "Proposed change to statement for camp " . $livecamp->topic->topic_name . " >> " . $livecamp->camp_name . " submitted";
+        $dataObject['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+        $dataObject['nick_name_id'] = $nickName->id;
+        $dataObject['is_live'] = ($statement->go_live_time <=  time()) ? 1 : 0;
+        $topic = Topic::getLiveTopic($livecamp->topic->topic_num, "");
+        $notificationData = [
+            "email" => [],
+            "push_notification" => []
+        ];
+        $notificationData['email'] = $dataObject;
+
+        $liveThread =  null;
+        $threadId =  null;
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $livecamp, $liveThread, $threadId, config('global.notification_type.Statement'), $nickName->nick_name, null);
+        if (!empty($getMessageData)) {
+            $notificationData['push_notification'] = [
+                "topic_num" => $livecamp->topic_num,
+                "camp_num" => $livecamp->camp_num,
+                "notification_type" => $getMessageData->notification_type,
+                "title" => $getMessageData->title,
+                "message_body" => $getMessageData->message_body,
+                "link" => $getMessageData->link,
+                "thread_id" => !empty($threadId) ? $threadId : null,
+            ];
+        }
+
+        Event::dispatch(new NotifySupportersEvent($livecamp, $notificationData, config('global.notification_type.Statement'), $link, config('global.notify.both')));
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => trans('message.activity_log_message.statement_create', ['nick_name' =>  $nickName->nick_name]),
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $statement->value
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+        // Util::mailSubscribersAndSupporters($directSupporter, $subscribers, $link, $dataObject);
+    }
+
+    private function updatedStatementNotification($livecamp, $link, $statement, $request)
+    {
+        $nickName = Nickname::getNickName($statement->submitter_nick_id);
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => trans('message.activity_log_message.statement_update', ['nick_name' =>  $nickName->nick_name]),
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' => $nickName->nick_name,
+            'description' => $statement->value
+        ];
+        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+    }
+
+    private function objectedStatementNotification($all, $livecamp, $link, $statement, $request)
+    {
+        $user = Nickname::getUserByNickName($all['submitter']);
+        $nickName = Nickname::getNickName($all['nick_name']);
+        $topicLive = Topic::getLiveTopic($statement->topic_num, ['nofilter' => true]);
+        $data['topic_link'] = Util::getTopicCampUrlWithoutTime($statement->topic_num, $statement->camp_num, $topicLive, $livecamp);
+        $data['history_link'] = config('global.APP_URL_FRONT_END') . '/statement/history/' . $statement->topic_num . '-' . Util::replaceSpecialCharacters($topicLive->topic_name) . '/' . $statement->camp_num . '-' . Util::replaceSpecialCharacters($livecamp->camp_name);
+        $data['type'] = "Camp";
+
+        // $data['object'] = $livecamp->topic->topic_name . " >> " . $livecamp->camp_name;
+        $data['object'] = Helpers::renderParentCampLinks($livecamp->topic->topic_num, $livecamp->camp_num, $livecamp->topic->topic_name, true, 'statement');
+
+        $data['object_type'] = "statement";
+        $data['nick_name'] = $nickName->nick_name;
+        $data['forum_link'] = 'forum/' . $statement->topic_num . '-statement/' . $statement->camp_num . '/threads';
+        $data['subject'] = $data['nick_name'] . " has objected to your proposed change.";
+        $data['namespace_id'] = (isset($livecamp->topic->namespace_id) && $livecamp->topic->namespace_id)  ?  $livecamp->topic->namespace_id : 1;
+        $data['nick_name_id'] = $nickName->id;
+        $data['help_link'] = config('global.APP_URL_FRONT_END') . '/' . General::getDealingWithDisagreementUrl();
+        $activityLogData = [
+            'log_type' =>  "topic/camps",
+            'activity' => trans('message.activity_log_message.statement_object', ['nick_name' =>  $nickName->nick_name]),
+            'url' => $link,
+            'model' => $statement,
+            'topic_num' => $statement->topic_num,
+            'camp_num' =>  $statement->camp_num,
+            'user' => $request->user(),
+            'nick_name' =>  $nickName->nick_name,
+            'description' => $statement->value
+        ];
+        try {
+            dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+            dispatch(new ObjectionToSubmitterMailJob($user, $link, $data))->onQueue(env('NOTIFY_SUPPORTER_QUEUE'));
+            GetPushNotificationToSupporter::pushNotificationOnObject($statement->topic_num, $statement->camp_num, $all['submitter'], $all['nick_name'], config('global.notification_type.objectStatement'));
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
 }

@@ -40,19 +40,19 @@ class ActivityController extends Controller
      *               @OA\Property(
      *                   property="per_page",
      *                   description="Number of records per page",
-     *                   required="true",
+     *                   required={"true"},
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="page",
      *                   description="page number",
-     *                   required="true",
+     *                   required={"true"},
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="log_type",
      *                   description="Type of log",
-     *                   required="true",
+     *                   required={"true"},
      *                   type="string",
      *               )
      *           )
@@ -109,13 +109,13 @@ class ActivityController extends Controller
      *              @OA\Property(
      *                  property="topic_num",
      *                  description="Topic number is required",
-     *                  required="true",
+     *                  required={"true"},
      *                  type="integer",
      *              ),
      *              @OA\Property(
      *                  property="camp_num",
      *                  description="Camp number is required",
-     *                  required="true",
+     *                  required={"true"},
      *                  type="integer",
      *              )
      *         )

@@ -154,63 +154,74 @@ class TagController extends Controller
     /**
      * @OA\POST(path="/create/user/tags",
      *   tags={"Tags"},
-     *   summary="This api used association category with user on register",
+     *   summary="This API is used to associate a category with a user during registration",
      *   description="",
      *   operationId="createUserTags",
-     *    @OA\RequestBody(
+     *   @OA\RequestBody(
      *     required=true,
-     *     description="Request Body Json Parameter",
+     *     description="Request Body JSON Parameter",
      *     @OA\MediaType(
      *          mediaType="application/json",
      *          @OA\Schema(
      *               @OA\Property(
      *                  property="user_id",
-     *                  type="string"
+     *                  type="string",
+     *                  description="ID of the user",
+     *                  example="123"
      *              ),
      *              @OA\Property(
      *                  property="user_tags",
-     *                  type="array"
+     *                  type="array",
+     *                  description="List of tag IDs associated with the user",
+     *                  @OA\Items(
+     *                      type="integer",
+     *                      example=5
+     *                  )
      *              )
      *          )
      *     ),
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
+     *   @OA\Response(
+     *      response=200,
+     *      description="Successful operation",
+     *      @OA\JsonContent(
+     *          type="object",
+     *          @OA\Property(
+     *              property="status_code",
+     *              type="integer",
+     *              example=200
+     *          ),
+     *          @OA\Property(
+     *              property="message",
+     *              type="string",
+     *              example="User tags created successfully"
+     *          ),
+     *          @OA\Property(
+     *              property="error",
+     *              type="string",
+     *              nullable=true
+     *          ),
+     *          @OA\Property(
+     *              property="data",
+     *              type="object",
+     *              example={}
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(
      *     response=400,
      *     description="Something went wrong",
      *     @OA\JsonContent(
      *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   ),
-     *    @OA\Response(
+     *   @OA\Response(
      *     response=403,
      *     description="Exception Throwable",
      *     @OA\JsonContent(
      *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   )
-     *
      * )
      */
 
