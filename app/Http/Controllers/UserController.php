@@ -48,7 +48,7 @@ class UserController extends Controller
     }
 
     /**
-     * @OA\POST(path="/client_token",
+     * @OA\POST(path="/client-token",
      *   tags={"User"},
      *   summary="This api used to get password client id and client secrect",
      *   description="",
