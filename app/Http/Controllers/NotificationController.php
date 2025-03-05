@@ -45,7 +45,7 @@ class NotificationController extends Controller
      *     summary="List notifications",
      *     description="This API retrieves a paginated list of notifications.",
      *     operationId="threadList",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="page",
      *         in="query",
@@ -230,7 +230,7 @@ class NotificationController extends Controller
      *     summary="Mark notification as read",
      *     description="Updates the read status of a notification",
      *     operationId="updateIsRead",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -288,7 +288,7 @@ class NotificationController extends Controller
      *     summary="Mark all or selected notifications as read",
      *     description="Marks all notifications as read for the authenticated user or updates selected notifications.",
      *     operationId="updateReadAll",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -364,7 +364,7 @@ class NotificationController extends Controller
      *     summary="Delete all or selected notifications",
      *     description="Deletes all notifications for the authenticated user or deletes selected notifications.",
      *     operationId="deleteAllNotifications",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -432,7 +432,7 @@ class NotificationController extends Controller
      *     summary="Update FCM token",
      *     description="Updates the Firebase Cloud Messaging (FCM) token for push notifications. Pass 'disabled' to remove the token.",
      *     operationId="updateFcmToken",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -501,7 +501,7 @@ class NotificationController extends Controller
      *     summary="Notify if a URL does not exist",
      *     description="Checks if a topic, statement, nickname, or thread exists. If not, it triggers an administrator notification event.",
      *     operationId="notifyIfUrlNotExist",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(

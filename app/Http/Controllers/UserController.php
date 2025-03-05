@@ -319,7 +319,7 @@ class UserController extends Controller
      *   summary="User Login",
      *   description="Logs in a user and returns an access token.",
      *   operationId="loginUser",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="User login credentials",
@@ -447,7 +447,7 @@ class UserController extends Controller
      *   summary="User Logout",
      *   description="Logs out the authenticated user by revoking their access token.",
      *   operationId="logoutUser",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="User logged out successfully",
@@ -537,7 +537,7 @@ class UserController extends Controller
      *   summary="Verify OTP",
      *   description="Verifies the OTP sent to the user's email and logs them in if successful.",
      *   operationId="postVerifyOtp",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="OTP verification request",
@@ -643,7 +643,7 @@ class UserController extends Controller
      *   summary="For get social token url",
      *   description="This api used to create social token url and we are using this url for generating code",
      *   operationId="usersociallogin",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -777,7 +777,7 @@ class UserController extends Controller
      *   summary="For get social user details",
      *   description="This api used to get social social users detauls and auth details",
      *   operationId="usersocialcallback",
-     *  security={{"bearerAuth":{}}},
+     *  security={{"clientAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1036,7 +1036,7 @@ class UserController extends Controller
      *   summary="For get country list",
      *   description="This api used to get country list",
      *   operationId="countrylist",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(response=200,description="successful operation",
      *                             @OA\JsonContent(
      *                                 type="object",
@@ -1101,7 +1101,7 @@ class UserController extends Controller
      *   summary="Resend OTP",
      *   description="This API is used to resend OTP to the user's email.",
      *   operationId="userResendOtp",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Request body JSON parameter",
@@ -1178,7 +1178,7 @@ class UserController extends Controller
      *   summary="Get User Social Link Account List",
      *   description="This API is use for get user social link account list",
      *   operationId="socialList",
-     * security={{"bearerAuth":{}}},
+     * security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *        description = "Success",
@@ -1272,7 +1272,7 @@ class UserController extends Controller
      *   summary="Unlink Social User",
      *   description="This API is use for unlink soical account and delete social user",
      *   operationId="socialDelete",
-     *security={{"bearerAuth":{}}},
+     *security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -1345,7 +1345,7 @@ class UserController extends Controller
      *   summary="For link social user",
      *   description="This api used to link social users",
      *   operationId="usersocialsociallink",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1498,7 +1498,7 @@ class UserController extends Controller
      *   summary="For deactivate user",
      *   description="This api used to deactivate users",
      *   operationId="deactivateuser",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="Request Body Json Parameter",
@@ -1627,7 +1627,7 @@ class UserController extends Controller
      *     description="This endpoint verifies a social email using an OTP and generates an access token upon successful verification.",
      *     tags={"Authentication"},
      *     operationId="postVerifyEmail",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -1728,7 +1728,7 @@ class UserController extends Controller
      *   summary="Resend OTP for Email Verification",
      *   description="This API resends an OTP for email verification when a user is verifying their email.",
      *   operationId="reSendOtpVerifyEmail",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Request body JSON parameters",

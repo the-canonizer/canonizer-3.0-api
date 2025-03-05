@@ -17,7 +17,7 @@ class AlgorithmController extends Controller
  *     summary="Get all algorithms",
  *     description="This API retrieves a list of algorithms",
  *     operationId="GetAllAlgorithms",
- *     security={{"bearerAuth":{}}},
+ *     security={{"clientAuth":{}}},
  *     @OA\Response(
  *         response=200,
  *         description="Successful operation",

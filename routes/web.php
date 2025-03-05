@@ -177,7 +177,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         //ReplyController
         $router->post('post/save','ReplyController@store');
         $router->put('post/update/{id}','ReplyController@update');
-        $router->delete('post/delete/{id}','ReplyController@isDelete');
+        $router->delete('post/delete/{id}','ReplyController@deletePost');
 
         //CampController
         $router->post('camp/subscription','CampController@campSubscription');

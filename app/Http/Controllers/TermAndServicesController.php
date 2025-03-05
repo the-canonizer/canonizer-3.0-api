@@ -14,7 +14,7 @@ class TermAndServicesController extends Controller
      *     summary="Get Terms and Services Content",
      *     description="Retrieve the content of the Terms and Services.",
      *     operationId="getTermAndServicesContent",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",

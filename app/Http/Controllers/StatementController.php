@@ -47,7 +47,7 @@ class StatementController extends Controller
      *   summary="Get the live statement of a camp",
      *   description="Retrieves the live statement for a specific topic and camp.",
      *   operationId="getStatement",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get the statement for a topic and camp",
@@ -181,7 +181,7 @@ class StatementController extends Controller
      *   summary="Get camp statement history",
      *   description="This API is used to get camp statement history.",
      *   operationId="getCampStatementHistory",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp statement history",
@@ -317,7 +317,7 @@ class StatementController extends Controller
      *   summary="Edit camp statement",
      *   description="This API allows editing a camp statement.",
      *   operationId="editCampStatement",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Edit Statement",
@@ -410,7 +410,7 @@ class StatementController extends Controller
      *   summary="Create, update, or object to a camp statement",
      *   description="This API allows users to create, update, or object to a camp statement.",
      *   operationId="storeStatement",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Statement data",
@@ -620,7 +620,7 @@ class StatementController extends Controller
      *   summary="Get count of post-submission changes",
      *   description="This API checks if there are any live or in-review statements submitted after a given statement ID.",
      *   operationId="postStatementCount",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Provide topic number, camp number, and statement ID",
@@ -697,7 +697,7 @@ class StatementController extends Controller
      *   summary="Compare two statements",
      *   description="This API compares two statements based on provided IDs, topic number, and camp number.",
      *   operationId="getStatementComparison",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Request Body JSON Parameters",
@@ -995,7 +995,7 @@ class StatementController extends Controller
      *   summary="Parse a string using wiki parser",
      *   description="This API parses a string through the wiki parser and returns the parsed result.",
      *   operationId="wiki-parser",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="String to be parsed",

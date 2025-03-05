@@ -15,7 +15,7 @@ class SocialMediaLinkController extends Controller
      *     summary="Get social media links",
      *     description="This API retrieves a list of social media links.",
      *     operationId="GetAllSocialLinks",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",

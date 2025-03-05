@@ -62,7 +62,7 @@ class TopicController extends Controller
      *   summary="Save topic",
      *   description="This endpoint is used to save a new topic.",
      *   operationId="topicSave",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Request body JSON parameters",
@@ -316,7 +316,7 @@ class TopicController extends Controller
      *   summary="Commit a change",
      *   description="Used to commit a change for camp, topic, and statement.",
      *   operationId="commitChange",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Commit change request body",
@@ -946,7 +946,7 @@ class TopicController extends Controller
      *   summary="Agree to change",
      *   description="Used to agree on a change for camp, topic, and statement.",
      *   operationId="agreeToChange",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Agree to change request body",
@@ -1283,7 +1283,7 @@ class TopicController extends Controller
      *   summary="Agree to change for live job",
      *   description="Used to agree on a change for camp, topic, and statement from a live job.",
      *   operationId="agreeToChangeForLiveJob",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Agree to change request body",
@@ -1521,7 +1521,7 @@ class TopicController extends Controller
      *   summary="Edit, update, or object to a topic record",
      *   description="This API is used to edit, update, or object to a topic record.",
      *   operationId="manageTopicHistory",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Request body parameters for managing a topic",
@@ -1764,7 +1764,7 @@ class TopicController extends Controller
      *   summary="Discard a change",
      *   description="Used to discard a change for camp, topic, and statement.",
      *   operationId="discardChange",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Discard change",
@@ -1835,7 +1835,7 @@ class TopicController extends Controller
      *   summary="Retrieve a topic record",
      *   description="Fetches a topic record based on filters such as topic number, camp number, and timestamp.",
      *   operationId="getTopicRecord",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\JsonContent(
@@ -1972,7 +1972,7 @@ class TopicController extends Controller
      *   summary="Get Hot Topics",
      *   description="Fetches the most viewed topics within the last 30 days, excluding sandbox topics.",
      *   operationId="hotTopic",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="per_page",
      *       in="query",
@@ -2122,7 +2122,7 @@ class TopicController extends Controller
      *   summary="Get Featured Topics",
      *   description="Fetches a list of featured topics that are marked as active.",
      *   operationId="featuredTopic",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="per_page",
      *       in="query",
@@ -2255,7 +2255,7 @@ class TopicController extends Controller
      *   summary="Get Preferred Topics",
      *   description="Fetches a list of topics based on user preferences, including tags associated with the user.",
      *   operationId="preferredTopic",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="is_random",
      *       in="query",
@@ -2416,7 +2416,7 @@ class TopicController extends Controller
      *   summary="Get topic history",
      *   description="Fetches the history of a topic based on filters such as event type and pagination.",
      *   operationId="getTopicHistory",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Payload to retrieve topic history",
@@ -2542,7 +2542,7 @@ class TopicController extends Controller
       *   summary="Get topic record for edit",
       *   description="Get topic details for editing",
       *   operationId="editTopicRecord",
-      *   security={{"bearerAuth":{}}},
+      *   security={{"clientAuth":{}}},
       *   @OA\RequestBody(
       *       required=true,
       *       description="Edit topic",

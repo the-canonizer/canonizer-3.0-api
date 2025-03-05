@@ -45,7 +45,7 @@ class ProfileController extends Controller
      *     summary="Update Password",
      *     description="This API updates the user password.",
      *     operationId="changePassword",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -115,7 +115,7 @@ class ProfileController extends Controller
      *     summary="Retrieve a list of mobile carriers",
      *     description="Fetches the list of available mobile carriers for the user.",
      *     operationId="getMobileCarriers",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Success"
@@ -143,7 +143,7 @@ class ProfileController extends Controller
      *     summary="Update Profile",
      *     description="This endpoint updates the user's profile information.",
      *     operationId="updateProfile",
-     *     security={{"bearerAuth": {}}},
+     *     security={{"clientAuth": {}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -254,7 +254,7 @@ class ProfileController extends Controller
      *     summary="Get logged-in user profile",
      *     description="Fetches the profile details of the authenticated user.",
      *     operationId="getUserProfile",
-     *     security={{"bearerAuth": {}}}, 
+     *     security={{"clientAuth": {}}}, 
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -305,7 +305,7 @@ class ProfileController extends Controller
      *     summary="Send OTP to verify phone number",
      *     description="Sends a One-Time Password (OTP) to a valid phone number for verification.",
      *     operationId="sendOtp",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="phone_number",
      *         in="query",
@@ -382,7 +382,7 @@ class ProfileController extends Controller
      *   summary="Verify OTP sent to the phone number",
      *   description="Verify OTP sent to the phone number",
      *   operationId="verifyOtp",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *     name="otp",
      *     in="query",
@@ -467,7 +467,7 @@ class ProfileController extends Controller
      *     summary="Retrieve available languages",
      *     description="Fetches a list of supported languages.",
      *     operationId="getLanguages",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -520,7 +520,7 @@ class ProfileController extends Controller
      *   summary="Get user profile",
      *   description="Fetches the profile details of a user by their ID. Some fields may be hidden based on privacy settings.",
      *   operationId="getUserProfileByID",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -589,7 +589,7 @@ class ProfileController extends Controller
      *     summary="Get all supported camps by a user",
      *     description="Fetches all camps supported by a specific user based on their ID.",
      *     operationId="getUserSupportedCamps",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -650,7 +650,7 @@ class ProfileController extends Controller
      *     summary="Get user supports",
      *     description="Fetches the supported camps and profile details of a user by their nickname ID.",
      *     operationId="getUserSupports",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -739,7 +739,7 @@ class ProfileController extends Controller
      *     summary="Upload and update user profile picture",
      *     description="This endpoint allows users to upload and update their profile picture.",
      *     operationId="updateProfilePicture",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -828,7 +828,7 @@ class ProfileController extends Controller
      *   summary="Delete user profile picture",
      *   description="Deletes the user's profile picture.",
      *   operationId="deleteProfilePicture",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Profile updated successfully."
@@ -872,7 +872,7 @@ class ProfileController extends Controller
      *   summary="Request OTP for email change",
      *   description="Generates an OTP and sends it to the user's registered email for verification.",
      *   operationId="changeEmailRequest",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(response=200, description="OTP sent successfully"),
      *   @OA\Response(response=400, description="Failed to generate OTP"),
      *   @OA\Response(response=401, description="Unauthenticated")
@@ -906,7 +906,7 @@ class ProfileController extends Controller
      *   summary="Verify OTP for email change",
      *   description="Validates the OTP entered by the user for email change.",
      *   operationId="emailChangeOtpVerification",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\MediaType(
@@ -943,7 +943,7 @@ class ProfileController extends Controller
      *   summary="Update user email",
      *   description="Updates the user's email after OTP verification.",
      *   operationId="updateEmailRequest",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\MediaType(
@@ -985,7 +985,7 @@ class ProfileController extends Controller
      *   summary="Verify and update user email",
      *   description="Verifies OTP and updates the user's email. Can also set the new email as primary.",
      *   operationId="verifyAndUpdateEmail",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\MediaType(
@@ -1041,7 +1041,7 @@ class ProfileController extends Controller
      *   summary="Add a new email",
      *   description="Adds a new email to the user’s account. If marked as primary, an OTP will be sent for verification.",
      *   operationId="addEmail",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\MediaType(
@@ -1097,7 +1097,7 @@ class ProfileController extends Controller
      *   summary="Get all emails linked to the user",
      *   description="Retrieves all email addresses associated with the logged-in user.",
      *   operationId="getAllEmail",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(response=200, description="List of emails retrieved successfully"),
      *   @OA\Response(response=401, description="Unauthenticated")
      * )
@@ -1117,7 +1117,7 @@ class ProfileController extends Controller
      *   summary="Retrieve Gravatar image for an email",
      *   description="Fetches the Gravatar profile image associated with the given email address.",
      *   operationId="getGravatar",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       @OA\MediaType(

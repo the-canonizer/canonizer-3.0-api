@@ -46,7 +46,7 @@ class ThreadsController extends Controller
      *   summary="Create a new thread",
      *   description="This API is used to create a new thread.",
      *   operationId="storeThread",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Thread creation payload",
@@ -182,7 +182,7 @@ class ThreadsController extends Controller
      *   summary="List threads",
      *   description="Retrieve a list of threads based on query parameters",
      *   operationId="getThreadList", 
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *         name="camp_num",
      *         in="query", 
@@ -448,7 +448,7 @@ class ThreadsController extends Controller
      *   summary="Update an existing thread",
      *   description="This API is used to update a thread's title.",
      *   operationId="updateThread",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -568,7 +568,7 @@ class ThreadsController extends Controller
      *   summary="Get thread details by ID",
      *   description="Fetches thread details based on the provided thread ID.",
      *   operationId="getThreadById",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -686,7 +686,7 @@ class ThreadsController extends Controller
      *   summary="Get the latest 5 threads",
      *   description="Fetches the latest 5 threads for a given camp and topic.",
      *   operationId="getLatest5Threads",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="camp_num",
      *       in="query",

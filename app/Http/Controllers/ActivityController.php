@@ -30,7 +30,7 @@ class ActivityController extends Controller
      *   summary="Get activity log",
      *   description="This is used to get activity log.",
      *   operationId="GetActivityLog",
-     *  security={{"bearerAuth":{}}},
+     *  security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get activity log",
@@ -99,7 +99,7 @@ class ActivityController extends Controller
      *   summary="Get 10 recent camp activity logs",
      *   description="This is used to get 10 recent camp activity logs.",
      *   operationId="GetCampActivityLog",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp recent activities",

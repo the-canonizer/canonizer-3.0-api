@@ -15,7 +15,7 @@ class NamespaceController extends Controller
      *   summary="Get all canons",
      *   description="This API retrieves all available canons in the system.",
      *   operationId="GetAllCanons",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Successful operation",

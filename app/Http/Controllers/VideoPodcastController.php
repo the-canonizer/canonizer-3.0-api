@@ -14,7 +14,7 @@ class VideoPodcastController extends Controller
      *   summary="Get data for What's New section",
      *   description="This API fetches data for the 'What's New' section.",
      *   operationId="GetDataForNewSection",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Successful operation",
