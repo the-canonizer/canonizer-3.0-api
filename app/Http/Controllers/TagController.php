@@ -156,6 +156,7 @@ class TagController extends Controller
      *   tags={"Tags"},
      *   summary="This API is used to associate a category with a user during registration",
      *   description="",
+     *   security={{"loginAuthToken":{}}},
      *   operationId="createUserTags",
      *   @OA\RequestBody(
      *     required=true,

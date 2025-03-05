@@ -17,7 +17,7 @@ class NicknameController extends Controller
      *   summary="Add New nick name",
      *   description="",
      *   operationId="addNickName",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Unique nickname required with max 50 characters",
@@ -101,7 +101,7 @@ class NicknameController extends Controller
      *     summary="Set a nickname as default",
      *     description="Sets a specific nickname as the default for the authenticated user.",
      *     operationId="setDefaultNickName",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Nickname ID to be set as default",
@@ -165,7 +165,7 @@ class NicknameController extends Controller
      *   summary="Update nickname visibility status",
      *   description="Updates the visibility status of a nickname.",
      *   operationId="updateNickName",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -227,7 +227,7 @@ class NicknameController extends Controller
      *     summary="Get a list of nicknames",
      *     description="Retrieves all nicknames associated with the authenticated user.",
      *     operationId="getNickNameList",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",

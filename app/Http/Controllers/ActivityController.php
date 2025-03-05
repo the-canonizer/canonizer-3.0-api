@@ -30,7 +30,7 @@ class ActivityController extends Controller
      *   summary="Get activity log",
      *   description="This is used to get activity log.",
      *   operationId="GetActivityLog",
-     *  security={{"clientAuth":{}}},
+     *  security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get activity log",
