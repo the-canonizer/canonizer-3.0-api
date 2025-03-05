@@ -6,176 +6,230 @@ use Illuminate\Console\Command;
 use App\Helpers\ElasticSearch;
 use App\Models\Search;
 use DB;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use App\Models\Topic;
+use App\Models\Nickname;
+use App\Models\Camp;
+use App\Models\Statement;
 
 class AddExsistingDataToElasticSearch extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'elasticsearch:import';
+    protected $description = 'Creates an index and imports all searchable data from MySQL to Elasticsearch';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'This will create and index and import all searchable data from mysql to elastic search database';
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
-         //execute procedure
-         DB::select("CALL sp_sync_data_to_elasticsearch");
-         $indexName = 'canonizer_elastic_search';
-         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-         $elasticsearch->indices()->delete(['index'=>'canonizer_elastic_search']);
- 
-         $body = Search::get();        
-         $mapping = [
+        Log::info('Starting Elasticsearch import at: ' . date('y-m-d-h-i-s'));
+
+        try {
+            // Sync data using stored procedure
+            DB::select("CALL sp_sync_data_to_elasticsearch");
+            
+            $indexName = 'canonizer_elastic_search';
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+
+            // Delete index if it exists
+            if ($elasticsearch->indices()->exists(['index' => $indexName])) {
+                $elasticsearch->indices()->delete(['index' => $indexName]);
+                Log::info("Index '{$indexName}' deleted successfully.");
+            }
+
+            // Fetch data from MySQL
+            $body = Search::get();
+            Log::info('Fetched ' . $body->count() . ' records from MySQL.');
+            
+            // Define index mapping
+            $mapping = [
                 'index' => $indexName,
-                'body' => [
+                'body'  => [
                     "settings" => [
                         "analysis" => [
-                          "tokenizer" => [
-                            "my_tokenizer" => [
-                                "type" =>  "whitespace"
+                            "tokenizer" => [
+                                "my_tokenizer" => [
+                                    "type" => "whitespace"
+                                ]
                             ],
-                          ],
-                          "char_filter" => [
-                            "replace_special_chars" => [
-                              "type" => "pattern_replace",
-                              "pattern"  => "[^\\p{L}\\p{N}#@$\\(\\)]+", //"[^\\p{L}\\p{N}#@$]+", //"[^\\p{L}\\p{N}]+", //"[^\\p{ASCII}]", //"[^a-zA-Z0-9]",
-                              "replacement"  => " "
+                            "char_filter" => [
+                                "replace_special_chars" => [
+                                    "type"        => "pattern_replace",
+                                    "pattern"     => "[^\\p{L}\\p{N}#@$\\(\\)]+",
+                                    "replacement" => " "
+                                ]
+                            ],
+                            "analyzer" => [
+                                "my_analyzer" => [
+                                    "type"        => "custom",
+                                    "tokenizer"   => "my_tokenizer",
+                                    "char_filter" => ["replace_special_chars"],
+                                    "filter"      => ["lowercase"]
+                                ]
                             ]
-                          ],
-                          "analyzer" => [
-                            "my_analyzer" => [
-                              "type" => "custom",
-                              "tokenizer" => "my_tokenizer",
-                              "char_filter" =>["replace_special_chars"],
-                              "filter" =>  ["lowercase"]
-                            ]
-                          ],
-                        ],
-                      ],
+                        ]
+                    ],
                     'mappings' => [
                         'properties' => [
-                            'id' => [
-                                'type' => 'text',
-                            ],
-                            'type' => [
-                                'type' => 'keyword',
-                            ],
-                            'type_value' => [
-                                'type' => 'text',
+                            'id'            => ['type' => 'keyword'],
+                            'is_live'       => ['type' => 'boolean'],
+                            'type'          => ['type' => 'keyword'],
+                            'type_value'    => [
+                                'type'     => 'text',
                                 'analyzer' => 'my_analyzer',
+                                'fields'   => [
+                                    'keyword' => [
+                                        'type' => 'keyword',
+                                        'ignore_above' => 256
+                                    ]
+                                ]
                             ],
-                            'topic_num' => [
-                                'type' => 'integer',
-                            ],
-                            'camp_num' => [
-                                'type' => 'integer',
-                            ],
-                            'statement_num' => [
-                                'type' => 'integer',
-                            ],
-                            'nick_name_id' => [
-                                'type' => 'integer',
-                            ],
-                            'go_live_time' => [
-                                'type' => 'text',
-                            ],
-                            'namespace' => [
-                                'type' => 'text',
-                            ],
-                            'link' => [
-                                'type' => 'text',
-                            ],
-                            'support_count' => [
-                                'type' => 'double',
-                            ],
-                            'breadcrumb' => [
-                                'type' => 'nested',
+                            'record_id'     => ['type' => 'integer'],
+                            'topic_num'     => ['type' => 'integer'],
+                            'camp_num'      => ['type' => 'integer'],
+                            'statement_num' => ['type' => 'integer'],
+                            'nick_name_id'  => ['type' => 'integer'],
+                            'go_live_time'  => ['type' => 'long'],
+                            'namespace'     => ['type' => 'keyword'],
+                            'link'          => ['type' => 'keyword'],
+                            'support_count' => ['type' => 'double'],
+                            'breadcrumb'    => [
+                                'type'       => 'nested',
                                 'properties' => [
-                                    'camp_num' => [
-                                        'type' => 'integer',
-                                    ],
-                                    'topic_num' => [
-                                        'type' => 'integer',
-                                    ],
-                                    'camp_name' => [
-                                        'type' => 'keyword',
-                                    ],
-                                    'topic_name' => [
-                                        'type' => 'keyword',
-                                    ],
-                                    'camp_link' => [
-                                        'type' => 'text',
-                                    ],
-                                    'go_live_time' => [
-                                        'type' => 'text',
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
+                                    'camp_num'    => ['type' => 'integer'],
+                                    'topic_num'   => ['type' => 'integer'],
+                                    'camp_name'   => ['type' => 'keyword'],
+                                    'topic_name'  => ['type' => 'keyword'],
+                                    'camp_link'   => ['type' => 'keyword'],
+                                    'go_live_time'=> ['type' => 'long']
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ];
- 
-         $elasticsearch->indices()->create($mapping);
- 
-         $bulkData = []; // An array to accumulate data for bulk indexing
-         foreach ($body as $key => $val) {
-             $bulkData[] = [
-                 'index' => [
-                     '_index' => $indexName,
-                     '_id' => $val->id,
-                 ]
-             ];
-             $bulkData[] = [
-                 'id' => $val->id,
-                 'type_value' => $val->type_value,
-                 'type' => $val->type,
-                 'camp_num' => $val->camp_num,
-                 'topic_num' => $val->topic_num,
-                 'statement_num' => $val->statement_num,
-                 'go_live_time' => $val->go_live_time,
-                 'nick_name_id' => $val->nick_name_id,
-                 'support_count' => $val->support_count,
-                 'namespace' => $val->namespace,
-                 'link' => $val->link,
-                 'breadcrumb_data' => $val->breadcrumb_data
-             ];
-         }
- 
-         // Use the Bulk API to send the data in a batch
-         $params = ['body' => $bulkData];
-         $response = $elasticsearch->bulk($params);
- 
-         // Process the response if needed
-         if ($response['errors']) {
-             echo "Bulk indexing had errors.";
-         } else {
-             echo "Bulk indexing completed successfully.";
-         }
-    
- 
-         echo 'Records inserted in elastic search are: ' . ($key+1);
+            
+            $elasticsearch->indices()->create($mapping);
+            Log::info("Index '{$indexName}' created successfully.");
+
+            // Process data in chunks
+            $batchSize = 250;
+            $records = $body->toArray();
+            $chunks = array_chunk($records, $batchSize);
+
+            foreach ($chunks as $chunk) {
+                $bulkData = [];
+                // Pre-fetch necessary data
+                $topicNames = Topic::whereIn("id", array_column($chunk, 'record_id'))->pluck('topic_name', 'id');
+                $nickNames =  Nickname::whereIn("id", array_column($chunk, 'record_id'))->pluck('nick_name', 'id');
+                $campNames = Camp::whereIn("id", array_column($chunk, 'record_id'))->pluck('camp_name', 'id');
+                $statementValues = Statement::whereIn("id", array_column($chunk, 'record_id'))->pluck('parsed_value', 'id');
+            
+                foreach ($chunk as $val) {
+                    $type_value = '';
+                    $breadcrumb_data = "";
+            
+                  
+                    
+                    switch ($val['type']) {
+                        case 'topic':
+                            $type_value = $topicNames[$val['record_id']] ?? '';
+                            break;
+                        
+                        case 'nickname':
+                            $type_value = $nickNames[$val['record_id']] ?? '';
+                            break;
+                        
+                        case 'camp':
+                            $campNum = $val['camp_num'];
+                            $topicNum = $val['topic_num'];
+                            $type_value = $campNames[$val['record_id']] ?? '';
+                            $liveTopic = Topic::getLiveTopic($topicNum);
+                            if ($liveTopic) {
+                                $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }else{
+                                $breadcrumb_data = "";
+                            }
+                            break;
+                        
+                        case 'statement':
+                            $campNum = $val['camp_num'];
+                            $topicNum = $val['topic_num'];
+                            $type_value = substr($statementValues[$val['record_id']] ?? '', 0, 500);
+                            $liveTopic = Topic::getLiveTopic($topicNum);
+                            if ($liveTopic) {
+                                $breadcrumb_data = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+                            }else{
+                                $breadcrumb_data = "";
+                            }
+                            break;
+                    }
+                    // **Fix Filtering Condition**
+                    if (($val['type'] === 'camp' || $val['type'] === 'statement') && (empty($breadcrumb_data))) {
+                        Log::info("Skipping Record ID: {$val['record_id']} {$val['type']} due to empty breadcrumb data.");
+                        continue; // Skip this record
+                    }
+                    $bulkData[] = ['index' => ['_index' => $indexName, '_id' => $val['id']]];
+
+                    $bulkData[] = [
+                        'id'             => $val['id'],
+                        'type_value'     => $type_value,
+                        'type'           => $val['type'],
+                        'camp_num'       => $val['camp_num'],
+                        'topic_num'      => $val['topic_num'],
+                        'statement_num'  => $val['statement_num'],
+                        'go_live_time'   => $val['go_live_time'],
+                        'nick_name_id'   => $val['nick_name_id'],
+                        'support_count'  => $val['support_count'],
+                        'namespace'      => $val['namespace'],
+                        'link'           => $val['link'],
+                        'is_live'        => $val['is_live'],
+                        'is_archive'     => $val['is_archive'],
+                        'breadcrumb_data'=> $breadcrumb_data,
+                        'record_id'      => $val['record_id']
+                    ];
+                }
+                
+                   // Log the payload size
+                $payloadSize = strlen(json_encode($bulkData)); // Get the payload size in bytes
+                Log::info('Payload size: ' . $payloadSize . ' bytes');
+                // Send bulk request to Elasticsearch with retry logic
+                $params = ['body' => $bulkData];
+                $maxRetries = 3;
+                $retries = 0;
+                $response = null;
+
+                while ($retries < $maxRetries) {
+                    try {
+                        $response = $elasticsearch->bulk($params);
+                        if (!empty($response['errors'])) {
+                            throw new Exception("Bulk indexing encountered errors.");
+                        }
+                        break;
+                    } catch (Exception $e) {
+                        $retries++;
+                        Log::warning("Bulk indexing attempt {$retries} failed: " . $e->getMessage());
+                        if ($retries >= $maxRetries) {
+                            Log::error('Bulk indexing failed after ' . $maxRetries . ' attempts.');
+                            $this->error('Some records failed to index. Check logs.');
+                        }
+                    }
+                }
+            
+                // Refresh index after each batch
+                $elasticsearch->indices()->refresh(['index' => $indexName]);
+            }
+
+            Log::info('Bulk indexing completed successfully.');
+            $this->info('Bulk indexing completed successfully.');
+        } catch (Exception $e) {
+            Log::error('Elasticsearch import error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $this->error('An error occurred. Check logs for details.');
+        }
+
+        Log::info('Elasticsearch import finished at: ' . date('y-m-d-h-i-s'));
     }
 }

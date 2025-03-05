@@ -23,6 +23,7 @@ use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
 use App\Events\NotifyAdministratorEvent;
 use App\Http\Request\ValidationMessages;
+use Illuminate\Support\Str;
 
 class NotificationController extends Controller
 {
@@ -234,13 +235,13 @@ class NotificationController extends Controller
                         break;
                     case config('global.notification_type.Thread'):
                     case config('global.notification_type.Post'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name . '/threads/' . $value->thread_id;
+                        $value->url = config('global.APP_URL_FRONT_END') . '/forum/' . $topic->topic_num . '-' . Str::slug($topic->topic_name) . '/' . $camp->camp_num . '-' . Str::slug($camp->camp_name) . '/threads/' . $value->thread_id;
                         break;
                     case config('global.notification_type.Statement'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                        $value->url = config('global.APP_URL_FRONT_END') . '/statement/history/' . $topic->topic_num . '-' . Str::slug($topic->topic_name) . '/' . $camp->camp_num . '-' . Str::slug($camp->camp_name);
                         break;
                     case config('global.notification_type.Support'):
-                        $value->url = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . $topic->topic_name . '/' . $camp->camp_num . '-' . $camp->camp_name;
+                        $value->url = config('global.APP_URL_FRONT_END') . '/topic/' . $topic->topic_num . '-' . Str::slug($topic->topic_name) . '/' . $camp->camp_num . '-' . Str::slug($camp->camp_name);
                         break;
                     case config('global.notification_type.objectCamp'):
                         $value->url = config('global.APP_URL_FRONT_END') . '/camp/history/' . $topic->topic_num . '-' . Util::replaceSpecialCharacters($topic->topic_name) . '/' . $camp->camp_num . '-' . Util::replaceSpecialCharacters($camp->camp_name);

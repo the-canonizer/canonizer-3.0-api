@@ -19,8 +19,24 @@ class ElasticSearch
             ->build();
     }
 
-    public static function ingestData($id, $type, $typeValue, $topicNum = 0, $campNum = 0, $link, $goLiveTime = 0, $namespace = null, $breadcrumb = '', $statementNum = '', $nickNameId = '', $supportCount = '')
+    public static function ingestData($id, 
+                                    $type, 
+                                    $typeValue, 
+                                    $topicNum = 0, 
+                                    $campNum = 0, 
+                                    $link, 
+                                    $goLiveTime = 0, 
+                                    $namespace = null, 
+                                    $breadcrumb = '', 
+                                    $isLive,
+                                    $isArchive,
+                                    $statementNum = '', 
+                                    $nickNameId = '', 
+                                    $supportCount = ''
+                                    )
     {
+        $isLiveValue = filter_var($isLive, FILTER_VALIDATE_BOOLEAN); 
+        $isArchiveValue = filter_var($isArchive, FILTER_VALIDATE_BOOLEAN); 
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
         $bulkData = []; // An array to accumulate data for bulk indexing
              $bulkData[] = [
@@ -42,15 +58,19 @@ class ElasticSearch
                 'namespace' => $namespace,
                 'link' => $link,
                 'breadcrumb_data' => $breadcrumb,
+                'is_live'=> $isLiveValue,
+                'is_archive' => $isArchiveValue
             ];
+            \Log::info("nicknamesss");
         // Use the Bulk API to send the data in a batch
         $params = ['body' => $bulkData];
+        \Log::info($bulkData);
         $response = $elasticsearch->bulk($params);
         \Log::info($response);
         return;
 
     }
-
+    
     public static function deleteData($id)
     {
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;

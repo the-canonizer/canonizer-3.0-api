@@ -384,6 +384,7 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
+            $topic->load('tags');
             $topic->tags->makeHidden(['pivot']);
             // $topic->tags = $topic->tags_array;
             if ($request->user()) {
@@ -1503,28 +1504,33 @@ class TopicController extends Controller
                    // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
                    // $topic->save();
                     $esBool = Topic::updateElasticSearch($topic);
-                    if($esBool){
-                        $activityMsg = 'Elastic search updated for topic update / rename topic name is performed.';
-                    }else{
-                        $activityMsg = 'Elastic search updated for topic update / rename topic name is not performed';
-                    }
+                    /**
+                     * Below code is commented due to following tickets:
+                     * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1668
+                     * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1609
+                     */
+                    // if($esBool){
+                    //     $activityMsg = 'Elastic search updated for topic update / rename topic name is performed.';
+                    // }else{
+                    //     $activityMsg = 'Elastic search updated for topic update / rename topic name is not performed';
+                    // }
 
-                    $activityLogData = [
-                        'log_type' =>  "topic/camps",
-                        'activity' => $activityMsg,
-                        'url' => '',
-                        'model' => $topic,
-                        'topic_num' => $topic->topic_num,
-                        'camp_num' =>  1,
-                        'user' => $request->user(),
-                        'nick_name' => '',
-                        'description' => $topic->topic_name
-                    ];
-                    try {
-                        dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
-                     } catch (Exception $e) {
-                        return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-                    }
+                    // $activityLogData = [
+                    //     'log_type' =>  "topic/camps",
+                    //     'activity' => $activityMsg,
+                    //     'url' => '',
+                    //     'model' => $topic,
+                    //     'topic_num' => $topic->topic_num,
+                    //     'camp_num' =>  1,
+                    //     'user' => $request->user(),
+                    //     'nick_name' => '',
+                    //     'description' => $topic->topic_name
+                    // ];
+                    // try {
+                    //     dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+                    //  } catch (Exception $e) {
+                    //     return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+                    // }
 
                     Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();

@@ -1,5 +1,5 @@
 <?php
-
+use Illuminate\Support\Facades\Artisan;
 /** @var \Laravel\Lumen\Routing\Router $router */
 
 /*
@@ -18,6 +18,7 @@ $router->get('/key', function() {
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
 
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
 $router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
@@ -86,6 +87,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/featured-topic', 'TopicController@featuredTopic');
         $router->post('get-tags-list','TagController@getTagsList');
         $router->post('get-sibling-camps','CampController@getSiblingCamps');
+        $router->post('/get-change-supporters','SupportController@getChangeSupporters');
         //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
@@ -155,7 +157,6 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
         $router->get('/support-reason-list','SupportController@getSupportReason');
 
-        $router->post('/get-change-supporters','SupportController@getChangeSupporters');
         $router->get('/preferred-topic', 'TopicController@preferredTopic');
         $router->post('/create/user/tags', 'TagController@createUserTags');
         $router->post('camp/sign','CampController@signPetition');
