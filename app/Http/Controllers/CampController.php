@@ -56,7 +56,7 @@ class CampController extends Controller
      *   summary="Save camp",
      *   description="This API is used to save a camp.",
      *   operationId="campSave",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Request Body JSON Parameter",
@@ -421,7 +421,7 @@ class CampController extends Controller
      *   summary="Get All Parent",
      *   description="This API is used to get all parent camps",
      *   operationId="allParent",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Request Body JSON Parameter",
@@ -549,7 +549,7 @@ class CampController extends Controller
      *     path="/camp/all-about-nickname",
      *     summary="API to get all nicknames",
      *     tags={"Camp"},
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -616,7 +616,7 @@ class CampController extends Controller
      *     summary="Get Topic Nick Name Used",
      *     description="This API retrieves the nicknames used for a specific topic.",
      *     operationId="getTopicNickNameUsed",
-     *     security={{"clientAuth":{}}},
+     *     security={{"loginAuthToken":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Request Body JSON Parameter",
@@ -700,7 +700,7 @@ class CampController extends Controller
      *   summary="Subscribe or unsubscribe to a camp or all topic camps",
      *   description="This API is used to subscribe or unsubscribe to a specific camp or all topic camps.",
      *   operationId="campSubscription",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Subscribe or unsubscribe to a camp or topic",
@@ -825,7 +825,7 @@ class CampController extends Controller
      *   summary="List subscriptions",
      *   description="This is used to get the subscription list",
      *   operationId="subscriptionList",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\Parameter(
      *         name="page",
      *         in="query",
@@ -1192,7 +1192,7 @@ class CampController extends Controller
      *   summary="Get camp record",
      *   description="Get camp details for editing",
      *   operationId="editCampRecord",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Edit camp",
@@ -1264,7 +1264,7 @@ class CampController extends Controller
      *   summary="Edit/update/object camp",
      *   description="This API is used to edit, update and object a camp.",
      *   operationId="edit/update/object-CampHistory",
-     *  security={{"clientAuth":{}}},
+     *  security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Manage camp",
@@ -1664,7 +1664,7 @@ class CampController extends Controller
      *   summary="Sign a Petition",
      *   description="Allows a user to sign a petition for a specific topic and camp.",
      *   operationId="signPetition",
-     *   security={{"clientAuth":{}}},
+     *   security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Sign petition request",
