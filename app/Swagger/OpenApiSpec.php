@@ -16,14 +16,22 @@ use OpenApi\Annotations as OA;
  *     ),
  *     @OA\Server(
  *         description="Local API Server",
- *         url="http://canonizer3.local/api/v3"
+ *         url="http://canonizer.local/api/v3"
  *     ),
  *     @OA\Components(
  *         @OA\SecurityScheme(
- *             securityScheme="bearerAuth",
+ *             securityScheme="clientAuth",
  *             type="http",
  *             scheme="bearer",
- *             bearerFormat="JWT"
+ *             bearerFormat="JWT",
+ *             description="Enter your bearer token in the text input below. Obtain your token by making a POST request to /client-token API."
+ *         ),
+ *         @OA\SecurityScheme(
+ *              securityScheme="loginAuthToken",
+ *              type="http",
+ *              scheme="bearer",
+ *              bearerFormat="JWT",
+ *              description="Enter your bearer token in the text input below. Obtain your token by making a POST request to /user/login API."
  *         ),
  *         @OA\Response(
  *             response="400BadRequest",

@@ -37,7 +37,7 @@ class ForgotPasswordController extends Controller
      *   summary="Send OTP for Forgot Password",
      *   description="Sends a one-time password (OTP) to the user's registered email for password reset.",
      *   operationId="forgotPassword",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="User's email address",
@@ -130,7 +130,7 @@ class ForgotPasswordController extends Controller
      *   summary="Verify OTP for Forgot Password",
      *   description="This API verifies the OTP sent to the user's email for password reset.",
      *   operationId="forgotPasswordVerifyOtp",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Request body with email and OTP",
@@ -225,7 +225,7 @@ class ForgotPasswordController extends Controller
      *   summary="Update Password",
      *   description="This API allows users to update their password after verifying their identity.",
      *   operationId="forgotPasswordUpdate",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="User credentials for password update",

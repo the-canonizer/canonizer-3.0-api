@@ -39,7 +39,7 @@ class UploadController extends Controller
      *   summary="Create or update a folder",
      *   description="Creates a new folder or updates an existing folder's name for the authenticated user.",
      *   operationId="addFolder",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Folder data",
@@ -140,7 +140,7 @@ class UploadController extends Controller
      *   summary="Upload files to s3 ",
      *   description="This is used to upload files in bulk",
      *   operationId="uploadFiles",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *    @OA\RequestBody(
      *     required=true,
      *     description="",
@@ -227,7 +227,7 @@ class UploadController extends Controller
      *   summary="Delete  folder",
      *   description="This API is used to delete a created folder if no file exists inside that folder",
      *   operationId="folderDelete",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -310,7 +310,7 @@ class UploadController extends Controller
      *   summary="Retrieve uploaded files and folders",
      *   description="Fetches the list of uploaded files and folders for the authenticated user.",
      *   operationId="getUploadedFiles",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Successful retrieval of files and folders",
@@ -396,7 +396,7 @@ class UploadController extends Controller
      *   summary="Retrieve files from a specific folder",
      *   description="Fetches the list of files within a specified folder by folder ID.",
      *   operationId="getFolderFiles",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -478,7 +478,7 @@ class UploadController extends Controller
      *   summary="Delete  file",
      *   description="This API is used to delete a uploaded file if not used in any statement",
      *   operationId="fileDelete",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -562,7 +562,7 @@ class UploadController extends Controller
      *   summary="Search uploaded files globally",
      *   description="Search for uploaded files based on file name and date range for the authenticated user.",
      *   operationId="getGlobalSearchUploadedFiles",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="query",
      *       in="query",

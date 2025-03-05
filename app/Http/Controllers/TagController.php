@@ -35,7 +35,7 @@ class TagController extends Controller
      *     description="Retrieve tags added by the admin.",
      *     tags={"Tags"},
      *     operationId="getTagsList",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=false,
      *         description="Filter and paginate tags list",

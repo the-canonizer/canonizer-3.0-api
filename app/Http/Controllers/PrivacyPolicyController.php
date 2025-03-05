@@ -15,7 +15,7 @@ class PrivacyPolicyController extends Controller
      *   summary="Get Privacy Policy Content",
      *   description="This API retrieves the full privacy policy content.",
      *   operationId="getPrivacyPolicyContent",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Privacy policy content retrieved successfully",

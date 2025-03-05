@@ -17,7 +17,7 @@ class NicknameController extends Controller
      *   summary="Add New nick name",
      *   description="",
      *   operationId="addNickName",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     description="Unique nickname required with max 50 characters",
@@ -101,7 +101,7 @@ class NicknameController extends Controller
      *     summary="Set a nickname as default",
      *     description="Sets a specific nickname as the default for the authenticated user.",
      *     operationId="setDefaultNickName",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Nickname ID to be set as default",
@@ -165,7 +165,7 @@ class NicknameController extends Controller
      *   summary="Update nickname visibility status",
      *   description="Updates the visibility status of a nickname.",
      *   operationId="updateNickName",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="id",
      *       in="path",
@@ -227,7 +227,7 @@ class NicknameController extends Controller
      *     summary="Get a list of nicknames",
      *     description="Retrieves all nicknames associated with the authenticated user.",
      *     operationId="getNickNameList",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -275,7 +275,7 @@ class NicknameController extends Controller
      *     summary="Get users who support a given nickname",
      *     description="Retrieves the list of users who support a specific nickname.",
      *     operationId="getNickSupportUser",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="nick_id",
      *         in="path",

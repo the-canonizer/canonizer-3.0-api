@@ -36,7 +36,7 @@ class NewsFeedController extends Controller
      *   summary="Get camp newsfeed",
      *   description="This is used to get camp newsfeed.",
      *   operationId="getCampNewsFeed",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get Newsfeed",
@@ -122,7 +122,7 @@ class NewsFeedController extends Controller
      *   summary="Update camp newsfeed",
      *   description="This is used to update camp newsfeed.",
      *   operationId="updateCampNewsFeed",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Update Camp Newsfeed",
@@ -236,7 +236,7 @@ class NewsFeedController extends Controller
      *   summary="Store camp newsfeed",
      *   description="This is used to store camp newsfeed.",
      *   operationId="storeCampNewsFeed",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Store Camp Newsfeed",
@@ -338,7 +338,7 @@ class NewsFeedController extends Controller
      *   summary="Delete camp newsfeed",
      *   description="This is used to delete camp newsfeed.",
      *   operationId="deleteCampNewsFeed",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Delete camp newsfeed",
@@ -408,7 +408,7 @@ class NewsFeedController extends Controller
      *     summary="Edit Camp Newsfeed",
      *     description="This API is used to update a camp newsfeed record.",
      *     operationId="editCampNewsFeed",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Edit Camp Newsfeed",

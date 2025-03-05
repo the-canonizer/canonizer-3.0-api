@@ -23,7 +23,7 @@ class VideoController extends Controller
      *   summary="Retrieve a list of videos",
      *   description="Get a list of videos categorized by their respective categories.",
      *   operationId="getVideos",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Response(
      *       response=200,
      *       description="Successful response",
@@ -96,7 +96,7 @@ class VideoController extends Controller
      *   summary="Retrieve a list of videos by category",
      *   description="Fetches videos for a given category ID, including their available resolutions.",
      *   operationId="getVideosByCategory",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *       name="category",
      *       in="path",

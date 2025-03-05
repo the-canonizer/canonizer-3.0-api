@@ -50,7 +50,7 @@ class SupportController extends Controller
      *     description="Adds direct support to a topic.",
      *     tags={"Support"},
      *     operationId="support/add",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody( 
      *         required=true,
      *         @OA\JsonContent(
@@ -158,7 +158,7 @@ class SupportController extends Controller
      *     description="Adds delegate support to a topic.",
      *     tags={"Support"},
      *     operationId="support/add-delegate",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -234,7 +234,7 @@ class SupportController extends Controller
      *     description="Removes support from a topic.",
      *     tags={"Support"},
      *     operationId="support/update",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -317,7 +317,7 @@ class SupportController extends Controller
      *     description="Removes delegate support from a topic.",
      *     tags={"Support"},
      *     operationId="support/remove-delegate",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -385,7 +385,7 @@ class SupportController extends Controller
      *     description="Updates the order of support for a topic.",
      *     tags={"Support"},
      *     operationId="support-order/update",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -445,7 +445,7 @@ class SupportController extends Controller
      *     description="Retrieve the list of camps supported by the user in a specific topic.",
      *     tags={"Support"},
      *     operationId="getSupportInTopic",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Retrieve support information for a given topic",
@@ -509,7 +509,7 @@ class SupportController extends Controller
      *     description="Retrieves the support and count for a specific camp.",
      *     tags={"Support"},
      *     operationId="support-and-score-count",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -563,7 +563,7 @@ class SupportController extends Controller
      *     summary="Get Camp Total Support Score",
      *     tags={"Support"},
      *     operationId="camp-total-support-score",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="algorithm",
      *         in="query",
@@ -647,7 +647,7 @@ class SupportController extends Controller
      *     summary="Get Support Reasons",
      *     description="Retrieves a list of support reasons.",
      *     operationId="support-reason-list",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     tags={"Support"},
      *     @OA\Response(
      *         response=200,
@@ -687,7 +687,7 @@ class SupportController extends Controller
      *   summary="Get supporter count",
      *   description="Used to get supporter count for camp, topic, and statement.",
      *   operationId="getChangeSupporters",
-     *   security={{"bearerAuth":{}}},
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Discard change",
@@ -810,7 +810,7 @@ class SupportController extends Controller
      *     description="Checks if the user has already signed the camp.",
      *     tags={"Support"},
      *     operationId="campSignCheck",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="topic_num",
      *         in="query",
@@ -914,7 +914,7 @@ class SupportController extends Controller
      *     description="Checks whether a user has support for a specific topic and camp.",
      *     tags={"Support"},
      *     operationId="checkIfSupportExist",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="topic_num",
      *         in="query",
@@ -1097,7 +1097,7 @@ class SupportController extends Controller
           *     summary="Fetch direct supported camps",
           *     description="Retrieves a list of camps directly supported by the user.",
           *     operationId="getDirectSupportedCamps",
-          *     security={{"bearerAuth":{}}},
+          *     security={{"clientAuth":{}}},
           *     @OA\Parameter(
           *         name="page",
           *         in="query",
@@ -1158,7 +1158,7 @@ class SupportController extends Controller
      *     summary="Fetch delegated supported camps",
      *     description="Retrieves a list of camps that the user has delegated support for.",
      *     operationId="getDelegatedSupportedCamps",
-     *     security={{"bearerAuth":{}}},
+     *     security={{"clientAuth":{}}},
      *     @OA\Parameter(
      *         name="page",
      *         in="query",
