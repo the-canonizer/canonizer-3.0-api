@@ -151,9 +151,8 @@ class ActivityController extends Controller
                     'is_show_all_btn' => $is_show_all_btn,
                 ];
             }
-
             if (count($log) < 1) 
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.no_activity_logged'));
+                return $this->resProvider->apiJsonResponse(200, '', null, trans('message.error.no_activity_logged'));
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {
