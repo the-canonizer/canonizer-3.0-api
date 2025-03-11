@@ -310,8 +310,101 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *   path="/commit/change",
+     * @OA\Post(path="/get-topic-record",
+     *   tags={"Topic"},
+     *   summary="get topic record",
+     *   description="Used to get topic record.",
+     *   operationId="getTopicRecord",
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Get topic records",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="topic number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="camp_num",
+     *                   description="Camp number is required",
+     *                   required=true,
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of",
+     *                   description="As of filter type",
+     *                   required=false,
+     *                   type="string",
+     *               ),
+     *               @OA\Property(
+     *                   property="as_of_date",
+     *                   description="As of filter date",
+     *                   required=false,
+     *                   type="string",
+     *               )
+     *         )
+     *      )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
+    public function getTopicRecord(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicRecordValidationRules(), $this->validationMessages->getTopicRecordValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['asOf'] = $request->as_of;
+        $filter['asOfDate'] = $request->as_of_date;
+        $filter['campNum'] = $request->camp_num;
+        try {
+            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
+            if (!$topic) {
+                $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
+            }
+            if (!$topic)
+                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
+
+            $namespace = Namespaces::find($topic->namespace_id);
+            $namespaceLabel = '';
+            if (!empty($namespace)) {
+                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
+            }
+            $topic->namespace_name = $namespaceLabel;
+            $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
+            $topic->topicSubscriptionId = "";
+            $topic->camp_num =  $topic->camp_num ?? 1;
+            $topic->load('tags');
+            $topic->tags->makeHidden(['pivot']);
+            // $topic->tags = $topic->tags_array;
+            if ($request->user()) {
+                $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
+                $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
+            }
+            $topicRecord[] = $topic;
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time', 'tags'];
+            $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
+            $topicRecord = $topicRecord[0];
+
+            if ($topic && $filter['asOf'] === 'default') {
+                $inReviewChangesCount = Helpers::getChangesCount((new Topic()), $request->topic_num, $request->camp_num);
+                $topicRecord = array_merge($topicRecord, ['in_review_changes' => $inReviewChangesCount]);
+            }
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Post(path="/commit/change",
      *   tags={"Topic"},
      *   summary="Commit a change",
      *   description="Used to commit a change for camp, topic, and statement.",
