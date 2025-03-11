@@ -7,62 +7,107 @@ use App\Models\SocialMediaLink;
 class SocialMediaLinkController extends Controller
 {
 
-     /**
-     * @OA\Post(path="/get_social_media_links",
-     *   tags={"social media", "links"},
-     *   summary="Get social media links",
-     *   description="This api used to get social media links",
-     *   operationId="GetAllSocialLinks",
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="array"
-     *                                    )
-     *                                 )
-     *                            )
-     *
-     *   @OA\Response(response=400, description="Exception occurs",
-     *                             @OA\JsonContent(
-     *                                 type="array",
-     *                                 @OA\Items(
-     *                                         name="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="error",
-     *                                         type="array"
-     *                                    ),
-     *                                    @OA\Items(
-     *                                         name="data",
-     *                                         type="string"
-     *                                    )
-     *                                 )
-     *                             )
-     * 
+
+    /**
+     * @OA\Get(
+     *     path="/get-social-media-links",
+     *     tags={"Social Media Links"},
+     *     summary="Get social media links",
+     *     description="This API retrieves a list of social media links.",
+     *     operationId="GetAllSocialLinks",
+     *     security={{"clientAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status_code",
+     *                 type="integer",
+     *                 example=200
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Success"
+     *             ),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(
+     *                         property="id",
+     *                         type="integer",
+     *                         description="Unique identifier of the social media link",
+     *                         example=1
+     *                     ),
+     *                     @OA\Property(
+     *                         property="label",
+     *                         type="string",
+     *                         description="Name of the social media platform",
+     *                         example="Facebook"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="link",
+     *                         type="string",
+     *                         format="url",
+     *                         description="URL of the social media page",
+     *                         example="https://www.facebook.com/pages/Canonizer.com/103927141540408/"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="icon",
+     *                         type="string",
+     *                         description="Icon path for the social media link",
+     *                         example="/social-media/facebook.svg"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="order_number",
+     *                         type="integer",
+     *                         description="Display order of the social media link",
+     *                         example=1
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Exception occurs",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status_code",
+     *                 type="integer",
+     *                 example=400
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="An error occurred"
+     *             ),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="Error details"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="string",
+     *                 nullable=true,
+     *                 example=null
+     *             )
+     *         )
+     *     )
      * )
      */
 
-     /**
-      * Get all social media links
-      */
     public function getLinks()
     {
         try {
@@ -71,6 +116,5 @@ class SocialMediaLinkController extends Controller
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
-
     }
 }
