@@ -40,7 +40,7 @@ class CampController extends Controller
     protected $resProvider;
     protected $rules;
     protected $validationMessages;
-    
+
     public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
     {
         $this->rules = $rules;
@@ -200,7 +200,7 @@ class CampController extends Controller
             } else {
                 $request->merge(['camp_about_nick_id' => $request->camp_about_nick_id ?? ""]);
             }
-            
+
             $nextCampNum = Camp::where('topic_num', $request->topic_num)->max('camp_num');
             $nextCampNum++;
             $input = [
@@ -395,7 +395,7 @@ class CampController extends Controller
             if ($livecamp && $filter['asOf'] === 'default') {
                 $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
                 $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
-            } 
+            }
             // This case is no more useful, because it was due to handling of camp create button in archive.
             // Now create camp is no more available when archived, so this case is no more useful.
             // else {
@@ -514,6 +514,12 @@ class CampController extends Controller
             foreach ($result as $key => $val) {
                 $supportOrder = Support::where('camp_num', $val->camp_num)->where('topic_num', $val->topic_num)->where('nick_name_id', $val->submitter_nick_id)->first();
                 $val->support_order = $supportOrder->support_order ?? null;
+
+                $parentStatus = Camp::checkIfParentCampDisabledSubCampFunctionality($val);
+
+                $val->parent_is_disabled = $parentStatus['is_disabled'];
+                $val->parent_is_one_level = $parentStatus['is_one_level'];
+
             }
             $keys = array_column($result, 'camp_name');
             array_multisort($keys, SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE, $result);
@@ -732,7 +738,7 @@ class CampController extends Controller
      *               )
      *           )
      *       )
-     *   ), 
+     *   ),
      *   @OA\Response(
      *       response=200,
      *       description="Success",
@@ -833,7 +839,7 @@ class CampController extends Controller
      *         description="Add page field in query parameters",
      *         @OA\Schema(
      *              type="integer"
-     *         ) 
+     *         )
      *   ),
      *   @OA\Parameter(
      *         name="per_page",
@@ -842,7 +848,7 @@ class CampController extends Controller
      *         description="Add per_page field in query parameters",
      *         @OA\Schema(
      *              type="integer"
-     *         ) 
+     *         )
      *   ),
      *   @OA\Response(
      *       response=200,
@@ -1012,7 +1018,7 @@ class CampController extends Controller
         try {
             $livecamp = Camp::getLiveCamp($filter);
 
-            /* Handle the logic when asofdate is past and user create camp today, so in this scenario 
+            /* Handle the logic when asofdate is past and user create camp today, so in this scenario
             we need breadcrumb to include all parents of camp. And if it has no parent it will show Agreement
             camp in breadcrumb.
             */
@@ -1088,14 +1094,14 @@ class CampController extends Controller
      *                   description="Number of records per page",
      *                   type="integer",
      *                   example=10
-     *               ), 
+     *               ),
      *                  @OA\Property(
      *                   property="page",
      *                   description="Page Number",
      *                   type="integer",
      *                   example=1
      *               )
-     * 
+     *
      *           )
      *       )
      *   ),
@@ -1401,8 +1407,8 @@ class CampController extends Controller
                     return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_archive_change_is_already_submitted'), '', '');
                 }
                 $camp = $this->updateCamp($all);
-                // /* Now every change have grace_period must , so due to this the change 
-                //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all 
+                // /* Now every change have grace_period must , so due to this the change
+                //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all
                 //     changes except the unit test case.
                 // */
                 $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
@@ -1465,7 +1471,7 @@ class CampController extends Controller
 
             $camp->save();
             $topic = $camp->topic;
-            $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update   
+            $liveCamp = Camp::getLiveCamp($filter); // Getting live camp after update
             $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, $camp->num, $topic, $liveCamp);
             $message = trans('message.success.success');
             if ($all['event_type'] == "objection") {
@@ -1497,7 +1503,7 @@ class CampController extends Controller
 
                 //    $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "parent_change", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-                //     Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " changed the parent of camp   " . $camp->camp_name, "parent_change", $camp->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);    
+                //     Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $nickName . " changed the parent of camp   " . $camp->camp_name, "parent_change", $camp->id, $all['old_parent_camp_num'], $all['parent_camp_num'], null, time(), $timeline_url);
                 // }
                 // //end of timeline
 
@@ -1509,7 +1515,7 @@ class CampController extends Controller
 
                 //         $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $camp->camp_num, $camp->camp_name, $topic->topic_name, "update_camp", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-                //         Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "update_camp", $camp->id, null, null, null, time(), $timeline_url);   
+                //         Util::dispatchTimelineJob($topic->topic_num, $camp->camp_num, 1, $timelineMessage, "update_camp", $camp->id, null, null, null, time(), $timeline_url);
                 //     }
                 // }
                 // //end of timeline
@@ -1581,7 +1587,7 @@ class CampController extends Controller
      */
 
     public function getSiblingCamps(Request $request, Validate $validate) {
-        
+
         try {
             $validationErrors = $validate->validate($request, $this->rules->getSiblingCampsValidationRules(), $this->validationMessages->getSiblingCampsValidationMessages());
             if ($validationErrors) {
@@ -1597,7 +1603,7 @@ class CampController extends Controller
                 // in case of root Agreement camp, there's no sibling camps
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), [], '');
             }
-            
+
             $siblingCamps = Camp::select('topic_num', 'camp_num', 'camp_name', 'submit_time', 'go_live_time')
                         ->where([
                             ['topic_num', '=', $filter['topicNum']],
@@ -1622,10 +1628,10 @@ class CampController extends Controller
                         ->orderBy('go_live_time', 'desc')
                         ->take(3)
                         ->get();
-                    
+
             if (count($siblingCamps)) {
                 $liveTopic = Topic::getLiveTopic($filter['topicNum'], ['nofilter' => true]);
-                
+
 
                 foreach ($siblingCamps as $camp) {
                     $supporters = Support::getAllSupporterOfTopic($camp->topic_num, $camp->camp_num);
