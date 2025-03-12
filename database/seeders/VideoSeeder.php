@@ -108,6 +108,15 @@ class VideoSeeder extends Seeder
             ],
             [
                 'id' => 11,
+                'title' => 'Out Of Body Experiences',
+                'link' => 'out_of_body_experiences',
+                'thumbnail' => 'out_of_body_experiences.png',
+                'extension' => 'mp4',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'id' => 12,
                 'title' => 'Conclusion',
                 'link' => 'conclusion',
                 'thumbnail' => 'conclusion_thumb.png',
