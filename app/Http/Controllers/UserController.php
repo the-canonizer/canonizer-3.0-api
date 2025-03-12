@@ -33,6 +33,7 @@ use App\Http\Resources\Authentication\UserResource;
 use App\Models\SocialDataDeletionRequest;
 use App\Models\Topic;
 use Illuminate\Support\Str;
+use App\Helpers\Aws;
 
 class UserController extends Controller
 {
@@ -147,6 +148,7 @@ class UserController extends Controller
      *   summary="Register a new user",
      *   description="Creates a new user with provided details and sends OTP for verification.",
      *   operationId="createUser",
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="User registration data",
@@ -246,8 +248,8 @@ class UserController extends Controller
     public function createUser(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getRegistrationValidationRules(), $this->validationMessages->getRegistrationValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+         if ($validationErrors) {
+             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
             $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
@@ -267,11 +269,10 @@ class UserController extends Controller
                 } elseif ($validateRecaptcha->data['score'] < 0.5) {
                     $message = "The reCAPTCHA verification score is too low.";
                 }
-
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $authCode = mt_rand(100000, 999999);
-            //$authCode = 454545;
+            $profile_picture_path= $this->getGravatar($request->email);
             $input = [
                 "first_name" => $request->first_name,
                 "last_name" => $request->last_name,
@@ -280,11 +281,11 @@ class UserController extends Controller
                 "phone_number" => $request->phone_number,
                 "country_code" => $request->country_code,
                 "password" => Hash::make($request->password),
-                "otp" => $authCode
+                "otp" => $authCode,
+                "profile_picture_path" => $profile_picture_path
             ];
 
             $user = User::create($input);
-
             if ($user) {
                 $nickname = $user->first_name . (empty($user->last_name) ? '' : '-') . $user->last_name;
                 $this->createNickname($user->id, $nickname);
@@ -309,7 +310,7 @@ class UserController extends Controller
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
-
+   
     /**
      * @OA\Post(
      *   path="/user/login",
@@ -1980,4 +1981,55 @@ class UserController extends Controller
         return $this->resProvider->apiJsonResponse($status, $message, $data, null);
     }
 
+    private function getGravatar($email)
+    {
+        $emailHash = md5(strtolower(trim($email)));
+        $gravatarUrl = "https://www.gravatar.com/avatar/$emailHash?d=404";
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $gravatarUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+        $imageData = curl_exec($ch);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+
+        if ($imageData === "404 Not Found" || empty($contentType)) {
+            return null;
+        }
+
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/bmp' => 'bmp',
+            'image/svg+xml' => 'svg',
+        ];
+
+        if (!isset($extensions[$contentType])) {
+            Log::warning("Unknown content type $contentType for gravatar", ['email' => $email]);
+            return null;
+        }
+
+        $extension = $extensions[$contentType];
+        $filename = 'profile/' . $emailHash . '.' . $extension;
+        $tempFile = tempnam(sys_get_temp_dir(), 'gravatar');
+        file_put_contents($tempFile, $imageData);
+
+        try {
+            Aws::uploadFile($filename, $tempFile, [
+                'ACL' => 'public-read',
+                'ContentType' => $contentType
+            ]);
+        } catch (Exception $e) {
+            Log::error("Error uploading gravatar to S3", ['email' => $email, 'exception' => $e]);
+            return null;
+        } finally {
+            unlink($tempFile);
+        }
+
+        return urlencode($filename);
+    }
 }
