@@ -310,49 +310,90 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-topic-record",
+     * @OA\Post(
+     *   path="/get-topic-record",
      *   tags={"Topic"},
-     *   summary="get topic record",
-     *   description="Used to get topic record.",
+     *   summary="Retrieve a topic record",
+     *   description="Fetches a topic record based on filters such as topic number, camp number, and timestamp.",
      *   operationId="getTopicRecord",
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get topic records",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of",
-     *                   description="As of filter type",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of_date",
-     *                   description="As of filter date",
-     *                   required=false,
-     *                   type="string",
-     *               )
-     *         )
-     *      )
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               example=116,
+     *               description="The topic number"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of",
+     *               type="string",
+     *               example="default",
+     *               description="As of filter (e.g., 'default', timestamp)"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of_date",
+     *               type="integer",
+     *               example=1709078400,
+     *               description="As of date in timestamp format"
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               type="integer",
+     *               example=1,
+     *               description="The camp number associated with the topic"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of the topic record",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="topic_num", type="integer", example=116),
+     *               @OA\Property(property="camp_num", type="integer", example=1),
+     *               @OA\Property(property="topic_name", type="string", example="Climate Change"),
+     *               @OA\Property(property="namespace_name", type="string", example="Science"),
+     *               @OA\Property(property="topicSubscriptionId", type="string", example=""),
+     *               @OA\Property(property="namespace_id", type="integer", example=2),
+     *               @OA\Property(property="note", type="string", example="A detailed discussion on climate change."),
+     *               @OA\Property(property="submitter_nick_name", type="string", example="JohnDoe"),
+     *               @OA\Property(property="go_live_time", type="integer", example=1709078400),
+     *               @OA\Property(property="camp_about_nick_id", type="integer", example=12),
+     *               @OA\Property(property="submitter_nick_id", type="integer", example=45),
+     *               @OA\Property(property="submit_time", type="string", format="date-time", example="2025-03-04T12:34:56Z"),
+     *               @OA\Property(property="tags", type="array", @OA\Items(type="string", example="environment")),
+     *               @OA\Property(property="in_review_changes", type="integer", example=2)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Topic not found",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=404),
+     *           @OA\Property(property="message", type="string", example="Topic record not found")
+     *       )
+     *   )
      * )
-     */
-
+    */
     public function getTopicRecord(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getTopicRecordValidationRules(), $this->validationMessages->getTopicRecordValidationMessages());
@@ -1916,143 +1957,6 @@ class TopicController extends Controller
             }
 
             return $this->resProvider->apiJsonResponse(200, $message, '', '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Post(
-     *   path="/get-topic-record",
-     *   tags={"Topic"},
-     *   summary="Retrieve a topic record",
-     *   description="Fetches a topic record based on filters such as topic number, camp number, and timestamp.",
-     *   operationId="getTopicRecord",
-     *   security={{"clientAuth":{}}},
-     *   @OA\RequestBody(
-     *       required=true,
-     *       @OA\JsonContent(
-     *           type="object",
-     *           @OA\Property(
-     *               property="topic_num",
-     *               type="integer",
-     *               example=116,
-     *               description="The topic number"
-     *           ),
-     *           @OA\Property(
-     *               property="as_of",
-     *               type="string",
-     *               example="default",
-     *               description="As of filter (e.g., 'default', timestamp)"
-     *           ),
-     *           @OA\Property(
-     *               property="as_of_date",
-     *               type="integer",
-     *               example=1709078400,
-     *               description="As of date in timestamp format"
-     *           ),
-     *           @OA\Property(
-     *               property="camp_num",
-     *               type="integer",
-     *               example=1,
-     *               description="The camp number associated with the topic"
-     *           )
-     *       )
-     *   ),
-     *   @OA\Response(
-     *       response=200,
-     *       description="Successful retrieval of the topic record",
-     *       @OA\JsonContent(
-     *           type="object",
-     *           @OA\Property(property="status_code", type="integer", example=200),
-     *           @OA\Property(property="message", type="string", example="Success"),
-     *           @OA\Property(
-     *               property="data",
-     *               type="object",
-     *               @OA\Property(property="topic_num", type="integer", example=116),
-     *               @OA\Property(property="camp_num", type="integer", example=1),
-     *               @OA\Property(property="topic_name", type="string", example="Climate Change"),
-     *               @OA\Property(property="namespace_name", type="string", example="Science"),
-     *               @OA\Property(property="topicSubscriptionId", type="string", example=""),
-     *               @OA\Property(property="namespace_id", type="integer", example=2),
-     *               @OA\Property(property="note", type="string", example="A detailed discussion on climate change."),
-     *               @OA\Property(property="submitter_nick_name", type="string", example="JohnDoe"),
-     *               @OA\Property(property="go_live_time", type="integer", example=1709078400),
-     *               @OA\Property(property="camp_about_nick_id", type="integer", example=12),
-     *               @OA\Property(property="submitter_nick_id", type="integer", example=45),
-     *               @OA\Property(property="submit_time", type="string", format="date-time", example="2025-03-04T12:34:56Z"),
-     *               @OA\Property(property="tags", type="array", @OA\Items(type="string", example="environment")),
-     *               @OA\Property(property="in_review_changes", type="integer", example=2)
-     *           )
-     *       )
-     *   ),
-     *   @OA\Response(
-     *       response=400,
-     *       description="Bad Request - Validation errors or exception occurred",
-     *       @OA\JsonContent(
-     *           type="object",
-     *           @OA\Property(property="status_code", type="integer", example=400),
-     *           @OA\Property(property="message", type="string", example="Invalid parameters")
-     *       )
-     *   ),
-     *   @OA\Response(
-     *       response=404,
-     *       description="Topic not found",
-     *       @OA\JsonContent(
-     *           type="object",
-     *           @OA\Property(property="status_code", type="integer", example=404),
-     *           @OA\Property(property="message", type="string", example="Topic record not found")
-     *       )
-     *   )
-     * )
-     */
-
-
-
-    public function getTopicRecord(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->getTopicRecordValidationRules(), $this->validationMessages->getTopicRecordValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-        $filter['topicNum'] = $request->topic_num;
-        $filter['asOf'] = $request->as_of;
-        $filter['asOfDate'] = $request->as_of_date;
-        $filter['campNum'] = $request->camp_num;
-        try {
-            $topic = Topic::getLiveTopic($filter['topicNum'], $filter['asOf'], $filter['asOfDate']);
-            if (!$topic) {
-                $topic = Topic::getLiveTopic($filter['topicNum'], 'default', $filter['asOfDate']);
-            }
-            if (!$topic)
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
-
-            $namespace = Namespaces::find($topic->namespace_id);
-            $namespaceLabel = '';
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-            }
-            $topic->namespace_name = $namespaceLabel;
-            $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
-            $topic->topicSubscriptionId = "";
-            $topic->camp_num =  $topic->camp_num ?? 1;
-            $topic->tags->makeHidden(['pivot']);
-            // $topic->tags = $topic->tags_array;
-            if ($request->user()) {
-                $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
-                $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
-            }
-            $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time', 'tags'];
-            $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
-            $topicRecord = $topicRecord[0];
-
-            if ($topic && $filter['asOf'] === 'default') {
-                $inReviewChangesCount = Helpers::getChangesCount((new Topic()), $request->topic_num, $request->camp_num);
-                $topicRecord = array_merge($topicRecord, ['in_review_changes' => $inReviewChangesCount]);
-            }
-
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $topicRecord, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

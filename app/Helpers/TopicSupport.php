@@ -1521,13 +1521,26 @@ class TopicSupport
 
         if(!empty($remove))
         { 
-            foreach($remove as $rmCamp){
-                $filter['topicNum'] = $topicNum;
-                $filter['asOf'] = '';
+            $filter['topicNum'] = $topicNum;
+            $filter['asOf'] = '';
+
+            foreach($remove as $rmCamp) {
                 $filter['campNum'] = $rmCamp;
                 $camp = self::getLiveCamp($filter, ['camp_name']);
                 if(!empty($add)) {
-                    $msg = trans('message.support.remove_direct_support_updated', ['camp_name' => $camp->camp_name]);
+                    $filter['campNum'] = $add['camp_num'];
+                    $checkParentOfCamp = self::getLiveCamp($filter, ['camp_name']);
+                    $checkParentOfCamp = $checkParentOfCamp->parent_camp_num;
+                    /** if the camp in which we are adding support have parent. 
+                     * then check that parent in remove camp array. 
+                     * if exist then show updated explicit message about support.
+                     * else simple message for removed support.
+                    **/
+                    if (in_array($checkParentOfCamp, $remove)) {
+                        $msg = trans('message.support.remove_direct_support_updated', ['camp_name' => $camp->camp_name]);
+                    } else {
+                        $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                    }
                 } else {
                     $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
                 }
