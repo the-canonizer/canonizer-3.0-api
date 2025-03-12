@@ -236,7 +236,10 @@ class Util
             CURLOPT_HTTP_VERSION    => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST   => $type,
             CURLOPT_POSTFIELDS      => $body,
-            CURLOPT_HTTPHEADER      => $headers
+            CURLOPT_HTTPHEADER      => $headers,
+
+            CURLOPT_SSL_VERIFYPEER  => false,
+            CURLOPT_SSL_VERIFYHOST  => false
         );
         
         $curl = curl_init();
