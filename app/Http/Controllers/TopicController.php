@@ -2387,7 +2387,7 @@ class TopicController extends Controller
                     'topic_name' => $topicTitle,
                     'camp_name' => $campTitle,
                     'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'tags' => $topic->tags->makeHidden(['pivot']),
+                    'tags' => $topic->tags->makeHidden(['parent_id', 'is_active', 'pivot']),
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
