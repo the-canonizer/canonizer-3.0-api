@@ -2342,9 +2342,9 @@ class TopicController extends Controller
             $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
             $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
-            $topics = Topic::with(['tags' => function ($query) use ($userTags) {
+            $topics = Topic::with('tags')->whereHas('tags', function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
-                }])
+                })
                 ->whereNotIn('namespace_id', $namespaceIds)
                 ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <= ' . time() . ' group by topic.topic_num)')
                 ->orderBy('submit_time', 'DESC');
@@ -2387,7 +2387,7 @@ class TopicController extends Controller
                     'topic_name' => $topicTitle,
                     'camp_name' => $campTitle,
                     'namespace' => $liveTopic->nameSpace->label ?? 1,
-                    'tags' => $liveTopic->tags->makeHidden(['pivot']),
+                    'tags' => $topic->tags->makeHidden(['parent_id', 'is_active', 'pivot']),
                     'views' => $liveTopic->totalViews(),
                     'supporterData' => $supporterData,
                     'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
