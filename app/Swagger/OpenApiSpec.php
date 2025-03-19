@@ -16,7 +16,7 @@ use OpenApi\Annotations as OA;
  *     ),
  *     @OA\Server(
  *         description="Local API Server",
- *         url="http://canonizer.local/api/v3"
+ *         url="https://ux-api.canonizer.com/api/v3"
  *     ),
  *     @OA\Components(
  *         @OA\SecurityScheme(
