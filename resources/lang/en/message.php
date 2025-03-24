@@ -248,7 +248,9 @@ return [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
+        'include_agreement_camp_record_required' => "include_agreement_camp_record is required",
+        'include_agreement_camp_record_boolean' => "include_agreement_camp_record should be true and false.",
     ],
     'get_all_parent_camp' => [
         'topic_num_required' => 'Topic Num is required.'
