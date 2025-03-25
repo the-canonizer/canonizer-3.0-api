@@ -307,8 +307,6 @@ class ValidationMessages
             'as_of_date.required_if' => trans('message.validation_get_topic_record.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_topic_record.topic_num_required'),
             'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required'),
-            'include_agreement_camp_record.required' => trans('message.validation_get_topic_record.include_agreement_camp_record_required'),
-            'include_agreement_camp_record.boolean' => trans('message.validation_get_topic_record.include_agreement_camp_record_boolean'),
         ];
     }
 

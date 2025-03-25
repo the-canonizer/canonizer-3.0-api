@@ -423,9 +423,7 @@ class TopicController extends Controller
             $topic->camp_num =  $topic->camp_num ?? 1;
             $topic->load('tags');
             $topic->tags->makeHidden(['pivot']);
-            if ($request->has('include_agreement_camp_record') && $request->include_agreement_camp_record) {
-                $topic->agreement_camp_record = app(CampController::class)->getCampRecord($request->merge(['camp_num' => 1]), $validate)->getData()->data;
-            }
+            $topic->agreement_camp_record = app(CampController::class)->getCampRecord($request->merge(['camp_num' => 1]), $validate)->getData()->data;
             // $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
