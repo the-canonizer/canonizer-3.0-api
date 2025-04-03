@@ -701,4 +701,19 @@ class Algorithm extends Model
         return $score;
 
     }
+
+    /**
+     * Utah Forward party Algorithm using related topic and camp
+     *
+     * @param int $nickNameId
+     * @param int $topicNumber
+     * @param int $campNumber
+     * @param int $asOfTime
+     *
+     * @return int $score
+     */
+    public static function utah_forward_party($nickNameId,$topicNumber = 0, $campNumber = 0, $asOfTime = null){
+        $condition = '(topic_num = 231 and camp_num = 7)';
+        return self::campCount($nickNameId,$condition,true,231,6,$asOfTime,$topicNumber);
+    }
 }
