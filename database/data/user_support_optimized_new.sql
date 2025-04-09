@@ -11,11 +11,12 @@ BEGIN
     DECLARE start_index INT;
     DECLARE total_records INT;
 
+    SET SESSION group_concat_max_len = 2000000; 
     -- Adjust start index for pagination
     SET start_index = page_offset * page_limit;
     SET SESSION group_concat_max_len = 1000000;  
 
-     CREATE TEMPORARY TABLE IF NOT EXISTS temp_filtered_topics AS
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_filtered_topics AS
         SELECT
             a.topic_num,
             a.namespace_id,
@@ -24,10 +25,10 @@ BEGIN
             topic a
         INNER JOIN
             (SELECT topic_num, MAX(go_live_time) AS live_time
-             FROM topic
-             WHERE objector_nick_id IS NULL
-             AND go_live_time <= UNIX_TIMESTAMP(NOW())
-             GROUP BY topic_num) b
+            FROM topic
+            WHERE objector_nick_id IS NULL
+            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+            GROUP BY topic_num) b
         ON a.topic_num = b.topic_num
         AND a.go_live_time = b.live_time
         WHERE (search_topic_name IS NULL OR a.topic_name LIKE CONCAT("%", search_topic_name, "%"));
@@ -42,11 +43,11 @@ BEGIN
             camp a
         INNER JOIN
             (SELECT topic_num, camp_num, MAX(go_live_time) AS live_time
-             FROM camp
-             WHERE objector_nick_id IS NULL
-             AND go_live_time <= UNIX_TIMESTAMP(NOW())
-             AND grace_period = 0
-             GROUP BY topic_num, camp_num) b
+            FROM camp
+            WHERE objector_nick_id IS NULL
+            AND go_live_time <= UNIX_TIMESTAMP(NOW())
+            AND grace_period = 0
+            GROUP BY topic_num, camp_num) b
         ON a.topic_num = b.topic_num
         AND a.camp_num = b.camp_num
         AND a.go_live_time = b.live_time;
@@ -54,7 +55,7 @@ BEGIN
 -- Return paginated data for direct support
     IF (support_type = "direct") THEN
         -- Get total records for direct support
-       SELECT COUNT(*) INTO total_records
+        SELECT COUNT(*) INTO total_records
         FROM (
             SELECT
                 a.topic_num
@@ -99,12 +100,12 @@ BEGIN
             
     ELSEIF (support_type = "delegate") THEN
         -- Calculate total records for "delegate" support
-      SELECT COUNT(*) INTO total_records
-FROM (
+    SELECT COUNT(*) INTO total_records
+        FROM (
 	SELECT
-              a.topic_num
+            a.topic_num
         FROM 
-        	temp_filtered_topics a
+            temp_filtered_topics a
         JOIN temp_filtered_camps b ON a.topic_num = b.topic_num
         JOIN support c ON a.topic_num = c.topic_num AND b.camp_num = c.camp_num
         JOIN nick_name d ON c.nick_name_id = d.id
@@ -118,8 +119,8 @@ FROM (
 
         -- Return paginated data for delegate support
         SELECT
-           a.topic_num,
-             GROUP_CONCAT(
+            a.topic_num,
+            GROUP_CONCAT(
                 JSON_OBJECT(
 					'title', a.topic_name,
                     'topic_num', a.topic_num,
@@ -130,14 +131,14 @@ FROM (
                     'suport_id', c.support_id
                 ) ORDER BY c.support_order ASC
             ) AS details,
-			 group_concat(distinct b.camp_num) as camp_num,
-             group_concat(distinct a.topic_name) as title,
-             group_concat(distinct d.nick_name) as my_nick_name,
-			 group_concat(distinct e.nick_name) as delegated_to_nick_name,
-			 group_concat(distinct c.delegate_nick_name_id) as delegate_nick_name_id,
-			 group_concat(distinct e.user_id) as delegate_user_id,
-			 group_concat(distinct a.namespace_id) as namespace_id, 
-			 group_concat(distinct c.nick_name_id) as nick_name_id
+            group_concat(distinct b.camp_num) as camp_num,
+            group_concat(distinct a.topic_name) as title,
+            group_concat(distinct d.nick_name) as my_nick_name,
+            group_concat(distinct e.nick_name) as delegated_to_nick_name,
+            group_concat(distinct c.delegate_nick_name_id) as delegate_nick_name_id,
+            group_concat(distinct e.user_id) as delegate_user_id,
+            group_concat(distinct a.namespace_id) as namespace_id, 
+            group_concat(distinct c.nick_name_id) as nick_name_id
         FROM temp_filtered_topics a
         JOIN temp_filtered_camps b ON a.topic_num = b.topic_num
         JOIN support c ON a.topic_num = c.topic_num AND b.camp_num = c.camp_num
