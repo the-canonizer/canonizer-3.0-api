@@ -689,6 +689,7 @@ return [
         'created' => 'You have successfully updated the Topic tag(s).',
         'failed' => 'Failed to update the Topic tag(s).',
         'user_tags_exists' => 'The selected user tag is invalid.',
+        'user_tags_updated' => 'Tags Updated Successfully.'
     ],
     'sign_petition_validation' => [
         'topic_num_required' => "topic num is required.",
