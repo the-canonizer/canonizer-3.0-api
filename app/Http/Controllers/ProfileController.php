@@ -1177,18 +1177,29 @@ class ProfileController extends Controller
                 ->where('user_tags.user_id', $user->id)
                 ->get();
 
-        return $tags;
+        $data = [
+            'language' => $user->language,
+            'default_algo' => $user->default_algo,
+            'tags' => $tags
+
+        ];
+
+        return $data;
     }
 
 
     public function saveUserTags(Request $request)
     {
         $user = $request->user();
+        $input = $request->all();
+
         try{
             DB::beginTransaction();
-            $userTags = $request->user_tags;
+            $user->language = $input['language'] ;
+            $user->default_algo = $input['default_algo']; // update language and default algo
+            $user->update();
 
-            
+            $userTags = $input['user_tags'];
             if(isset($userTags) && !empty($userTags)) {
                 // Step 1: Update or create new tags
                 if (isset($userTags) && $userTags) {
@@ -1205,7 +1216,7 @@ class ProfileController extends Controller
 
             $userModel = User::with('tags')->find($user->id);
             DB::commit();
-            return  $this->resProvider->apiJsonResponse(200, trans('message.user_tag.user_tags_updated'), $userModel, '');
+            return  $this->resProvider->apiJsonResponse(200, trans('message.success.preferences_update'), $userModel, '');
         }catch(Exception $e){
             DB::rollBack();
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');

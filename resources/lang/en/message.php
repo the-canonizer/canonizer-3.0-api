@@ -74,7 +74,8 @@ return [
         'topic_object'  => 'Objection submitted successfully.',
         'topic_update'  => 'Topic updated successfully.',
         'camp_object'  => 'Objection submitted successfully.',
-        'default_nick_name' => 'Default Nickname set successfully.'
+        'default_nick_name' => 'Default Nickname set successfully.',
+        'preferences_update' => 'Preferences Updated Successfully.'
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
