@@ -21,7 +21,7 @@ class ActivityController extends Controller
         $this->rules = $rules;
         $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
-        $this->resProvider = $respProvider;
+        $this->resProvider = $respProvider;       
     }
 
     /**

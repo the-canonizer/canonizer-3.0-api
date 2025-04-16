@@ -1167,5 +1167,60 @@ class ProfileController extends Controller
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
+
+
+    public function getUserTags(Request $request)
+    {
+        $user = $request->user();
+        $tags = Tag::select('tags.*')
+                ->join('user_tags', 'tags.id', '=', 'user_tags.tag_id')
+                ->where('user_tags.user_id', $user->id)
+                ->get();
+
+        $data = [
+            'language' => $user->language,
+            'default_algo' => $user->default_algo,
+            'tags' => $tags
+
+        ];
+
+        return $data;
+    }
+
+
+    public function saveUserTags(Request $request)
+    {
+        $user = $request->user();
+        $input = $request->all();
+
+        try{
+            DB::beginTransaction();
+            $user->language = $input['language'] ;
+            $user->default_algo = $input['default_algo']; // update language and default algo
+            $user->update();
+
+            $userTags = $input['user_tags'];
+            if(isset($userTags) && !empty($userTags)) {
+                // Step 1: Update or create new tags
+                if (isset($userTags) && $userTags) {
+                    foreach ($userTags as $tagId) {
+                        UserTag::updateOrCreate(
+                            ['user_id' => $user->id, 'tag_id' => $tagId],
+                        );
+                    }
+                }
+                UserTag::where('user_id', $user->id)
+                    ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
+                    ->delete();
+            }
+
+            $userModel = User::with('tags')->find($user->id);
+            DB::commit();
+            return  $this->resProvider->apiJsonResponse(200, trans('message.success.preferences_update'), $userModel, '');
+        }catch(Exception $e){
+            DB::rollBack();
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), $e->getMessage(), '');
+        }
+    }
     
 }

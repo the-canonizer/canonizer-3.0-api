@@ -111,7 +111,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/videos', 'VideoController@getVideos');
         $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
 
-        //$router->post('save-user-tags','ProfileController@saveUserTags');
+        $router->get('get-user-tags','ProfileController@getUserTags');
+        $router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
     //Route Group to access api with user access token
