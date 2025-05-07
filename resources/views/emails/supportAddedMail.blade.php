@@ -67,6 +67,13 @@
 
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
+
+                                    <li>You are directly supporting <b><a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
+                                            {{ $data['camp_name'] }} </a></b>
+                                    </li>
+
+                                    <li>You have also supported other sibling camps listed below. This list is just to assist you to directly access these camps if you want to.</li>
+
                                     @foreach ($data['support_list'] as $support)
                                         <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                     @endforeach
