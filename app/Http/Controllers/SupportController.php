@@ -219,6 +219,19 @@ class SupportController extends Controller
 
             // add delegation support
             $result = TopicSupport::addDelegateSupport($request->user(),$topicNum, $campNum, $nickNameId, $delegatedNickId);
+
+            $camp = Camp::where('topic_num', $topicNum)
+                ->where('camp_num', $campNum)
+                ->where('grace_period', 0)
+                ->orderByDesc('go_live_time')
+                ->first();
+
+            // Update the camp_leader_nick_id
+            if ($camp) {
+                $camp->camp_leader_nick_id = $delegatedNickId;
+                $camp->save();
+            }
+            
             $message = ['add' => trans('message.support.add_delegation_support')];
             return $this->resProvider->apiJsonResponse(200, $message, '','');
 

@@ -95,7 +95,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('user/profile/{id}','ProfileController@getUserProfile');
         $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
         $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
-
+        $router->get('get-user-tags','ProfileController@getUserTags');
+        $router->post('save-user-tags','ProfileController@saveUserTags');
+        
         //TopicController 
         $router->post('/get-topic-history','TopicController@getTopicHistory');
         $router->post('/get-topic-record','TopicController@getTopicRecord');
@@ -111,7 +113,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('/videos', 'VideoController@getVideos');
         $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
 
-        //$router->post('save-user-tags','ProfileController@saveUserTags');
+       
     });
 
     //Route Group to access api with user access token
