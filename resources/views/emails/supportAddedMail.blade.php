@@ -72,9 +72,12 @@
                                             {{ $data['camp_name'] }} </a></b>
                                     </li>
 
-                                    <li>You have also supported other sibling camps listed below. This list is just to assist you to directly access these camps if you want to.</li>
+                                    <p>You have also supported other sibling camps listed below. This list is just to assist you to directly access these camps if you want to.</p>
 
                                     @foreach ($data['support_list'] as $support)
+                                        @if($support == $data['camp_link'])
+                                            @php continue;  @endphp
+                                        @endif
                                         <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
                                     @endforeach
                                 @else
