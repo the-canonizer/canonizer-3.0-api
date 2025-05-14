@@ -74,6 +74,8 @@ return [
         'topic_object'  => 'Objection submitted successfully.',
         'topic_update'  => 'Topic updated successfully.',
         'camp_object'  => 'Objection submitted successfully.',
+        'default_nick_name' => 'Default Nickname set successfully.',
+        'preferences_update' => 'Preferences Updated Successfully.'
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -247,7 +249,7 @@ return [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
     ],
     'get_all_parent_camp' => [
         'topic_num_required' => 'Topic Num is required.'
@@ -688,6 +690,7 @@ return [
         'created' => 'You have successfully updated the Topic tag(s).',
         'failed' => 'Failed to update the Topic tag(s).',
         'user_tags_exists' => 'The selected user tag is invalid.',
+        'user_tags_updated' => 'Tags Updated Successfully.'
     ],
     'sign_petition_validation' => [
         'topic_num_required' => "topic num is required.",

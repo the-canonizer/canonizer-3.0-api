@@ -29,58 +29,84 @@ class TagController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-tags-list",
-     *   tags={"Tags"},
-     *   summary="Get tags",
-     *   description="This is used to get tags added by admin.",
-     *   operationId="getTagsList",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
+     * @OA\Post(
+     *     path="/get-tags-list",
+     *     summary="Get tags",
+     *     description="Retrieve tags added by the admin.",
+     *     tags={"Tags"},
+     *     operationId="getTagsList",
+     *     security={{"clientAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         description="Filter and paginate tags list",
+     *         @OA\MediaType(
+     *             mediaType="application/x-www-form-urlencoded",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="per_page",
+     *                     type="integer",
+     *                     description="Number of records per page",
+     *                     example=10
+     *                 ),
+     *                 @OA\Property(
+     *                     property="page",
+     *                     type="integer",
+     *                     description="Page number for pagination",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="search_term",
+     *                     type="string",
+     *                     description="Search specific records",
+     *                     example="technology"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="sort_by",
+     *                     type="string",
+     *                     enum={"asc", "desc"},
+     *                     description="Sorting order",
+     *                     example="asc"
+     *                 )
+     *             )
      *         )
-     *   ),
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Get tags",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="per_page",
-     *                   description="Number of records per page",
-     *                   required=false,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="page",
-     *                   description="page number",
-     *                   required=false,
-     *                   type="integer",
-     *               )
-     *               @OA\Property(
-     *                   property="search_term",
-     *                   description="search specific records",
-     *                   required=false,
-     *                   type="text",
-     *               )
-     *                @OA\Property(
-     *                   property="sort_by",
-     *                   description="sorting of records",
-     *                   required=false,
-     *                   type="ASC|DESC",
-     *               )
-     *           )
-     *       )
-     *    ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message"),
-     *   @OA\Response(response=401, description="Unauthenticated")
-     *  )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Validation error occurred"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated")
+     *         )
+     *     )
+     * )
      */
+
 
     public function getTagsList(Request $request, Validate $validate)
     {
@@ -128,63 +154,75 @@ class TagController extends Controller
     /**
      * @OA\POST(path="/create/user/tags",
      *   tags={"Tags"},
-     *   summary="This api used association category with user on register",
+     *   summary="This API is used to associate a category with a user during registration",
      *   description="",
+     *   security={{"loginAuthToken":{}}},
      *   operationId="createUserTags",
-     *    @OA\RequestBody(
+     *   @OA\RequestBody(
      *     required=true,
-     *     description="Request Body Json Parameter",
+     *     description="Request Body JSON Parameter",
      *     @OA\MediaType(
      *          mediaType="application/json",
      *          @OA\Schema(
      *               @OA\Property(
      *                  property="user_id",
-     *                  type="string"
+     *                  type="string",
+     *                  description="ID of the user",
+     *                  example="123"
      *              ),
      *              @OA\Property(
      *                  property="user_tags",
-     *                  type="array"
+     *                  type="array",
+     *                  description="List of tag IDs associated with the user",
+     *                  @OA\Items(
+     *                      type="integer",
+     *                      example=5
+     *                  )
      *              )
      *          )
      *     ),
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
+     *   @OA\Response(
+     *      response=200,
+     *      description="Successful operation",
+     *      @OA\JsonContent(
+     *          type="object",
+     *          @OA\Property(
+     *              property="status_code",
+     *              type="integer",
+     *              example=200
+     *          ),
+     *          @OA\Property(
+     *              property="message",
+     *              type="string",
+     *              example="User tags created successfully"
+     *          ),
+     *          @OA\Property(
+     *              property="error",
+     *              type="string",
+     *              nullable=true
+     *          ),
+     *          @OA\Property(
+     *              property="data",
+     *              type="object",
+     *              example={}
+     *          )
+     *      )
+     *   ),
+     *   @OA\Response(
      *     response=400,
      *     description="Something went wrong",
      *     @OA\JsonContent(
      *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   ),
-     *    @OA\Response(
+     *   @OA\Response(
      *     response=403,
      *     description="Exception Throwable",
      *     @OA\JsonContent(
      *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
      *     )
      *   )
-     *
      * )
      */
 

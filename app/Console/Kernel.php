@@ -35,7 +35,8 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\FixTheDatesForUploadedFiles',
         'App\Console\Commands\AssociateTopicTags',
         'App\Console\Commands\UpdateTopicTagsRecordIds',
-        'App\Console\Commands\MapExistingTopicIdToTopicNum',
+        'App\Console\Commands\MapExistingTopicIdToTopicNum', 
+        'App\Console\Commands\UpdateGravatar',
         'App\Console\Commands\UpdateMissingThreadAndPostTimestamps',
     ];
 

@@ -21,14 +21,13 @@ class ImageController extends Controller
         $this->resProvider = $respProvider;
     }
 
-
-
     /**
      * @OA\Post(path="/images",
      *   tags={"Social Icons"},
      *   summary="get images list",
      *   description="This is used to get the images list for specific page.",
      *   operationId="image",
+     *   security={{"clientAuth":{}}},
      *   @OA\Parameter(
      *     name="page_name",
      *     required=true,
