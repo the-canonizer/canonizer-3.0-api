@@ -8,7 +8,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\Validate;
 use App\Models\Category;
 use App\Models\Video;
-use app\Models\ConsensusVideoPodcast;
+use App\Models\ConsensusVideoPodcast;
 
 class VideoController extends Controller
 {
@@ -199,7 +199,7 @@ class VideoController extends Controller
     public function getConsensusVideoPodcasts(Request $request){
         try {
             $perPage = $request->per_page ?? config('global.per_page');
-            $consensusVideoPodcasts = ConsensusVideoPodcast::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
+            $consensusVideoPodcasts = ConsensusVideoPodcast::orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
                 ->paginate($perPage);
             $collection = Util::getPaginatorResponse($consensusVideoPodcasts);
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
