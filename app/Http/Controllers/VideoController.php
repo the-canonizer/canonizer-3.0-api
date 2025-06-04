@@ -8,6 +8,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Request\Validate;
 use App\Models\Category;
 use App\Models\Video;
+use app\Models\ConsensusVideoPodcast;
 
 class VideoController extends Controller
 {
@@ -192,6 +193,18 @@ class VideoController extends Controller
             return $this->resProvider->apiJsonResponse(!count($categories) ? 404 : 200, trans('message.success.success'),  $categories, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    public function getConsensusVideoPodcasts(Request $request){
+        try {
+            $perPage = $request->per_page ?? config('global.per_page');
+            $consensusVideoPodcasts = ConsensusVideoPodcast::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
+                ->paginate($perPage);
+            $collection = Util::getPaginatorResponse($consensusVideoPodcasts);
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 }
