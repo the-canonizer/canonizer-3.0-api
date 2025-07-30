@@ -1214,6 +1214,8 @@ class ProfileController extends Controller
                 UserTag::where('user_id', $user->id)
                     ->whereNotIn('tag_id', $userTags) // Find tags that are not in the new selection
                     ->delete();
+            } else {
+                UserTag::where('user_id', $user->id)->delete();
             }
 
             $userModel = User::with('tags')->find($user->id);
