@@ -1562,22 +1562,36 @@ class TopicSupport
      */
     public static function getAllDelegates($topicNum, $nickNameId, $delegates = [])
     {
+
         $delegateSupporters =  Support::getActiveDelegators($topicNum, [$nickNameId]);
-        
-        if(!empty($delegateSupporters))
-        {
-            foreach($delegateSupporters as $ds){
+        if ($delegateSupporters && count($delegateSupporters)) {
+
+            foreach ($delegateSupporters as $ds) {
+
                 $temp = [
                     'nick_name_id' => $ds->nick_name_id,
-                    'delegate_nick_name_id' => $ds->delegate_nick_name_id
+                    'delegate_nick_name_id' => $ds->delegate_nick_name_id,
                 ];
-                array_push($delegates, $temp);
 
-                $subDelegates =  Support::getActiveDelegators($topicNum, [$ds->nick_name_id]);
-               
-                if(count($subDelegates)){
-                    return self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+                // ✅ Add only if not already included
+                $exists = false;
+                foreach ($delegates as $d) {
+                    if (
+                        $d['nick_name_id'] == $temp['nick_name_id'] &&
+                        $d['delegate_nick_name_id'] == $temp['delegate_nick_name_id']
+                    ) {
+                        $exists = true;
+                        break;
+                    }
                 }
+
+                if (!$exists) {
+                    $delegates[] = $temp;
+                }
+            }
+            foreach ($delegateSupporters as $ds) {
+                // ✅ Recurse deeper (note the "&$delegates" pass-by-reference)
+                $delegates = self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
             }
         }
 
