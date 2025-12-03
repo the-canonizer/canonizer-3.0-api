@@ -1,6 +1,8 @@
 <?php
 use Illuminate\Support\Facades\Artisan;
+
 /** @var \Laravel\Lumen\Routing\Router $router */
+
 
 /*
 |--------------------------------------------------------------------------
@@ -221,10 +223,12 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
 
         //Camp Restrictions
-        $router->post('camps/{camp}/restrict', 'CampRestrictionController::@restrict');
-        $router->post('camps/{camp}/lift-restriction/{user}', 'CampRestrictionController::@lift');
-        $router->post('camps/{camp}/extend-restriction/{user}', 'CampRestrictionController::@extend');
-        $router->get('camps/{camp}/restrictions', 'CampRestrictionController::@index');
+        $router->post('camps/{id}/restrict', 'CampRestrictionController@restrict');
+        $router->post('camps/{id}/lift-restriction/{user_id}', 'CampRestrictionController@lift');
+        $router->post('camps/{id}/extend-restriction/{user_id}', 'CampRestrictionController@extend');
+        $router->get('camps/{id}/restrictions', 'CampRestrictionController@index');
+        $router->get('camps/{id}/restriction/logs', 'CampRestrictionController@restrictionLogs');
+        
     });
     
     $router->group(['middleware' => 'admin'], function() use ($router) {
