@@ -10,13 +10,16 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException; 
+use Illuminate\Support\Facades\Validator;
+
 use App\Notifications\UserRestrictedNotification;
 use Carbon\Carbon;
 
 class CampRestrictionController extends Controller
 {
-    public function index(Request $request, Camp $camp)
+    public function index(Request $request, $id)
     {        
+        $camp = Camp::findOrFail($id);
         $perPage = $request->get('per_page', 25);
         $data = CampUserRestriction::with(['user','leader'])
             ->where('camp_id', $camp->id)
@@ -27,14 +30,24 @@ class CampRestrictionController extends Controller
     }
 
     // restrict a user for 24 hours (or reset existing)
-    public function restrict(Request $request, Camp $camp)
+    public function restrict(Request $request, $id)
     {        
-        $data = $request->validate([
-            'restricted_user_id' => 'required|integer|exists:users,id',
+        $validator = Validator::make($request->all(), [
+            'restricted_user_id' => 'required|integer|exists:person,id',
             'reason' => 'required|string|max:2000',
-            'duration_hours' => 'nullable|integer|min:1' // optional override
+            'duration_hours' => 'nullable|integer|min:1'
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $validator->validated();
+
+        $camp = Camp::findOrFail($id);
         $duration = $data['duration_hours'] ?? 24;
         $restrictedUserId = $data['restricted_user_id'];
 
@@ -83,7 +96,7 @@ class CampRestrictionController extends Controller
 
             // notify user (in-app and email)
             $user = User::find($restrictedUserId);
-            $user->notify(new UserRestrictedNotification($camp, $restriction));
+            // $user->notify(new UserRestrictedNotification($camp, $restriction));
 
             DB::commit();
 
@@ -99,13 +112,19 @@ class CampRestrictionController extends Controller
     }
 
     // lift restriction
-    public function lift(Request $request, Camp $camp, User $user)
+    public function lift(Request $request, $id, $user_id)
     {        
+
+        $camp = Camp::findOrFail($id);
+        $user = User::findOrFail($user_id);
+        // dd($camp,$user);
         $restriction = CampUserRestriction::where('camp_id', $camp->id)
+            ->where('topic_num','=',$camp->topic_num)
+            ->where('camp_num','=',$camp->camp_num)
             ->where('restricted_user_id', $user->id)
             ->whereIn('status', ['active'])
             ->first();
-
+        // dd($restriction);
         if (! $restriction) {
             return response()->json(['message' => 'No active restriction found'], 404);
         }
@@ -127,17 +146,34 @@ class CampRestrictionController extends Controller
     }
 
     // explicit extend/reset restriction (for repeated violation)
-    public function extend(Request $request, Camp $camp, User $user)
+    public function extend(Request $request, $id, $user_id)
     {        
-        $data = $request->validate([
+
+        $validator = Validator::make($request->all(), [
             'reason' => 'required|string|max:2000',
             'duration_hours' => 'nullable|integer|min:1'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $validator->validated();
+
+
         $duration = $data['duration_hours'] ?? 24;
 
+        $camp = Camp::findOrFail($id);
+        $user = User::findOrFail($user_id); 
+        
         $restriction = CampUserRestriction::where('camp_id', $camp->id)
+            ->where('topic_num','=',$camp->topic_num)
+            ->where('camp_num','=',$camp->camp_num)
             ->where('restricted_user_id', $user->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active'])
             ->first();
 
         if (! $restriction) {
@@ -158,8 +194,14 @@ class CampRestrictionController extends Controller
             'created_at' => Carbon::now()
         ]);
 
-        $user->notify(new UserRestrictedNotification($camp, $restriction));
+        // $user->notify(new UserRestrictedNotification($camp, $restriction));
 
         return response()->json(['message' => 'Restriction extended', 'restriction' => $restriction]);
+    }
+
+    public function restrictionLogs($id){
+        $logs = CampRestrictionLog::with('restriction')->where('restriction_id','=',$id)->get();
+        return response()->json(['message' => 'Restriction Logs', 'log' => $logs]);
+ 
     }
 }
