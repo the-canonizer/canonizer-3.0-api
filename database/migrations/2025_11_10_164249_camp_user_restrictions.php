@@ -17,8 +17,8 @@ class CampUserRestrictions extends Migration
             Schema::create('camp_user_restrictions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedInteger('camp_id')->index();
-                $table->unsignedInteger('camp_num')->index();
-                $table->unsignedInteger('topic_num')->index();
+                $table->integer('camp_num')->index();
+                $table->integer('topic_num')->index();
                 $table->unsignedInteger('restricted_user_id')->index();
                 $table->unsignedInteger('restricted_by')->index(); // leader/admin
                 $table->text('reason');
@@ -44,6 +44,36 @@ class CampUserRestrictions extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('camp_user_restrictions');
+        if (Schema::hasTable('camp_user_restrictions')) {
+
+            Schema::table('camp_user_restrictions', function (Blueprint $table) {
+                // Drop FKs safely (only if they exist)
+                // Drop FK only if table has it
+                $sm = Schema::getConnection()->getDoctrineSchemaManager();
+                $doctrineTable = $sm->listTableDetails('camp_user_restrictions');
+
+                if ($doctrineTable->hasForeignKey('camp_user_restrictions_restricted_user_id_foreign')) {
+                    $table->dropForeign('camp_user_restrictions_restricted_user_id_foreign');
+                }
+
+                if ($doctrineTable->hasForeignKey('camp_user_restrictions_restricted_by_foreign')) {
+                    $table->dropForeign('camp_user_restrictions_restricted_by_foreign');
+                }
+
+                if ($doctrineTable->hasForeignKey('camp_user_restrictions_camp_id_foreign')) {
+                    $table->dropForeign('camp_user_restrictions_camp_id_foreign');
+                }
+
+                if ($doctrineTable->hasForeignKey('camp_user_restrictions_camp_num_foreign')) {
+                    $table->dropForeign('camp_user_restrictions_camp_num_foreign');
+                }
+
+                if ($doctrineTable->hasForeignKey('camp_user_restrictions_topic_num_foreign')) {
+                    $table->dropForeign('camp_user_restrictions_topic_num_foreign');
+                }
+            });
+
+         Schema::dropIfExists('camp_user_restrictions');
+        }
     }
 }

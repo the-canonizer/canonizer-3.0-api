@@ -16,7 +16,7 @@ class CreateCampRestrictionLogsTable extends Migration
         if(!Schema::hasTable('camp_restriction_logs')) {
             Schema::create('camp_restriction_logs', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('restriction_id')->index();
+                $table->unsignedBigInteger('restriction_id')->index();
                 $table->enum('action', ['restricted','lifted','extended','expired']);
                 $table->unsignedInteger('performed_by')->nullable();
                 $table->text('notes')->nullable();
