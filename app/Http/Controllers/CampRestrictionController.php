@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CampUserRestriction;
 use App\Models\CampRestrictionLog;
 use App\Models\Camp;
+use App\Models\Nickname;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,7 @@ class CampRestrictionController extends Controller
     public function restrict(Request $request, $id)
     {        
         $validator = Validator::make($request->all(), [
-            'restricted_user_id' => 'required|integer|exists:person,id',
+            'restricted_user_nick_name_id' => 'required|integer|exists:nick_name,id',
             'reason' => 'required|string|max:2000',
             'duration_hours' => 'nullable|integer|min:1'
         ]);
@@ -47,15 +48,18 @@ class CampRestrictionController extends Controller
 
         $data = $validator->validated();
 
+        $restricted_user_nick_name_id = $data['restricted_user_nick_name_id'];
+        $nickName = Nickname::findOrFail($restricted_user_nick_name_id);
+        $user_id = $nickName->user_id;
+        
         $camp = Camp::findOrFail($id);
         $duration = $data['duration_hours'] ?? 24;
-        $restrictedUserId = $data['restricted_user_id'];
 
         DB::beginTransaction();
         try {
             // find active restriction for this user & camp
             $restriction = CampUserRestriction::where('camp_id', $camp->id)
-                ->where('restricted_user_id', $restrictedUserId)
+                ->where('restricted_user_id', $user_id)
                 ->where('status', 'active')
                 ->first();
 
@@ -75,7 +79,7 @@ class CampRestrictionController extends Controller
                     'camp_id' => $camp->id,
                     'camp_num' => $camp->camp_num,
                     'topic_num' => $camp->topic_num,
-                    'restricted_user_id' => $restrictedUserId,
+                    'restricted_user_id' => $user_id,
                     'restricted_by' => $request->user()->id,
                     'reason' => $data['reason'],
                     'start_time' => $now,
@@ -95,7 +99,7 @@ class CampRestrictionController extends Controller
             ]);
 
             // notify user (in-app and email)
-            $user = User::find($restrictedUserId);
+            $user = User::find($user_id);
             // $user->notify(new UserRestrictedNotification($camp, $restriction));
 
             DB::commit();
@@ -115,6 +119,8 @@ class CampRestrictionController extends Controller
     public function lift(Request $request, $id, $user_id)
     {        
 
+        $nickName = Nickname::findOrFail($user_id);
+        $user_id = $nickName->user_id;
         $camp = Camp::findOrFail($id);
         $user = User::findOrFail($user_id);
         // dd($camp,$user);
@@ -167,6 +173,8 @@ class CampRestrictionController extends Controller
         $duration = $data['duration_hours'] ?? 24;
 
         $camp = Camp::findOrFail($id);
+        $nickName = Nickname::findOrFail($user_id);
+        $user_id = $nickName->user_id;
         $user = User::findOrFail($user_id); 
         
         $restriction = CampUserRestriction::where('camp_id', $camp->id)
