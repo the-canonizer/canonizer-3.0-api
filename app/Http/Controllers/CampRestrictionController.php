@@ -22,11 +22,11 @@ class CampRestrictionController extends Controller
     {        
         $camp = Camp::findOrFail($id);
         $perPage = $request->get('per_page', 25);
-        $data = CampUserRestriction::with(['user','leader'])
+        $data = CampUserRestriction::with(['nickName','nickName.user','nickNameLeader.user'])
             ->where('camp_id', $camp->id)
             ->orderBy('created_at','desc')
             ->paginate($perPage);
-
+        // dd($data);
         return response()->json($data);
     }
 

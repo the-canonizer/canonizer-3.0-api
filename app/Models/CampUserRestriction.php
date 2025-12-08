@@ -35,14 +35,19 @@ class CampUserRestriction extends Model
         return $this->belongsTo(User::class, 'restricted_user_id');
     }
 
-    public function leader()
+    public function nickNameLeader()
     {
-        return $this->belongsTo(User::class, 'restricted_by');
+        return $this->hasOne(Nickname::class, 'user_id', 'restricted_by');
     }
 
     public function camp()
     {
         return $this->belongsTo(Camp::class, 'camp_id');
+    }
+
+    public function nickName()
+    {
+        return $this->hasOne(Nickname::class, 'user_id', 'restricted_user_id');
     }
 
     // helper
