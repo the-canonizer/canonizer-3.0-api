@@ -37,7 +37,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateTopicTagsRecordIds',
         'App\Console\Commands\MapExistingTopicIdToTopicNum', 
         'App\Console\Commands\UpdateGravatar',
-        'App\Console\Commands\ExpireCampRestrictions'
+        'App\Console\Commands\ExpireCampUserRestriction'
     ];
 
     /**
@@ -49,6 +49,5 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('activitylogs:delete')->dailyAt('00:01');
-        $schedule->command('camp:expire-restrictions')->everyFifteenMinutes();
     }
 }
