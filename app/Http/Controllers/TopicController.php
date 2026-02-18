@@ -2053,11 +2053,11 @@ class TopicController extends Controller
             $perPage = $request->input('per_page', config('global.per_page'));
             $supporterLimit = $request->input('supporter_limit', 5);
 
-            $topics = Topic::whereHas('views', function ($query) use ($date30DaysAgo) {
-                $query->where('updated_at', '>=', $date30DaysAgo);
+            $topics = Topic::join('topic_views', function ($join) use ($date30DaysAgo) {
+                $join->on('topic.topic_num', '=', 'topic_views.topic_num')
+                    ->where('topic_views.updated_at', '>=', $date30DaysAgo);
             })
                 ->whereNotIn('namespace_id', $namespaceIds)
-                ->leftJoin('topic_views', 'topic.topic_num', '=', 'topic_views.topic_num')
                 ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
                 ->groupBy('topic.topic_num') // Group by topic number
                 ->orderByDesc('total_views') // Order by the calculated total_views column
