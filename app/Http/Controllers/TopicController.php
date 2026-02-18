@@ -43,6 +43,7 @@ use App\Facades\GetPushNotificationToSupporter;
 use App\Models\HotTopic;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class TopicController extends Controller
 {
@@ -2048,61 +2049,67 @@ class TopicController extends Controller
     public function hotTopic(Request $request)
     {
         try {
-            $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
-            $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
             $perPage = $request->input('per_page', config('global.per_page'));
             $supporterLimit = $request->input('supporter_limit', 5);
+            $page = $request->input('page', 1);
+            $cacheKey = "hot_topics_{$perPage}_{$supporterLimit}_{$page}";
 
-            $topics = Topic::join('topic_views', function ($join) use ($date30DaysAgo) {
-                $join->on('topic.topic_num', '=', 'topic_views.topic_num')
-                    ->where('topic_views.updated_at', '>=', $date30DaysAgo);
-            })
-                ->whereNotIn('namespace_id', $namespaceIds)
-                ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
-                ->groupBy('topic.topic_num') // Group by topic number
-                ->orderByDesc('total_views') // Order by the calculated total_views column
-                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
-                ->paginate($perPage);
+            $collection = Cache::remember($cacheKey, 600, function () use ($request, $perPage, $supporterLimit) {
+                $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+                $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
 
-            foreach ($topics as $topic) {
-                $filter['topicNum'] = $topic->topic_num;
-                $filter['campNum'] = $topic->camp_num ?? 1;
+                $topics = Topic::join('topic_views', function ($join) use ($date30DaysAgo) {
+                    $join->on('topic.topic_num', '=', 'topic_views.topic_num')
+                        ->where('topic_views.updated_at', '>=', $date30DaysAgo);
+                })
+                    ->whereNotIn('namespace_id', $namespaceIds)
+                    ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
+                    ->groupBy('topic.topic_num') // Group by topic number
+                    ->orderByDesc('total_views') // Order by the calculated total_views column
+                    ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+                    ->paginate($perPage);
 
-                $liveCamp = Camp::getLiveCamp($filter);
-                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+                foreach ($topics as $topic) {
+                    $filter['topicNum'] = $topic->topic_num;
+                    $filter['campNum'] = $topic->camp_num ?? 1;
 
-                $topicTitle = $liveTopic->topic_name ?? '';
-                $campTitle = $liveCamp->camp_name ?? '';
+                    $liveCamp = Camp::getLiveCamp($filter);
+                    $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
 
-                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
-                    $supporter->first_name = $supporter->first_name[0] ?? '';
-                    $supporter->middle_name = $supporter->middle_name[0] ?? '';
-                    $supporter->last_name = $supporter->last_name[0] ?? '';
-                });
+                    $topicTitle = $liveTopic->topic_name ?? '';
+                    $campTitle = $liveCamp->camp_name ?? '';
 
-                // Get the tag IDs associated with $liveTopic
-                $topic->id = $liveTopic->id;
-                $topic->topic_num = $liveTopic->topic_num;
-                $topic->camp_num = $liveCamp->camp_num;
-                $topic->note = $liveTopic->note;
-                $topic->topic_name = $topicTitle;
-                $topic->camp_name = $campTitle;
-                $topic->namespace = $liveTopic->nameSpace->label ?? 1;
-                $topic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
-                $topic->views = $topic->totalViews();
-                $topic->supporterData = $supporterData;
-                $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
-                $getLiveStatement = Statement::getLiveStatement([
-                    'topicNum' => $topic->topic_num,
-                    'campNum' => $liveCamp->camp_num,
-                    'asOf' => 'default',
-                    'asOfDate' => '',
-                ]);
-                $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
-                $topic->statement = Str::of($getLiveStatement)->trim();
-            }
+                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                        $supporter->first_name = $supporter->first_name[0] ?? '';
+                        $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                        $supporter->last_name = $supporter->last_name[0] ?? '';
+                    });
 
-            $collection = Util::getPaginatorResponse($topics);
+                    // Get the tag IDs associated with $liveTopic
+                    $topic->id = $liveTopic->id;
+                    $topic->topic_num = $liveTopic->topic_num;
+                    $topic->camp_num = $liveCamp->camp_num;
+                    $topic->note = $liveTopic->note;
+                    $topic->topic_name = $topicTitle;
+                    $topic->camp_name = $campTitle;
+                    $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                    $topic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
+                    $topic->views = $topic->totalViews();
+                    $topic->supporterData = $supporterData;
+                    $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
+                    $getLiveStatement = Statement::getLiveStatement([
+                        'topicNum' => $topic->topic_num,
+                        'campNum' => $liveCamp->camp_num,
+                        'asOf' => 'default',
+                        'asOfDate' => '',
+                    ]);
+                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                    $topic->statement = Str::of($getLiveStatement)->trim();
+                }
+
+                return Util::getPaginatorResponse($topics);
+            });
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return response()->json([
@@ -2205,41 +2212,48 @@ class TopicController extends Controller
         try {
             $perPage = $request->per_page ?? config('global.per_page');
             $supporterLimit = $request->supporter_limit ?? 5;
-            $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $request->input('sort_by', 'DESC'))
-                ->paginate($perPage);
-            if (!empty($hotTopics)) {
-                foreach ($hotTopics as $hotTopic) {
-                    $filter['topicNum'] = $hotTopic->topic_num;
-                    $filter['campNum'] = $hotTopic->camp_num ?? 1;
-                    $liveCamp = Camp::getLiveCamp($filter);
-                    $liveTopic = Topic::getLiveTopic($hotTopic->topic_num, ['nofilter' => true]);
-                    if (!empty($liveTopic)) {
-                        $topicTitle = $liveTopic->topic_name;
-                    }
-                    if (!empty($liveCamp)) {
-                        $campTitle = $liveCamp->camp_name;
-                    }
+            $sortBy = $request->input('sort_by', 'DESC');
+            $page = $request->input('page', 1);
+            $cacheKey = "featured_topics_{$perPage}_{$supporterLimit}_{$sortBy}_{$page}";
 
-                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
-                        $supporter->first_name = $supporter->first_name[0] ?? '';
-                        $supporter->middle_name = $supporter->middle_name[0] ?? '';
-                        $supporter->last_name = $supporter->last_name[0] ?? '';
-                    });
+            $collection = Cache::remember($cacheKey, 600, function () use ($request, $perPage, $supporterLimit, $sortBy) {
+                $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $sortBy)
+                    ->paginate($perPage);
+                if (!empty($hotTopics)) {
+                    foreach ($hotTopics as $hotTopic) {
+                        $filter['topicNum'] = $hotTopic->topic_num;
+                        $filter['campNum'] = $hotTopic->camp_num ?? 1;
+                        $liveCamp = Camp::getLiveCamp($filter);
+                        $liveTopic = Topic::getLiveTopic($hotTopic->topic_num, ['nofilter' => true]);
+                        if (!empty($liveTopic)) {
+                            $topicTitle = $liveTopic->topic_name;
+                        }
+                        if (!empty($liveCamp)) {
+                            $campTitle = $liveCamp->camp_name;
+                        }
 
-                    // Get the tag IDs associated with $liveTopic
-                    $hotTopic->topic_name = $topicTitle ?? "";
-                    $hotTopic->camp_name = $campTitle ?? "";
-                    $hotTopic->topic_num = $liveTopic->topic_num;
-                    $hotTopic->camp_num = $liveTopic->camp_num ?? 1;
-                    $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
-                    $hotTopic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
-                    $hotTopic->namespace_id = $liveTopic->namespace_id;
-                    $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
-                    $hotTopic->supporterData = $supporterData;
-                    $hotTopic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
+                        $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                            $supporter->first_name = $supporter->first_name[0] ?? '';
+                            $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                            $supporter->last_name = $supporter->last_name[0] ?? '';
+                        });
+
+                        // Get the tag IDs associated with $liveTopic
+                        $hotTopic->topic_name = $topicTitle ?? "";
+                        $hotTopic->camp_name = $campTitle ?? "";
+                        $hotTopic->topic_num = $liveTopic->topic_num;
+                        $hotTopic->camp_num = $liveTopic->camp_num ?? 1;
+                        $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
+                        $hotTopic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
+                        $hotTopic->namespace_id = $liveTopic->namespace_id;
+                        $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
+                        $hotTopic->supporterData = $supporterData;
+                        $hotTopic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
+                    }
                 }
-            }
-            $collection = Util::getPaginatorResponse($hotTopics);
+                return Util::getPaginatorResponse($hotTopics);
+            });
+
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
