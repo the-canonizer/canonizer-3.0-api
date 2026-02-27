@@ -1,7 +1,11 @@
 {
     "name": "laravel/lumen",
     "description": "The Laravel Lumen Framework.",
-    "keywords": ["framework", "laravel", "lumen"],
+    "keywords": [
+        "framework",
+        "laravel",
+        "lumen"
+    ],
     "license": "MIT",
     "type": "project",
     "require": {
@@ -23,7 +27,8 @@
         "league/flysystem-aws-s3-v3": "~1.0",
         "mingalevme/illuminate-uqueue": "^1.2",
         "predis/predis": "^2.2",
-        "spatie/laravel-activitylog": "^3.17"
+        "spatie/laravel-activitylog": "^3.17",
+        "aws/aws-sdk-php": "3.283.13"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -50,6 +55,14 @@
         "optimize-autoloader": true,
         "allow-plugins": {
             "php-http/discovery": true
+        },
+        "audit": {
+            "ignore": [
+                "PKSA-4s4z-t146-6123",
+                "PKSA-dxyf-6n16-t87m",
+                "PKSA-n3s6-289w-qtqb",
+                "PKSA-stsw-jsf7-f6vs"
+            ]
         }
     },
     "minimum-stability": "dev",

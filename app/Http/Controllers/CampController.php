@@ -40,13 +40,15 @@ class CampController extends Controller
     protected $resProvider;
     protected $rules;
     protected $validationMessages;
+    protected $campService;
 
-    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages, \App\Services\CampService $campService)
     {
         $this->rules = $rules;
         $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
         $this->resProvider = $respProvider;
+        $this->campService = $campService;
     }
 
     /**
@@ -353,62 +355,29 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-        $filter['topicNum'] = $request->topic_num;
-        $filter['asOf'] = $request->as_of;
-        $filter['asOfDate'] = $request->as_of_date;
-        $filter['campNum'] = $request->camp_num;
-        $parentCampName = null;
-        $camp = [];
+        
         try {
-            $campExist = Camp::where('topic_num', $filter['topicNum'])
-                ->where('camp_num', '=', $filter['campNum'])->count();
+            $campExist = Camp::where('topic_num', $request->topic_num)
+                ->where('camp_num', '=', $request->camp_num)->count();
 
             if (!$campExist) {
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
             }
 
-            $livecamp = Camp::getLiveCamp($filter);
-            if ($livecamp) {
-                $livecamp->nick_name = $livecamp->nickname->nick_name ?? trans('message.general.nickname_association_absence');
-                $parentCamp = Camp::campNameWithAncestors($livecamp, $filter);
-                if ($request->user()) {
-                    $campSubscriptionData = Camp::getCampSubscription($filter, $request->user()->id);
-                    $livecamp->flag = $campSubscriptionData['flag'];
-                    $livecamp->subscriptionId = $campSubscriptionData['camp_subscription_data'][0]['subscription_id'] ?? null;
-                    $livecamp->subscriptionCampName = $campSubscriptionData['camp_subscription_data'][0]['camp_name'] ?? null;
-                }
-                if ($livecamp->parent_camp_num != null && $livecamp->parent_camp_num > 0) {
-                    $parentCampName = CampForum::getCampName($filter['topicNum'], $livecamp->parent_camp_num, $filter['asOf']);
-                }
-                $livecamp->camp_about_nick_name = NickName::getNickName($livecamp->camp_about_nick_id)->nick_name ?? null;
-                $livecamp->submitter_nick_name = NickName::getNickName($livecamp->submitter_nick_id)->nick_name ?? null;
-                $livecamp->camp_leader_nick_name = NickName::getNickName($livecamp->camp_leader_nick_id)->nick_name ?? '';
-                $livecamp->parent_camp_name = $parentCampName;
-                ['is_disabled' => $livecamp->parent_is_disabled, 'is_one_level' => $livecamp->parent_is_one_level] = Camp::checkIfParentCampDisabledSubCampFunctionality($livecamp);
-                $camp[] = $livecamp;
-                $indexs = ['topic_num', 'camp_num', 'camp_name', 'key_words', 'camp_about_url', 'nick_name', 'flag', 'subscriptionId', 'subscriptionCampName', 'parent_camp_name', 'is_disabled', 'is_one_level', 'camp_about_nick_name', 'submitter_nick_name', 'camp_about_nick_id', 'submitter_nick_id', 'note', 'camp_about_url', 'is_archive', 'direct_archive', 'submit_time', 'go_live_time', 'camp_leader_nick_id', 'camp_leader_nick_name', 'parent_is_disabled', 'parent_is_one_level'];
-                $camp = $this->resourceProvider->jsonResponse($indexs, $camp);
-                $camp = $camp[0];
-                $camp['parentCamps'] = $parentCamp;
+            $filter = [
+                'topicNum' => $request->topic_num,
+                'asOf' => $request->as_of,
+                'asOfDate' => $request->as_of_date,
+                'campNum' => $request->camp_num
+            ];
+
+            $campData = $this->campService->getCampRecordData($request->topic_num, $request->camp_num, $filter, $request->user());
+
+            if ($campData) {
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $campData, '');
             }
 
-            if ($livecamp && $filter['asOf'] === 'default') {
-                $inReviewChangesCount = Helpers::getChangesCount((new Camp()), $request->topic_num, $request->camp_num);
-                $camp = array_merge($camp, ['in_review_changes' => $inReviewChangesCount]);
-            }
-            // This case is no more useful, because it was due to handling of camp create button in archive.
-            // Now create camp is no more available when archived, so this case is no more useful.
-            // else {
-            //     $liveCampFilter['topicNum'] = $request->topic_num;
-            //     $liveCampFilter['asOf'] = 'default';
-            //     $liveCampFilter['campNum'] = $request->camp_num;
-            //     $liveCampDefault = Camp::getLiveCamp($liveCampFilter);
-            //     if (!empty($liveCampDefault)) {
-            //         $camp['is_archive'] = $liveCampDefault->is_archive;
-            //         $camp['camp_name'] = $liveCampDefault->camp_name;
-            //     }
-            // }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.camp_record_not_found'));
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

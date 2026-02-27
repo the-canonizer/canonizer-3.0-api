@@ -269,43 +269,64 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function campNameWithAncestors($camp, $filter = array(), $campNames = array(), $index = 0, $visitedCamps = []): array
     {
-        $as_of_time = time();
-        if (isset($filter['asOf']) && $filter['asOf'] == 'bydate') {
-            $as_of_time = strtotime($filter['asOfDate']);
+        if (empty($camp)) {
+            return [];
         }
 
-        if ($camp) {
-            // Avoid revisiting the same camp (prevent circular reference)
-            if (in_array($camp->camp_num, $visitedCamps)) {
-                return array_reverse($campNames); // Prevent infinite loop
+        // Fetch all relevant camps for the topic once to avoid N+1 queries
+        $topicNum = $camp->topic_num;
+        $asOf = $filter['asOf'] ?? 'default';
+        $asOfDate = isset($filter['asOfDate']) ? strtotime($filter['asOfDate']) : time();
+
+        $campsMap = [];
+        
+        // Optimization: Use shared cache if standard live filter
+        if (($asOf == 'default' || $asOf == 'live') && $asOfDate >= time()) {
+             $campsMap = self::getTopicLiveCampsMap($topicNum);
+        } else {
+            $query = self::where('topic_num', $topicNum)->where('objector_nick_id', NULL);
+
+            if ($asOf == 'review') {
+                $query->where('grace_period', 0);
+            } else {
+                $query->where('go_live_time', '<=', $asOfDate);
             }
-            $visitedCamps[] = $camp->camp_num;
 
-            $campNames[$index]['camp_name'] = $camp->camp_name;
-            $campNames[$index]['topic_num'] = $camp->topic_num;
-            $campNames[$index]['camp_num'] = $camp->camp_num;
-            $campNames[$index]['camp_is_archive'] = $camp->is_archive;
-            $index++;
+            // We need the latest version of each camp
+            $allCamps = $query->orderBy('submit_time', 'DESC')->get(); 
 
-            if ($camp->parent_camp_num) {
-                if (isset($filter['asOf']) && $filter['asOf'] == 'review') {
-                    $pCamp = Camp::where('topic_num', $camp->topic_num)
-                        ->where('camp_num', $camp->parent_camp_num)
-                        ->where('grace_period', 0)
-                        ->where('objector_nick_id', '=', NULL)
-                        ->orderBy('go_live_time', 'DESC')->first();
-                } else {
-                    $pCamp = Camp::where('topic_num', $camp->topic_num)
-                        ->where('camp_num', $camp->parent_camp_num)
-                        ->where('objector_nick_id', '=', NULL)
-                        ->where('go_live_time', '<=', $as_of_time)
-                        ->orderBy('submit_time', 'DESC')->first();
+            foreach ($allCamps as $c) {
+                // Since we ordered by submit_time DESC, the first one we encounter for a camp_num is the latest
+                if (!isset($campsMap[$c->camp_num])) {
+                    $campsMap[$c->camp_num] = $c;
                 }
-                return self::campNameWithAncestors($pCamp, $filter, $campNames, $index, $visitedCamps);
             }
         }
 
-        return array_reverse($campNames);
+        $currentCamp = $camp;
+        $names = [];
+
+        while ($currentCamp) {
+             if (in_array($currentCamp->camp_num, $visitedCamps)) {
+                 break; 
+             }
+             $visitedCamps[] = $currentCamp->camp_num;
+
+             $names[] = [
+                'camp_name' => $currentCamp->camp_name,
+                'topic_num' => $currentCamp->topic_num,
+                'camp_num' => $currentCamp->camp_num,
+                'camp_is_archive' => $currentCamp->is_archive
+             ];
+
+             if ($currentCamp->parent_camp_num) {
+                 $currentCamp = $campsMap[$currentCamp->parent_camp_num] ?? null;
+             } else {
+                 $currentCamp = null;
+             }
+        }
+
+        return array_reverse($names);
     }
 
     public function nickname()
@@ -347,58 +368,64 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function getAllChildCamps($camp): array
     {
-        self::clearChildCampArray();
+        if (empty($camp)) {
+            return [];
+        }
+
+        $topicNum = $camp->topic_num;
+        $campsMap = self::getTopicLiveCampsMap($topicNum);
+        
+        $childrenMap = [];
+        foreach ($campsMap as $c) {
+            if ($c->parent_camp_num) {
+                $childrenMap[$c->parent_camp_num][] = $c;
+            }
+        }
+
         $camparray = [];
-        Camp::$chilcampArray = [];
-        Camp::$childtempArray = [];
-        try {
-            if ($camp) {
-                $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
-                $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
-                if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$childtempArray)) {
-                    return [];
-                }
-                Camp::$chilcampArray[] = $key;
-                Camp::$childtempArray[] = $key1;
-                $camparray[] = $camp->camp_num;
-                $childCamps = Camp::where('topic_num', $camp->topic_num)
-                    ->where('parent_camp_num', $camp->camp_num)
-                    ->where('go_live_time', '<=', time())
-                    ->groupBy('camp_num')
-                    ->latest('submit_time')
-                    ->get();
-                foreach ($childCamps as $child) {
-                    $latestParent = Camp::where('topic_num', $child->topic_num)
-                        ->where('camp_num', $child->camp_num)
-                        ->where('go_live_time', '<=', time())
-                        ->where('objector_nick_id', NULL)
-                        ->latest('submit_time')
-                        ->first();
-                    
-                    if ($latestParent->parent_camp_num == $camp->camp_num) {
-                        $camparray = array_merge($camparray, self::getAllChildCamps($child));
-                    }
+        $stack = [$camp];
+        $visited = [];
+
+        while (!empty($stack)) {
+            $current = array_pop($stack);
+            
+            if (in_array($current->camp_num, $visited)) {
+                continue;
+            }
+            $visited[] = $current->camp_num;
+            $camparray[] = $current->camp_num;
+
+            if (isset($childrenMap[$current->camp_num])) {
+                foreach ($childrenMap[$current->camp_num] as $child) {
+                    $stack[] = $child;
                 }
             }
-        } catch (Exception $e) {
-            Util::logMessage("Error :: getAllChildCamps :: ".$e->getMessage());
         }
        
-        return $camparray;
+        return array_unique($camparray);
     }
 
     public static function getAllParent($camp, $camparray = array())
     {
-        if (!empty($camp)) {
-            if ($camp->parent_camp_num) {
-                $camparray[] = $camp->parent_camp_num;
-                $filter['topicNum'] = $camp->topic_num;
-                $filter['asOf'] = '';
-                $filter['campNum'] = $camp->parent_camp_num;
-                $pcamp = self::getLiveCamp($filter);
-                return self::getAllParent($pcamp, $camparray);
-            }
+        if (empty($camp)) {
+            return $camparray;
         }
+
+        // Use shared cache helper
+        $campsMap = self::getTopicLiveCampsMap($camp->topic_num);
+        
+        $currentCamp = $camp;
+        $visited = [];
+        
+        while ($currentCamp && $currentCamp->parent_camp_num) {
+            if (in_array($currentCamp->parent_camp_num, $visited)) break;
+            
+            $camparray[] = $currentCamp->parent_camp_num;
+            $visited[] = $currentCamp->parent_camp_num;
+            
+            $currentCamp = $campsMap[$currentCamp->parent_camp_num] ?? null;
+        }
+
         return $camparray;
     }
 
@@ -960,44 +987,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function getAllLiveChildCamps($camp, $includeLiveCamps=false) 
     {
-        $camparray = [];
-        Camp::$chilcampArray = [];
-        Camp::$childtempArray = [];
-
-        if ($camp) {
-            $key = $camp->topic_num . '-' . $camp->camp_num . '-' . $camp->parent_camp_num;
-            $key1 = $camp->topic_num . '-' . $camp->parent_camp_num . '-' . $camp->camp_num;
-            if (in_array($key, Camp::$chilcampArray) || in_array($key1, Camp::$childtempArray)) {
-                return [];/** Skip repeated recursions* */
-            }
-            Camp::$chilcampArray[] = $key;
-            Camp::$childtempArray[] = $key1;
-            $camparray[] = $camp->camp_num;
-            if($includeLiveCamps){
-                //adding go_live_time condition Sunil Talentelgia //->where('go_live_time', '<=', time())
-                $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->where('go_live_time', '<=', time())->groupBy('camp_num')->latest('submit_time')->get();
-           
-            }else{
-                $childCamps = Camp::where('topic_num', $camp->topic_num)->where('parent_camp_num', $camp->camp_num)->groupBy('camp_num')->latest('submit_time')->get();
-            }
-            foreach ($childCamps as $child) {
-                /***
-                 ** Adding check to skip camps rejected ones 
-                **/
-                if($includeLiveCamps){
-                    $latestParent = Camp::where('topic_num', $child->topic_num)->where('camp_num', $child->camp_num)->latest('submit_time')->where('go_live_time', '<=', time())->where('objector_nick_id', NULL)->first();
-                }else{
-                    $latestParent = Camp::where('topic_num', $child->topic_num)->where('camp_num', $child->camp_num)->where('objector_nick_id', NULL)->latest('submit_time')->first();
-                }
-
-                if($latestParent->parent_camp_num == $camp->camp_num )
-                { 
-                    $camparray = array_merge($camparray, self::getAllChildCamps($child));
-                }
-            }
-        }
-
-        return $camparray;
+        // For live camps, we can use the same optimized logic as getAllChildCamps
+        // because both rely on the current live state of the topic.
+        return self::getAllChildCamps($camp);
     }
 
     public static function checkAllLiveCampsInTopic($topicnum){ 
@@ -1050,15 +1042,60 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         ])->where('go_live_time', '>', time())->exists();
     }
     
+    protected static $topicCampsCache = [];
+
+    public static function getTopicLiveCampsMap($topicNum) 
+    {
+        if (isset(self::$topicCampsCache[$topicNum])) {
+            return self::$topicCampsCache[$topicNum];
+        }
+
+        $allCamps = self::where('topic_num', $topicNum)
+            ->where('objector_nick_id', NULL)
+            ->where('go_live_time', '<=', time())
+            ->orderBy('submit_time', 'DESC')
+            ->get();
+            
+        $campsMap = [];
+        foreach($allCamps as $c) {
+             if (!isset($campsMap[$c->camp_num])) { 
+                 $campsMap[$c->camp_num] = $c; 
+             }
+        }
+        self::$topicCampsCache[$topicNum] = $campsMap;
+        return $campsMap;
+    }
+
     public static function checkIfParentCampDisabledSubCampFunctionality($camp)
     {
-        if (empty($camp->parent_camp_num)) {
-            return ['is_disabled' => $camp->is_disabled, 'is_one_level' => $camp->is_one_level];
-        }
-        $camp = self::getLiveCamp(['topicNum' => $camp->topic_num, 'campNum' => $camp->parent_camp_num]);
+        $isDisabled = $camp->is_disabled ?? 0;
+        $isOneLevel = $camp->is_one_level ?? 0;
 
-        ['is_disabled' => $parentIsDisabled, 'is_one_level' => $parentIsOneLevel] = self::checkIfParentCampDisabledSubCampFunctionality($camp);
-        return ['is_disabled' => $camp->is_disabled || $parentIsDisabled, 'is_one_level' => $camp->is_one_level || $parentIsOneLevel];
+        if (empty($camp->parent_camp_num)) {
+            return ['is_disabled' => $isDisabled, 'is_one_level' => $isOneLevel];
+        }
+
+        $campsMap = self::getTopicLiveCampsMap($camp->topic_num);
+
+        $currentCamp = $camp;
+        $visited = [];
+
+        while($currentCamp && $currentCamp->parent_camp_num) {
+             if(in_array($currentCamp->parent_camp_num, $visited)) break;
+             $visited[] = $currentCamp->parent_camp_num;
+
+             $parent = $campsMap[$currentCamp->parent_camp_num] ?? null;
+             
+             if ($parent) {
+                 $isDisabled = $isDisabled || $parent->is_disabled;
+                 $isOneLevel = $isOneLevel || $parent->is_one_level;
+                 $currentCamp = $parent;
+             } else {
+                 break;
+             }
+        }
+        
+        return ['is_disabled' => $isDisabled, 'is_one_level' => $isOneLevel];
     }
 
     public static function getCampLeaderNickId($topic_num, $camp_num, $as_of = 'default') {

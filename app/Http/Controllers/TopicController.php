@@ -44,16 +44,22 @@ use App\Models\HotTopic;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use App\Services\CampService;
 
 class TopicController extends Controller
 {
 
-    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    protected $rules;
+    protected $validationMessages;
+    protected $campService;
+
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages, CampService $campService)
     {
         $this->rules = $rules;
         $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
         $this->resProvider = $respProvider;
+        $this->campService = $campService;
     }
 
     /**
@@ -424,7 +430,8 @@ class TopicController extends Controller
             $topic->camp_num =  $topic->camp_num ?? 1;
             $topic->load('tags');
             $topic->tags->makeHidden(['pivot']);
-            $topic->agreement_camp_record = app(CampController::class)->getCampRecord($request->merge(['camp_num' => 1]), $validate)->getData()->data;
+            // $topic->agreement_camp_record = app(CampController::class)->getCampRecord($request->merge(['camp_num' => 1]), $validate)->getData()->data;
+            $topic->agreement_camp_record = $this->campService->getCampRecordData($request->topic_num, 1, ['topicNum' => $request->topic_num, 'campNum' => 1, 'asOf' => $request->as_of, 'asOfDate' => $request->as_of_date], $request->user());
             // $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
