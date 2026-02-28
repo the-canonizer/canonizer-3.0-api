@@ -61,11 +61,11 @@ class TimelineService
         foreach ($algorithms as $algo) { 
             try {
                 if($timelineType=="history"){
-                    $tree = (new CampService())->prepareCampTimeline($algo, $topicNumber, $asOfTime, $startCamp, $rootUrl,$nickNameId = null, $asOf = 'bydate', $fetchTopicHistory = 0);
+                    $tree = CampService::prepareCampTimeline($algo, $topicNumber, $asOfTime, $startCamp, $rootUrl,$nickNameId = null, $asOf = 'bydate', $fetchTopicHistory = 0);
                     $topic = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => false],$asOf = 'bydate', $fetchTopicHistory = 0);
                 }
                 else{
-                    $tree = (new CampService())->prepareCampTimeline($algo, $topicNumber, $asOfTime, $startCamp, $rootUrl);
+                    $tree = CampService::prepareCampTimeline($algo, $topicNumber, $asOfTime, $startCamp, $rootUrl);
                     $topic = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => false]);
                 }
                 $topicInReview = (new TopicService())->getReviewTopic($topicNumber);

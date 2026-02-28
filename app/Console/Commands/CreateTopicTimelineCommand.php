@@ -58,13 +58,8 @@ class CreateTopicTimelineCommand extends Command
             'started_at' => Carbon::now()->timestamp,
         ]);
 
-        // If timeline:all command is already running, don't execute command
-        $commandStatement = "php artisan timeline:all {topic_num?} {algorithm_id?}";
-        $commandSignature = "timeline:all {topic_num?} {algorithm_id?}";
-        $commandStatus = UtilHelper::getCommandRuningStatus($commandStatement, $commandSignature);
-
         //First Deleted all old topic Timeline related records.
-        $algorithms = (new AlgorithmService())->getAlgorithmKeyList("timeline",$algorithm_id);
+        $algorithms = AlgorithmService::getAlgorithmKeyList("timeline",$algorithm_id);
         
         try {
             
