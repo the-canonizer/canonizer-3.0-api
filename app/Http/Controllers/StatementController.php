@@ -544,7 +544,7 @@ class StatementController extends Controller
             // $totalSupport =  Support::getAllSupporters($all['topic_num'], $all['camp_num'], 0);
             // $loginUserNicknames =  Nickname::personNicknameIds();
             $nickNames = Nickname::personNicknameArray();
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $nickNames, $all['camp_num']);
 
             if ($eventType == 'objection') {
                 $statement = Statement::where('id', $all['statement_id'])->first();

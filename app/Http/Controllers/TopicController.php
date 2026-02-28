@@ -270,7 +270,7 @@ class TopicController extends Controller
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
                     $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topicLive, $camp, time());
-                    $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
+                    $historylink = Util::topicHistoryLink($topic->topic_num, $topic->topic_name, 'topic', 1, 'Aggreement');
                     $dataEmail = (object) [
                         "type" => "topic",
                         "link" => $link,
@@ -610,7 +610,7 @@ class TopicController extends Controller
                 }
             }
 
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $nickNames, $filter['campNum']);
 
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
@@ -1860,7 +1860,7 @@ class TopicController extends Controller
                 $message = trans('message.success.topic_update');
             }
 
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], 0, $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $nickNames, 0);
 
             if (!$ifIamSingleSupporter) {
                 $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));

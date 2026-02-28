@@ -207,7 +207,7 @@ class Util
         return $shortCode;
     }
 
-    public static function topicHistoryLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement' , $type)
+    public static function topicHistoryLink($topicNum, $title, $type, $campNum = 1, $campName = 'Aggreement')
     {
         $regex  = '/[^A-Za-z0-9\-]/';
         $title = preg_replace($regex, '-', $title);

@@ -121,7 +121,7 @@ class CampService
             $tree[$startCamp]['full_score'] = $this->getCamptSupportCount($algorithm, $topicNumber, $startCamp, $asOfTime, $nickNameId, true);
             Log::info("prepareCampTree: getCamptSupportCount done");
             $tree[$startCamp]['submitter_nick_id'] = $topic->submitter_nick_id ?? '';
-            $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNumber, $startCamp, null, $asOfTime, $rootUrl, $asOf, $tree, $level);
+            $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNumber, $startCamp, $rootUrl, $tree, $level, null, $asOfTime, $asOf);
             Log::info("prepareCampTree: traverseCampTree done");
 
             $result = TopicSupport::sumTranversedArraySupportCountP($tree);
@@ -133,7 +133,7 @@ class CampService
         }
     }
 
-    public function traverseCampTree($algorithm, $topicNumber, $parentCamp, $lastparent = null, $asOfTime = null, $rootUrl, $asOf = 'default', &$lastArray, $level)
+    public function traverseCampTree($algorithm, $topicNumber, $parentCamp, $rootUrl, &$lastArray, $level, $lastparent = null, $asOfTime = null, $asOf = 'default')
     {
         try {
             $key = $topicNumber . '-' . $parentCamp . '-' . $lastparent;
@@ -154,7 +154,7 @@ class CampService
                 $array[$child->camp_num]['score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime);
                 $array[$child->camp_num]['full_score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime, null, true);
                 $array[$child->camp_num]['submitter_nick_id'] = $child->submitter_nick_id ?? '';
-                $children = $this->traverseCampTree($algorithm, $child->topic_num, $child->camp_num, $child->parent_camp_num, $asOfTime, $rootUrl, $asOf, $array, $level);
+                $children = $this->traverseCampTree($algorithm, $child->topic_num, $child->camp_num, $rootUrl, $array, $level, $child->parent_camp_num, $asOfTime, $asOf);
                 $array[$child->camp_num]['children'] = is_array($children) ? $children : [];
             }
             return $array;
@@ -335,7 +335,7 @@ class CampService
             $tree[$startCamp]['score'] = $this->getCamptSupportCount($algorithm, $topicNumber, $startCamp, $asOfTime, $nickNameId);
             $tree[$startCamp]['full_score'] = $this->getCamptSupportCount($algorithm, $topicNumber, $startCamp, $asOfTime, $nickNameId, true);
             $tree[$startCamp]['submitter_nick_id'] = $topic->submitter_nick_id ?? '';
-            $tree[$startCamp]['children'] = $this->traverseCampTimeline($algorithm, $topicNumber, $startCamp, null, $asOfTime, $rootUrl, $asOf, $tree, $level);
+            $tree[$startCamp]['children'] = $this->traverseCampTimeline($algorithm, $topicNumber, $startCamp, $rootUrl, $tree, $level, null, $asOfTime, $asOf);
 
             return TopicSupport::sumTranversedArraySupportCountP($tree);
         } catch (\Exception $th) {
@@ -343,7 +343,7 @@ class CampService
         }
     }
 
-    public function traverseCampTimeline($algorithm, $topicNumber, $parentCamp, $lastparent = null, $asOfTime = null, $rootUrl, $asOf = 'default', &$lastArray, $level)
+    public function traverseCampTimeline($algorithm, $topicNumber, $parentCamp, $rootUrl, &$lastArray, $level, $lastparent = null, $asOfTime = null, $asOf = 'default')
     {
         try {
             $key = $topicNumber . '-' . $parentCamp . '-' . $lastparent;
@@ -364,7 +364,7 @@ class CampService
                 $array[$child->camp_num]['score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime);
                 $array[$child->camp_num]['full_score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime, null, true);
                 $array[$child->camp_num]['submitter_nick_id'] = $child->submitter_nick_id ?? '';
-                $children = $this->traverseCampTimeline($algorithm, $child->topic_num, $child->camp_num, $child->parent_camp_num, $asOfTime, $rootUrl, $asOf, $array, $level);
+                $children = $this->traverseCampTimeline($algorithm, $child->topic_num, $child->camp_num, $rootUrl, $array, $level, $child->parent_camp_num, $asOfTime, $asOf);
                 $array[$child->camp_num]['children'] = is_array($children) ? $children : [];
             }
             return $array;

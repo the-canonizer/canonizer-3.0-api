@@ -163,10 +163,10 @@ class NotificationController extends Controller
                 }
                 switch ($value->notification_type) {
                     case config('global.notification_type.Topic'):
-                        $value->url = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Agreement', 'topic');
+                        $value->url = Util::topicHistoryLink($topic->topic_num, $topic->topic_name, 'topic', 1, 'Agreement');
                         break;
                     case config('global.notification_type.Camp'):
-                        $value->url = Util::topicHistoryLink($camp->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp');
+                        $value->url = Util::topicHistoryLink($camp->topic_num, $topic->topic_name, 'camp', $camp->camp_num, $camp->camp_name);
                         break;
                     case config('global.notification_type.Thread'):
                     case config('global.notification_type.Post'):

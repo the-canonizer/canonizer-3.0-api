@@ -401,7 +401,7 @@ class Support extends Model
         return [$totalSupporters, count($totalSupporters)];
     }
 
-    public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
+    public static function ifIamSingleSupporter($topic_num, $userNicknames, $camp_num = 0)
     {
         $supportFlag = 1;
 

@@ -644,7 +644,7 @@ class SupportController extends Controller
 
         try{
             $supportCount = new SupportAndScoreCount();
-            $data = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $campNum, $asOfDate, $asOf);
+            $data = $supportCount->getCampTotalSupportScore($algorithm, $topicNum, $asOfDate, $campNum, $asOf);
         
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data,'');
         } catch (\Throwable $e) {

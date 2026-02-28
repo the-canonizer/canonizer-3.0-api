@@ -39,8 +39,8 @@ class TopicRepository implements TopicInterface
      */
     public function getTopicsWithPagination($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $nickNameIds, $asOf, $search = '', $filter = '', $applyPagination = true, $archive = 0, $sort = false, $page = 'home', $topic_tags = [])
     {
-        $search = str_replace('\\', '\\\\', $search);
-        $search = $this->escapeSpecialCharacters($search);
+        $search = str_replace('\\', '\\\\', (string)$search);
+        $search = $this->escapeSpecialCharacters((string)$search);
         $recordCount = 0;
         try {
             // Track the execution time of the code.
@@ -236,7 +236,7 @@ class TopicRepository implements TopicInterface
      *
      * @return array Response
      */
-    public function getTopicsWithPaginationWithFilter($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $search = '', $asOf)
+    public function getTopicsWithPaginationWithFilter($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $asOf, $search = '')
     {
         try {
             $nextDay = $asofdate + 86400;

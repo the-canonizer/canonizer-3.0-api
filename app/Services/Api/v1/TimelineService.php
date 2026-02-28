@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class TimelineService
 {
-    public function prepareMongoArr($tree, $topic = null, $reviewTopic = null, $asOfDate = null, $algorithm = null, $topicCreatedByNickId = null, $message, $type, $id=null, $old_parent_id=null, $new_parent_id=null, $topic_name, $camp_num, $camp_name, $k,$rootUrl, $url)
+    public function prepareMongoArr($tree, $message, $type, $topic_name, $camp_num, $camp_name, $k, $rootUrl, $url, $topic = null, $reviewTopic = null, $asOfDate = null, $algorithm = null, $topicCreatedByNickId = null, $id = null, $old_parent_id = null, $new_parent_id = null)
     {
         $namespaceId = isset($topic->namespace_id) ? $topic->namespace_id : '';
         $reviewNamespaceId = isset($reviewTopic->namespace_id) ? $reviewTopic->namespace_id : '';
@@ -47,7 +47,7 @@ class TimelineService
         ];
     }
 
-    public function upsertTimeline($topicNumber, $algorithm, $asOfTime, $updateAll = 0, $request = [], $message, $type, $id, $old_parent_id, $new_parent_id, $timelineType="", $topic_name, $camp_num, $camp_name, $k=0, $url=null)
+    public function upsertTimeline($topicNumber, $algorithm, $asOfTime, $message, $type, $id, $old_parent_id, $new_parent_id, $topic_name, $camp_num, $camp_name, $updateAll = 0, $request = [], $timelineType = "", $k = 0, $url = null)
     {
         $algorithms = (new AlgorithmService())->getCacheAlgorithms($updateAll, $algorithm, "timeline");
         if($timelineType=="history"){
@@ -70,7 +70,7 @@ class TimelineService
                 }
                 $topicInReview = (new TopicService())->getReviewTopic($topicNumber);
                 $asOfDate = $asOfTime;
-                $mongoArr = $this->prepareMongoArr($tree, $topic, $topicInReview, $asOfDate, $algo, $topicCreatedByNickId, $message, $type, $id, $old_parent_id, $new_parent_id, $topic_name, $camp_num, $camp_name, $k,$rootUrl,$url);
+                $mongoArr = $this->prepareMongoArr($tree, $message, $type, $topic_name, $camp_num, $camp_name, $k, $rootUrl, $url, $topic, $topicInReview, $asOfDate, $algo, $topicCreatedByNickId, $id, $old_parent_id, $new_parent_id);
                 $conditions = $this->getConditions($topicNumber, $algo);
 
             } catch (\Exception $th) {

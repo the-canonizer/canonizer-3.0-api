@@ -122,7 +122,7 @@ class CreateTopicTimelineCommand extends Command
                 if(!empty($data)){
                     foreach($data as $k=>$result){
                         $count =$count +1;
-                        $tree =  TimelineService::upsertTimeline($topic_num=$result['topic_num'], $algorithm=$algorithm_id, $asOfTime=$result['asOfTime'], $updateAll=0, $request = [], $message=$result['message'], $type=$result['type'], $id=$result['id'], $old_parent_id=$result['old_parent_id'], $new_parent_id=$result['new_parent_id'],$timelineType="history", $topic_name=$result['topic_name'], $camp_num=$result['camp_num'], $camp_name=$result['camp_name'],$key=count($data)-$k, $url=null);            
+                        $tree =  TimelineService::upsertTimeline($result['topic_num'], $algorithm_id, $result['asOfTime'], $result['message'], $result['type'], $result['id'], $result['old_parent_id'], $result['new_parent_id'], $result['topic_name'], $result['camp_num'], $result['camp_name'], 0, [], "history", count($data) - $k, null);
                     }
                 } 
                 $data = [];

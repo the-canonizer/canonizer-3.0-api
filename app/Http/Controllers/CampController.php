@@ -249,7 +249,7 @@ class CampController extends Controller
                     $dataEmail = (object) [
                         "type" => "camp",
                         "link" =>  $link,
-                        "historylink" => Util::topicHistoryLink($topic->topic_num, $camp->camp_num, $topic->topic_name, $camp->camp_name, 'camp'),
+                        "historylink" => Util::topicHistoryLink($topic->topic_num, $topic->topic_name, 'camp', $camp->camp_num, $camp->camp_name),
                         "object" => Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, 'camp'),
                         // "object" =>  $topic->topic_name . " >> " . $camp->camp_name,
                         "namespace_id" =>  $topic->namespace_id,
@@ -1355,7 +1355,7 @@ class CampController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.camp_alreday_exist'), '', '');
             }
             $nickNames = Nickname::personNicknameArray();
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $all['camp_num'], $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $nickNames, $all['camp_num']);
 
             /*if(!$all['is_archive']){ //restore support
                $checkArchiveCampSupporter = Support::checkArchivedCampSupporter();
