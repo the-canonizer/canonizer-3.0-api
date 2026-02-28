@@ -10,6 +10,7 @@ use App\Helpers\ElasticSearch;
 use App\Helpers\TopicSupport;
 use App\Models\Nickname;
 
+#[AllowDynamicProperties]
 class Support extends Model
 {
 

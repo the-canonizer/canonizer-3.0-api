@@ -679,7 +679,7 @@ class TopicSupport
      */
     public static function getTopicLink($topic)
     {   
-        return  Topic::topicLink($topic->topic_num, 1, $topic->title);
+        return  Topic::topicLink($topic->topic_num, $topic->title, 1);
     }
 
 
@@ -690,7 +690,7 @@ class TopicSupport
     */
     public static function getCampLink($topic, $camp)
     {
-        return  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
+        return  Topic::topicLink($topic->topic_num, $topic->title, $camp->camp_num, $camp->camp_name);
     }  
     
     /**
@@ -745,7 +745,7 @@ class TopicSupport
                     $directSupports[$support->nick_name_id]['topic'][$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
-                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                        'title_link' => Topic::topicLink($support->topic_num, $support->title, 1),
                         'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '',
                         'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
                         'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '' ,
@@ -770,7 +770,7 @@ class TopicSupport
                         $support->topic_num => array(
                             'topic_num' => $support->topic_num,
                             'title' => $support->title,
-                            'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                            'title_link' => Topic::topicLink($support->topic_num, $support->title, 1),
                             'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '' ,
                             'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
                             'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '',
@@ -845,7 +845,7 @@ class TopicSupport
                 } else if ($camp_num == 1) { 
                     //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                     $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
-                    $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
+                    $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, $title, 1);
                     $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
                     $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
                     $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;

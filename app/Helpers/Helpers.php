@@ -20,11 +20,11 @@ class Helpers
         }
 
         if (is_null($camp->parent_camp_num)) {
-            $topicLink = Topic::topicLink($topic_num, 1, $topic_name);
+            $topicLink = Topic::topicLink($topic_num, $topic_name, 1);
             return self::createLink($topic_name . ($change_type === 'camp' && $camp_num === 1 && $iteration == 0 ? ' ' . $seprator . ' ' . $camp->camp_name : ''), $topicLink) ?? $camp->camp_name;
         }
 
-        $campLink = Topic::topicLink($topic_num, $camp->camp_num, $topic_name, $camp->camp_name);
+        $campLink = Topic::topicLink($topic_num, $topic_name, $camp->camp_num, $camp->camp_name);
 
         return self::renderParentCampLinks($topic_num, $camp->parent_camp_num, $topic_name, $withLinks, $change_type, ++$iteration) . ' ' . $seprator . ' ' . self::createLink($camp->camp_name, $campLink);
     }

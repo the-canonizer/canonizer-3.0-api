@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use Exception;
 
+#[AllowDynamicProperties]
 class Statement extends Model
 {
     protected $table = 'statement';

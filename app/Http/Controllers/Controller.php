@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Laravel\Lumen\Routing\Controller as BaseController;
 use App\Helpers\ResponseInterface;
-class Controller extends BaseController
+use AllowDynamicProperties;
+
+#[AllowDynamicProperties]
+abstract class Controller
 {
     /**
      * Common response among all the classes.
      *
-     * @var mixed
+     * @var ResponseInterface
      */
     protected $resProvider;
 

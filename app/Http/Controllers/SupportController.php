@@ -1073,7 +1073,7 @@ class SupportController extends Controller
                 'topic_num' => $support->topic_num,
                 'title' => $support->title,
                 'nick_name_id' => $support->nick_name_id,
-                'title_link' => Topic::topicLink($support->topic_num, 1, $support->title),
+                'title_link' => Topic::topicLink($support->topic_num, $support->title, 1),
                 'camps' => $camps,
             ];
 

@@ -153,7 +153,7 @@ class Search extends Model
             $temp['topic_num'] = $dt->topic_num;
             $temp['camp_num'] = 1;
             $temp['camp_name'] = 'Agreement';
-            $temp['link'] = Topic::topicLink($dt->topic_num, 1, $dt->topic_name, 'Agreement', true);
+            $temp['link'] = Topic::topicLink($dt->topic_num, $dt->topic_name, 1, 'Agreement', true);
             array_push($topic, $temp);
         }
         return $topic;

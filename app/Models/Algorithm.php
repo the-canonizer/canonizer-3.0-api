@@ -424,7 +424,7 @@ class Algorithm extends Model
      *
      * @return int $score
      */
-    public static function shareAlgo($nickNameId, $topicNumber = 0, $campNumber = 0, $algo = 'shares', $asOfTime)
+    public static function shareAlgo($nickNameId, $asOfTime, $topicNumber = 0, $campNumber = 0, $algo = 'shares')
     {
         $year = date('Y', $asOfTime);
         $month = date('m', $asOfTime);
@@ -482,7 +482,7 @@ class Algorithm extends Model
         if(!$expertCamp){ # not an expert canonized nick.
             return 0;
         }
-        $score_multiplier = self::getMindExpertScoreMultiplier($expertCamp,$topicNumber,$nickNameId,$asOfTime);
+        $score_multiplier = self::getMindExpertScoreMultiplier($expertCamp, $asOfTime, $topicNumber, $nickNameId);
     
     
         # start with one person one vote canonize.    
@@ -584,7 +584,7 @@ class Algorithm extends Model
      * @param int $asOfTime
      * @return int $score_multiplier
      */
-    public static function getMindExpertScoreMultiplier($expertCamp,$topicNumber=0,$nickNameId=0,$asOfTime)
+    public static function getMindExpertScoreMultiplier($expertCamp, $asOfTime, $topicNumber = 0, $nickNameId = 0)
     {
         $key = '';
 		if(isset($_REQUEST['asof']) && $_REQUEST['asof']=='bydate'){

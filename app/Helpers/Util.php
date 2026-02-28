@@ -740,8 +740,8 @@ class Util
                     $topic = Camp::getAgreementTopic($topicFilter);
                                         
                     $object = $topic->topic_name ." >> ".$camp->camp_name;
-                    $topicLink  =  Topic::topicLink($topic->topic_num, 1, $topic->title);
-                    $campLink   =  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
+                    $topicLink  =  Topic::topicLink($topic->topic_num, $topic->title, 1);
+                    $campLink   =  Topic::topicLink($topic->topic_num, $topic->title, $camp->camp_num, $camp->camp_name);
                     $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
                     $data['object']     = $object;
                     $data['subject']    = "Camp Unarchived - " . $object. ".";

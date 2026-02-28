@@ -8,7 +8,7 @@ use App\Facades\Util;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Auth\Authenticatable;
-use Laravel\Lumen\Auth\Authorizable;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Jobs\ActivityLoggerJob;
 use Illuminate\Support\Facades\Event;
 
+#[AllowDynamicProperties]
 class Camp extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;

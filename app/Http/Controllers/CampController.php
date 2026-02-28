@@ -895,7 +895,7 @@ class CampController extends Controller
                     $campSubscriptionList[$subscription->topic_num] = array(
                         'topic_num' => $subscription->topic_num,
                         'title' => $topic->topic_name ?? '',
-                        'title_link' => Topic::topicLink($subscription->topic_num, 1, $topic->topic_name ?? ''),
+                        'title_link' => Topic::topicLink($subscription->topic_num, $topic->topic_name ?? '', 1),
                         'is_remove_subscription' => ($subscription->camp_num == 0),
                         'subscription_id' => ($subscription->camp_num == 0) ? $subscription->id : 0,
                         'camps' => ($subscription->camp_num == 0) ? [] : [$tempCamp],

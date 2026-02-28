@@ -11,6 +11,7 @@ use Exception;
 use App\Helpers\ElasticSearch;
 use App\Models\Support;
 
+#[AllowDynamicProperties]
 class Nickname extends Model {
 
     protected $table = 'nick_name';

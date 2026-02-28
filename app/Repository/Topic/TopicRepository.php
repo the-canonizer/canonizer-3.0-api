@@ -1,0 +1,434 @@
+<?php
+
+namespace App\Repository\Topic;
+
+use App\Models\Tree;
+use App\Repository\Topic\TopicInterface;
+
+class TopicRepository implements TopicInterface
+{
+
+    protected $treeModel;
+    /**
+     * Instantiate a new TopicRepository instance.
+     *
+     * @return void
+     */
+    public function __construct(Tree $tree)
+    {
+        $this->treeModel = $tree;
+    }
+
+    /**
+     * Get Topics with pagination.
+     *
+     * @param int $namespaceId The namespace ID
+     * @param int $asofdate The date
+     * @param string $algorithm The algorithm
+     * @param int $skip The number of records to skip
+     * @param int $pageSize The size of the page
+     * @param array $nickNameIds The nickname IDs
+     * @param mixed $asOf The 'as of' parameter
+     * @param string $search The search string (default: '')
+     * @param string $filter The filter string (default: '')
+     * @param bool $applyPagination Flag to apply pagination (default: true)
+     * @param int $archive The archive value (default: 0)
+     * @param bool $sort The sorting flag (default: false)
+     * @throws \Throwable
+     * @return array The response array
+     */
+    public function getTopicsWithPagination($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $nickNameIds, $asOf, $search = '', $filter = '', $applyPagination = true, $archive = 0, $sort = false, $page = 'home', $topic_tags = [])
+    {
+        $search = str_replace('\\', '\\\\', $search);
+        $search = $this->escapeSpecialCharacters($search);
+        $recordCount = 0;
+        try {
+            // Track the execution time of the code.
+            $start = microtime(true);
+
+            // All the where clauses.
+            $match = [];
+
+            if (isset($filter) && $filter != null && $filter != '') {
+                $match['topic_score'] = [
+                    '$gt' => $filter
+                ];
+            }
+
+            if ($namespaceId !== '') {
+                if ($asOf == 'review') {
+                    $match['review_namespace_id'] = $namespaceId;
+                } else {
+                    $match['namespace_id'] = $namespaceId;
+                }
+            }
+
+            if (is_array($topic_tags) && count($topic_tags) > 0) {
+                $match['tree_structure.1.topic_tags'] = ['$in' => $topic_tags];
+            }
+
+            if (!empty($nickNameIds)) {
+                $match['created_by_nick_id'] = ['$in' => $nickNameIds];
+            }
+
+            if (isset($search) && $search != '') {
+                if ($asOf == 'review') {
+                    $searchField = 'tree_structure.1.review_title';
+                } else {
+                    $searchField = 'topic_name';
+                }
+                $match[$searchField] = [
+                    '$regex' => $search,
+                    '$options' => 'i'
+                ];
+            }
+            if (isset($archive) &&  !$archive
+            ) {
+                $match['tree_structure.1.is_archive'] = 0;
+            }
+
+            // all the fields required in the response
+            $projection = [
+                '_id' => 0,
+                'id' => 1,
+                'topic_id' => 1,
+                'topic_score' => 1,
+                'topic_full_score' => 1,
+                'topic_name' => 1,
+                'as_of_date' => 1,
+                'namespace_id' => 1,
+                'algorithm_id' => 1,
+                'submitter_nick_id' => 1,
+                'created_by_nick_id' => 1,
+                'tree_structure.1.review_title' => 1,
+            ];
+
+            if ($page === 'browse') {
+                $projection['tree_structure.1.support_tree'] = 1;
+            }
+
+            if (isset($sort) && $sort) {
+                $sort = [
+                    'topic_id' => -1,
+                ];
+            } else {
+                $sort = [
+                    'topic_score' => -1,
+                    'topic_name' => 1,
+                ];
+            }
+
+            // This is a aggregate function from MongoDB Raw. It contains on stages. Output of one stage will be input of next stage.
+            $aggregate = [
+                [
+                    // Stage 1: get all records matches with algorithm_id
+                    '$match' => [
+                        'algorithm_id' => $algorithm
+                    ]
+                ],
+                [
+                    // Stage 2: Sort all the topic by as_of_date in descending order to get latest
+                    '$sort' => ['as_of_date' =>  -1]
+                ],
+                [
+                    // Stage 3: GroupBy topic_id, and filter specific fields with lastest record from each group
+                    '$group' => [
+                        '_id' => '$topic_id',
+                        'id' => [
+                            '$first' => '$_id'
+                        ],
+                        'as_of_date' => [
+                            '$first' => '$as_of_date'
+                        ],
+                        'topic_score' => [
+                            '$first' => '$topic_score'
+                        ],
+                        'topic_full_score' => [
+                            '$first' => '$topic_full_score'
+                        ],
+                        'topic_name' => [
+                            '$first' => '$topic_name'
+                        ],
+                        'topic_id' => [
+                            '$first' => '$topic_id'
+                        ],
+                        'namespace_id' => [
+                            '$first' => '$namespace_id'
+                        ],
+                        'review_namespace_id' => [
+                            '$first' => '$review_namespace_id'
+                        ],
+                        'algorithm_id' => [
+                            '$first' => '$algorithm_id'
+                        ],
+                        'tree_structure' => [
+                            '$first' => '$tree_structure'
+                        ],
+                        'submitter_nick_id' => [
+                            '$first' => '$submitter_nick_id'
+                        ],
+                        'created_by_nick_id' => [
+                            '$first' => '$created_by_nick_id'
+                        ],
+                    ]
+                ],
+                [
+                    // Stage 4: Apply further filters to the grouped records
+                    '$match' => $match,
+                ],
+                [
+                    // Stage 5: Only get required keys from the grouped records
+                    '$project' => $projection
+                ],
+                [
+                    // Stage 6: Sort the record in descending order by topic_score  //topic_id
+                    '$sort' => $sort
+                ],
+            ];
+
+
+            if ($page === 'browse') {
+                $recordCount = $this->treeModel::raw(function ($collection) use ($aggregate) {
+                    return $collection->aggregate($aggregate);
+                })->count();
+            }
+
+            if ($applyPagination) {
+                $aggregate = array_merge($aggregate, [
+                    [
+                        // Stage 7: Skip certain records
+                        '$skip' => 0,
+                    ],
+                    [
+                        // Stage 8: Limit the records.
+                        '$limit' => $skip + $pageSize,
+                    ]
+                ]);
+            }
+
+            $aggregate = $this->filterEmptyMongoStages($aggregate);
+
+            $record = $this->treeModel::raw(function ($collection) use ($aggregate) {
+                return $collection->aggregate($aggregate);
+            })->toArray();
+
+            if ($page === 'browse') {
+                return ['topics' => collect($record)->skip($skip)->all(), 'totalCount' => $recordCount, 'time_elapsed_secs' =>  microtime(true) - $start];
+            }
+
+            return collect($record)->skip($skip)->all();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    /**
+     * get Topics with pagination with filter.
+     *
+     * @param int $namespaceId
+     * @param int $asofdate
+     * @param string $algorithm
+     * @param int $skip
+     * @param int $pageSize
+     * @param float $filter
+     * @param string $search
+     *
+     *
+     * @return array Response
+     */
+    public function getTopicsWithPaginationWithFilter($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $search = '', $asOf)
+    {
+        try {
+            $nextDay = $asofdate + 86400;
+            $record = $this->treeModel::where('algorithm_id', $algorithm)
+                ->where('as_of_date', '>=', $asofdate)
+                ->where('as_of_date', '<', $nextDay)
+                ->where('topic_score', '>', $filter);
+
+            if ($asOf == 'review') {
+                $record->when($namespaceId !== '', function ($q) use ($namespaceId) {
+                    $q->where('review_namespace_id', $namespaceId);
+                });
+            } else {
+                $record->when($namespaceId !== '', function ($q) use ($namespaceId) {
+                    $q->where('namespace_id', $namespaceId);
+                });
+            }
+
+            $record->when(!empty($nickNameIds), function ($q) use ($nickNameIds) {
+                $q->whereIn('created_by_nick_id', $nickNameIds);
+            });
+
+            if (isset($search) && $search != '') {
+                $record = $record->where(($asOf == 'review') ? 'tree_structure.1.review_title' : 'topic_name', 'like', '%' . $search . '%');
+            }
+
+            $record = $record->project(['_id' => 0])
+                ->skip($skip)
+                ->take($pageSize)
+                ->orderBy('topic_score', 'desc')
+                ->get(['topic_id', 'topic_score', 'topic_full_score', 'topic_name', 'as_of_date', 'tree_structure.1.review_title']);
+            return $record;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    /**
+     * get count topics with condition.
+     *
+     * @param int $namespaceId
+     * @param int $asofdate
+     * @param string $algorithm
+     * @param string $search
+     * @param string $filter
+     *
+     *
+     * @return array Response
+     */
+    public function getTotalTopics($namespaceId, $asofdate, $algorithm, $nickNameIds, $asOf, $search = '', $filter = '', $archive = 0)
+    {
+        $search = $this->escapeSpecialCharacters($search);
+
+        try {
+
+            // Track the execution time of the code.
+            $start = microtime(true);
+
+            // All the where clauses.
+            $match = [];
+
+            if (isset($filter) && $filter != null && $filter != '') {
+                $match['topic_score'] = [
+                    '$gt' => $filter
+                ];
+            }
+
+            if ($namespaceId !== '') {
+                if ($asOf == 'review') {
+                    $match['review_namespace_id'] = $namespaceId;
+                } else {
+                    $match['namespace_id'] = $namespaceId;
+                }
+            }
+
+            if (!empty($nickNameIds)) {
+                $match['created_by_nick_id'] = ['$in' => $nickNameIds];
+            }
+
+            if (isset($search) && $search != '') {
+                if ($asOf == 'review') {
+                    $searchField = 'tree_structure.1.review_title';
+                } else {
+                    $searchField = 'topic_name';
+                }
+                $match[$searchField] = [
+                    '$regex' => $search,
+                    '$options' => 'i'
+                ];
+            }
+
+            if (isset($archive) &&  !$archive) {
+                $match['tree_structure.1.is_archive'] = 0;
+            }
+
+            // This is a aggregate function from MongoDB Raw. It contains on stages. Output of one stage will be input of next stage.
+            $aggregate = [
+                [
+                    // Stage 1: get all records matches with algorithm_id
+                    '$match' => [
+                        'algorithm_id' => $algorithm
+                    ]
+                ],
+                [
+                    // Stage 2: Sort all the topic by as_of_date in descending order to get latest
+                    '$sort' => ['as_of_date' =>  -1]
+                ],
+                [
+                    // Stage 3: GroupBy topic_id, and filter specific fields with lastest record from each group
+                    '$group' => [
+                        '_id' => '$topic_id',
+                        'id' => [
+                            '$first' => '$_id'
+                        ],
+                        'as_of_date' => [
+                            '$first' => '$as_of_date'
+                        ],
+                        'topic_score' => [
+                            '$first' => '$topic_score'
+                        ],
+                        'topic_full_score' => [
+                            '$first' => '$topic_full_score'
+                        ],
+                        'topic_name' => [
+                            '$first' => '$topic_name'
+                        ],
+                        'topic_id' => [
+                            '$first' => '$topic_id'
+                        ],
+                        'namespace_id' => [
+                            '$first' => '$namespace_id'
+                        ],
+                        'review_namespace_id' => [
+                            '$first' => '$review_namespace_id'
+                        ],
+                        'algorithm_id' => [
+                            '$first' => '$algorithm_id'
+                        ],
+                        'tree_structure' => [
+                            '$first' => '$tree_structure'
+                        ],
+                        'submitter_nick_id' => [
+                            '$first' => '$submitter_nick_id'
+                        ],
+                        'created_by_nick_id' => [
+                            '$first' => '$created_by_nick_id'
+                        ],
+                    ]
+                ],
+                [
+                    // Stage 4: Apply further filters to the grouped records
+                    '$match' => $match,
+                ],
+                [
+                    // Stage 5: Count the filtered record and stored into record_count variable.
+                    '$count' => "record_count"
+                ]
+            ];
+
+            $aggregate = $this->filterEmptyMongoStages($aggregate);
+
+            $recordCount = $this->treeModel::raw(function ($collection) use ($aggregate) {
+                return $collection->aggregate($aggregate);
+            });
+
+            $time_elapsed_secs = microtime(true) - $start;
+
+            return $recordCount[0]->record_count ?? 0;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    private function filterEmptyMongoStages(array $aggregate): array
+    {
+        foreach ($aggregate as $key => $stage) {
+            $stageKey = array_key_first($stage);
+            if (in_array($stageKey, ['$match'])) {
+                if (count($stage[$stageKey]) == 0) {
+                    unset($aggregate[$key]);
+                }
+            }
+        }
+
+        return array_values($aggregate);
+    }
+
+    private function escapeSpecialCharacters($inputString)
+    {
+        $charactersToReplace = ['~',   '`',   '!',   '@',   '#',   '$',   '%',   '^',   '&',   '*',   '(',   ')',   '_',   '+',   '-',   '=',   '{',   '}',   '[',   ']',   ';',   '\'',   ':',   '\"',   ',',   '.',   '/',   '<',   '>',   '?',   '|' ];
+        $replacementCharacters = ['\\~', '\\`', '\\!', '\\@', '\\#', '\\$', '\\%', '\\^', '\\&', '\\*', '\\(', '\\)', '\\_', '\\+', '\\-', '\\=', '\\{', '\\}', '\\[', '\\]', '\\;', '\\\'', '\\:', '\\\"', '\\,', '\\.', '\\/', '\\<', '\\>', '\\?', '\\|'];
+
+        return str_replace($charactersToReplace, $replacementCharacters, $inputString);
+    }
+}

@@ -10,7 +10,7 @@ use App\Jobs\ForgetCacheKeyJob;
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
-use Laravel\Lumen\Auth\Authorizable;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
+#[AllowDynamicProperties]
 class Topic extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, HasApiTokens, Authorizable, HasFactory;
@@ -233,7 +234,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         }
     }
 
-    public static function topicLink($topicNum, $campNum = 1, $title, $campName = 'Agreement', $forSearch = false)
+    public static function topicLink($topicNum, $title, $campNum = 1, $campName = 'Agreement', $forSearch = false)
     {
         $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $title);
         $campName = preg_replace('/[^A-Za-z0-9\-]/', '-', $campName);
