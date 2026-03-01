@@ -14,19 +14,52 @@ class TimelineResource extends ResourceCollection
      */
     public function toArray($request)
     {
-        /* if exception happen during the timeline calculation */
-        if (isset($this->collection[0]['code']) && $this->collection[0]['code'] == 401) {
-            return $this->collection[0];
-        }
-
         if (count($this->collection) > 0) {
-            return ["data" => $this->collection, "code" => 200, "success" => true];
+            $tree = $this->collection[0];
+            $topicNumber = isset($tree['topic_id']) ? $tree['topic_id'] : (isset($tree->topic_id) ? $tree->topic_id : null);
+            
+            $topicName = "";
+            if ($topicNumber) {
+                $topic = \App\Models\Topic::where('topic_num', (int)$topicNumber)
+                    ->where('objector_nick_id', NULL)
+                    ->where('go_live_time', '<=', time())
+                    ->orderBy('submit_time', 'desc')
+                    ->first();
+                $topicName = $topic ? $topic->topic_name : '';
+            }
+
+            $timelineData = [];
+            $treeArray = is_array($tree) ? $tree : $tree->toArray();
+            foreach($treeArray as $key => $val) {
+                if(str_starts_with($key, 'asoftime_')) {
+                    $parts = explode('_', $key);
+                    $timelineData[] = [
+                        'as_of_date' => (int)$parts[1],
+                        'event' => $val['event']
+                    ];
+                }
+            }
+            // Sort by as_of_date
+            usort($timelineData, function($a, $b) {
+                return $a['as_of_date'] <=> $b['as_of_date'];
+            });
+
+            return [
+                "status_code" => 200,
+                "message" => "Success",
+                "error" => null,
+                "data" => [
+                    "topic_name" => $topicName,
+                    "timeline" => $timelineData
+                ]
+            ];
         }
 
-        if (($this->collection->isEmpty()) || !$this->collection) {
-            return ["data" => [], "code" => 404, "success" => false, "error" => "Topic Timeline not found"];
-        }
-
-        return ["data" => [], "code" => 401, "success" => false, "error" => $this->collection];
+        return [
+            "status_code" => 404,
+            "message" => "Topic Timeline not found",
+            "error" => "Topic Timeline not found",
+            "data" => []
+        ];
     }
 }

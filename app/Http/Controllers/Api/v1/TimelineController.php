@@ -91,15 +91,6 @@ class TimelineController extends Controller
             $tree = ($mongoTree && count($mongoTree)) ? collect([$mongoTree[0]]) : [];
  
             $response = new TimelineResource($tree);
-            $responseArray = json_decode(json_encode($response), true);
-
-            if(array_key_exists('data', $responseArray) && count($responseArray['data'])) {
-                foreach($responseArray['data'] as $key => $item){
-                    unset($item["_id"], $item["topic_id"], $item["algorithm_id"], $item["updated_at"], $item["created_at"]);
-                    $responseArray['data'] = $item;
-                }
-                $response = $responseArray;
-            }
         
             return $response;
         } catch (Throwable $e) {

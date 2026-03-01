@@ -8,7 +8,7 @@ use App\Models\SharesAlgorithm;
 use App\Facades\Util;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use App\Facades\Services\CampServiceFacade as CampService;
+use App\Facades\Services\CampServiceFacade;
 
 class AlgorithmService
 {
@@ -35,12 +35,12 @@ class AlgorithmService
 
     public function mind_experts($nickNameId = null, $topicNumber = 0, $campNumber = 0, $asOfTime = null)
     {
-        return CampService::campTreeCount(81, $nickNameId,$topicNumber,$campNumber, $asOfTime);
+        return CampServiceFacade::campTreeCount(81, $nickNameId,$topicNumber,$campNumber, $asOfTime);
     }
 
     public function computer_science_experts($nickNameId = null, $topicNumber = 0, $campNumber = 0, $asOfTime = null)
     {
-        return CampService::campTreeCount(124, $nickNameId, $topicNumber, $campNumber,$asOfTime);
+        return CampServiceFacade::campTreeCount(124, $nickNameId, $topicNumber, $campNumber,$asOfTime);
     }
 
     public function PhD($nickNameId = null, $topicNumber = 0, $campNumber = 0, $asOfTime = null)

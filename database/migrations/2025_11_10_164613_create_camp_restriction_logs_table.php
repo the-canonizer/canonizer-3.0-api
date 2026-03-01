@@ -18,7 +18,7 @@ class CreateCampRestrictionLogsTable extends Migration
                 $table->id();
                 $table->unsignedBigInteger('restriction_id')->index();
                 $table->enum('action', ['restricted','lifted','extended','expired']);
-                $table->unsignedInteger('performed_by')->nullable();
+                $table->unsignedBigInteger('performed_by')->nullable();
                 $table->text('notes')->nullable();
                 $table->timestamp('created_at')->useCurrent();
 

@@ -349,4 +349,82 @@ class Statement extends Model
             throw new Exception($th->getMessage());
         }
     }
+
+    /**
+     * Retrieve live statements for multiple topics.
+     *
+     * @param array $topicIds
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getLiveStatementsByTopics($topicIds)
+    {
+        $latestStatements = self::select('topic_num', \Illuminate\Support\Facades\DB::raw('MAX(submit_time) as max_submit_time'))
+            ->whereIn('topic_num', $topicIds)
+            ->where('camp_num', 1)
+            ->whereNull('objector_nick_id')
+            ->where('go_live_time', '<=', time())
+            ->where('is_draft', 0)
+            ->groupBy('topic_num');
+
+        // Join with the main table to get the full statement text
+        $statements = self::joinSub($latestStatements, 'latest', function ($join) {
+                $join->on('statement.topic_num', '=', 'latest.topic_num')
+                     ->on('statement.submit_time', '=', 'latest.max_submit_time');
+            })
+            ->where('camp_num', 1)
+            ->get(['statement.topic_num', 'statement.parsed_value', 'statement.value']);
+
+        return $statements->mapWithKeys(function ($item) {
+            $text = self::stripTagsExcept($item->parsed_value ?? $item->value ?? null);
+            return [$item->topic_num => \Illuminate\Support\Str::of($text)->trim()];
+        });
+    }
+
+    /**
+     * Removes specified HTML tags from the input string, excluding certain tags.
+     *
+     * @param ?string $html The HTML string to process.
+     * @param array $excludeTags An array of HTML tags to exclude from removal.
+     * @return string The processed HTML string with excluded tags removed.
+     */
+    public static function stripTagsExcept(?string $html, array $excludeTags = ['a', 'img', 'figure', 'table', 'iframe', 'video', 'picture']): string
+    {
+        if (is_null($html)) {
+            return '';
+        }
+
+        // Handle anchor tags separately
+        $html = preg_replace_callback(
+            '/<a\b[^>]*href=["\'](.*?)["\'][^>]*>(.*?)<\/a>/is',
+            function ($matches) {
+                $href = trim($matches[1]);
+                $innerText = trim($matches[2]);
+
+                // If inner text and href are the same, remove the tag completely
+                if ($href === $innerText) {
+                    return '';
+                }
+
+                // Otherwise, retain only the inner text
+                return $innerText;
+            },
+            $html
+        );
+
+        // Pattern to match the tags and their content for removal
+        $excludeTagsPattern = implode('|', array_map(function ($tag) {
+            return preg_quote($tag, '/');
+        }, $excludeTags));
+
+        if (!empty($excludeTagsPattern)) {
+            $pattern = '/<(' . $excludeTagsPattern . ')\b[^>]*>.*?<\/\1>/is';
+            $html = preg_replace($pattern, '', $html);
+        }
+
+        // Strip all remaining tags
+        $html = strip_tags($html);
+
+        // Decode HTML entities for readable text
+        return html_entity_decode($html, ENT_QUOTES, 'UTF-8');
+    }
 }

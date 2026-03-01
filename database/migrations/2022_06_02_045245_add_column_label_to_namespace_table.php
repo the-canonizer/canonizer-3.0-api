@@ -14,7 +14,7 @@ class AddColumnLabelToNamespaceTable extends Migration
     public function up()
     {
         Schema::table('namespace', function (Blueprint $table) {
-            if(!Schema::hasColumn('label')) {
+            if(!Schema::hasColumn('namespace', 'label')) {
                 $table->string('label');
             }
 
@@ -30,7 +30,7 @@ class AddColumnLabelToNamespaceTable extends Migration
     {
         Schema::table('namespace', function (Blueprint $table) {
             // Drop Column
-            if(Schema::hasColumn('label')) {
+            if(Schema::hasColumn('namespace', 'label')) {
                 $table->dropColumn('label');
             }
 

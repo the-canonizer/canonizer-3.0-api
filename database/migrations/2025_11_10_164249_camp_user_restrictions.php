@@ -16,11 +16,11 @@ class CampUserRestrictions extends Migration
         if(!Schema::hasTable('camp_user_restrictions')) {
             Schema::create('camp_user_restrictions', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('camp_id')->index();
-                $table->integer('camp_num')->index();
-                $table->integer('topic_num')->index();
-                $table->unsignedInteger('restricted_user_id')->index();
-                $table->unsignedInteger('restricted_by')->index(); // leader/admin
+                $table->unsignedBigInteger('camp_id')->index();
+                $table->unsignedBigInteger('camp_num')->index();
+                $table->unsignedBigInteger('topic_num')->index();
+                $table->unsignedBigInteger('restricted_user_id')->index();
+                $table->unsignedBigInteger('restricted_by')->index(); // leader/admin
                 $table->text('reason');
                 $table->timestamp('start_time')->nullable();
                 $table->timestamp('end_time')->nullable();

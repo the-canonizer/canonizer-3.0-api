@@ -100,15 +100,62 @@ class CampService
     public function prepareCampTree($algorithm, $topicNumber, $asOfTime, $startCamp = 1, $rootUrl = '', $nickNameId = null, $asOf = 'default', $fetchTopicHistory = 0)
     {
         try {
-            Log::info("prepareCampTree: Start algo={$algorithm} topic={$topicNumber}");
             $this->traversetempArray = [];
-            $this->sessionTempArray = [];
 
-            $topic = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => true], $asOf, $fetchTopicHistory);
-            Log::info("prepareCampTree: getLiveTopic done");
+            if (!Arr::exists($this->sessionTempArray, "topic-support-nickname-{$topicNumber}")) {
+                $nickNameSupport = Support::where('topic_num', '=', $topicNumber)
+                    ->where('delegate_nick_name_id', 0)
+                    ->whereRaw("(start <= $asOfTime) and ((end = 0) or (end > $asOfTime))")
+                    ->orderBy('start', 'DESC')
+                    ->groupBy('nick_name_id')
+                    ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num'])
+                    ->get();
+                $this->sessionTempArray["topic-support-nickname-{$topicNumber}"] = $nickNameSupport;
+            }
+
+            if (!Arr::exists($this->sessionTempArray, "topic-support-{$topicNumber}")) {
+                $topicSupport = Support::where('topic_num', '=', $topicNumber)
+                    ->whereRaw("(start <= $asOfTime) and ((end = 0) or (end > $asOfTime))")
+                    ->orderBy('start', 'DESC')
+                    ->select(['support_order', 'camp_num', 'nick_name_id', 'delegate_nick_name_id', 'topic_num'])
+                    ->get();
+                $this->sessionTempArray["topic-support-{$topicNumber}"] = $topicSupport;
+            }
+
+            if($asOf == 'review') {
+                $topicChild = Camp::where('topic_num', '=', $topicNumber)
+                                ->where('camp_name', '!=', 'Agreement')
+                                ->where('objector_nick_id', '=', null)
+                                ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNumber . ' and objector_nick_id is null and grace_period = 0 group by camp_num)')
+                                ->groupBy('camp_num')
+                                ->orderBy('submit_time', 'desc')
+                                ->get();
+            } else {
+                $topicChild = Camp::where('topic_num', '=', $topicNumber)
+                                ->where('camp_name', '!=', 'Agreement')
+                                ->where('objector_nick_id', '=', null)
+                                ->whereRaw('go_live_time in (select max(go_live_time) from camp where topic_num=' . $topicNumber . ' and objector_nick_id is null and go_live_time <= ' . $asOfTime . ' group by camp_num)')
+                                ->where('go_live_time', '<=', $asOfTime)
+                                ->groupBy('camp_num')
+                                ->orderBy('submit_time', 'desc')
+                                ->get();
+            }
+            $this->sessionTempArray["topic-child-{$topicNumber}"] = $topicChild;
+
+            $topic = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => false], $asOf, $fetchTopicHistory);
+            $reviewTopic = (new TopicService())->getReviewTopic($topicNumber);
+            
             $topicName = (isset($topic) && isset($topic->topic_name)) ? $topic->topic_name : '';
+            $reviewTopicName = (isset($reviewTopic) && isset($reviewTopic->topic_name)) ? $reviewTopic->topic_name : $topicName;
+            
             $agreementCamp = $this->getLiveCamp($topicNumber, 1, ['nofilter' => true], $asOfTime, $asOf);
-            Log::info("prepareCampTree: getLiveCamp done");
+            $isDisabled = 0; $isOneLevel = 0; $isArchive = 0; $directArchive = 0;
+            if (!empty($agreementCamp)) {
+                $isDisabled = $agreementCamp->is_disabled ?? 0;
+                $isOneLevel = $agreementCamp->is_one_level ?? 0;
+                $isArchive  = $agreementCamp->is_archive ?? 0;
+                $directArchive = $agreementCamp->direct_archive ?? 0;
+            }
 
             $tree = [];
             $level = 1;
@@ -117,15 +164,27 @@ class CampService
             $tree[$startCamp]['camp_id'] = $startCamp;
             $tree[$startCamp]['camp_name'] = (isset($agreementCamp) && isset($agreementCamp->camp_name)) ? $agreementCamp->camp_name : '';
             $tree[$startCamp]['title'] = $topicName;
+            $tree[$startCamp]['review_title'] = $reviewTopicName;
+            $tree[$startCamp]['link'] = $rootUrl . '/' . $this->getTopicCampUrl($topicNumber, $startCamp, $asOfTime);
+            $tree[$startCamp]['review_link'] = $rootUrl . '/' . $this->getTopicCampUrl($topicNumber, $startCamp, $asOfTime, true);
             $tree[$startCamp]['score'] = $this->getCamptSupportCount($algorithm, $topicNumber, $startCamp, $asOfTime, $nickNameId);
             $tree[$startCamp]['full_score'] = $this->getCamptSupportCount($algorithm, $topicNumber, $startCamp, $asOfTime, $nickNameId, true);
-            Log::info("prepareCampTree: getCamptSupportCount done");
             $tree[$startCamp]['submitter_nick_id'] = $topic->submitter_nick_id ?? '';
-            $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNumber, $startCamp, $rootUrl, $tree, $level, null, $asOfTime, $asOf);
-            Log::info("prepareCampTree: traverseCampTree done");
+            
+            $topicCreatedDate = TopicService::getTopicCreatedDate($topicNumber);
+            $tree[$startCamp]['created_date'] = $topicCreatedDate ?? 0;
+            $tree[$startCamp]['is_valid_as_of_time'] = $asOfTime >= $topicCreatedDate ? true : false;
+            $tree[$startCamp]['is_disabled'] = $isDisabled;
+            $tree[$startCamp]['is_one_level'] = $isOneLevel;
+            $tree[$startCamp]['is_archive'] = $isArchive;
+            $tree[$startCamp]['direct_archive'] = $directArchive;
+            $tree[$startCamp]['subscribed_users'] = $this->getTopicCampSubscriptions($topicNumber, $startCamp);
+            $tree[$startCamp]['topic_tags'] = TopicTag::getRelatedTagIds($topicNumber);
 
+            $tree[$startCamp]['support_tree'] = $this->getSupportTree($algorithm, $topicNumber, $startCamp, $asOfTime, $asOf);
+            $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNumber, $startCamp, $rootUrl, $tree, $level, null, $asOfTime, $asOf);
+            
             $result = TopicSupport::sumTranversedArraySupportCountP($tree);
-            Log::info("prepareCampTree: sumTranversedArraySupportCountP done");
             return $result;
         } catch (\Exception $th) {
             Log::error("Prepare Camp Tree Exception: " . $th->getMessage() . " at " . $th->getFile() . ":" . $th->getLine());
@@ -146,19 +205,53 @@ class CampService
             $array = [];
             $level++;
             foreach ($childs as $child) {
+                $oneCamp = $this->getLiveCamp($child->topic_num, $child->camp_num, ['nofilter' => true], $asOfTime, $asOf);
+                $reviewCamp = (new TopicService())->getReviewTopic($child->topic_num); // This should be review camp, but TopicService only has getReviewTopic.
+                // In dev_service, it calls getReviewCamp. Let's use getReviewCamp if I add it.
+                $reviewCamp = $this->getReviewCamp($child->topic_num, $child->camp_num);
+                $reviewCampName = (isset($reviewCamp) && isset($reviewCamp->camp_name)) ? $reviewCamp->camp_name : $oneCamp->camp_name;
+
                 $array[$child->camp_num]['topic_id'] = $topicNumber;
                 $array[$child->camp_num]['level'] = $level;
                 $array[$child->camp_num]['camp_id'] = $child->camp_num;
                 $array[$child->camp_num]['camp_name'] = $child->camp_name;
                 $array[$child->camp_num]['title'] = $child->camp_name;
+                $array[$child->camp_num]['review_title'] = $reviewCampName;
+
+                $queryString = (app('request')->getQueryString()) ? '?' . app('request')->getQueryString() : "";
+                $array[$child->camp_num]['link'] = $rootUrl . '/' . $this->getTopicCampUrl($child->topic_num, $child->camp_num, $asOfTime) . $queryString . '#statement';
+                $array[$child->camp_num]['review_link'] = $rootUrl . '/' . $this->getTopicCampUrl($child->topic_num, $child->camp_num, $asOfTime, true) . $queryString . '#statement';
+                
                 $array[$child->camp_num]['score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime);
                 $array[$child->camp_num]['full_score'] = $this->getCamptSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime, null, true);
                 $array[$child->camp_num]['submitter_nick_id'] = $child->submitter_nick_id ?? '';
+                $array[$child->camp_num]['created_date'] = $oneCamp->submit_time ?? 0;
+                $array[$child->camp_num]['is_disabled'] = $child->is_disabled ?? 0;
+                $array[$child->camp_num]['is_one_level'] = $child->is_one_level ?? 0;
+                $array[$child->camp_num]['is_archive'] = $child->is_archive ?? 0;
+                $array[$child->camp_num]['direct_archive'] = $child->direct_archive ?? 0;
+                $array[$child->camp_num]['support_tree'] = $this->getSupportTree($algorithm, $child->topic_num, $child->camp_num, $asOfTime);
+                $array[$child->camp_num]['subscribed_users'] = $this->getTopicCampSubscriptions($child->topic_num, $child->camp_num);
+
+                if($child->parent_camp_num == 1) {
+                    $parentCampLive = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => false]);
+                } else {
+                    $parentCampLive = $this->getLiveCamp($child->topic_num, $child->parent_camp_num, ['nofilter' => true], $asOfTime, $asOf);
+                }
+                
+                // Set the implicit subscription of the parent camp.
+                $implicitParentSubscriptionArray = $this->changeArrayExplicity($array[$child->camp_num]['subscribed_users'], $child->camp_name, $child->camp_num);
+                $lastArray[$child->parent_camp_num]['subscribed_users'] = ($lastArray[$child->parent_camp_num]['subscribed_users'] ?? []) + $implicitParentSubscriptionArray;
+                
+                $array[$child->camp_num]['parent_camp_is_disabled'] = $parentCampLive->is_disabled ?? 0;
+                $array[$child->camp_num]['parent_camp_is_one_level'] = $parentCampLive->is_one_level ?? 0;
+
                 $children = $this->traverseCampTree($algorithm, $child->topic_num, $child->camp_num, $rootUrl, $array, $level, $child->parent_camp_num, $asOfTime, $asOf);
                 $array[$child->camp_num]['children'] = is_array($children) ? $children : [];
             }
             return $array;
         } catch (\Exception $th) {
+            Log::error("Traverse Camp Tree Exception: " . $th->getMessage());
             abort(401, "Traverse Camp Tree Exception: " . $th->getMessage());
         }
     }
@@ -579,4 +672,202 @@ class CampService
             throw new \Exception("Get Mind Expert Score Multiplier Exception: " . $th->getMessage());
         }
     }
+
+    public function getTopicCampUrl($topicNumber, $campNumber, $asOfTime, $isReview = false)
+    {
+        try {
+            $urlPortion = $this->getSeoBasedUrlPortion($topicNumber, $campNumber, $asOfTime, $isReview);
+            return ('topic/' . $urlPortion);
+        } catch (\Exception $th) {
+            return "topic/$topicNumber/$campNumber";
+        }
+    }
+
+    public function getSeoBasedUrlPortion($topicNumber, $campNumber, $asOfTime, $isReview)
+    {
+        try {
+            $topic_name = '';
+            $camp_name = '';
+            $topic_id_name = $topicNumber;
+            $camp_num_name = $campNumber;
+
+            $topic = (new TopicService())->getLiveTopic($topicNumber, $asOfTime, ['nofilter' => true]);
+            $camp = $this->getLiveCamp($topicNumber, $campNumber, ['nofilter' => true], $asOfTime);
+
+            if ($topic && isset($topic->topic_name)) {
+                $topic_name = ($topic->topic_name != '') ? $topic->topic_name : $topic->title;
+            }
+            if ($camp && isset($camp->camp_name)) {
+                $camp_name = $camp->camp_name;
+            }
+
+            if ($isReview) {
+                $ReviewTopic = (new TopicService())->getReviewTopic($topicNumber, $asOfTime, ['nofilter' => true]);
+                $ReviewCamp = $this->getReviewCamp($topicNumber, $campNumber);
+                if ($ReviewTopic && isset($ReviewTopic->topic_name)) {
+                    $topic_name = ($ReviewTopic->topic_name != '') ? $ReviewTopic->topic_name : $ReviewTopic->title;
+                }
+                if ($ReviewCamp && isset($ReviewCamp->camp_name)) {
+                    $camp_name = $ReviewCamp->camp_name;
+                }
+            }
+
+            if ($topic_name != '') {
+                $topic_id_name = $topicNumber . "-" . preg_replace('/[^A-Za-z0-9\-]/', '-', $topic_name);
+            }
+            if ($camp_name != '') {
+                $camp_num_name = $campNumber . "-" . preg_replace('/[^A-Za-z0-9\-]/', '-', $camp_name);
+            }
+
+            return $topic_id_name . '/' . $camp_num_name;
+        } catch (\Exception $th) {
+            return "$topicNumber/$campNumber";
+        }
+    }
+
+    public function getReviewCamp($topicNumber, $campNumber)
+    {
+        try {
+            $reviewCamp = Camp::where('topic_num', $topicNumber)
+                ->where('camp_num', '=', $campNumber)
+                ->where('grace_period', 0)
+                ->where('objector_nick_id', '=', null)
+                ->orderBy('go_live_time', 'desc')->first();
+            return $reviewCamp;
+        } catch (\Exception $th) {
+            return null;
+        }
+    }
+
+    public function getSupportTree($algorithm, $topicNum, $campNum, $asOfTime, $asOf = 'default'){
+        try{
+            if(!Arr::exists($this->sessionTempArray, "score_tree_{$topicNum}_{$algorithm}")) {
+                $score_tree = $this->getCampAndNickNameWiseSupportTree($algorithm, $topicNum, $asOfTime);
+                $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"] = $score_tree;        
+            } else {
+                $score_tree = $this->sessionTempArray["score_tree_{$topicNum}_{$algorithm}"];
+            }
+        
+            $supports = Support::where('topic_num', '=', $topicNum)
+                        ->join("nick_name","nick_name.id", "=", "support.nick_name_id")
+                        ->where('delegate_nick_name_id', 0)
+                        ->where('camp_num', '=', $campNum)
+                        ->whereRaw("(start <= $asOfTime) and ((end = 0) or (end > $asOfTime))")
+                        ->orderBy('camp_num','ASC')->orderBy('support_order','ASC')
+                        ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num', 'nick_name'])
+                        ->get();
+
+            $array = [];
+            $liveTopic = (new TopicService())->getLiveTopic($topicNum,$asOfTime, ['nofilter'=>true]);
+            $liveCamp = $this->getLiveCamp($topicNum, $campNum, [], $asOfTime, $asOf);
+            $namespaceId = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id ) ? $liveTopic->namespace_id : 1; 
+
+            foreach($supports as $key =>$support){            
+                $array[$support->nick_name_id] = [
+                        'score' => 0,
+                        'support_order' => $support->support_order,
+                        'nick_name' => $support->nick_name,
+                        'nick_name_id' => $support->nick_name_id,
+                        'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum),
+                        'delegates' => [],
+                        'camp_leader' => ($liveCamp && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $support->nick_name_id),
+                    ];
+               
+                $currentCampSupport = 0;
+                $supportPoint=0;
+                $supportFullPoint=0;
+                $multiSupport = false;
+                $supportOrder = 0;
+                $delegateTree = [];
+                
+                if(array_key_exists('nick_name_wise_tree',$score_tree) && isset($score_tree['nick_name_wise_tree'][$support->nick_name_id]) && count($score_tree['nick_name_wise_tree'][$support->nick_name_id]) > 0){
+                    $multiSupport = count($score_tree['nick_name_wise_tree'][$support->nick_name_id]) > 1 ? true: false;
+                    foreach($score_tree['nick_name_wise_tree'][$support->nick_name_id] as $supp_order=>$tree_node){
+                        if(count($tree_node) > 0){
+                            foreach($tree_node as $camp_num=>$camp_score){                          
+                                if($camp_num == $campNum){
+                                    $currentCampSupport = 1;
+                                    $supportOrder = $supp_order;
+                                    $delegateTree = $camp_score['delegates'] ?? [];               
+                                    $supportPoint = $supportPoint + $camp_score['score'];
+                                    $supportFullPoint = $supportFullPoint + $camp_score['full_score'];
+                                    break; 
+                                }
+                            }
+                        }
+                    }
+                }
+               
+                if($currentCampSupport){
+                    $array[$support->nick_name_id]['score'] = $supportPoint;
+                    $array[$support->nick_name_id]['full_score'] = $supportFullPoint;
+                    $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $supportOrder, $multiSupport, $delegateTree, $asOfTime, $namespaceId);
+                }
+            }
+            $array = TopicSupport::sumTranversedArraySupportCountP($array);
+            return array_values($array); // Return as indexed array for JSON
+        }catch(\Exception $th){
+            return [];
+        }
+    }
+
+    public function traverseChildTree($algorithm, $topicNum, $campNum, $delegateNickId, $parentSupportOrder, $multiSupport, $delegateTree = [], $asOfTime = null, $namespaceId = 1)
+    {
+        $delegatedSupports = Support::where('topic_num', '=', $topicNum)
+                    ->join("nick_name","nick_name.id", "=", "support.nick_name_id")
+                    ->where('delegate_nick_name_id', '=', $delegateNickId)
+                    ->where('camp_num', '=', $campNum)
+                    ->whereRaw("(start <= $asOfTime) and ((end = 0) or (end > $asOfTime))")
+                    ->orderBy('camp_num','ASC')->orderBy('support_order','ASC')
+                    ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num', 'nick_name'])
+                    ->get();
+        
+        $array = [];
+        foreach($delegatedSupports as $support){ 
+            if($support->camp_num == $campNum && isset($delegateTree[$support->nick_name_id])){ 
+                    $array[$support->nick_name_id]['score'] =$delegateTree[$support->nick_name_id]['score'];
+                    $array[$support->nick_name_id]['full_score'] =$delegateTree[$support->nick_name_id]['full_score'];
+                    $array[$support->nick_name_id]['support_order'] = $support->support_order;
+                    $array[$support->nick_name_id]['nick_name'] = $support->nick_name;
+                    $array[$support->nick_name_id]['nick_name_id'] = $support->nick_name_id;
+                    $array[$support->nick_name_id]['nick_name_link'] = Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum);
+                    $array[$support->nick_name_id]['delegate_nick_name_id'] = $support->delegate_nick_name_id;
+                    $delegateArr = $delegateTree[$support->nick_name_id]['delegates'] ?? [];
+                    $liveCamp = $this->getLiveCamp($topicNum, $campNum, [], $asOfTime);
+                    $array[$support->nick_name_id]['camp_leader'] = ($liveCamp && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $support->nick_name_id);
+                    $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $parentSupportOrder, $multiSupport,$delegateArr, $asOfTime, $namespaceId);
+                }  
+            }
+            return array_values($array);
+    }
+
+    public function getTopicCampSubscriptions($topicNumber, $campNumber) {
+        try {
+            $campSubscriptionsArr = [];
+            $campSubscriptions = CampSubscription::where([['topic_num','=',$topicNumber],
+                ['camp_num','=',$campNumber]])->whereNull('subscription_end')->pluck('user_id')->toArray();
+            if (count($campSubscriptions) > 0) {
+                $explicitArr = array("explicit" => true);
+                $campSubscriptionsArr = array_fill_keys($campSubscriptions, $explicitArr);
+            } 
+            return $campSubscriptionsArr;
+        } catch (\Exception $th) {
+            return [];
+        }
+    }
+
+    public function changeArrayExplicity($childCampSubscribers, $title, $campNumber, $explicity= false) {
+        $newArr = [];
+        foreach ($childCampSubscribers as $key => $value) {
+            $newValue = $value;
+            $newValue['explicit'] = $explicity;
+            if (!$explicity) {
+                $newValue['child_camp_name'] = $title;
+                $newValue['child_camp_id'] = $campNumber;
+            }
+            $newArr[$key] = $newValue;
+        }
+        return $newArr;
+    }
+
 }
