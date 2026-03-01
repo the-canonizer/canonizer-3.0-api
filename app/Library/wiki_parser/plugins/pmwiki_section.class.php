@@ -21,7 +21,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfFile.interface.php');
  */
 class pmwiki_section implements startOfLine,  endOfFile
 {
-    const regular_expression = '/^(!{2,3})(.*?$)/i';
+    public const regular_expression = '/^(!{2,3})(.*?$)/i';
     private $sections = null;
         
     public function __construct()

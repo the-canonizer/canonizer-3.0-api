@@ -21,7 +21,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfLine.interface.php');
  */
 class pmwiki_wikistyles implements startOfLine,endofline
 {
-    const regular_expression = '/%(.*?)%([.^%]*?)/i';
+    public const regular_expression = '/%(.*?)%([.^%]*?)/i';
     private $open_styles = null;
         
     public function __construct()

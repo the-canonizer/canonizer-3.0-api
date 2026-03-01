@@ -40,3 +40,10 @@ Thumbs.db
 *.swo
 .fleet/
 .phpunit.result.cache
+
+# Local Development & Temp
+/tmp/
+*.sql
+*.log
+.env.*
+!.env.example

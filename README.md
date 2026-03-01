@@ -78,6 +78,9 @@ Long-running jobs (MongoDB tree generation, Notifications) are handled via Larav
     MONGODB_DB=Canonizer
     
     CACHE_STORE=file # Recommended for local dev
+    
+    # Testing Environment (optional)
+    DB_DATABASE_TEST=canonizer_testing
     ```
 4. **Generate App Key**:
     ```sh
@@ -90,6 +93,10 @@ Long-running jobs (MongoDB tree generation, Notifications) are handled via Larav
 6. **Populate Topic Trees (MongoDB)**:
     ```sh
     php artisan tree:all
+    ```
+7. **Populate Timelines (MongoDB)**:
+    ```sh
+    php artisan timeline:all
     ```
 
 ### Running Locally
@@ -117,7 +124,24 @@ php artisan test
 ```
 Or for specific filters:
 ```sh
-php artisan test --filter=YourTestName
+    php artisan test --filter=YourTestName
+    ```
+    
+### External Test Runner (Recommended)
+You can also run tests directly via PHPUnit for faster feedback:
+```sh
+php vendor/bin/phpunit tests/TreeGetApiTest.php
+php vendor/bin/phpunit tests/TimelineGetApiTest.php
+```
+
+### Database for Testing
+If you encounter `Base table or view not found` during tests, ensure your testing database is created:
+```sql
+CREATE DATABASE canonizer_testing;
+```
+Then copy data from your main database if needed (simulating `canonizer3_mono`'s structure):
+```sh
+mysqldump -u root canonizer3_mono | mysql -u root canonizer_testing
 ```
 
 ## Help

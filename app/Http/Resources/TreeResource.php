@@ -15,18 +15,33 @@ class TreeResource extends ResourceCollection
     public function toArray($request)
     {
         /* if exception happen during the tree calculation */
-        if (isset($this->collection[0]['code']) && $this->collection[0]['code'] == 401) {
+        if (isset($this->collection[0]['status_code']) && $this->collection[0]['status_code'] == 401) {
             return $this->collection[0];
         }
 
         if (count($this->collection) > 0) {
-            return ["data" => $this->collection, "code" => 200, "success" => true];
+            return [
+                "status_code" => 200,
+                "message" => "Success",
+                "data" => $this->collection,
+                "error" => null
+            ];
         }
 
         if (($this->collection->isEmpty()) || !$this->collection) {
-            return ["data" => [], "code" => 404, "success" => false, "error" => "Tree not found"];
+            return [
+                "status_code" => 404,
+                "message" => "Tree not found",
+                "data" => [],
+                "error" => "Tree not found"
+            ];
         }
 
-        return ["data" => [], "code" => 401, "success" => false, "error" => $this->collection];
+        return [
+            "status_code" => 401,
+            "message" => "Unauthorized",
+            "data" => [],
+            "error" => $this->collection
+        ];
     }
 }

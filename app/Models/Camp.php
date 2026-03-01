@@ -34,7 +34,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     protected $table = 'camp';
     public $timestamps = false;
-    const AGREEMENT_CAMP = "Agreement";
+    public const AGREEMENT_CAMP = "Agreement";
     protected static $chilcampArray = [];
     protected static $childtempArray = [];
     /**

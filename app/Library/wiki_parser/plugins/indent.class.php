@@ -18,7 +18,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfLine.interface.php');
 
 class indent implements startOfLine, endOfLine
 {
-    const regular_expression = '/^:+/i';
+    public const regular_expression = '/^:+/i';
     private $indent = 0;
     
     public function __construct()

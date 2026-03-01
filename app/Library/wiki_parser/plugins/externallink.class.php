@@ -17,7 +17,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class externallink implements startOfLine
 {
-    const regular_expression = '/(\[([^\]]*?)(\s+[^\]]*?)?\])/i';
+    public const regular_expression = '/(\[([^\]]*?)(\s+[^\]]*?)?\])/i';
     private $external_links = null;
     
     public function __construct()

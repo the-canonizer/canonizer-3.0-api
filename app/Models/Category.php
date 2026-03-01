@@ -7,8 +7,8 @@ use App\Helpers\Util;
 
 class Category extends Model {
 
-    const VIDEO = 'video';
-    const OTHER = 'other'; // Or you can define your own enum ...
+    public const VIDEO = 'video';
+    public const OTHER = 'other'; // Or you can define your own enum ...
 
     protected $table = 'categories';
     protected $fillable = ['title', 'type'];

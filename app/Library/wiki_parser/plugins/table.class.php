@@ -16,11 +16,11 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class table implements startOfLine
 {
-    const regular_expression_start = '/^\{\|(.*)/i';
-    const regular_expression_end = '/^\|\}(.*)/i';
-    const regular_expression_row = '/^\|\-(.*)/i';
-    const regular_expression_th = '/^\!(.+?)(\|.*|$)/i';
-    const regular_expression_td = '/^\|(.+?)(\|.*|$)/i';
+    public const regular_expression_start = '/^\{\|(.*)/i';
+    public const regular_expression_end = '/^\|\}(.*)/i';
+    public const regular_expression_row = '/^\|\-(.*)/i';
+    public const regular_expression_th = '/^\!(.+?)(\|.*|$)/i';
+    public const regular_expression_td = '/^\|(.+?)(\|.*|$)/i';
     
     private $open_tables = null;
     

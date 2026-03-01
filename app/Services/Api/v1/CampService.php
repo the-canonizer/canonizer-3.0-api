@@ -25,7 +25,7 @@ class CampService
     public $traversetempArray = [];
     public $sessionTempArray = [];
 
-    public function getLiveCamp($topicNumber, $campNumber, $filter = array(), $asOfTime = null, $asOf = 'default')
+    public function getLiveCamp(int $topicNumber, int $campNumber, array $filter = array(), ?int $asOfTime = null, string $asOf = 'default')
     {
         $asOfTime = $asOfTime ?? time();
         $camp = Camp::where('topic_num', $topicNumber)
@@ -43,7 +43,7 @@ class CampService
         return $liveCamp;
     }
 
-    public static function getCampCreatedDate($campNumber, $topicNumber)
+    public static function getCampCreatedDate(int $campNumber, int $topicNumber)
     {
         return Camp::where('topic_num', $topicNumber)
             ->where('camp_num', $campNumber)
@@ -51,7 +51,7 @@ class CampService
             ->first();
     }
 
-    public function campChildrens($topicNumber, $parentCamp)
+    public function campChildrens(int $topicNumber, int $parentCamp)
     {
         try {
             $childs = DB::table('camp')
@@ -70,7 +70,7 @@ class CampService
         }
     }
 
-    public function getCamptSupportCount($algorithm, $topicNumber, $campNumber, $asOfTime, $nickNameId = null, $full_score = false)
+    public function getCamptSupportCount(string $algorithm, int $topicNumber, int $campNumber, ?int $asOfTime = null, ?int $nickNameId = null, bool $full_score = false)
     {
         $asOfTime = $asOfTime ?? time();
         $algo = $algorithm;
@@ -97,7 +97,7 @@ class CampService
         return $total_score;
     }
 
-    public function prepareCampTree($algorithm, $topicNumber, $asOfTime, $startCamp = 1, $rootUrl = '', $nickNameId = null, $asOf = 'default', $fetchTopicHistory = 0)
+    public function prepareCampTree(string $algorithm, int $topicNumber, ?int $asOfTime = null, int $startCamp = 1, string $rootUrl = '', ?int $nickNameId = null, string $asOf = 'default', int $fetchTopicHistory = 0)
     {
         try {
             $this->traversetempArray = [];
@@ -192,7 +192,7 @@ class CampService
         }
     }
 
-    public function traverseCampTree($algorithm, $topicNumber, $parentCamp, $rootUrl, &$lastArray, $level, $lastparent = null, $asOfTime = null, $asOf = 'default')
+    public function traverseCampTree(string $algorithm, int $topicNumber, int $parentCamp, string $rootUrl, array &$lastArray, int $level, ?int $lastparent = null, ?int $asOfTime = null, string $asOf = 'default')
     {
         try {
             $key = $topicNumber . '-' . $parentCamp . '-' . $lastparent;
@@ -739,7 +739,7 @@ class CampService
         }
     }
 
-    public function getSupportTree($algorithm, $topicNum, $campNum, $asOfTime, $asOf = 'default'){
+    public function getSupportTree(string $algorithm, int $topicNum, int $campNum, ?int $asOfTime = null, string $asOf = 'default'){
         try{
             if(!Arr::exists($this->sessionTempArray, "score_tree_{$topicNum}_{$algorithm}")) {
                 $score_tree = $this->getCampAndNickNameWiseSupportTree($algorithm, $topicNum, $asOfTime);
@@ -811,7 +811,7 @@ class CampService
         }
     }
 
-    public function traverseChildTree($algorithm, $topicNum, $campNum, $delegateNickId, $parentSupportOrder, $multiSupport, $delegateTree = [], $asOfTime = null, $namespaceId = 1)
+    public function traverseChildTree(string $algorithm, int $topicNum, int $campNum, int $delegateNickId, int $parentSupportOrder, bool $multiSupport, array $delegateTree = [], ?int $asOfTime = null, int $namespaceId = 1)
     {
         $delegatedSupports = Support::where('topic_num', '=', $topicNum)
                     ->join("nick_name","nick_name.id", "=", "support.nick_name_id")
@@ -841,7 +841,7 @@ class CampService
             return array_values($array);
     }
 
-    public function getTopicCampSubscriptions($topicNumber, $campNumber) {
+    public function getTopicCampSubscriptions(int $topicNumber, int $campNumber) {
         try {
             $campSubscriptionsArr = [];
             $campSubscriptions = CampSubscription::where([['topic_num','=',$topicNumber],
@@ -856,7 +856,7 @@ class CampService
         }
     }
 
-    public function changeArrayExplicity($childCampSubscribers, $title, $campNumber, $explicity= false) {
+    public function changeArrayExplicity(array $childCampSubscribers, string $title, int $campNumber, bool $explicity = false) {
         $newArr = [];
         foreach ($childCampSubscribers as $key => $value) {
             $newValue = $value;

@@ -12,7 +12,7 @@ use App\Models\Topic;
 
 class TopicService
 {
-    public function getLiveTopic($topicNumber, $asOfTime, $filter = array(), $asOf = 'default', $fetchTopicHistory = 0)
+    public function getLiveTopic(int $topicNumber, ?int $asOfTime = null, array $filter = array(), string $asOf = 'default', int $fetchTopicHistory = 0)
     {
         $topic =  Topic::where('topic_num', $topicNumber);
         if($asOf == 'default' || $asOf == 'review' || $asOf == 'bydate' && !$fetchTopicHistory) { 
@@ -31,7 +31,7 @@ class TopicService
         return $liveTopic;
     }
 
-    public function getReviewTopic($topicNumber)
+    public function getReviewTopic(int $topicNumber)
     {
         $topic = Topic::where('topic_num', $topicNumber)
             ->where('grace_period', 0)
@@ -41,18 +41,18 @@ class TopicService
           return $topic;
     }
 
-    public function getTopicsWithScore($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $search, $asof = 'default', $archive = 0, $sort = false, $page = 'home', $topic_tags = [])
+    public function getTopicsWithScore(int $namespaceId, ?int $asofdate, string $algorithm, int $skip, int $pageSize, mixed $filter, array $nickNameIds, ?string $search, string $asof = 'default', int $archive = 0, bool $sort = false, string $page = 'home', array $topic_tags = [])
     {
         return TopicRepository::getTopicsWithPagination($namespaceId, $asofdate, $algorithm, $skip, $pageSize, $nickNameIds, $asof, $search, $filter, true, $archive, $sort, $page, $topic_tags);
     }
 
-    public function getTotalTopics($namespaceId, $asofdate, $algorithm, $filter, $nickNameIds, $search, $asof = 'default', $archive = 0)
+    public function getTotalTopics(int $namespaceId, ?int $asofdate, string $algorithm, mixed $filter, array $nickNameIds, ?string $search, string $asof = 'default', int $archive = 0)
     {
         $totalTopics = TopicRepository::getTotalTopics($namespaceId, $asofdate, $algorithm, $nickNameIds, $asof, $search, $filter, $archive);
         return $totalTopics;
     }
 
-    public function sortTopicsBasedOnScore($topics, $algorithm, $asOfTime, $page = 'home'){
+    public function sortTopicsBasedOnScore(mixed $topics, string $algorithm, ?int $asOfTime = null, string $page = 'home'){
 
         if(sizeof($topics) > 0){
                  foreach ($topics as $key => $value) {
@@ -89,24 +89,24 @@ class TopicService
         }
     }
 
-    public function filterTopicCollection($topics, $filter){
+    public function filterTopicCollection(mixed $topics, mixed $filter){
         $filteredTopics = $topics->filter(function ($value, $key) use($filter) {
             return $value->score > $filter;
         });
         return $filteredTopics;
     }
 
-    public static function getTopicCreatedDate($topicNumber){
+    public static function getTopicCreatedDate(int $topicNumber){
         return Topic::where('topic_num', $topicNumber)
                 ->pluck('submit_time')
                 ->first();
     }
 
-    public static function checkTopicInMySql($topicNumber, $asOfTime) {
+    public static function checkTopicInMySql(int $topicNumber, ?int $asOfTime = null) {
         return Topic::where('topic_num', $topicNumber)->where('submit_time', '<=', $asOfTime)->first();
     }
 
-    public static function getTopicAuthor($topicNumber) {
+    public static function getTopicAuthor(int $topicNumber) {
         return Topic::where('topic_num', $topicNumber)->pluck('submitter_nick_id')
         ->first();
     }

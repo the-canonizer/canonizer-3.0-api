@@ -53,8 +53,9 @@ class TreeGetApiTest extends TestCase
             'update_all' => 0
         ]);
         $response->assertJsonStructure([
-            "code",
-            "success",
+            "status_code",
+            "message",
+            "error",
             'data' => [
                 0 => [
                     '1' => [

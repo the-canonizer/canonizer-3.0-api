@@ -16,8 +16,8 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 use App\Library\wiki_parser\wikiParser as wikiParser;
 class pmwiki_links implements startOfLine
 {
-    const regular_expression = '/(\[\[(([^\]]*?)\:)?([^\]]*?)(\|([^\]]*?))?\]\]([a-z]+)?)/i';
-    const external_protocol_regular_expression = '/^\[\[(http|https|mailto|ftp).*$/i';
+    public const regular_expression = '/(\[\[(([^\]]*?)\:)?([^\]]*?)(\|([^\]]*?))?\]\]([a-z]+)?)/i';
+    public const external_protocol_regular_expression = '/^\[\[(http|https|mailto|ftp).*$/i';
     
     public function __construct()
     {
