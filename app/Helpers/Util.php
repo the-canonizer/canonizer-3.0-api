@@ -827,7 +827,7 @@ class Util
     public function parse_facebook_signed_request($signed_request) {
         list($encoded_sig, $payload) = explode('.', $signed_request, 2);
       
-        $secret = "appsecret"; // Use your app secret here
+        $secret = env('FACEBOOK_APP_SECRET'); // Load app secret from environment
       
         // decode the data
         $sig = base64_url_decode($encoded_sig);
