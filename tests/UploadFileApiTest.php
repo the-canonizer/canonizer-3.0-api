@@ -27,28 +27,30 @@ class UploadFileApiTest extends TestCase
 
     public function testUnauthorizedUserCannotUpload(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/upload-files', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/upload-files', []);
+        $response->assertStatus(401);
     }
 
     public function testUnauthorizedUserCannotDeleteFolder(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
-        $response = $this->call('delete', '/api/v3/folder/delete/1', []);
-        $_res->assertStatus(401);
+        $response = $this->delete('/api/v3/folder/delete/1', []);
+        $response->assertStatus(401);
     }
 
     public function testUnauthorizedUserCannotDeleteFile(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
-        $response = $this->call('delete', '/api/v3/file/delete/1', []);
-        $_res->assertStatus(401);
+        $response = $this->delete('/api/v3/file/delete/1', []);
+        $response->assertStatus(401);
     }
     
     public function testFileUpload() {
         print sprintf(" \n S3 bulk upload test %d %s", 200,PHP_EOL);
 
         Storage::fake('s3');
+        Aws::shouldReceive('UploadFile')->andReturn(new \Aws\Result(['@metadata' => ['statusCode' => 200]]));
+        Aws::shouldReceive('DeleteFile')->andReturn(['@metadata' => ['statusCode' => 204]]);
 
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
         $rand = rand(1000,99999);
         $input = [
             'file' => [
@@ -60,11 +62,11 @@ class UploadFileApiTest extends TestCase
             'from_test_case' => 1
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/upload-files', $input);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/upload-files', $input);
+        $response->assertStatus(200);
         
-        if($_res->status() == 200) {
-            $uploaded_file_key = $_res->getData()->data->file_name ?? "";
+        if($response->status() == 200) {
+            $uploaded_file_key = $response->getData()->data[0]->file_path ?? "";
             $result = Aws::DeleteFile($uploaded_file_key);
             $this->assertEquals(204, $result['@metadata']['statusCode']);
         }
@@ -72,55 +74,57 @@ class UploadFileApiTest extends TestCase
 
     public function testGetFilesAndFolderApi(){
         print sprintf(" \n Fetch folder and files created  %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
 
-        $_res = $this->actingAs($user)->get('/api/v3/uploaded-files', []);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/uploaded-files', []);
+        $response->assertStatus(200);
     }
 
     public function testUserProfileImageRequired() {
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
         $input = [];
-        $_res = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $response->assertStatus(400);
     }
 
     public function testUserProfileImageType() {
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
         $rand = rand(1000,99999);
         $input = [
             'profile_picture' => UploadedFile::fake()->image($rand.'.gif')
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $response->assertStatus(400);
     }
 
     public function testUserProfileImageIsNotFile() {
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
         $input = [
             'profile_picture' => 'abc.jpg'
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $response->assertStatus(400);
     }
 
     public function testUserProfileImageApiForAuth() {
-        $_res = $this->post('/api/v3/update-profile-picture', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/update-profile-picture', []);
+        $response->assertStatus(401);
     }
 
     public function testUserProfileImageUpload() {
+        Aws::shouldReceive('UploadFile')->andReturn(new \Aws\Result(['@metadata' => ['statusCode' => 200]]));
+        Aws::shouldReceive('DeleteFile')->andReturn(['@metadata' => ['statusCode' => 204]]);
 
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
         $rand = rand(1000,99999);
         $input = [
             'profile_picture' => UploadedFile::fake()->image($rand.'.jpeg')
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $response->assertStatus(200);
 
-        if($_res->status() == 200) {
-            $uploaded_file_key = explode("/", $_res->getData()->data->profile_picture, 4) ?? [];
+        if($response->status() == 200) {
+            $uploaded_file_key = explode("/", $response->getData()->data->profile_picture, 4) ?? [];
             $result = Aws::DeleteFile($uploaded_file_key[3] ?? "");
             $this->assertEquals(204, $result['@metadata']['statusCode']);
         }
@@ -132,11 +136,11 @@ class UploadFileApiTest extends TestCase
             'is_update' => 1
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/update-profile-picture', $input);
+        $response->assertStatus(200);
         
-        if($_res->status() == 200) {
-            $uploaded_file_key = explode("/", $_res->getData()->data->profile_picture, 4) ?? [];
+        if($response->status() == 200) {
+            $uploaded_file_key = explode("/", $response->getData()->data->profile_picture, 4) ?? [];
             $result = Aws::DeleteFile($uploaded_file_key[3] ?? "");
             $this->assertEquals(204, $result['@metadata']['statusCode']);
         }

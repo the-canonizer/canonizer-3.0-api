@@ -7,7 +7,7 @@ use App\Models\FileFolder;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Upload;
-use App\Helpers\Aws;
+use App\Facades\Aws;
 use App\Helpers\Util;
 use App\Http\Request\ValidationRules;
 use App\Http\Request\ValidationMessages;

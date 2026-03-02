@@ -16,15 +16,16 @@ class UserProfileApiTest extends TestCase
     public function testGetuserProfileWithEmptyParam()
     {
         print sprintf("Test with invalid parameter passed");
-        $_res = $this->call('GET', '/api/v3/user/supports', []);
-        $_res->assertStatus(404);
+        $response = $this->call('GET', '/api/v3/user/supports', []);
+        $response->assertStatus(404);
     }
 
     public function testGetuserProfileWithValidParam()
     {
         print sprintf("Test with valid parameter passed");
-        $user = User::factory()->create();
-        $_res = $this->actingAs($user)->get('/api/v3/user/supports/1?canon=');
-        $_res->assertStatus(200);
+        $user = User::factory()->create(['status' => 1]);
+        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
+        $response = $this->actingAs($user)->get('/api/v3/user/supports/' . $nickname->id . '?canon=');
+        $response->assertStatus(200);
     }
 }

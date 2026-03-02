@@ -5,7 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\Util;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Category extends Model {
+    use HasFactory;
 
     public const VIDEO = 'video';
     public const OTHER = 'other'; // Or you can define your own enum ...

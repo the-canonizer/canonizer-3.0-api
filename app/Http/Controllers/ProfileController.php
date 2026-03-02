@@ -12,7 +12,7 @@ use App\Http\Resources\ErrorResource;
 use App\Http\Resources\SuccessResource;
 use App\Models\MobileCarrier;
 use App\Events\SendOtpEvent;
-use App\Helpers\Aws;
+use App\Facades\Aws;
 use Illuminate\Support\Facades\Event;
 use App\Models\Languages;
 use App\Models\User;

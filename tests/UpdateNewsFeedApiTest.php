@@ -15,12 +15,12 @@ class UpdateNewsFeedApiTest extends TestCase
     public function testUpdateNewsFeedApiWithEmptyFormData() 
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.admin_user.admin_1'),
-            'type' => 'admin'
+        $user = User::factory()->create([
+            'type' => 'admin',
+            'status' => 1
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -37,12 +37,12 @@ class UpdateNewsFeedApiTest extends TestCase
             "submitter_nick_id"=>""
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.admin_user.admin_1'),
-            'type' => 'admin'
+        $user = User::factory()->create([
+            'type' => 'admin',
+            'status' => 1
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -59,12 +59,12 @@ class UpdateNewsFeedApiTest extends TestCase
             "submitter_nick_id"=>"abc"
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.admin_user.admin_1'),
-            'type' => 'admin'
+        $user = User::factory()->create([
+            'type' => 'admin',
+            'status' => 1
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -72,20 +72,22 @@ class UpdateNewsFeedApiTest extends TestCase
      */
     public function testUpdateNewsFeedApiStatus() 
     {
-        $newsFeed = NewsFeed::factory()->create();
+        $user = User::factory()->create(['type' => 'admin', 'status' => 1]);
+        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
+        $newsFeed = NewsFeed::factory()->create(['submitter_nick_id' => $nickname->id]);
         $data = [
             "newsfeed_id"=> $newsFeed->id,
             "display_text" => "abc",
             "link" => "facebook.com",
             "available_for_child" =>  1,
-            "submitter_nick_id"=>1
+            "submitter_nick_id" => $nickname->id
         ];
         print sprintf("\n Update NewsFeed ", 200, PHP_EOL);
-        $user = User::find(1);
-        $this->actingAs($user)->post(
+        
+        $response = $this->actingAs($user)->post(
             '/api/v3/update-camp-newsfeed',
             $data
         );
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 }
