@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ResponseInterface;
 use AllowDynamicProperties;
-use Laravel\Lumen\Routing\Controller as BaseController;
+use Illuminate\Routing\Controller as BaseController;
 
 #[AllowDynamicProperties]
 abstract class Controller extends BaseController
