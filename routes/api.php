@@ -253,5 +253,9 @@ Route::group(['prefix' => 'v1'], function () {
             \Illuminate\Support\Facades\Artisan::call('timeline:all');
             return response()->json(['message' => 'All topic timelines generated successfully.']);
         });
+        Route::get('/adding-specific-topic/{topic_num}/{algorithm_id}', function (string $topic_num = null, string $algorithm_id = null) {
+            \Illuminate\Support\Facades\Artisan::call("timeline:all $topic_num $algorithm_id");
+            return response()->json(['message' => 'Specific topic timelines generated successfully.']);
+        });
     });
 });

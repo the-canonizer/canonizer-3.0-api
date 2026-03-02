@@ -36,22 +36,57 @@ class TopicSupport extends Model {
         return $this->hasOne(Nickname::class, 'id', 'delegate_nick_id');
     }
 
-    public static function reducedSum($array,$full_score = false){
-        $sum = $array['score'];
-        if($full_score){
-            $sum = $array['full_score'];
-        }
-        try{
-		  if(isset($array['children']) && is_array($array['children'])) {
-			foreach($array['children'] as $arr){
-					$sum=$sum + self::reducedSum($arr,$full_score);
-			}
-		  }
-        }catch(\Exception $e){
+    public static function reducedSum($array, $full_score = false)
+    {
+        $sum = $full_score ? ($array['full_score'] ?? ($array['score'] ?? 0)) : ($array['score'] ?? 0);
+        $subKey = isset($array['children']) ? 'children' : (isset($array['delegates']) ? 'delegates' : null);
+        
+        try {
+            if ($subKey && isset($array[$subKey]) && is_array($array[$subKey])) {
+                foreach ($array[$subKey] as $arr) {
+                    $sum = $sum + self::reducedSum($arr, $full_score);
+                }
+            }
+        } catch (\Exception $e) {
             return $sum;
         }
 
         return $sum;
+    }
+
+    public static function traverseChildTree($algorithm,$topicnum,$campnum,$delegateNickId,$parent_support_order,$multiSupport){
+
+        /*Delegated Support */
+        if(!static::$supports){
+             $as_of_time = time();
+            if(isset($_REQUEST['asof']) && $_REQUEST['asof']=='bydate'){
+                $as_of_time = strtotime($_REQUEST['asofdate']);
+            }
+            static::$supports = Support::where('topic_num', '=', $topicnum)
+                            ->whereRaw("(start <= $as_of_time) and ((end = 0) or (end > $as_of_time))")
+                            ->orderBy('start', 'DESC')
+                            ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num'])
+                            ->get();
+        }
+
+        $delegatedSupports =  static::$supports->filter(function($item) use ($delegateNickId){
+                return $item->delegate_nick_name_id == $delegateNickId;
+        });
+
+        $array = [];
+        foreach($delegatedSupports as $support){
+
+            $supportPoint = Algorithm::{$algorithm}($support->nick_name_id,$support->topic_num,$support->camp_num);
+            $array[$support->nick_name_id]['index']=$support->nick_name_id;
+            if($multiSupport){
+                $array[$support->nick_name_id]['score'] = round($supportPoint / (2 ** ($parent_support_order)),2);
+            }else{
+                $array[$support->nick_name_id]['score'] = $supportPoint;
+            }
+            $array[$support->nick_name_id]['children'] = self::traverseChildTree($algorithm,$topicnum,$campnum,$support->nick_name_id,$parent_support_order,$multiSupport);
+        }
+
+        return $array;
     }
 
     /*1 Person :: 1 Vote Nicknames*/
@@ -74,6 +109,9 @@ class TopicSupport extends Model {
                         ->orderBy('start', 'DESC')
                         ->select(['nick_name_id', 'delegate_nick_name_id', 'support_order', 'topic_num', 'camp_num'])
                         ->get();
+        
+        static::$supports = $nick_supports;
+
         $array = [];
         foreach($supports as $key =>$support){
             $nickNameSupports =  $nick_supports->filter(function($item) use($support) {
@@ -105,9 +143,7 @@ class TopicSupport extends Model {
 
 				     $array[$support->nick_name_id]['score']=$supportPoint;
 				}
-                // self::traverseChildTree is missing in the source but referred to in dev_service version.
-                // I'll check if I need it or if it's in another helper.
-                // Looking at dev_service TopicSupport.php, it HAD traverseChildTree. I'll include it.
+                $array[$support->nick_name_id]['children'] = self::traverseChildTree($algorithm,$topicnum,$campnum,$support->nick_name_id,$currentCampSupport->support_order,$multiSupport);
             }
 
         }
@@ -177,4 +213,19 @@ class TopicSupport extends Model {
 
         return $support;
     }
+
+    public static function sortTraversedSupportCountTreeArray($traversedTreeArray){
+        $array = array_values($traversedTreeArray);
+        usort($array,'self::sortByOrder');
+        return $array;
+    }
+
+    public static function sortByOrder($a, $b)
+	{
+        $a = $a['score'] ?? 0;
+        $b = $b['score'] ?? 0;
+
+        if ($a == $b) return 0;
+        return ($a > $b) ? -1 : 1;
+	}
 }

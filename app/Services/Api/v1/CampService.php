@@ -77,18 +77,26 @@ class CampService
         $key = "score_tree_{$topicNumber}_{$algo}";
         
         if (!Arr::exists($this->sessionTempArray, $key)) {
-            $expertCampReducedTree = $this->getCampAndNickNameWiseSupportTree($algo, $topicNumber, $asOfTime);
-            $this->sessionTempArray[$key] = $expertCampReducedTree;
+            $score_tree = $this->getCampAndNickNameWiseSupportTree($algo, $topicNumber, $asOfTime);
+            $this->sessionTempArray[$key] = $score_tree;
         } else {
-            $expertCampReducedTree = $this->sessionTempArray[$key];
+            $score_tree = $this->sessionTempArray[$key];
         }
 
         $total_score = 0;
-        if (array_key_exists('camp_wise_tree', $expertCampReducedTree) && array_key_exists($campNumber, $expertCampReducedTree['camp_wise_tree'])) {
-            foreach ($expertCampReducedTree['camp_wise_tree'][$campNumber] as $tree_node) {
+        if (array_key_exists('camp_wise_tree', $score_tree) && array_key_exists($campNumber, $score_tree['camp_wise_tree'])) {
+            foreach ($score_tree['camp_wise_tree'][$campNumber] as $order => $tree_node) {
                 if (count($tree_node) > 0) {
-                    foreach ($tree_node as $score) {
-                        $total_score += $full_score ? $score['full_score'] : $score['score'];
+                    foreach ($tree_node as $nick => $score) {
+                        $delegate_arr = $score_tree['nick_name_wise_tree'][$nick][$order][$campNumber];
+                        $delegate_score = $this->getDelegatesScore($delegate_arr, $full_score);
+                        
+                        if ($full_score) {
+                            $delegate_full_score = $this->getDelegatesFullScore($delegate_arr);
+                            $total_score += $score['full_score'] + $delegate_full_score;
+                        } else {
+                            $total_score += $score['score'] + $delegate_score;
+                        }
                     }
                 }
             }
@@ -870,4 +878,34 @@ class CampService
         return $newArr;
     }
 
+    public function getDelegatesFullScore($tree)
+    {
+        $score = 0;
+        if (isset($tree['delegates']) && count($tree['delegates']) > 0) {
+            foreach ($tree['delegates'] as $nick => $delScore) {
+                $score += $delScore['full_score'];
+                if (isset($delScore['delegates']) && count($delScore['delegates']) > 0) {
+                    $score += $this->getDelegatesFullScore($delScore);
+                }
+            }
+        }
+        return $score;
+    }
+
+    public function getDelegatesScore($tree, $full_score = false)
+    {
+        $score = 0;
+        if (isset($tree['delegates']) && count($tree['delegates']) > 0) {
+            foreach ($tree['delegates'] as $nick => $delScore) {
+                $score += $delScore['score'];
+                if ($full_score) {
+                    $score += $delScore['full_score'];
+                }
+                if (isset($delScore['delegates']) && count($delScore['delegates']) > 0) {
+                    $score += $this->getDelegatesScore($delScore, $full_score);
+                }
+            }
+        }
+        return $score;
+    }
 }

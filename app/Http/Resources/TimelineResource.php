@@ -15,51 +15,52 @@ class TimelineResource extends ResourceCollection
     public function toArray($request)
     {
         if (count($this->collection) > 0) {
-            $tree = $this->collection[0];
-            $topicNumber = isset($tree['topic_id']) ? $tree['topic_id'] : (isset($tree->topic_id) ? $tree->topic_id : null);
-            
+            $item = $this->collection[0];
+            $timeline = [];
             $topicName = "";
-            if ($topicNumber) {
-                $topic = \App\Models\Topic::where('topic_num', (int)$topicNumber)
-                    ->where('objector_nick_id', NULL)
-                    ->where('go_live_time', '<=', time())
-                    ->orderBy('submit_time', 'desc')
-                    ->first();
-                $topicName = $topic ? $topic->topic_name : '';
-            }
-
-            $timelineData = [];
-            $treeArray = is_array($tree) ? $tree : $tree->toArray();
-            foreach($treeArray as $key => $val) {
-                if(str_starts_with($key, 'asoftime_')) {
+            
+            $itemArray = is_array($item) ? $item : $item->toArray();
+            
+            foreach ($itemArray as $key => $value) {
+                if (str_starts_with($key, 'asoftime_')) {
                     $parts = explode('_', $key);
-                    $timelineData[] = [
-                        'as_of_date' => (int)$parts[1],
-                        'event' => $val['event']
+                    $asOfDate = isset($parts[1]) ? $parts[1] : '';
+                    $timeline[] = [
+                        'as_of_date' => $asOfDate,
+                        'event' => isset($value['event']) ? $value['event'] : null
                     ];
+                    
+                    if (!$topicName && isset($value['payload_response'][0]['title'])) {
+                        $topicName = $value['payload_response'][0]['title'];
+                    }
                 }
             }
-            // Sort by as_of_date
-            usort($timelineData, function($a, $b) {
-                return $a['as_of_date'] <=> $b['as_of_date'];
+            
+            // Sort timeline by as_of_date
+            usort($timeline, function($a, $b) {
+                return (int)$a['as_of_date'] <=> (int)$b['as_of_date'];
             });
 
             return [
                 "status_code" => 200,
                 "message" => "Success",
                 "error" => null,
-                "data" => [
+                "data" => array_merge([
                     "topic_name" => $topicName,
-                    "timeline" => $timelineData
-                ]
+                    "timeline" => $timeline
+                ], $itemArray),
+                "code" => 200,
+                "success" => true
             ];
         }
 
         return [
+            "data" => [],
+            "code" => 404,
             "status_code" => 404,
+            "success" => false,
             "message" => "Topic Timeline not found",
-            "error" => "Topic Timeline not found",
-            "data" => []
+            "error" => "Topic Timeline not found"
         ];
     }
 }

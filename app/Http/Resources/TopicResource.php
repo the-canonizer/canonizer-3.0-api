@@ -44,21 +44,14 @@ class TopicResource extends ResourceCollection
                 'status_code' => 404,
                 'message' => "No data found",
                 'data' => null,
-                'errors' => [
-                    'message' => 'No data found',
-                    'errors' => []
-                ]
+                'error' => 'No data found'
             ];
         } else {
-
             return [
                 'status_code' => 400,
                 'message' => "something went wrong",
                 'data' => null,
-                'errors' => [
-                    'message' => 'something went wrong',
-                    'errors' => $this->resource
-                ]
+                'error' => $this->resource
             ];
         }
     }
