@@ -18,7 +18,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
     public function testForgotPasswordApiWithInvalidData()
     {
         print sprintf("Invalid Forgot Password update details submitted %d %s", 302, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
@@ -32,7 +32,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
     public function testForgotPasswordUnauthorizedUserCanNotUpdate()
     {
         print sprintf("\n Unauthorized ForgotPassword update User can not  request this api %d %s", 500, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
@@ -65,7 +65,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
     {
         print sprintf(" \n Invalid Forgot Password Update details submitted %d %s", 400, PHP_EOL);
 
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
@@ -80,7 +80,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
     public function testForgotPasswordUpdateWithValidaData()
     {
         print sprintf(" \n Forgot Password updated wit valid data %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create([
+            'email' => trans('testSample.user_ids.normal_user.user_2.email'),
+        ]);
 
         $token = $user->createToken('TestToken')->accessToken;
 
