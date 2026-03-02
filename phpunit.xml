@@ -17,6 +17,7 @@
         <env name="MAIL_LOG_CHANNEL" value="mail_log_unit_testcase"/>
         <env name="MAIL_DRIVER" value="log"/>
         <env name="MAIL_MAILER" value="log"/>
+        <env name="SESSION_DRIVER" value="array"/>
         <env name="PASSPORT_BYPASS_CLIENT_CREDENTIALS" value="true"/>
     </php>
 </phpunit>

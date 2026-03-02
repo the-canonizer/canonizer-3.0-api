@@ -57,81 +57,84 @@ class NickNameApiTest extends TestCase
             'nick_name' => "test",
             'visibility_status' => 1
         ];
-        $response = $this->call('POST', '/api/v3/add-nick-name', $parameter);
-        $_res->assertStatus(401);       
+        $response = $this->post('/api/v3/add-nick-name', $parameter);
+        $response->assertStatus(401);       
     }
 
     public function testAddNickNameWithInvalidData(){
         print sprintf(" \n Add Nickname %d %s", 400,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
 
         $parameter = [
             'nick_name' => "",
             "visibility_status" => ""
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/add-nick-name', $parameter);
 
-        $_res->assertStatus(422);
+        $response->assertStatus(422);
     }
 
     public function testAddNickNameWithValidData(){
         print sprintf(" \n Add Nickname with valid data %d %s", 200,PHP_EOL);
-        $user = User::find(rand(10,50));
+        $user = User::factory()->create(['status' => 1]);
 
         $parameter = [
-            'nick_name' => "test-" . rand(1,5),
-            "visibility_status" => "1"
+            'nick_name' => "test-" . rand(1,1000000),
+            "visibility_status" => "1",
+            "default" => 0
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/add-nick-name', $parameter);
 
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     public function testGuestUserCanNotGetAllNickNames(){
         print sprintf("\n Gues user can not get list of nicknames ",401, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/get-nick-name-list', []);
-        $_res->assertStatus(401); 
+        $response = $this->get('/api/v3/get-nick-name-list', []);
+        $response->assertStatus(401); 
     }
 
     public function testGetAllNickNamesWithAuthorizedUser(){
         print sprintf(" \n Get all nicknames %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->get('/api/v3/get-nick-name-list', []);
 
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
 
     public function testUpdateNickNameWithInvalidData(){
         print sprintf(" \n Update Nickname Visibility with invalid data %d %s", 400,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
+        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
 
         $parameter = [
             "visibility_status" => ""
         ];
 
-        $this->actingAs($user)
-        ->post('/api/v3/update-nick-name/1', $parameter);
+        $response = $this->actingAs($user)
+        ->post('/api/v3/update-nick-name/' . $nickname->id, $parameter);
 
-        $_res->assertStatus(422);
+        $response->assertStatus(422);
     }
 
     public function testUpdateNickNameWithValidData(){
         print sprintf(" \n Update Nickname visibilty with valid data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
+        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
         $parameter = [
             "visibility_status" => "1"
         ];
 
-        $this->actingAs($user)
-        ->post('/api/v3/update-nick-name/1', $parameter);
+        $response = $this->actingAs($user)
+        ->post('/api/v3/update-nick-name/' . $nickname->id, $parameter);
 
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 }

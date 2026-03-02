@@ -70,13 +70,15 @@ abstract class TestCase extends BaseTestCase
         }
 
         // 5. Seed Passport Personal Access Client if it doesn't exist
-        if (Schema::hasTable('oauth_clients')) {
-            $clientExists = DB::table('oauth_clients')
+        $passportConn = config('passport.storage.database.connection') ?: config('database.default');
+        
+        if (Schema::connection($passportConn)->hasTable('oauth_clients')) {
+            $clientExists = DB::connection($passportConn)->table('oauth_clients')
                 ->where('personal_access_client', 1)
                 ->exists();
             
             if (!$clientExists) {
-                DB::table('oauth_clients')->insert([
+                $clientId = DB::connection($passportConn)->table('oauth_clients')->insertGetId([
                     'name' => 'Test Personal Access Client',
                     'secret' => 'e8he2UnDY8wxrg5hRpmiN85Ihhy2EkYyKIbE3fcK',
                     'provider' => 'users',
@@ -88,8 +90,8 @@ abstract class TestCase extends BaseTestCase
                     'updated_at' => now(),
                 ]);
 
-                DB::table('oauth_personal_access_clients')->insert([
-                    'client_id' => 1,
+                DB::connection($passportConn)->table('oauth_personal_access_clients')->insert([
+                    'client_id' => $clientId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

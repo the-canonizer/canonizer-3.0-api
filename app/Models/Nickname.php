@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Library\General;
 use Exception;
 use App\Helpers\ElasticSearch;
-use App\Models\Support;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[AllowDynamicProperties]
 class Nickname extends Model {
+    use HasFactory;
 
     protected $table = 'nick_name';
     public $timestamps = false;
