@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetTopicHistoryApiTest extends TestCase
@@ -16,9 +18,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', [] ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', [] ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -39,9 +41,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $emptyData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $emptyData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -62,9 +64,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -85,9 +87,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $invalidData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $invalidData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -106,9 +108,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -127,9 +129,9 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     public function testIfRecordNotFound()    
@@ -145,8 +147,8 @@ class GetTopicHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
-        //  dd($this->response);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $data ,$header);
+        //  dd($_res);
+        $_res->assertStatus(404);
     }
 }

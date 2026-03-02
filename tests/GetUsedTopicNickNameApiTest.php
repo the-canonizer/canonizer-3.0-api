@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Laravel\Lumen\Testing\WithoutMiddleware;
 
@@ -40,8 +42,8 @@ class GetUsedTopicNickNameApiTest extends TestCase
             'topic_num' => '',
         ];
 
-        $this->actingAs($camp)->post('/api/v3/camp/get-topic-nickname-used', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($camp)->post('/api/v3/camp/get-topic-nickname-used', $parameter);
+        $_res->assertStatus(400);
     }
 
     public function testGetUsedTopicNickNameWithValidData()
@@ -53,8 +55,8 @@ class GetUsedTopicNickNameApiTest extends TestCase
         $parameters = [
             "topic_num" => (string) $rand,
         ];
-        $this->call('POST', '/api/v3/camp/get-topic-nickname-used', $parameters);
-        $this->seeJsonStructure([
+        $_res = $this->call('POST', '/api/v3/camp/get-topic-nickname-used', $parameters);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',

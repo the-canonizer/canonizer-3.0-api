@@ -614,7 +614,7 @@ class TopicController extends Controller
 
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-            $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
+            $model->go_live_time = Carbon::now()->addSeconds((int)env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
                 $changeGoneLive = true;
@@ -1848,7 +1848,7 @@ class TopicController extends Controller
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];
                 // $topic->go_live_time = $current_time;
-                $topic->go_live_time = Carbon::parse($current_time)->addDay()->timestamp;
+                $topic->go_live_time = Carbon::parse('@' . $current_time)->addDay()->timestamp;
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
                 // $topic->grace_period = 0;
@@ -1863,8 +1863,7 @@ class TopicController extends Controller
             $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $nickNames, 0);
 
             if (!$ifIamSingleSupporter) {
-                $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $topic->go_live_time;
+                $topic->go_live_time = Carbon::now()->addDay()->timestamp;
                 $topic->grace_period = 1;
             }
 
@@ -1887,7 +1886,7 @@ class TopicController extends Controller
 
                 Util::dispatchJob($topic, 1, 1);
                 $currentTime = time();
-                $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS');
+                $delayCommitTimeInSeconds = (int)env('COMMIT_TIME_DELAY_IN_SECONDS');
                 if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
                     Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
                 }

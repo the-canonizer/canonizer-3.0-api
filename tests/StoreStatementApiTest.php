@@ -1,9 +1,11 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Statement;
 use App\Models\User;
 use App\Models\Support;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class StoreStatementApiTest extends TestCase
 {
@@ -20,8 +22,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', []);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', []);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -42,8 +44,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $emptyData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -64,8 +66,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $invalidData);
+        $_res->assertStatus(400);
     }
 
 
@@ -89,9 +91,9 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        // dd($this->response);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        // dd($_res);
+        $_res->assertStatus(200);
     }
 
      /**
@@ -113,8 +115,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -151,8 +153,8 @@ class StoreStatementApiTest extends TestCase
             'end' => 0,
         ]);
 
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status()); // Change 400 to 200 due to test objection
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200); // Change 400 to 200 due to test objection
     }
 
          /**
@@ -175,8 +177,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200);
     }
 
 
@@ -187,8 +189,8 @@ class StoreStatementApiTest extends TestCase
     public function testStoreStatementApiWithoutAuth()
     {
         print sprintf("Test with empty form data");
-        $this->post('/api/v3/store-camp-statement', []);
-        $this->assertEquals(401,  $this->response->status());
+        $_res = $this->post('/api/v3/store-camp-statement', []);
+        $_res->assertStatus(401);
     }
 
     public function testCreateStatementInGracePeriodWithValidData()
@@ -206,8 +208,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200);
 
         $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
         $this->assertNotNull($statement);
@@ -230,8 +232,8 @@ class StoreStatementApiTest extends TestCase
            $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200);
 
         $statement = Statement::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
         $this->assertNotNull($statement);
@@ -254,8 +256,8 @@ class StoreStatementApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $statement = $this->response->json();
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $statement = $_res->json();
         $draftRecordId = $statement['data']['draft_record_id'];
 
         $validData = [
@@ -273,8 +275,8 @@ class StoreStatementApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res->assertStatus(200);
     }
 
     public function testPublishDraftStatment()
@@ -292,8 +294,8 @@ class StoreStatementApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        $statement = $this->response->json();
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $statement = $_res->json();
         $draftRecordId = $statement['data']['draft_record_id'];
 
         // Publish a draft statement
@@ -309,8 +311,8 @@ class StoreStatementApiTest extends TestCase
             "is_draft" => false,
         ];
 
-        $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
 
-        $this->assertEquals(200,  $this->response->status());
+        $_res->assertStatus(200);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class EditCampRecordApiTest extends TestCase
@@ -12,9 +14,9 @@ class EditCampRecordApiTest extends TestCase
     {
         print sprintf("Test without auth");
        
-        $this->post('/api/v3/edit-camp');
-        //   dd($this->response);
-        $this->assertEquals(401,  $this->response->status());
+        $_res = $this->post('/api/v3/edit-camp');
+        //   dd($_res);
+        $_res->assertStatus(401);
     }
 
     /**
@@ -25,8 +27,8 @@ class EditCampRecordApiTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-camp');
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/edit-camp');
+        $_res->assertStatus(400);
     }
 
     /**
@@ -36,9 +38,9 @@ class EditCampRecordApiTest extends TestCase
     {
         print sprintf("\n Test edit Camp API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-camp');
-        // $this->assertEquals(200,  $this->response->status());
-        $this->seeJsonStructure([
+        $_res = $this->actingAs($user)->post('/api/v3/edit-camp');
+        // $_res->assertStatus(200);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -56,8 +58,8 @@ class EditCampRecordApiTest extends TestCase
             "record_id" => "224",
             "event_type" => "edit"
         ];
-        $this->actingAs($user)->post('/api/v3/edit-camp', $editCampData);
-        $this->response->assertStatus(200)->assertJsonStructure([
+        $_res = $this->actingAs($user)->post('/api/v3/edit-camp', $editCampData);
+        $_res->assertStatus(200)->assertJsonStructure([
             'status_code',
             'message',
             'error',

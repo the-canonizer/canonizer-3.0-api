@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class VideosApiTest extends TestCase
@@ -12,8 +14,8 @@ class VideosApiTest extends TestCase
             'Authorization' => 'Bearer ' . $accessToken,
         ];
 
-        $this->actingAs($user)->get('/api/v3/videos', $headers);
-        $this->response->assertStatus(200);
+        $_res = $this->actingAs($user)->get('/api/v3/videos', $headers);
+        $_res->assertStatus(200);
     }
 
     public function testVideosApiResponseStructure() {
@@ -24,8 +26,8 @@ class VideosApiTest extends TestCase
             'Authorization' => 'Bearer ' . $accessToken,
         ];
 
-        $this->actingAs($user)->get('/api/v3/videos', $headers);
-        $this->response->assertStatus(200)->assertJsonStructure([
+        $_res = $this->actingAs($user)->get('/api/v3/videos', $headers);
+        $_res->assertStatus(200)->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -55,8 +57,8 @@ class VideosApiTest extends TestCase
             'Authorization' => 'Bearer ' . $accessToken,
         ];
 
-        $this->actingAs($user)->get('/api/v3/videos/consiousness/1', $headers);
-        $this->response->assertStatus(200);
+        $_res = $this->actingAs($user)->get('/api/v3/videos/consiousness/1', $headers);
+        $_res->assertStatus(200);
     }
 
     public function testVideosByWrongCategory()
@@ -68,8 +70,8 @@ class VideosApiTest extends TestCase
             'Authorization' => 'Bearer ' . $accessToken,
         ];
 
-        $this->actingAs($user)->get('/api/v3/videos/consiousness/433233', $headers);
-        $this->response->assertStatus(404);
+        $_res = $this->actingAs($user)->get('/api/v3/videos/consiousness/433233', $headers);
+        $_res->assertStatus(404);
     }
 
     public function testVideosByCategoryApiStructure()
@@ -81,8 +83,8 @@ class VideosApiTest extends TestCase
             'Authorization' => 'Bearer ' . $accessToken,
         ];
 
-        $this->actingAs($user)->get('/api/v3/videos/consiousness/1', $headers);
-        $this->response->assertStatus(200)->assertJsonStructure([
+        $_res = $this->actingAs($user)->get('/api/v3/videos/consiousness/1', $headers);
+        $_res->assertStatus(200)->assertJsonStructure([
             'status_code',
             'message',
             'error',

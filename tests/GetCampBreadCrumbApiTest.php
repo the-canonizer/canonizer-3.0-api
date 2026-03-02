@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetCampBreadCrumbApiTest extends TestCase
@@ -16,9 +18,9 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb',[],$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb',[],$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -39,9 +41,9 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $emptyData,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $emptyData,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -60,9 +62,9 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -85,9 +87,9 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -109,9 +111,9 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $invalidData,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -131,8 +133,8 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data,$header);
+        $_res->assertStatus(200);
     }
 
     public function testIfNoBreadcrumbFound()
@@ -150,8 +152,8 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $_res->assertStatus(404);
     }
 
     public function testToSeeApiStructure()
@@ -169,8 +171,8 @@ class GetCampBreadCrumbApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
-        $this->seeJsonStructure([
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',

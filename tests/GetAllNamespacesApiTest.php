@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 class GetAllNamespacesApiTest extends TestCase
 {
@@ -12,8 +14,8 @@ class GetAllNamespacesApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->get('/api/v3/get-all-namespaces',$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->get('/api/v3/get-all-namespaces',$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 }

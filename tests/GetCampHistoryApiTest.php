@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetCampHistoryApiTest extends TestCase
@@ -15,9 +17,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', [] ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', [] ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -37,9 +39,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $emptyData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $emptyData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -60,9 +62,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -84,9 +86,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $invalidData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $invalidData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -106,9 +108,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -128,9 +130,9 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     public function testIfRecordNotFound()    
@@ -147,8 +149,8 @@ class GetCampHistoryApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
+        $_res->assertStatus(404);
 
         $data = [
             "topic_num" => "45",
@@ -158,7 +160,7 @@ class GetCampHistoryApiTest extends TestCase
             "page" => "1",
         ];
 
-        $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $data ,$header);
+        $_res->assertStatus(404);
     }
 }

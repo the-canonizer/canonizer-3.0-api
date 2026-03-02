@@ -1,7 +1,9 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 
@@ -24,8 +26,8 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $header['Authorization'] = 'Bearer '.$token;
          $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        // dd($_res);
+        $_res->assertStatus(400);
     }
 
     public function testForgotPasswordUnauthorizedUserCanNotUpdate()
@@ -39,8 +41,8 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $header['Authorization'] = 'Bearer '.$token;
         $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        // dd($_res);
+        $_res->assertStatus(400);
     }
 
     public function testForgotPasswordUpdateValidateFiled()
@@ -74,7 +76,7 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $user = User::factory()->make();
         $this->actingAs($user)
             ->post('/api/v3/forgot-password/update', [],$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res->assertStatus(400);
     }
 
 
@@ -96,6 +98,6 @@ class ForgotPasswordUpdateApiTest extends TestCase
 
         $this->actingAs($user)
             ->post('/api/v3/forgot-password/update',  $data,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 }

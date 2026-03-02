@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Event;
 use App\Events\SendOtpEvent;
@@ -26,10 +28,10 @@ class VerifyOtpApiTest extends TestCase
             "username" => '',
         ];
        
-        $this->actingAs($user)
+        $_res = $this->actingAs($user)
             ->post('/api/v3/verify-otp',$parameters);   
 
-        $this->assertEquals(400, $this->response->status());
+        $_res->assertStatus(400);
     }
 
     
@@ -42,9 +44,9 @@ class VerifyOtpApiTest extends TestCase
             "otp" => '1234',
         ];
        
-        $this->actingAs($user)
+        $_res = $this->actingAs($user)
             ->post('/api/v3/verify-otp',$parameters);  
-        $this->assertEquals(400, $this->response->status());
+        $_res->assertStatus(400);
     }
 
     public function testVerifyOtpWithValidData(){
@@ -55,7 +57,7 @@ class VerifyOtpApiTest extends TestCase
         $parameters = [
             "otp" => '697427',
         ];
-        $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);  
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);  
+        $_res->assertStatus(200);
     }
 }

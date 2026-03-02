@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Laravel\Lumen\Testing\WithoutMiddleware;
 
@@ -54,8 +56,8 @@ class CampStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
+        $_res->assertStatus(400);
     }
 
     public function testCampStoreWithValidData()
@@ -72,8 +74,8 @@ class CampStoreApiTest extends TestCase
             "camp_about_url" => "",
             "asof"=>""
         ];
-        $this->call('POST', '/api/v3/camp/save', $parameters);
-        $this->seeJsonStructure([
+        $_res = $this->call('POST', '/api/v3/camp/save', $parameters);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',

@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
 use App\Models\User;
 
@@ -10,8 +12,8 @@ class CampSubscriptionTest extends TestCase
     */
     public function testCampSubscriptionApiWithoutPayload() {
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', []);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', []);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -27,8 +29,8 @@ class CampSubscriptionTest extends TestCase
             "subscription_id" => ""
         ];
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', $emptyData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -44,8 +46,8 @@ class CampSubscriptionTest extends TestCase
             "subscription_id" => "abc"
         ];
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -60,19 +62,19 @@ class CampSubscriptionTest extends TestCase
             "subscription_id" => ""
         ];
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+        $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
         
-        $this->assertEquals(200,  $this->response->status());
+        $_res->assertStatus(200);
 
         /// Unit test for the un-subscription on above subscription ...
-        if($this->response->getData()->status_code == 200) {
+        if($_res->getData()->status_code == 200) {
             // Update the payload ...
-            $validData["subscription_id"] = $this->response->getData()->data->subscriptionId;
+            $validData["subscription_id"] = $_res->getData()->data->subscriptionId;
             $validData["checked"] = false;
 
             $user = User::factory()->make();
-            $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
-            $this->assertEquals(200,  $this->response->status());
+            $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+            $_res->assertStatus(200);
         }
     }
 
@@ -88,8 +90,8 @@ class CampSubscriptionTest extends TestCase
             "subscription_id" => ""
         ];
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -97,8 +99,8 @@ class CampSubscriptionTest extends TestCase
     */
     public function  testCampSubscriptionApiWithoutUserAuth()
     {
-        $this->post('/api/v3/camp/subscription', []);
-        $this->assertEquals(401,  $this->response->status());
+        $_res = $this->post('/api/v3/camp/subscription', []);
+        $_res->assertStatus(401);
     }
 
     /**
@@ -106,7 +108,7 @@ class CampSubscriptionTest extends TestCase
     */
     public function testGetCampSubscriptionListWithoutUserAuth() {
         $response = $this->call('GET', '/api/v3/camp/subscription/list/');
-        $this->assertEquals(401, $response->status()); 
+        $_res->assertStatus(401); 
     }
 
     /**
@@ -115,7 +117,7 @@ class CampSubscriptionTest extends TestCase
     public function testGetCampSubscriptionListValidData() {
         $camp = Camp::factory()->make();
 
-        $this->actingAs($camp)->get('/api/v3/camp/subscription/list?page=1&per_page=10');
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($camp)->get('/api/v3/camp/subscription/list?page=1&per_page=10');
+        $_res->assertStatus(200);
     }
 }

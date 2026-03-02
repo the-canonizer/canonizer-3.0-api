@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ForgotPasswordSendOtpApiTest extends TestCase
@@ -45,8 +47,8 @@ class ForgotPasswordSendOtpApiTest extends TestCase
 
         $this->actingAs($user)
         ->post('/api/v3/forgot-password/send-otp', $parameter, $header);
-        // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        // dd($_res);
+        $_res->assertStatus(400);
     }
 
     public function testForgotPasswordSendOtpWithValidData()
@@ -63,8 +65,8 @@ class ForgotPasswordSendOtpApiTest extends TestCase
         ];
         $this->actingAs($user)
             ->post('/api/v3/forgot-password/send-otp',$parameters , $header);   
-            // dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+            // dd($_res);
+        $_res->assertStatus(200);
     }
    
 }

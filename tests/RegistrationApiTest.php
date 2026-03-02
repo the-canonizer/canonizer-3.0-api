@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class RegistrationApiTest extends TestCase
 {
@@ -53,8 +55,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/register',[],$header);
-        $this->assertEquals(400, $this->response->status());      
+        $_res = $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $_res->assertStatus(400);      
     }
 
     public function testWhenIncorrectRegisterCurrentPassword(){
@@ -64,8 +66,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/register',['password'=>'Test#123','password_confirmation'=>'Test#123'],$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/register',['password'=>'Test#123','password_confirmation'=>'Test#123'],$header);
+        $_res->assertStatus(400);
     }
 
     public function testRegisterWithInvalidData()
@@ -76,8 +78,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/register',[],$header);
-        $this->assertEquals(400, $this->response->status());      
+        $_res = $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $_res->assertStatus(400);      
     }
 
 
@@ -111,8 +113,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
-        $this->assertEquals(200, $this->response->status());      
+        $_res = $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
+        $_res->assertStatus(200);      
     }
 
 }

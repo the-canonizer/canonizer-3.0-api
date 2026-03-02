@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class CommitChangeAndNotifyApiTest extends TestCase
@@ -13,8 +15,8 @@ class CommitChangeAndNotifyApiTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/commit/change', []);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/commit/change', []);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -29,8 +31,8 @@ class CommitChangeAndNotifyApiTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/commit/change', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/commit/change', $emptyData);
+        $_res->assertStatus(400);
     }
 
     public function testCommitChangeAndNotifyApiWithFalseData()
@@ -41,8 +43,8 @@ class CommitChangeAndNotifyApiTest extends TestCase
         ];
         print sprintf("Test with invalid data");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/commit/change', $invalidData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/commit/change', $invalidData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -58,6 +60,6 @@ class CommitChangeAndNotifyApiTest extends TestCase
             '/api/v3/commit/change',
             $data
         );
-        $this->assertEquals(401, $this->response->status());
+        $_res->assertStatus(401);
     }
 }

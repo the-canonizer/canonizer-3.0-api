@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Event;
 use App\Events\SendOtpEvent;
@@ -43,8 +45,8 @@ class SendOtpApiTest extends TestCase
         $user = User::factory()->make();
         $this->actingAs($user)
         ->post('/api/v3/send-otp',['phone_number'=>'9876567890']);  
-       // dd($this->response);  
-        $this->assertEquals(400, $this->response->status());
+       // dd($_res);  
+        $_res->assertStatus(400);
     }
 
 
@@ -59,6 +61,6 @@ class SendOtpApiTest extends TestCase
         $this->actingAs($user)
             ->post('/api/v3/send-otp',$parameters);   
 
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 }

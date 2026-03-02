@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class UpdateProfileApiTest extends TestCase
@@ -42,7 +44,7 @@ class UpdateProfileApiTest extends TestCase
     public function testUnauthorizedUserCannotUpdate(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 500,PHP_EOL);
         $response = $this->call('POST', '/api/v3/update-profile', []);
-        $this->assertEquals(401, $response->status());
+        $_res->assertStatus(401);
     }
 
 
@@ -52,7 +54,7 @@ class UpdateProfileApiTest extends TestCase
         $user = User::factory()->make();
         $this->actingAs($user)
         ->post('/api/v3/update-profile',[]);
-        $this->assertEquals(400, $this->response->status());
+        $_res->assertStatus(400);
     }
 
     public function testUpdateWithValidaData(){
@@ -60,6 +62,6 @@ class UpdateProfileApiTest extends TestCase
         $user = User::factory()->make();
         $this->actingAs($user)
         ->post('/api/v3/update-profile',['first_name'=>$user->first_name,'last_name'=>$user->last_name]);
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 }

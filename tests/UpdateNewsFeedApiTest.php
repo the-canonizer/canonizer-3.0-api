@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 use App\Models\NewsFeed;
 
@@ -17,8 +19,8 @@ class UpdateNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -39,8 +41,8 @@ class UpdateNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -61,8 +63,8 @@ class UpdateNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -84,6 +86,6 @@ class UpdateNewsFeedApiTest extends TestCase
             '/api/v3/update-camp-newsfeed',
             $data
         );
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 }

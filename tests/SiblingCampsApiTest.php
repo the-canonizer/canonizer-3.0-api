@@ -1,7 +1,9 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\User;
 
 class SiblingCampsApiTest extends TestCase
@@ -26,8 +28,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-sibling-camps', [] ,$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', [] ,$header);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -45,8 +47,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-sibling-camps', $emptyData ,$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $emptyData ,$header);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -65,8 +67,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-sibling-camps', $invalidData ,$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $invalidData ,$header);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -85,8 +87,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -105,8 +107,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
-        $this->seeJsonStructure([
+        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',

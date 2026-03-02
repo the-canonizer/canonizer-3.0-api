@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class ParseValueWithWikiparserAPITest extends TestCase
@@ -14,8 +16,8 @@ class ParseValueWithWikiparserAPITest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/parse-camp-statement',[],$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/parse-camp-statement',[],$header);
+        $_res->assertStatus(400);
     }
     
     /**
@@ -33,8 +35,8 @@ class ParseValueWithWikiparserAPITest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$emptyData,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/parse-camp-statement',$emptyData,$header);
+        $_res->assertStatus(200);
     }
     
 
@@ -52,8 +54,8 @@ class ParseValueWithWikiparserAPITest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
+        $_res->assertStatus(200);
     }
     
     /**
@@ -70,7 +72,7 @@ class ParseValueWithWikiparserAPITest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/parse-camp-statement',$data,$header);
+        $_res->assertStatus(200);
     }
 }

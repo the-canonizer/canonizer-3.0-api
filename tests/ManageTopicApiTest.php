@@ -1,9 +1,11 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 use App\Models\Support;
 use App\Models\Topic;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class ManageTopicApiTest extends TestCase
 {
@@ -20,8 +22,8 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', []);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', []);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -44,8 +46,8 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $emptyData);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -77,8 +79,8 @@ class ManageTopicApiTest extends TestCase
             'start' => time(),
             'end' => 0,
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $invalidData);
+        $_res->assertStatus(400);
     }
 
 
@@ -102,8 +104,8 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -128,9 +130,9 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        //  dd($this->response);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -153,8 +155,9 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        if ($_res->status() != 200) dd($_res->getContent());
+        $_res->assertStatus(200);
     }
 
 
@@ -164,8 +167,8 @@ class ManageTopicApiTest extends TestCase
      */
     public function testManageTopicApiWithoutAuth()
     {
-        $this->post('/api/v3/manage-topic', []);
-        $this->assertEquals(401,  $this->response->status());
+        $_res = $this->post('/api/v3/manage-topic', []);
+        $_res->assertStatus(401);
     }
 
     public function testUpdateManageTopicWithValidDataToCheckGracePeriod()
@@ -184,8 +187,8 @@ class ManageTopicApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        $_res->assertStatus(200);
 
         $topic = Topic::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
         $this->assertNotNull($topic);

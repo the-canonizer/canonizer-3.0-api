@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 
@@ -18,9 +20,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', [], $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', [], $header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -41,9 +43,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData, $header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -62,9 +64,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -86,9 +88,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -109,9 +111,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -130,9 +132,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     public function testGetCampRecordApiNotFoundResponse()
@@ -148,8 +150,8 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($_res);
+        $_res->assertStatus(404);
     }
 }

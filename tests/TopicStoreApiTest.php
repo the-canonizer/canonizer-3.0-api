@@ -1,11 +1,13 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
 use App\Models\Thread;
 use App\Models\Topic;
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TopicStoreApiTest extends TestCase
@@ -53,8 +55,8 @@ class TopicStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
+        $_res->assertStatus(400);
     }
 
     public function testTopicStoreWithValidData()
@@ -69,12 +71,12 @@ class TopicStoreApiTest extends TestCase
             'nick_name'=>'347',
         ];
 
-        $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
+        $_res->assertStatus(200);
 
         // After topic creation , check the camp leader is added by default...
-        if($this->response->status() == 200) {
-            $checkCampLeader = Camp::where("topic_num", $this->response->json()["data"]["topic_num"])
+        if($_res->status() == 200) {
+            $checkCampLeader = Camp::where("topic_num", $_res->json()["data"]["topic_num"])
                                 ->where("camp_num", 1)->first();
 
             if(!empty($checkCampLeader)) {

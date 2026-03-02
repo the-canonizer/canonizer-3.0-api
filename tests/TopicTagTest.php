@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class TopicTagTest extends TestCase
@@ -23,8 +25,8 @@ class TopicTagTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-tags-list', [] ,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-tags-list', [] ,$header);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -43,8 +45,8 @@ class TopicTagTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-tags-list', $emptyData ,$header);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-tags-list', $emptyData ,$header);
+        $_res->assertStatus(400);
     }
 
         /**
@@ -64,7 +66,7 @@ class TopicTagTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-tags-list', $validData ,$header);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-tags-list', $validData ,$header);
+        $_res->assertStatus(200);
     }
 }

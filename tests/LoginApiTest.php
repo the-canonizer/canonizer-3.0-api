@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class LoginApiTest extends TestCase
 {
@@ -46,9 +48,9 @@ class LoginApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
-            // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
+            // dd($_res);
+        $_res->assertStatus(400);
     }
 
 
@@ -66,8 +68,8 @@ class LoginApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 }

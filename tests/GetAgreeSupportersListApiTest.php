@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 
@@ -17,9 +19,9 @@ class GetAgreeSupportersListApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-change-supporters', [] ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-change-supporters', [] ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -40,9 +42,9 @@ class GetAgreeSupportersListApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-change-supporters', $emptyData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-change-supporters', $emptyData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -63,8 +65,8 @@ class GetAgreeSupportersListApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-change-supporters', $emptyData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-change-supporters', $emptyData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 }

@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class UserProfileApiTest extends TestCase
 {
@@ -14,20 +16,15 @@ class UserProfileApiTest extends TestCase
     public function testGetuserProfileWithEmptyParam()
     {
         print sprintf("Test with invalid parameter passed");
-        $response = $this->call('GET', '/api/v3/user/supports', []);
-        $this->assertEquals(404, $response->status());
+        $_res = $this->call('GET', '/api/v3/user/supports', []);
+        $_res->assertStatus(404);
     }
 
     public function testGetuserProfileWithValidParam()
     {
-        print sprintf("Test with invalid parameter passed");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->get('/api/v3/user/supports/1?canon=',$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        print sprintf("Test with valid parameter passed");
+        $user = User::factory()->create();
+        $_res = $this->actingAs($user)->get('/api/v3/user/supports/1?canon=');
+        $_res->assertStatus(200);
     }
 }

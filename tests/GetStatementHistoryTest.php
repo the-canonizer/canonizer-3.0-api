@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetStatementHistoryTest extends TestCase
@@ -16,9 +18,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', [] ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', [] ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -39,9 +41,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $emptyData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $emptyData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -62,9 +64,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -86,9 +88,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     /**
@@ -108,9 +110,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -130,9 +132,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
+        //  dd($_res);
+        $_res->assertStatus(200);
     }
 
     /**
@@ -154,9 +156,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     } 
     
     public function testGetCampStatementHistoryApiNotFound()
@@ -175,9 +177,9 @@ class GetStatementHistoryTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
-        //  dd($this->response);
-        $this->assertEquals(404, $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
+        //  dd($_res);
+        $_res->assertStatus(404);
     }
 
 }

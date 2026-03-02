@@ -13,9 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'Xss' => \App\Http\Middleware\XssMiddleware::class,
+            'Xss' => \App\Http\Middleware\Xss::class,
             'client' => \App\Http\Middleware\CheckClientCredentialsMiddleware::class,
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {

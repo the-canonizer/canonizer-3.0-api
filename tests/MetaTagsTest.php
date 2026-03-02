@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetMetaTagsTest extends TestCase
@@ -13,9 +15,9 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        //  dd($this->response);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        //  dd($_res);
+        $_res->assertStatus(400);
     }
 
     public function testGetMetatagsForStaticPage()
@@ -30,8 +32,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(200);
     }
     
     public function testGetMetatagsForDynamicPageWithValidData()
@@ -50,8 +52,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/meta-tags', $payload, $header);
-        $this->assertEquals(200,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags', $payload, $header);
+        $_res->assertStatus(200);
     }
 
     public function testGetMetatagsForDynamicPage()
@@ -66,8 +68,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(400);
     }
 
     public function testGetMetatagsForPageNotFound()
@@ -86,8 +88,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(404,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(404);
     }
 
     public function testForCheckPageNameAlpha()
@@ -106,8 +108,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(400);
     }
 
     public function testIfKeysAreNotGreaterThanZero()
@@ -126,8 +128,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(400);
     }
 
     public function testIfTopicNumIsNotPresent()
@@ -145,8 +147,8 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(400);
     }
 
     public function testIfCampNumIsNotPresent()
@@ -164,7 +166,7 @@ class GetMetaTagsTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
-        $this->assertEquals(400,  $this->response->status());
+        $_res = $this->actingAs($user)->post('/api/v3/meta-tags',$payload,$header);
+        $_res->assertStatus(400);
     }
 }

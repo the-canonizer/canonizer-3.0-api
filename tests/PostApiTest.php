@@ -1,9 +1,11 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Reply;
 use Laravel\Lumen\Testing\WithoutMiddleware;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class PostApiTest extends TestCase
@@ -55,8 +57,8 @@ class PostApiTest extends TestCase
             "topic_name" => ""
         ];
 
-        $this->actingAs($Post)->post('/api/v3/post/save', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $_res = $this->actingAs($Post)->post('/api/v3/post/save', $parameter);
+        $_res->assertStatus(400);
     }
 
     public function testPostStoreWithValidData()
@@ -72,10 +74,10 @@ class PostApiTest extends TestCase
             "topic_num" => "290",
             "topic_name" => "Saurabh singh te11s111t 142"
         ];
-        $this->call('POST', '/api/v3/post/save', $parameters);
+        $_res = $this->call('POST', '/api/v3/post/save', $parameters);
 
-        //dd($this->response);
-        $this->seeJsonStructure([
+        //dd($_res);
+        $_res->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -90,7 +92,7 @@ class PostApiTest extends TestCase
 
         $this->actingAs($Post)
             ->get('/api/v3/post/list?page=1&per_page=10&like=');
-        $this->assertEquals(404, $this->response->status());
+        $_res->assertStatus(404);
     }
 
     public function testGetPostListValidData()
@@ -100,14 +102,14 @@ class PostApiTest extends TestCase
 
         $this->actingAs($Post)
             ->get('/api/v3/post/list/465?page=1&per_page=10&like=');
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 
     public function testPostUpdateInvalidData()
     {
         print sprintf("\n Get Post Update Invalid Data %d %s", 400, PHP_EOL);
         $response = $this->call('PUT', '/api/v3/post/update/465');
-        $this->assertEquals(400, $response->status());
+        $_res->assertStatus(400);
     }
 
     public function testPostUpdateValidData()
@@ -124,6 +126,6 @@ class PostApiTest extends TestCase
         ];
         $this->actingAs($Post)
             ->put('/api/v3/post/update/465', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $_res->assertStatus(200);
     }
 }
