@@ -6,7 +6,7 @@ use App\Models\Camp;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Laravel\Lumen\Testing\WithoutMiddleware;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 
 class GetUsedTopicNickNameApiTest extends TestCase
 {

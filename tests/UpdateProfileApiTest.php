@@ -43,8 +43,8 @@ class UpdateProfileApiTest extends TestCase
 
     public function testUnauthorizedUserCannotUpdate(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 500,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/update-profile', []);
-        $_res->assertStatus(401);
+        $response = $this->json('POST', '/api/v3/update-profile', []);
+        $response->assertStatus(401);
     }
 
 
@@ -52,16 +52,16 @@ class UpdateProfileApiTest extends TestCase
     {
         print sprintf(" \n Invalid details submitted %d %s", 400,PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)
-        ->post('/api/v3/update-profile',[]);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)
+        ->json('POST', '/api/v3/update-profile',[]);
+        $response->assertStatus(400);
     }
 
     public function testUpdateWithValidaData(){
         print sprintf(" \n Profile updated wit valid data %d %s", 200,PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)
-        ->post('/api/v3/update-profile',['first_name'=>$user->first_name,'last_name'=>$user->last_name]);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)
+        ->json('POST', '/api/v3/update-profile',['first_name'=>$user->first_name,'last_name'=>$user->last_name]);
+        $response->assertStatus(200);
     }
 }
