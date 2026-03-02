@@ -131,7 +131,6 @@ class ManageTopicApiTest extends TestCase
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        //  dd($_res);
         $_res->assertStatus(400);
     }
 
@@ -156,7 +155,6 @@ class ManageTopicApiTest extends TestCase
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
         $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        if ($_res->status() != 200) dd($_res->getContent());
         $_res->assertStatus(200);
     }
 

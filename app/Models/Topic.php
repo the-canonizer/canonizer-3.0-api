@@ -81,6 +81,9 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     {
         self::forgetCache($item);
         $liveTopic = Topic::getLiveTopic($item->topic_num);
+        if (!$liveTopic) {
+            return;
+        }
         $namespace = Namespaces::find($liveTopic->namespace_id);
         $namespaceLabel = $namespace ? Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name)) : 'no-namespace';
         $type = "camp";
