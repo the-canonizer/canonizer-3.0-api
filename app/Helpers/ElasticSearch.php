@@ -10,6 +10,9 @@ class ElasticSearch
 
     public function __construct()
     {
+        if (app()->environment('testing')) {
+            return;
+        }
         $host     = env('ELASTICSEARCH_HOSTS', 'localhost:9200');
         $username = env('ELASTICSEARCH_BASIC_AUTH_USERNAME', null);
         $password = env('ELASTICSEARCH_BASIC_AUTH_PASSWORD', null);
@@ -35,6 +38,9 @@ class ElasticSearch
                                     $supportCount = ''
                                     )
     {
+        if (app()->environment('testing')) {
+            return;
+        }
         $isLiveValue = filter_var($isLive, FILTER_VALIDATE_BOOLEAN); 
         $isArchiveValue = filter_var($isArchive, FILTER_VALIDATE_BOOLEAN); 
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
@@ -73,6 +79,9 @@ class ElasticSearch
     
     public static function deleteData($id)
     {
+        if (app()->environment('testing')) {
+            return;
+        }
         $elasticsearch = (new Elasticsearch())->elasticsearchClient;
         $params = [
             'index' => self::$indexName,

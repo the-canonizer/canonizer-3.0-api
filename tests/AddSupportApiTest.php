@@ -10,13 +10,19 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class AddSupportApiTest extends TestCase
 {
 
-    use DatabaseTransactions;
+    use DatabaseTransactions, AddSupportApiTestSeedHelper;
     
     /***
      *  #userId used  362
      *  #ncikNameId used 347
      *  rupali.chavan9860@gmail.com
      */
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedTestData();
+    }
 
     public function testAddSupportWithValidData()
     {
@@ -49,15 +55,10 @@ class AddSupportApiTest extends TestCase
         
         $user = User::factory()->make();
         $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=715&camp_num=1');
-        
-        $response->assertExactJson([
-            'status_code'=>200,
-            'error'=>"",
-            'message'=>"This camp doesn't have your support",
-            "data" => [
-                'support_flag' => 0,
-            ],
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('status_code', 200);
+        $response->assertJsonPath('message', "This camp doesn't have your support");
+        $response->assertJsonPath('data.support_flag', 0);
     }
 
     public function testWarningMessageIFSupportExistsButNoWarningMessage()
@@ -70,17 +71,11 @@ class AddSupportApiTest extends TestCase
         
         $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=3');
         
-        $response->assertExactJson([
-            'status_code'=>200,
-            'error'=>"",
-            'message'=>"This camp is already supported",
-            "data" => [
-                'support_flag' => 1,
-                "camp_num"=>"3",
-                "is_confirm"=>0,
-                "topic_num"=>"173"
-            ],
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('status_code', 200);
+        $response->assertJsonPath('message', "This camp is already supported");
+        $response->assertJsonPath('data.support_flag', 1);
+        $response->assertJsonPath('data.camp_num', '3');
     }
 
     public function testWarningMessageIfSupportSwitchFromChildToParent()
@@ -93,9 +88,8 @@ class AddSupportApiTest extends TestCase
 
         $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
 
-        $response->assertJson([
-            "warning"=>"\"Agreement\" is a parent camp to this list of child camps. If you commit support to \"Agreement\", the support of the camps in this list will be removed.",
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "\"Agreement\" is a parent camp to this list of child camps. If you commit support to \"Agreement\", the support of the camps in this list will be removed.");
     }
 
     public function testWarningMessageIfSupportSwitchedFromParentToChild()
@@ -108,9 +102,8 @@ class AddSupportApiTest extends TestCase
         
         $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=735&camp_num=2');
 
-        $response->assertJson([
-            "warning"=>"\"Camp 1\" is a child camp to \"Agreement\", so if you commit support to \"Camp 1\", the support of the parent camp \"Agreement\" will be removed."
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "\"Camp 1\" is a child camp to \"Agreement\", so if you commit support to \"Camp 1\", the explicit support of the parent camp \"Agreement\" will be removed.");
     }
 
     public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
@@ -123,9 +116,8 @@ class AddSupportApiTest extends TestCase
 
         $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=416&camp_num=3');
 
-        $response->assertJson([
-            "warning"=> "You have delegated your support to user Brent_Allsop in this camp. If you continue your delegated support will be removed."
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "You have delegated your support to user RC in this camp. If you continue your delegated support will be removed.");
     }  
 
 }

@@ -17,8 +17,8 @@ class CampUserRestrictions extends Migration
             Schema::create('camp_user_restrictions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('camp_id')->index();
-                $table->unsignedBigInteger('camp_num')->index();
-                $table->unsignedBigInteger('topic_num')->index();
+                $table->integer('camp_num')->index();
+                $table->integer('topic_num')->index();
                 $table->unsignedBigInteger('restricted_user_id')->index();
                 $table->unsignedBigInteger('restricted_by')->index(); // leader/admin
                 $table->text('reason');
@@ -31,8 +31,8 @@ class CampUserRestrictions extends Migration
                 $table->foreign('restricted_user_id')->references('id')->on('person')->cascadeOnDelete();
                 $table->foreign('restricted_by')->references('id')->on('person')->cascadeOnDelete();
                 $table->foreign('camp_id')->references('id')->on('camp')->cascadeOnDelete();
-                $table->foreign('camp_num')->references('camp_num')->on('camp')->cascadeOnDelete();
-                $table->foreign('topic_num')->references('topic_num')->on('camp')->cascadeOnDelete();
+                // $table->foreign('camp_num')->references('camp_num')->on('camp')->cascadeOnDelete();
+                // $table->foreign('topic_num')->references('topic_num')->on('camp')->cascadeOnDelete();
             });
         }
     }

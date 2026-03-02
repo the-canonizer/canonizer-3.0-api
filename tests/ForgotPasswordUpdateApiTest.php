@@ -24,10 +24,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-         $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($_res);
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
     public function testForgotPasswordUnauthorizedUserCanNotUpdate()
@@ -39,10 +38,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($_res);
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
     public function testForgotPasswordUpdateValidateFiled()
@@ -73,10 +71,9 @@ class ForgotPasswordUpdateApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $user = User::factory()->make();
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/update', [],$header);
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
 
@@ -96,8 +93,8 @@ class ForgotPasswordUpdateApiTest extends TestCase
             "confirm_password" => trans('testSample.user_ids.normal_user.user_2.password'),
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/update',  $data,$header);
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 }

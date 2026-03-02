@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Namespaces;
 use App\Models\Topic;
 use App\Models\User;
@@ -48,7 +49,7 @@ abstract class TestCase extends BaseTestCase
         // Seed the user and nickname used in ManageTopicApiTest
         $userId = trans('testSample.user_ids.normal_user.user_1');
         if (!User::where('id', $userId)->exists()) {
-            DB::table('users')->insert([
+            DB::table('person')->insert([
                 'id' => $userId,
                 'first_name' => 'Test',
                 'last_name' => 'User',
@@ -66,6 +67,33 @@ abstract class TestCase extends BaseTestCase
                 'default' => 1,
                 'create_time' => time()
             ]);
+        }
+
+        // 5. Seed Passport Personal Access Client if it doesn't exist
+        if (Schema::hasTable('oauth_clients')) {
+            $clientExists = DB::table('oauth_clients')
+                ->where('personal_access_client', 1)
+                ->exists();
+            
+            if (!$clientExists) {
+                DB::table('oauth_clients')->insert([
+                    'name' => 'Test Personal Access Client',
+                    'secret' => 'e8he2UnDY8wxrg5hRpmiN85Ihhy2EkYyKIbE3fcK',
+                    'provider' => 'users',
+                    'redirect' => 'http://localhost',
+                    'personal_access_client' => 1,
+                    'password_client' => 0,
+                    'revoked' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('oauth_personal_access_clients')->insert([
+                    'client_id' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 }
