@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ResponseInterface;
 use AllowDynamicProperties;
+use Laravel\Lumen\Routing\Controller as BaseController;
 
 #[AllowDynamicProperties]
-abstract class Controller
+abstract class Controller extends BaseController
 {
     /**
      * Common response among all the classes.
