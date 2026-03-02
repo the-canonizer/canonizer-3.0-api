@@ -43,7 +43,7 @@ class TreeController extends Controller
         if ($topics->count() > 0) {
             foreach ($topics as $topic) {
                 if ($currentTime > ($topic->submit_time + env('COMMIT_TIME_DELAY_IN_SECONDS'))) {
-                    if (!self::commitTheChange($topic->id, 'topic')) {
+                    if (!$this->commitTheChange($topic->id, 'topic')) {
                         throw new Exception('Authentication Issue!', 401);
                     }
                 }
@@ -54,7 +54,7 @@ class TreeController extends Controller
         if ($camps->count() > 0) {
             foreach ($camps as $camp) {
                 if ($currentTime > ($camp->submit_time + env('COMMIT_TIME_DELAY_IN_SECONDS'))) {
-                    if (!self::commitTheChange($camp->id, 'camp', $camp->old_parent_camp_num, $camp->parent_camp_num)) {
+                    if (!$this->commitTheChange($camp->id, 'camp', $camp->old_parent_camp_num, $camp->parent_camp_num)) {
                         throw new Exception('Authentication Issue!', 401);
                     }
                 }
@@ -65,7 +65,7 @@ class TreeController extends Controller
         if ($statements->count() > 0) {
             foreach ($statements as $statement) {
                 if ($currentTime > ($statement->submit_time + env('COMMIT_TIME_DELAY_IN_SECONDS'))) {
-                    if (!self::commitTheChange($statement->id, 'statement')) {
+                    if (!$this->commitTheChange($statement->id, 'statement')) {
                         throw new Exception('Authentication Issue!', 401);
                     }
                 }
