@@ -29,8 +29,10 @@ class CheckClientCredentialsMiddleware extends CheckCredentials
             new Psr17Factory,
             new Psr17Factory
         ))->createRequest($request);
-        if(env('APP_ENV') == 'local')
+
+        if (env('PASSPORT_BYPASS_CLIENT_CREDENTIALS', false)) {
             return $next($request);
+        }
         try {
             $authorizationHeader = $request->header('Authorization');
 
