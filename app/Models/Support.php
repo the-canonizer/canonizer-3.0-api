@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 use App\Facades\Util;
 use Carbon\Carbon;
 use DB;
@@ -13,6 +15,8 @@ use App\Models\Nickname;
 #[AllowDynamicProperties]
 class Support extends Model
 {
+    use HasFactory;
+
 
     protected $primaryKey = 'support_id';
     protected $table = 'support';

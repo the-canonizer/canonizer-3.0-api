@@ -19,5 +19,7 @@
         <env name="MAIL_MAILER" value="log"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PASSPORT_BYPASS_CLIENT_CREDENTIALS" value="true"/>
+        <env name="RECAPTCHA_SITE_VERIFY_URL" value="https://www.google.com/recaptcha/api/siteverify"/>
+        <env name="RECAPTCHA_SECRET_KEY" value="test_secret_key"/>
     </php>
 </phpunit>
