@@ -1,10 +1,12 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Laravel\Lumen\Testing\WithoutMiddleware;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 
 class SocialApiTest extends TestCase
 {
@@ -36,8 +38,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'provider' => ''
         ];
-        $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialLoginWithValidData()
@@ -47,8 +49,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'provider' => 'google'
         ];
-        $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response->assertStatus(200);
     }
 
     public function testSociaCallbackValidateFiled()
@@ -79,8 +81,8 @@ class SocialApiTest extends TestCase
             'provider' => '',
             'code' => ''
         ];
-        $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialCallbackWithValidData()
@@ -93,8 +95,8 @@ class SocialApiTest extends TestCase
             'provider' => 'google',
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
-        $this->call('POST', '/api/v3/user/social/callback', $parameters);
-        $this->seeJsonStructure([
+        $response = $this->call('POST', '/api/v3/user/social/callback', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -115,10 +117,10 @@ class SocialApiTest extends TestCase
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
 
-        $this->call('POST', '/api/v3/user/social/social-link', $parameters);
+        $response = $this->call('POST', '/api/v3/user/social/social-link', $parameters);
 
-        // dd($this->response);
-        $this->seeJsonStructure([
+        // dd($response);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -131,7 +133,7 @@ class SocialApiTest extends TestCase
     public function testGetSocialUserListInvalidData(){
         print sprintf("\n Get Social User List Invalid Data %d %s",400, PHP_EOL);
         $response = $this->call('GET', '/api/v3/user/social/list');
-        $this->assertEquals(400, $response->status()); 
+        $response->assertStatus(400); 
     }
 
     public function testGetSocialUserListValidData(){
@@ -141,13 +143,13 @@ class SocialApiTest extends TestCase
         $this->actingAs($user)
         ->get('/api/v3/user/social/list', []);
 
-        $this->assertEquals(200, $this->response->status());
+        $response->assertStatus(200);
     }
 
     public function testGetSocialUserListDeleteValidData(){
         print sprintf(" \n  Get Social User List Valid Data %d %s", 200,PHP_EOL);
-        $this->call('DELETE', '/api/v3/user/social/delete/2');
-        $this->seeJsonStructure([
+        $response = $this->call('DELETE', '/api/v3/user/social/delete/2');
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -163,8 +165,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'user_id' => ''
         ];
-        $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialDeactivateUserWithValidData()
@@ -176,8 +178,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'user_id' => trans('testSample.user_ids.normal_user.user_2.id'),
         ];
-        $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response->assertStatus(200);
     }
 
 }

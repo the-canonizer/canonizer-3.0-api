@@ -1,10 +1,12 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
 use App\Models\Thread;
-use Laravel\Lumen\Testing\WithoutMiddleware;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class StatementComparisonApiTest extends TestCase
@@ -40,8 +42,8 @@ class StatementComparisonApiTest extends TestCase
             "id" => "",
         ];
 
-        $this->actingAs($Thread)->post('/api/v3/get-statement-comparison', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($Thread)->post('/api/v3/get-statement-comparison', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testThreadStoreWithValidData()
@@ -51,8 +53,8 @@ class StatementComparisonApiTest extends TestCase
         $parameters = [
             "ids" => [2,3],
           ];
-        $this->call('POST', '/api/v3/get-statement-comparison', $parameters);
-        $this->seeJsonStructure([
+        $response = $this->call('POST', '/api/v3/get-statement-comparison', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

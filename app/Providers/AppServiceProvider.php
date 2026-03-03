@@ -8,6 +8,9 @@ use App\Helpers\CampForum;
 use App\Helpers\PushNotification;
 use Illuminate\Support\ServiceProvider;
 use App\Helpers\GetPushNotificationToSupporter;
+use App\Helpers\ResponseInterface;
+use App\Helpers\ResponseBuilder;
+use App\Models\TopicSupport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,5 +28,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('topicSupport', TopicSupport::class);
         $this->app->bind('PushNotification', PushNotification::class);
         $this->app->bind('GetPushNotificationToSupporter', GetPushNotificationToSupporter::class);
+        $this->app->bind(ResponseInterface::class, ResponseBuilder::class);
     }
 }

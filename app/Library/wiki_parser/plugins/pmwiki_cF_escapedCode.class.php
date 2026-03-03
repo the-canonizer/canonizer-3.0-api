@@ -20,7 +20,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfFile.interface.php');
  */
 class pmwiki_cF_escapedCode implements startOfFile
 {
-    const regular_expression = '/\[@([\s\S]*)@\]/i'; ///(\[\+\+.*?\+\+\]|\[\+.*?\+\]|\[--.*?--\]|\[-.*?-\]|@@.*?@@)
+    public const regular_expression = '/\[@([\s\S]*)@\]/i'; ///(\[\+\+.*?\+\+\]|\[\+.*?\+\]|\[--.*?--\]|\[-.*?-\]|@@.*?@@)
         
     public function __construct()
     {

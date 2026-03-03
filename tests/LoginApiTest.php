@@ -1,8 +1,11 @@
 <?php
 
+namespace Tests;
+
+use Illuminate\Support\Facades\Http;
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class LoginApiTest extends TestCase
 {
@@ -39,23 +42,35 @@ class LoginApiTest extends TestCase
     public function testLoginWithInvalidData()
     {
         print sprintf(" \n Invalid Login details submitted %d %s", 400, PHP_EOL);
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
+        $user = User::factory()->create([
+            'status' => 1
         ]);
         $token = $user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
-            // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
+        $response->assertStatus(400);
     }
 
 
     public function testLoginWithValidData()
     {
         print sprintf(" \n Login with valid data %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create([
+            'email' => trans('testSample.user_ids.normal_user.user_3.email'),
+            'password' => bcrypt(trans('testSample.user_ids.normal_user.user_3.password')),
+            'status' => 1
+        ]);
+
+        Http::fake([
+            '*/oauth/token*' => Http::response([
+                'access_token' => 'mock_token',
+                'token_type' => 'Bearer',
+                'expires_in' => 3600
+            ], 200),
+        ]);
+
         $parameters = [
             "client_id" =>  trans('testSample.user_ids.normal_user.user_3.client_id'),
             "client_secret" =>  trans('testSample.user_ids.normal_user.user_3.client_secret'),
@@ -66,8 +81,8 @@ class LoginApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 }

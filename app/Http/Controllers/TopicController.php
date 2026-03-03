@@ -6,134 +6,145 @@ use stdClass;
 use Exception;
 use Throwable;
 use Carbon\Carbon;
+use App\Models\Tag;
+use App\Facades\Aws;
 use App\Models\Camp;
 use App\Facades\Util;
 use App\Models\Topic;
 use App\Models\Support;
+use App\Helpers\Helpers;
 use App\Library\General;
 use App\Models\Nickname;
+use App\Models\TopicTag;
 use App\Models\Statement;
 use App\Models\Namespaces;
+use App\Models\FeatureTopic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Models\ChangeAgreeLog;
 use App\Jobs\ActivityLoggerJob;
 use App\Models\CampSubscription;
+use App\Facades\Aws as FacadesAws;
 use App\Helpers\ResourceInterface;
 use App\Helpers\ResponseInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Events\NotifySupportersEvent;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\ErrorResource;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Database\Query\Builder;
 use App\Http\Request\ValidationMessages;
 use App\Events\ThankToSubmitterMailEvent;
 use App\Jobs\ObjectionToSubmitterMailJob;
 use App\Facades\GetPushNotificationToSupporter;
-use App\Helpers\Helpers;
 use App\Models\HotTopic;
-use Illuminate\Support\Facades\Log;
 use App\Events\{CampLeaderAssignedEvent, CampLeaderRemovedEvent};
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use App\Services\CampService;
 
 class TopicController extends Controller
 {
 
-    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages)
+    protected $rules;
+    protected $validationMessages;
+    protected $campService;
+
+    public function __construct(ResponseInterface $respProvider, ResourceInterface $resProvider, ValidationRules $rules, ValidationMessages $validationMessages, CampService $campService)
     {
         $this->rules = $rules;
         $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
         $this->resProvider = $respProvider;
+        $this->campService = $campService;
     }
 
     /**
-     * @OA\POST(path="/topic/save",
+     * @OA\Post(
+     *   path="/topic/save",
      *   tags={"Topic"},
-     *   summary="save topic",
-     *   description="This is use for save topic",
+     *   summary="Save topic",
+     *   description="This endpoint is used to save a new topic.",
      *   operationId="topicSave",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *    @OA\RequestBody(
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
      *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="topic_name",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="namespace",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="nick_name",
-     *                  type="string"
-     *              ),
-     *               @OA\Property(
-     *                  property="note",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
-     *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object",
-     *                                             @OA\Property(
-     *                                              property="topic_num",
-     *                                              type="integer"
-     *                                          )
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
+     *     description="Request body JSON parameters",
      *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *         type="object",
+     *         @OA\Property(
+     *             property="topic_name",
+     *             type="string",
+     *             example="hello sandbox topic",
+     *             description="The name of the topic"
+     *         ),
+     *         @OA\Property(
+     *             property="namespace",
+     *             type="integer",
+     *             example=1,
+     *             description="Namespace ID"
+     *         ),
+     *         @OA\Property(
+     *             property="nick_name",
+     *             type="integer",
+     *             example=709,
+     *             description="Nick name ID of the submitter"
+     *         ),
+     *         @OA\Property(
+     *             property="tags",
+     *             type="array",
+     *             @OA\Items(type="integer", example=6),
+     *             description="Array of tag IDs"
+     *         ),
+     *         @OA\Property(
+     *             property="is_rank_hidden",
+     *             type="boolean",
+     *             example=true,
+     *             description="Boolean flag to indicate if the rank is hidden"
+     *         ),
+     *         @OA\Property(
+     *             property="note",
+     *             type="string",
+     *             example="This is an optional note.",
+     *             description="Additional information about the topic"
+     *         )
      *     )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="topic_num", type="integer", example=123)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Something went wrong",
+     *       @OA\JsonContent(
+     *           oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
+     *       )
      *   )
-     *
      * )
      */
 
+
     public function store(Request $request, Validate $validate)
     {
-
         $validationErrors = $validate->validate($request, $this->rules->getTopicStoreValidationRules(), $this->validationMessages->getTopicStoreValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
-
         if (!Gate::allows('nickname-check', $request->nick_name)) {
             return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
         }
@@ -182,7 +193,6 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, $result, $error);
             }
         }
-
         try {
             $current_time = time();
             $input = [
@@ -196,11 +206,18 @@ class TopicController extends Controller
                 "grace_period" => 0,
                 "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
                 "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
+                "is_rank_hidden" =>  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0
             ];
+
             DB::beginTransaction();
             $topic = Topic::create($input);
+
             $nickName = Nickname::getNickName($request->nick_name)->nick_name;
             if ($topic) {
+                // Check if the array exists for tags ...
+                if ($request->has('tags') && is_array($request->tags)) {
+                    $topic->tags()->syncWithPivotValues($request->tags, ['topic_num' => $topic->topic_num]);
+                }
 
                 Util::dispatchJob($topic, 1, 1);
                 // Eventline - topic create event saved
@@ -253,7 +270,7 @@ class TopicController extends Controller
                     $filter['campNum'] = 1;
                     $camp = Camp::getLiveCamp($filter);
                     $link = Util::getTopicCampUrlWithoutTime($topic->topic_num, 1, $topicLive, $camp, time());
-                    $historylink = Util::topicHistoryLink($topic->topic_num, 1, $topic->topic_name, 'Aggreement', 'topic');
+                    $historylink = Util::topicHistoryLink($topic->topic_num, $topic->topic_name, 'topic', 1, 'Aggreement');
                     $dataEmail = (object) [
                         "type" => "topic",
                         "link" => $link,
@@ -266,7 +283,7 @@ class TopicController extends Controller
                     $nickName = Nickname::getNickName($request->nick_name)->nick_name;
                     $activitLogData = [
                         'log_type' =>  "topic/camps",
-                        'activity' => trans('message.activity_log_message.topic_create', ['nick_name' =>  $nickName]),
+                        'activity' => trans('message.activity_log_message.topic_create', ['nick_name' =>  $nickName, 'camp_name' => Camp::AGREEMENT_CAMP]),
                         'url' => $link,
                         'model' => $topic,
                         'topic_num' => $topic->topic_num,
@@ -300,49 +317,90 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/get-topic-record",
+     * @OA\Post(
+     *   path="/get-topic-record",
      *   tags={"Topic"},
-     *   summary="get topic record",
-     *   description="Used to get topic record.",
+     *   summary="Retrieve a topic record",
+     *   description="Fetches a topic record based on filters such as topic number, camp number, and timestamp.",
      *   operationId="getTopicRecord",
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get topic records",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="topic number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of",
-     *                   description="As of filter type",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="as_of_date",
-     *                   description="As of filter date",
-     *                   required=false,
-     *                   type="string",
-     *               )
-     *         )
-     *      )
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               example=116,
+     *               description="The topic number"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of",
+     *               type="string",
+     *               example="default",
+     *               description="As of filter (e.g., 'default', timestamp)"
+     *           ),
+     *           @OA\Property(
+     *               property="as_of_date",
+     *               type="integer",
+     *               example=1709078400,
+     *               description="As of date in timestamp format"
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               type="integer",
+     *               example=1,
+     *               description="The camp number associated with the topic"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of the topic record",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="topic_num", type="integer", example=116),
+     *               @OA\Property(property="camp_num", type="integer", example=1),
+     *               @OA\Property(property="topic_name", type="string", example="Climate Change"),
+     *               @OA\Property(property="namespace_name", type="string", example="Science"),
+     *               @OA\Property(property="topicSubscriptionId", type="string", example=""),
+     *               @OA\Property(property="namespace_id", type="integer", example=2),
+     *               @OA\Property(property="note", type="string", example="A detailed discussion on climate change."),
+     *               @OA\Property(property="submitter_nick_name", type="string", example="JohnDoe"),
+     *               @OA\Property(property="go_live_time", type="integer", example=1709078400),
+     *               @OA\Property(property="camp_about_nick_id", type="integer", example=12),
+     *               @OA\Property(property="submitter_nick_id", type="integer", example=45),
+     *               @OA\Property(property="submit_time", type="string", format="date-time", example="2025-03-04T12:34:56Z"),
+     *               @OA\Property(property="tags", type="array", @OA\Items(type="string", example="environment")),
+     *               @OA\Property(property="in_review_changes", type="integer", example=2)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=404,
+     *       description="Topic not found",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=404),
+     *           @OA\Property(property="message", type="string", example="Topic record not found")
+     *       )
+     *   )
      * )
-     */
-
+    */
     public function getTopicRecord(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getTopicRecordValidationRules(), $this->validationMessages->getTopicRecordValidationMessages());
@@ -370,12 +428,17 @@ class TopicController extends Controller
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
+            $topic->load('tags');
+            $topic->tags->makeHidden(['pivot']);
+            // $topic->agreement_camp_record = app(CampController::class)->getCampRecord($request->merge(['camp_num' => 1]), $validate)->getData()->data;
+            $topic->agreement_camp_record = $this->campService->getCampRecordData($request->topic_num, 1, ['topicNum' => $request->topic_num, 'campNum' => 1, 'asOf' => $request->as_of, 'asOfDate' => $request->as_of_date], $request->user());
+            // $topic->tags = $topic->tags_array;
             if ($request->user()) {
                 $topicSubscriptionData = CampSubscription::where('user_id', '=', $request->user()->id)->where('camp_num', '=', 0)->where('topic_num', '=', $filter['topicNum'])->where('subscription_start', '<=', strtotime(date('Y-m-d H:i:s')))->where('subscription_end', '=', null)->orWhere('subscription_end', '>=', strtotime(date('Y-m-d H:i:s')))->first();
                 $topic->topicSubscriptionId = isset($topicSubscriptionData->id) ? $topicSubscriptionData->id : "";
             }
             $topicRecord[] = $topic;
-            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time'];
+            $indexs = ['topic_num', 'camp_num', 'topic_name', 'namespace_name', 'topicSubscriptionId', 'namespace_id', 'note', 'submitter_nick_name', 'go_live_time', 'camp_about_nick_id', 'submitter_nick_id', 'submit_time', 'tags', 'agreement_camp_record'];
             $topicRecord = $this->resourceProvider->jsonResponse($indexs, $topicRecord);
             $topicRecord = $topicRecord[0];
 
@@ -394,42 +457,64 @@ class TopicController extends Controller
      * @OA\Post(path="/commit/change",
      *   tags={"Topic"},
      *   summary="Commit a change",
-     *   description="Used to commit a change for camp, topic and statement.",
+     *   description="Used to commit a change for camp, topic, and statement.",
      *   operationId="commitChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Commit change",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="id",
-     *                   description="Record id is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="type",
-     *                   description="Type (topic, camp, statement)",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *         )
-     *      )
+     *       description="Commit change request body",
+     *       @OA\JsonContent(
+     *           required={"id", "type"},
+     *           @OA\Property(
+     *               property="id",
+     *               type="integer",
+     *               example=8227,
+     *               description="Record ID (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="type",
+     *               type="string",
+     *               example="topic",
+     *               description="Type of change (topic, camp, statement) (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="old_parent_camp_num",
+     *               type="integer",
+     *               nullable=true,
+     *               example=null,
+     *               description="Old parent camp number (optional)"
+     *           ),
+     *           @OA\Property(
+     *               property="parent_camp_num",
+     *               type="integer",
+     *               nullable=true,
+     *               example=null,
+     *               description="New parent camp number (optional)"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Change committed successfully")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   )
      * )
      */
+
+
     public function commitAndNotifyChange(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getCommitChangeValidationRules(), $this->validationMessages->getCommitChangeValidationMessages());
@@ -447,7 +532,7 @@ class TopicController extends Controller
         $type = $all['type'];
         $id = $all['id'];
         $message = "";
-        $event_type = null;
+        $event_type = NULL;
         $nickNames = Nickname::personNicknameArray();
         $archiveCampSupportNicknames = [];
         $changeGoneLive = false;
@@ -458,9 +543,9 @@ class TopicController extends Controller
                         return $query->whereIn('submitter_nick_id', $nickNames);
                     })
                     ->first();
-            } elseif ($type == 'camp') {
+            } else if ($type == 'camp') {
                 $model = Camp::where('id', '=', $id)->first();
-            } elseif ($type == 'topic') {
+            } else if ($type == 'topic') {
                 $model = Topic::where('id', '=', $id)->first();
             }
             if (!$model) {
@@ -470,7 +555,7 @@ class TopicController extends Controller
             if ($iscalledfromService) {
                 $nickNames = Nickname::personNicknameArray($model->submitter_nick_id);
             }
-            
+
             $filter['topicNum'] = $model->topic_num;
             $filter['campNum'] = $model->camp_num ?? 1;
             $filter['asOf'] = $all['asOf'] ?? "default";
@@ -482,9 +567,9 @@ class TopicController extends Controller
             $prevArchiveStatus = $preliveCamp->is_archive;
             $pre_LiveId = null;
 
-            // Check if nominated camp leader is a direct supporter
+            // Check if nominated camp leader is not a direct supporter, object the change if nominated as camp leader
             $directSupports = collect(Support::getAllDirectSupporters($model->topic_num, $model->camp_num))->pluck('nick_name_id')->values()->all();
-            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports)) {
+            if ($type == 'camp' && !is_null($model->camp_leader_nick_id) && $model->grace_period === 1 && !in_array($model->camp_leader_nick_id, $directSupports) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
                 $model->objector_nick_id = $model->camp_leader_nick_id;
                 $model->object_reason = trans('message.camp_leader.error.system_generated.nominated_user_removes_support');
                 $model->object_time = time();
@@ -497,11 +582,11 @@ class TopicController extends Controller
                 ];
                 return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
             }
-        
+
             if ($type == 'camp') {
 
-                $updatedArchiveStatus = $model->is_archive;               
-                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1 
+                $updatedArchiveStatus = $model->is_archive;
+                if ($prevArchiveStatus != $updatedArchiveStatus && $updatedArchiveStatus === 0) {  //need to check if archive = 0 or 1
                     $model->archive_action_time = time();
                     // get supporters list
                     $archiveCampSupportNicknames = Support::getSupportersNickNameOfArchivedCamps($model->topic_num, [$model->camp_num], $updatedArchiveStatus);
@@ -518,18 +603,18 @@ class TopicController extends Controller
                         }
                     }
 
-                   
+                    // echo count($explicitArchiveSupporters);
                     if (count($archiveCampSupportNicknames) > 0 || count($explicitArchiveSupporters) > 0) {
                         $archiveReviewPeriod = true;
                     }
                 }
             }
 
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $filter['campNum'], $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($filter['topicNum'], $nickNames, $filter['campNum']);
 
             $model->submit_time = time();
             // $model->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-            $model->go_live_time = Carbon::now()->addSeconds(env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
+            $model->go_live_time = Carbon::now()->addSeconds((int)env('LIVE_TIME_DELAY_IN_SECONDS') - 10)->timestamp;
             if ($ifIamSingleSupporter && !$archiveReviewPeriod) {
                 $model->go_live_time = time();
                 $changeGoneLive = true;
@@ -537,19 +622,16 @@ class TopicController extends Controller
 
             if ($type == 'camp') {
                 $totalSupporters = Support::getTotalSupporterByTimestamp('camp', (int)$filter['topicNum'], (int)$filter['campNum'], $model->submitter_nick_id, $model->submit_time, $filter + ['change_id' => $model->id], false)[0];
-                if (count($totalSupporters) === 1 && (in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all())) && !$archiveReviewPeriod ) { // && !$archiveReviewPeriod
+                if (count($totalSupporters) === 1 && in_array($model->submitter_nick_id, collect($totalSupporters)->pluck('id')->all()) && !$archiveReviewPeriod) {
                     $model->go_live_time = time();
                     $changeGoneLive = true;
+                    // Log of system assigned/remove camp leader
+                    if (!is_null($model->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
+                    }
 
-                    if ($model->camp_leader_nick_id !== $preliveCamp->camp_leader_nick_id) {
-                        // Log of system assigned/remove camp leader
-                        if (!is_null($model->camp_leader_nick_id)) {
-                            Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $model->camp_leader_nick_id, request()->user(), 'assigned');
-                        }
-
-                        if (!is_null($preliveCamp->camp_leader_nick_id)) {
-                            Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
-                        }
+                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
+                        Camp::dispatchCampLeaderActivityLogJob($preliveTopic, $model, $preliveCamp->camp_leader_nick_id, request()->user(), 'removed');
                     }
                 }
             }
@@ -788,7 +870,7 @@ class TopicController extends Controller
                         if (!empty($currentNickname) && !empty($currentNickname->nick_name)) {
                             $current = '<a href="' . $currentUrl . '" target="_blank">' . $currentNickname->nick_name . '</a>';
                         }
-                        
+
                         $changeData[] =  [
                             'field' => 'camp_about_nick_name',
                             'live' => $live,
@@ -946,14 +1028,18 @@ class TopicController extends Controller
                 Event::dispatch(new NotifySupportersEvent($liveCamp, $notificationData, $notification_type, $link, config('global.notify.both')));
             }
 
-            if ($changeGoneLive) {
-                if ($preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
-                    if (!is_null($model->camp_leader_nick_id)) {
-                        Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
-                    }
-                    if (!is_null($preliveCamp->camp_leader_nick_id)) {
-                        Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
-                    }
+            if ($changeGoneLive && $type == 'camp')
+            {
+                if (!is_null($model->camp_leader_nick_id) && is_null($preliveCamp->camp_leader_nick_id)) {
+                    Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                }
+                if (is_null($model->camp_leader_nick_id) && !is_null($preliveCamp->camp_leader_nick_id)) {
+                    Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
+                }
+
+                if (!is_null($preliveCamp->camp_leader_nick_id) && !is_null($model->camp_leader_nick_id) && $preliveCamp->camp_leader_nick_id !== $model->camp_leader_nick_id) {
+                    Event::dispatch(new CampLeaderAssignedEvent($model->topic_num, $model->camp_num, $model->camp_leader_nick_id, true));
+                    Event::dispatch(new CampLeaderRemovedEvent($preliveCamp->topic_num, $preliveCamp->camp_num, $preliveCamp->camp_leader_nick_id, true));
                 }
             }
 
@@ -989,7 +1075,7 @@ class TopicController extends Controller
             $responseData = [
                 "archive_camp_support_nicknames" => $archiveCampSupportNicknames,
                 "change_gone_live" => $changeGoneLive ?? false
-            ]; 
+            ];
             return $this->resProvider->apiJsonResponse(200, $message, $responseData, '');
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
@@ -997,63 +1083,77 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/agree-to-change",
+     * @OA\Post(
+     *   path="/agree-to-change",
      *   tags={"Topic"},
      *   summary="Agree to change",
-     *   description="Used to agree on a change for camp, topic and statement.",
+     *   description="Used to agree on a change for camp, topic, and statement.",
      *   operationId="agreeToChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *    @OA\RequestBody(
-     *       required=true,https://canonizer3.canonizer.comstatement/history/88/1
-     *       description="Agree to change",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="record_id",
-     *                   description="Record id is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="change_for",
-     *                   description="Type (topic, camp, statement)",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="nick_name_id",
-     *                   description="Nick name id",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *         )
-     *      )
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Agree to change request body",
+     *       @OA\JsonContent(
+     *           required={"record_id", "change_for", "camp_num", "topic_num", "nick_name_id", "user_agreed"},
+     *           @OA\Property(
+     *               property="record_id",
+     *               type="integer",
+     *               example=88,
+     *               description="Record ID (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="change_for",
+     *               type="string",
+     *               example="topic",
+     *               description="Type of change (topic, camp, statement) (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               type="integer",
+     *               example=1,
+     *               description="Camp number (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               example=101,
+     *               description="Topic number (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="nick_name_id",
+     *               type="integer",
+     *               example=709,
+     *               description="Nick name ID (required)"
+     *           ),
+     *          @OA\Property(
+     *               property="user_agreed",
+     *               type="integer",
+     *               example=0,
+     *               description="User Agreed (required)"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Agreement recorded successfully")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   )
      * )
      */
+
     public function agreeToChange(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getAgreeToChangeValidationRules(), $this->validationMessages->getAgreeToChangeValidationMessages());
@@ -1121,9 +1221,9 @@ class TopicController extends Controller
 
 
             /*
-            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-            *   Now support at the time of submition will be count as total supporter. 
-            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+            *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+            *   Now support at the time of submition will be count as total supporter.
+            *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
             */
             $agreed_supporters = ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])
                 ->where('camp_num', '=', $data['camp_num'])
@@ -1168,9 +1268,9 @@ class TopicController extends Controller
                     $submitterNickId = $camp->submitter_nick_id;
 
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-                    *   Now support at the time of submition will be count as total supporter. 
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+                    *   Now support at the time of submition will be count as total supporter.
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $camp->submit_time);
@@ -1272,9 +1372,9 @@ class TopicController extends Controller
                     $submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
                     /*
-                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-                    *   Now support at the time of submition will be count as total supporter. 
-                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+                    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+                    *   Now support at the time of submition will be count as total supporter.
+                    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
                     */
                     // $supporters = Support::getAllSupporters($data['topic_num'], $data['camp_num'], $submitterNickId);
                     // $supporters = Support::countSupporterByTimestamp((int)$data['topic_num'], (int)$data['camp_num'], $submitterNickId, $topic->submit_time);
@@ -1320,48 +1420,65 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="canonizer/api/agreeToChangeForLiveJob",
+     * @OA\Post(
+     *   path="/canonizer/api/agree-to-change",
      *   tags={"Topic"},
-     *   summary="Agree to change",
-     *   description="Used to agree on a change for camp, topic and statement from live job.",
+     *   summary="Agree to change for live job",
+     *   description="Used to agree on a change for camp, topic, and statement from a live job.",
      *   operationId="agreeToChangeForLiveJob",
-     *    @OA\RequestBody(
-     *       required=true,https://canonizer3.canonizer.com/statement/history/88/1
-     *       description="Agree to change",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="record_id",
-     *                   description="Record id is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="change_for",
-     *                   description="Type (topic, camp, statement)",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="camp_num",
-     *                   description="Camp number",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="topic_num",
-     *                   description="Topic number",
-     *                   required=true,
-     *                   type="integer",
-     *               )
-     *         )
-     *      )
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Agree to change request body",
+     *       @OA\JsonContent(
+     *           required={"record_id", "change_for", "camp_num", "topic_num"},
+     *           @OA\Property(
+     *               property="record_id",
+     *               type="integer",
+     *               example=88,
+     *               description="Record ID (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="change_for",
+     *               type="string",
+     *               example="topic",
+     *               description="Type of change (topic, camp, statement) (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="camp_num",
+     *               type="integer",
+     *               example=1,
+     *               description="Camp number (required)"
+     *           ),
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               example=101,
+     *               description="Topic number (required)"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Success",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Agreement recorded successfully")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   )
      * )
      */
+
     public function agreeToChangeForLiveJob(Request $request, Validate $validate)
     {
 
@@ -1393,7 +1510,7 @@ class TopicController extends Controller
             ];
             switch ($data['change_for']) {
                 case 'statement':
-                    $model = Statement::where($where)->first();
+                    $model = Statement::where($where)->where('is_draft', 0)->first();
                     break;
                 case 'camp':
                     $model = Camp::where($where)->first();
@@ -1435,7 +1552,6 @@ class TopicController extends Controller
                     $camp->go_live_time = strtotime(date('Y-m-d H:i:s'));
                     if ($camp->is_archive != $preLiveCamp->is_archive) {
                         $camp->archive_action_time = time();
-                       
                     }
 
                     $camp->update();
@@ -1450,7 +1566,7 @@ class TopicController extends Controller
                         util::updateArchivedCampAndSupport($camp, $liveCamp->is_archive, $preLiveCamp->is_archive);
                     }
                     $nickName = Nickname::getNickName($liveCamp->submitter_nick_id);
-                    
+
                     DB::commit();
                     Util::dispatchJob($topic, $camp->camp_num, 1);
 
@@ -1479,13 +1595,42 @@ class TopicController extends Controller
                 }
             } else if ($data['change_for'] == 'topic') {
 
-                $topic = Topic::where('id', $changeId)->first();
+                $topic = Topic::find($changeId);
                 $preliveTopic = Topic::where('id', $pre_LiveId)->first();
                 if ($topic) {
                     //$submitterNickId = $topic->submitter_nick_id;
                     $nickName = Nickname::getNickName($topic->submitter_nick_id);
-                    // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
-                    // $topic->update();
+                   // $topic->go_live_time = strtotime(date('Y-m-d H:i:s'));
+                   // $topic->save();
+                    $esBool = Topic::updateElasticSearch($topic);
+                    /**
+                     * Below code is commented due to following tickets:
+                     * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1668
+                     * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1609
+                     */
+                    // if($esBool){
+                    //     $activityMsg = 'Elastic search updated for topic update / rename topic name is performed.';
+                    // }else{
+                    //     $activityMsg = 'Elastic search updated for topic update / rename topic name is not performed';
+                    // }
+
+                    // $activityLogData = [
+                    //     'log_type' =>  "topic/camps",
+                    //     'activity' => $activityMsg,
+                    //     'url' => '',
+                    //     'model' => $topic,
+                    //     'topic_num' => $topic->topic_num,
+                    //     'camp_num' =>  1,
+                    //     'user' => $request->user(),
+                    //     'nick_name' => '',
+                    //     'description' => $topic->topic_name
+                    // ];
+                    // try {
+                    //     dispatch(new ActivityLoggerJob($activityLogData))->onQueue(env('ACTIVITY_LOG_QUEUE'));
+                    //  } catch (Exception $e) {
+                    //     return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+                    // }
+
                     Helpers::updateTopicsInReview($topic);
                     ChangeAgreeLog::where('topic_num', '=', $data['topic_num'])->where('camp_num', '=', $data['camp_num'])->where('change_id', '=', $changeId)->where('change_for', '=', $data['change_for'])->delete();
                     if (isset($topic)) {
@@ -1513,72 +1658,122 @@ class TopicController extends Controller
     }
 
     /**
-     * @OA\Post(path="/manage-topic",
+     * @OA\Post(
+     *   path="/manage-topic",
      *   tags={"Topic"},
-     *   summary="edit, update and object topic record",
-     *   description="This API is used to edit, update and object topic record.",
-     *   operationId="edit, update, object-TopicHistory",
+     *   summary="Edit, update, or object to a topic record",
+     *   description="This API is used to edit, update, or object to a topic record.",
+     *   operationId="manageTopicHistory",
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
-     *       description="Get topic record history",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *              @OA\Property(
-     *                  property="topic_id",
-     *                  description="Topic id is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *               @OA\Property(
-     *                   property="nick_name",
-     *                   description="Nick name of the user",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="note",
-     *                   description="Note for topic",
-     *                   required=false,
-     *                   type="string",
-     *               ),
-     *              @OA\Property(
-     *                   property="submitter",                                      
-     *                   description="Nick name id of user who previously added statement",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *              @OA\Property(
-     *                   property="namespace_id",
-     *                   description="TOpic namespace id",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="event_type",
-     *                   description="Possible values objection, edit, update",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="objection_reason",
-     *                   description="Objection reason in case user is objecting to a statement",
-     *                   required=false,
-     *                   type="string",
-     *               )
-     *         )
-     *      )
+     *       description="Request body parameters for managing a topic",
+     *       @OA\JsonContent(
+     *           required={"topic_num", "topic_id", "nick_name", "submitter", "namespace_id", "event_type"},
+     *           @OA\Property(
+     *               property="topic_name",
+     *               type="string",
+     *               example="hello sandbox topic",
+     *               description="The name of the topic"
+     *           ),
+     *           @OA\Property(
+     *               property="namespace",
+     *               type="integer",
+     *               example=1,
+     *               description="Namespace ID"
+     *           ),
+     *           @OA\Property(
+     *               property="topic_num",
+     *               type="integer",
+     *               example=6475,
+     *               description="Topic number"
+     *           ),
+     *           @OA\Property(
+     *               property="topic_id",
+     *               type="integer",
+     *               example=8225,
+     *               description="Unique topic ID"
+     *           ),
+     *           @OA\Property(
+     *               property="nick_name",
+     *               type="integer",
+     *               example=709,
+     *               description="Nick name of the user"
+     *           ),
+     *           @OA\Property(
+     *               property="submitter",
+     *               type="integer",
+     *               example=709,
+     *               description="Nick name ID of the user who previously added the statement"
+     *           ),
+     *           @OA\Property(
+     *               property="namespace_id",
+     *               type="integer",
+     *               example=1,
+     *               description="Topic namespace ID"
+     *           ),
+     *           @OA\Property(
+     *               property="event_type",
+     *               type="string",
+     *               example="update",
+     *               description="Possible values: objection, edit, update"
+     *           ),
+     *           @OA\Property(
+     *               property="tags",
+     *               type="array",
+     *               @OA\Items(type="integer", example=6),
+     *               description="Array of tag IDs associated with the topic"
+     *           ),
+     *           @OA\Property(
+     *               property="note",
+     *               type="string",
+     *               nullable=true,
+     *               example=null,
+     *               description="Optional note for the topic"
+     *           ),
+     *           @OA\Property(
+     *               property="is_rank_hidden",
+     *               type="boolean",
+     *               example=false,
+     *               description="Boolean flag indicating if rank is hidden"
+     *           ),
+     *           @OA\Property(
+     *               property="objection_reason",
+     *               type="string",
+     *               nullable=true,
+     *               example="I disagree with the statement.",
+     *               description="Objection reason if the user is objecting to a statement (optional)"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful operation",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="topic_num", type="integer", example=6475)
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Validation errors or exception occurred",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   )
      * )
      */
+
+
     public function manageTopic(Request $request, Validate $validate)
     {
         $validationErrors = $validate->validate($request, $this->rules->getManageTopicValidationRules(), $this->validationMessages->getManageTopicValidationMessages());
@@ -1611,7 +1806,7 @@ class TopicController extends Controller
                 if (!empty($topic->objector_nick_id)) {
                     return $this->resProvider->apiJsonResponse(400, trans('message.support.can_not_object'), '', '');
                 }
-                
+
                 $filters = [
                     'topicNum' => $all['topic_num'],
                     'campNum' => $all['camp_num'],
@@ -1629,6 +1824,7 @@ class TopicController extends Controller
                 $topic->object_time = $current_time;
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
+                $topic->is_rank_hidden =  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0;
                 $message = trans('message.success.topic_object');
             }
 
@@ -1640,6 +1836,7 @@ class TopicController extends Controller
                 $topic->note = isset($all['note']) ? $all['note'] : "";
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
+                $topic->is_rank_hidden =  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0;
                 $message = trans('message.success.topic_update');
             }
 
@@ -1651,7 +1848,7 @@ class TopicController extends Controller
                 $topic->submit_time = $current_time;
                 $topic->submitter_nick_id = $all['nick_name'];
                 // $topic->go_live_time = $current_time;
-                $topic->go_live_time = Carbon::parse($current_time)->addDay()->timestamp;
+                $topic->go_live_time = Carbon::parse('@' . $current_time)->addDay()->timestamp;
                 $topic->language = 'English';
                 $topic->note = isset($all['note']) ? $all['note'] : "";
                 // $topic->grace_period = 0;
@@ -1659,14 +1856,14 @@ class TopicController extends Controller
 
                 $topic->is_disabled =  !empty($request->is_disabled) ? $request->is_disabled : 0;
                 $topic->is_one_level =  !empty($request->is_one_level) ? $request->is_one_level : 0;
+                $topic->is_rank_hidden =  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0;
                 $message = trans('message.success.topic_update');
             }
 
-            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], 0, $nickNames);
+            $ifIamSingleSupporter = Support::ifIamSingleSupporter($all['topic_num'], $nickNames, 0);
 
             if (!$ifIamSingleSupporter) {
-                $topic->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
-                $topic->go_live_time;
+                $topic->go_live_time = Carbon::now()->addDay()->timestamp;
                 $topic->grace_period = 1;
             }
 
@@ -1675,6 +1872,12 @@ class TopicController extends Controller
             }
 
             $topic->save();
+
+            // Check if the array exists for tags ...
+            if ($request->has('tags') && is_array($request->tags)) {
+                $topic->tags()->syncWithPivotValues($request->tags, ['topic_num' => $topic->topic_num]);
+            }
+
             DB::commit();
 
             if ($all['event_type'] == "objection") {
@@ -1683,7 +1886,7 @@ class TopicController extends Controller
 
                 Util::dispatchJob($topic, 1, 1);
                 $currentTime = time();
-                $delayCommitTimeInSeconds = env('COMMIT_TIME_DELAY_IN_SECONDS');
+                $delayCommitTimeInSeconds = (int)env('COMMIT_TIME_DELAY_IN_SECONDS');
                 if (($currentTime < $topic->go_live_time && $currentTime >= $topic->submit_time) && $topic->grace_period && $topic->objector_nick_id == null) {
                     Util::dispatchJob($topic, 1, 1, $delayCommitTimeInSeconds);
                 }
@@ -1693,6 +1896,730 @@ class TopicController extends Controller
         } catch (Exception $e) {
             DB::rollback();
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage() . '' . $e->getLine());
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *   path="/discard/change",
+     *   tags={"Topic"},
+     *   summary="Discard a change",
+     *   description="Used to discard a change for camp, topic, and statement.",
+     *   operationId="discardChange",
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Discard change",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               required={"id", "type"}, 
+     *               @OA\Property(
+     *                   property="id",
+     *                   description="Record ID",
+     *                   type="integer",
+     *               ),
+     *               @OA\Property(
+     *                   property="type",
+     *                   description="Type (topic, camp, statement)",
+     *                   type="string",
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(response=200, description="Success"),
+     *   @OA\Response(response=400, description="Error message")
+     * )
+     */
+
+    public function discardChange(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getDiscardChangeValidationRules(), $this->validationMessages->getDiscardChangeValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $inputs = $request->post();
+        $type = $inputs['type'];
+        $id = $inputs['id'];
+        $message = "";
+        $nickNames = Nickname::personNicknameArray();
+        try {
+            if ($type == 'statement') {
+                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
+            } else if ($type == 'camp') {
+                $model = Camp::where('id', '=', $id)->first();
+            } else if ($type == 'topic') {
+                $model = Topic::where('id', '=', $id)->first();
+            }
+            if (!$model) {
+                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
+            }
+
+            if ($model->grace_period == 1) {
+                if ($model instanceof Topic) {
+                    $model->tags()->detach();
+                }
+                $model->delete();
+            } else {
+                throw new Exception('The Change is already submitted. You cannot discard it.');
+            }
+
+            return $this->resProvider->apiJsonResponse(200, $message, '', '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *   path="/hot-topic",
+     *   tags={"Topic"},
+     *   summary="Get Hot Topics",
+     *   description="Fetches the most viewed topics within the last 30 days, excluding sandbox topics.",
+     *   operationId="hotTopic",
+     *   security={{"clientAuth":{}}},
+     *   @OA\Parameter(
+     *       name="per_page",
+     *       in="query",
+     *       description="Number of records per page",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=10)
+     *   ),
+     *   @OA\Parameter(
+     *       name="supporter_limit",
+     *       in="query",
+     *       description="Limit the number of supporters shown per topic",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=5)
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of hot topics",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(
+     *                   property="topics",
+     *                   type="array",
+     *                   @OA\Items(
+     *                       type="object",
+     *                       @OA\Property(property="id", type="integer", example=1),
+     *                       @OA\Property(property="topic_num", type="integer", example=116),
+     *                       @OA\Property(property="camp_num", type="integer", example=1),
+     *                       @OA\Property(property="topic_name", type="string", example="Climate Change"),
+     *                       @OA\Property(property="camp_name", type="string", example="Scientific Consensus"),
+     *                       @OA\Property(property="views", type="integer", example=250),
+     *                       @OA\Property(
+     *                           property="supporterData",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="object",
+     *                               @OA\Property(property="first_name", type="string", example="J"),
+     *                               @OA\Property(property="middle_name", type="string", example="K"),
+     *                               @OA\Property(property="last_name", type="string", example="Doe")
+     *                           )
+     *                       ),
+     *                       @OA\Property(property="total_supporters_count", type="integer", example=15),
+     *                       @OA\Property(property="statement", type="string", example="Climate change is real and caused by human activities."),
+     *                       @OA\Property(
+     *                           property="topicTags",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="string",
+     *                               example="Environment"
+     *                           )
+     *                       )
+     *                   )
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Invalid parameters or exception",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Exception occurred"),
+     *           @OA\Property(property="error", type="string", example="SQL error")
+     *       )
+     *   )
+     * )
+     */
+
+   
+    public function hotTopic(Request $request)
+    {
+        try {
+            $perPage = $request->input('per_page', config('global.per_page'));
+            $supporterLimit = $request->input('supporter_limit', 5);
+            $page = $request->input('page', 1);
+            $cacheKey = "hot_topics_{$perPage}_{$supporterLimit}_{$page}";
+
+            $collection = Cache::remember($cacheKey, 600, function () use ($request, $perPage, $supporterLimit) {
+                $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+                $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
+
+                $topics = Topic::join('topic_views', function ($join) use ($date30DaysAgo) {
+                    $join->on('topic.topic_num', '=', 'topic_views.topic_num')
+                        ->where('topic_views.updated_at', '>=', $date30DaysAgo);
+                })
+                    ->whereNotIn('namespace_id', $namespaceIds)
+                    ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
+                    ->groupBy('topic.topic_num') // Group by topic number
+                    ->orderByDesc('total_views') // Order by the calculated total_views column
+                    ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
+                    ->paginate($perPage);
+
+                foreach ($topics as $topic) {
+                    $filter['topicNum'] = $topic->topic_num;
+                    $filter['campNum'] = $topic->camp_num ?? 1;
+
+                    $liveCamp = Camp::getLiveCamp($filter);
+                    $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+
+                    $topicTitle = $liveTopic->topic_name ?? '';
+                    $campTitle = $liveCamp->camp_name ?? '';
+
+                    $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                        $supporter->first_name = $supporter->first_name[0] ?? '';
+                        $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                        $supporter->last_name = $supporter->last_name[0] ?? '';
+                    });
+
+                    // Get the tag IDs associated with $liveTopic
+                    $topic->id = $liveTopic->id;
+                    $topic->topic_num = $liveTopic->topic_num;
+                    $topic->camp_num = $liveCamp->camp_num;
+                    $topic->note = $liveTopic->note;
+                    $topic->topic_name = $topicTitle;
+                    $topic->camp_name = $campTitle;
+                    $topic->namespace = $liveTopic->nameSpace->label ?? 1;
+                    $topic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
+                    $topic->views = $topic->totalViews();
+                    $topic->supporterData = $supporterData;
+                    $topic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
+                    $getLiveStatement = Statement::getLiveStatement([
+                        'topicNum' => $topic->topic_num,
+                        'campNum' => $liveCamp->camp_num,
+                        'asOf' => 'default',
+                        'asOfDate' => '',
+                    ]);
+                    $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                    $topic->statement = Str::of($getLiveStatement)->trim();
+                }
+
+                return Util::getPaginatorResponse($topics);
+            });
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @OA\Get(
+     *   path="/featured-topic",
+     *   tags={"Topic"},
+     *   summary="Get Featured Topics",
+     *   description="Fetches a list of featured topics that are marked as active.",
+     *   operationId="featuredTopic",
+     *   security={{"clientAuth":{}}},
+     *   @OA\Parameter(
+     *       name="per_page",
+     *       in="query",
+     *       description="Number of records per page",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=10)
+     *   ),
+     *   @OA\Parameter(
+     *       name="supporter_limit",
+     *       in="query",
+     *       description="Limit the number of supporters shown per topic",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=5)
+     *   ),
+     *   @OA\Parameter(
+     *       name="sort_by",
+     *       in="query",
+     *       description="Sorting order (ASC or DESC)",
+     *       required=false,
+     *       @OA\Schema(type="string", example="DESC")
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of featured topics",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(
+     *                   property="topics",
+     *                   type="array",
+     *                   @OA\Items(
+     *                       type="object",
+     *                       @OA\Property(property="topic_num", type="integer", example=101),
+     *                       @OA\Property(property="camp_num", type="integer", example=1),
+     *                       @OA\Property(property="topic_name", type="string", example="Artificial Intelligence"),
+     *                       @OA\Property(property="camp_name", type="string", example="Future of AI"),
+     *                       @OA\Property(property="namespace", type="string", example="General"),
+     *                       @OA\Property(
+     *                           property="topicTags",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="string",
+     *                               example="Technology"
+     *                           )
+     *                       ),
+     *                       @OA\Property(property="views", type="integer", example=120),
+     *                       @OA\Property(
+     *                           property="supporterData",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="object",
+     *                               @OA\Property(property="first_name", type="string", example="J"),
+     *                               @OA\Property(property="middle_name", type="string", example="K"),
+     *                               @OA\Property(property="last_name", type="string", example="Doe")
+     *                           )
+     *                       ),
+     *                       @OA\Property(property="total_supporters_count", type="integer", example=15)
+     *                   )
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Invalid parameters or exception",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Exception occurred"),
+     *           @OA\Property(property="error", type="string", example="SQL error")
+     *       )
+     *   )
+     * )
+     */
+
+    public function featuredTopic(Request $request)
+    {
+        try {
+            $perPage = $request->per_page ?? config('global.per_page');
+            $supporterLimit = $request->supporter_limit ?? 5;
+            $sortBy = $request->input('sort_by', 'DESC');
+            $page = $request->input('page', 1);
+            $cacheKey = "featured_topics_{$perPage}_{$supporterLimit}_{$sortBy}_{$page}";
+
+            $collection = Cache::remember($cacheKey, 600, function () use ($request, $perPage, $supporterLimit, $sortBy) {
+                $hotTopics = FeatureTopic::where('active', '1')->orderBy('id', 'DESC')->orderBy('id', $sortBy)
+                    ->paginate($perPage);
+                if (!empty($hotTopics)) {
+                    foreach ($hotTopics as $hotTopic) {
+                        $filter['topicNum'] = $hotTopic->topic_num;
+                        $filter['campNum'] = $hotTopic->camp_num ?? 1;
+                        $liveCamp = Camp::getLiveCamp($filter);
+                        $liveTopic = Topic::getLiveTopic($hotTopic->topic_num, ['nofilter' => true]);
+                        if (!empty($liveTopic)) {
+                            $topicTitle = $liveTopic->topic_name;
+                        }
+                        if (!empty($liveCamp)) {
+                            $campTitle = $liveCamp->camp_name;
+                        }
+
+                        $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                            $supporter->first_name = $supporter->first_name[0] ?? '';
+                            $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                            $supporter->last_name = $supporter->last_name[0] ?? '';
+                        });
+
+                        // Get the tag IDs associated with $liveTopic
+                        $hotTopic->topic_name = $topicTitle ?? "";
+                        $hotTopic->camp_name = $campTitle ?? "";
+                        $hotTopic->topic_num = $liveTopic->topic_num;
+                        $hotTopic->camp_num = $liveTopic->camp_num ?? 1;
+                        $hotTopic->namespace = $liveTopic->nameSpace->label ?? 1;
+                        $hotTopic->topicTags = $liveTopic->tags->makeHidden(['pivot']);
+                        $hotTopic->namespace_id = $liveTopic->namespace_id;
+                        $hotTopic->views = Helpers::getCampViewsByDate($hotTopic->topic_num, $hotTopic->camp_num) ??  0;
+                        $hotTopic->supporterData = $supporterData;
+                        $hotTopic->total_supporters_count = count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5;
+                    }
+                }
+                return Util::getPaginatorResponse($hotTopics);
+            });
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $collection, null);
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+    
+    /**
+     * @OA\Get(
+     *   path="/preferred-topic",
+     *   tags={"Topic"},
+     *   summary="Get Preferred Topics",
+     *   description="Fetches a list of topics based on user preferences, including tags associated with the user.",
+     *   operationId="preferredTopic",
+     *   security={{"clientAuth":{}}},
+     *   @OA\Parameter(
+     *       name="is_random",
+     *       in="query",
+     *       description="Whether to fetch topics in random order",
+     *       required=false,
+     *       @OA\Schema(type="boolean", example=true)
+     *   ),
+     *   @OA\Parameter(
+     *       name="per_page",
+     *       in="query",
+     *       description="Number of records per page",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=10)
+     *   ),
+     *   @OA\Parameter(
+     *       name="supporter_limit",
+     *       in="query",
+     *       description="Limit the number of supporters shown per topic",
+     *       required=false,
+     *       @OA\Schema(type="integer", example=5)
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of preferred topics",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(
+     *                   property="topics",
+     *                   type="array",
+     *                   @OA\Items(
+     *                       type="object",
+     *                       @OA\Property(property="id", type="integer", example=101),
+     *                       @OA\Property(property="topic_num", type="integer", example=202),
+     *                       @OA\Property(property="camp_num", type="integer", example=1),
+     *                       @OA\Property(property="note", type="string", example="Important topic"),
+     *                       @OA\Property(property="topic_name", type="string", example="Artificial Intelligence"),
+     *                       @OA\Property(property="camp_name", type="string", example="Future of AI"),
+     *                       @OA\Property(property="namespace", type="string", example="General"),
+     *                       @OA\Property(
+     *                           property="tags",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="string",
+     *                               example="Technology"
+     *                           )
+     *                       ),
+     *                       @OA\Property(property="views", type="integer", example=150),
+     *                       @OA\Property(
+     *                           property="supporterData",
+     *                           type="array",
+     *                           @OA\Items(
+     *                               type="object",
+     *                               @OA\Property(property="first_name", type="string", example="J"),
+     *                               @OA\Property(property="middle_name", type="string", example="K"),
+     *                               @OA\Property(property="last_name", type="string", example="Doe")
+     *                           )
+     *                       ),
+     *                       @OA\Property(property="total_supporters_count", type="integer", example=10),
+     *                       @OA\Property(property="statement", type="string", example="AI will revolutionize the world.")
+     *                   )
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Invalid parameters or exception",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Exception occurred"),
+     *           @OA\Property(property="error", type="string", example="SQL error")
+     *       )
+     *   )
+     * )
+     */
+
+    public function preferredTopic(Request $request)
+    {
+        try {
+            $isRandom = $request->is_random ?? false;
+            $perPage = $request->per_page ?? config('global.per_page');
+            $userTags = $request->user()->userActiveTags()->pluck('tag_id');
+            $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
+            $topics = Topic::with('tags')->whereHas('tags', function ($query) use ($userTags) {
+                    $query->whereIn('tag_id', $userTags);
+                })
+                ->whereNotIn('namespace_id', $namespaceIds)
+                ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <= ' . time() . ' group by topic.topic_num)')
+                ->orderBy('submit_time', 'DESC');
+            if ($isRandom) {
+                $topics = $topics->inRandomOrder()->paginate($perPage);
+            } else {
+                $topics = $topics->paginate($perPage);
+            }
+            $paginatedResponse = Util::getPaginatorResponse($topics);
+            $topics = $topics->map(function ($topic) {
+                $filter['topicNum'] = $topic->topic_num;
+                $filter['campNum'] = $topic->camp_num ?? 1;
+                $liveCamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic->topic_num, ['nofilter' => true]);
+                $topicTitle = $liveTopic->topic_name ?? '';
+                $campTitle = $liveCamp->camp_name ?? '';
+                $supporterLimit = $request->supporter_limit ?? 5;
+
+                $supporterData = Support::getAllSupporterNicknames($liveTopic->topic_num, null, $supporterLimit)->each(function ($supporter) {
+                    $supporter->first_name = $supporter->first_name[0] ?? '';
+                    $supporter->middle_name = $supporter->middle_name[0] ?? '';
+                    $supporter->last_name = $supporter->last_name[0] ?? '';
+                });
+
+                $getLiveStatement = Statement::getLiveStatement([
+                    'topicNum' => $topic->topic_num,
+                    'campNum' => $liveCamp->camp_num,
+                    'asOf' => 'default',
+                    'asOfDate' => '',
+                ]);
+                $getLiveStatement = Helpers::stripTagsExcept($getLiveStatement->parsed_value ?? null);
+                $getLiveStatement = Str::of($getLiveStatement)->trim();
+                // Get the tag IDs associated with $liveTopic
+
+                return [
+                    'id' => $liveTopic->id,
+                    'topic_num' => $liveTopic->topic_num,
+                    'camp_num' => $liveCamp->camp_num,
+                    'note' => $liveTopic->note,
+                    'topic_name' => $topicTitle,
+                    'camp_name' => $campTitle,
+                    'namespace' => $liveTopic->nameSpace->label ?? 1,
+                    'tags' => $topic->tags->makeHidden(['parent_id', 'is_active', 'pivot']),
+                    'views' => $liveTopic->totalViews(),
+                    'supporterData' => $supporterData,
+                    'total_supporters_count' => count($supporterData) < 5 ? 0 : count(Support::getAllSupporterOfTopic($liveTopic->topic_num)) - 5,
+                    'statement' => $getLiveStatement,
+                ];
+            });
+            $paginatedResponse->items = $topics;
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $paginatedResponse, null);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => trans('message.error.exception'),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *   path="/get-topic-history",
+     *   tags={"Topic"},
+     *   summary="Get topic history",
+     *   description="Fetches the history of a topic based on filters such as event type and pagination.",
+     *   operationId="getTopicHistory",
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Payload to retrieve topic history",
+     *       @OA\MediaType(
+     *           mediaType="application/x-www-form-urlencoded",
+     *           @OA\Schema(
+     *               type="object",
+     *               required={"topic_num", "per_page", "event_type", "page"},
+     *               @OA\Property(
+     *                   property="topic_num",
+     *                   description="Topic number",
+     *                   type="integer",
+     *                   example=116
+     *               ),
+     *               @OA\Property(
+     *                   property="per_page",
+     *                   description="Number of records per page",
+     *                   type="integer",
+     *                   example=10
+     *               ),
+     *               @OA\Property(
+     *                   property="event_type",
+     *                   description="Filter by event type. Possible values: objected, live, in_review, old, all",
+     *                   type="string",
+     *                   enum={"objected", "live", "in_review", "old", "all"},
+     *                   example="live"
+     *               ),
+     *               @OA\Property(
+     *                   property="page",
+     *                   description="Page number for pagination",
+     *                   type="integer",
+     *                   example=1
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=200,
+     *       description="Successful retrieval of topic history",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Success"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="array",
+     *               @OA\Items(
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer", example=1),
+     *                   @OA\Property(property="topic_num", type="integer", example=116),
+     *                   @OA\Property(property="event_type", type="string", example="live"),
+     *                   @OA\Property(property="updated_at", type="string", format="date-time", example="2025-03-04T12:34:56Z")
+     *               )
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=400,
+     *       description="Bad Request - Invalid parameters",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid parameters")
+     *       )
+     *   )
+     * )
+     */
+
+    public function getTopicHistory(Request $request, Validate $validate)
+    {
+        $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+        $filter['topicNum'] = $request->topic_num;
+        $filter['campNum'] = 1;
+        $filter['per_page'] = $request->per_page;
+        $filter['page'] = $request->page;
+        $filter['currentTime'] = time();
+        $filter['type'] = $request->type;
+        $response = new stdClass();
+        $details = new stdClass();
+
+        $topics = Topic::where([
+            'topic_num' => $filter['topicNum'],
+        ])->get();
+
+        if ($topics->count() < 1)
+            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
+
+        try {
+            $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
+            $liveTopic = Topic::getLiveTopic($filter['topicNum'], 'default');
+            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery, $liveTopic);
+            $response = $topics;
+            $details->ifIamSupporter = null;
+            $details->ifSupportDelayed = null;
+            $details->ifIAmExplicitSupporter = null;
+            $details->liveCamp = Camp::getLiveCamp($filter);
+            $details->topic = Camp::getAgreementTopic($filter);
+            $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
+            $submit_time = $topicHistoryQuery->first() ? $topicHistoryQuery->first()->submit_time : null;
+            if ($request->user()) {
+                $nickNames = Nickname::personNicknameArray();
+                $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
+                $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
+                $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
+            }
+            $response->details = $details;
+            $response->total_counts = Helpers::getHistoryCountsByChange($liveTopic, $filter);
+            $response->live_record_id = Helpers::getLiveHistoryRecord($liveTopic, $filter);
+
+            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
+        }
+    }
+ 
+    /**
+      * @OA\Post(
+      *   path="/edit-topic",
+      *   tags={"Topic"},
+      *   summary="Get topic record for edit",
+      *   description="Get topic details for editing",
+      *   operationId="editTopicRecord",
+      *   security={{"clientAuth":{}}},
+      *   @OA\RequestBody(
+      *       required=true,
+      *       description="Edit topic",
+      *       @OA\MediaType(
+      *           mediaType="application/x-www-form-urlencoded",
+      *           @OA\Schema(
+      *               required={"record_id", "event_type"},
+      *               @OA\Property(
+      *                   property="record_id",
+      *                   description="Record ID",
+      *                   type="integer",
+      *                   
+      *               ),
+      *               @OA\Property(
+      *                   property="event_type",
+      *                   description="Possible value is edit",
+      *                   type="string",
+      *               )
+      *           )
+      *       )
+      *   ),
+      *   @OA\Response(response=200, description="Success"),
+      *   @OA\Response(response=400, description="Error message")
+      * )
+      */
+
+    public function editTopicRecord(Request $request, Validate $validate)
+    {
+        try {
+            $validationErrors = $validate->validate($request, $this->rules->getEditCaseValidationRules(), $this->validationMessages->getEditCaseValidationMessages());
+            if ($validationErrors) {
+                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+            }
+            $topic = Topic::find($request->record_id);
+            $topic->tags = TopicTag::select('tag_id')->where('topic_id', $topic->id)->pluck('tag_id');
+
+            if ($topic) {
+
+                // if topic is agreed and live by another supporter, then it is not objectionable.
+                if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
+                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
+                    $response['is_live'] = true;
+                    return $response;
+                }
+
+                $nickName = Nickname::topicNicknameUsed($topic->topic_num);
+                $data = new stdClass();
+                $data->topic = $topic;
+                $data->nick_name = $nickName;
+                $response[0] = $data;
+                $indexes = ['topic', 'nick_name'];
+                $response = $this->resourceProvider->jsonResponse($indexes, $response);
+                $response = $response[0];
+                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
+            } else {
+                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
+            }
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }
     }
 
@@ -1740,244 +2667,6 @@ class TopicController extends Controller
         }
     }
 
-    /**
-     * @OA\Post(path="/get-topic-history",
-     *   tags={"Topic"},
-     *   summary="get topic history",
-     *   description="This API is used to get topic history.",
-     *   operationId="getTopicHistory",
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Get topic history",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="topic_num",
-     *                  description="Topic number is required",
-     *                  required=true,
-     *                  type="integer",
-     *              ),
-     *               @OA\Property(
-     *                   property="per_page",
-     *                   description="Records per page",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="event_type",
-     *                   description="Possible values are objected, live, in_review, old, all",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *               @OA\Property(
-     *                   property="page",
-     *                   description="Page number",
-     *                   required=true,
-     *                   type="string",
-     *               )
-     *         )
-     *      )
-     *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
-     * )
-     */
-
-    public function getTopicHistory(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->getTopicHistoryValidationRules(), $this->validationMessages->getTopicHistoryValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-        $filter['topicNum'] = $request->topic_num;
-        $filter['campNum'] = 1;
-        $filter['per_page'] = $request->per_page;
-        $filter['page'] = $request->page;
-        $filter['currentTime'] = time();
-        $filter['type'] = $request->type;
-        $response = new stdClass();
-        $details = new stdClass();
-
-        $topics = Topic::where([
-            'topic_num' => $filter['topicNum'],
-        ])->get();
-
-        if ($topics->count() < 1)
-            return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
-
-        try {
-            $topicHistoryQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
-            $topics = Topic::getTopicHistory($filter, $request, $topicHistoryQuery);
-            $response = $topics;
-            $details->ifIamSupporter = null;
-            $details->ifSupportDelayed = null;
-            $details->ifIAmExplicitSupporter = null;
-            $details->liveCamp = Camp::getLiveCamp($filter);
-            $details->topic = Camp::getAgreementTopic($filter);
-            $details->parentTopic = (sizeof($topics->items) > 1) ?  $topics->items[0]->topic_name : null;
-            $submit_time = $topicHistoryQuery->first() ? $topicHistoryQuery->first()->submit_time : null;
-            if ($request->user()) {
-                $nickNames = Nickname::personNicknameArray();
-                $details->ifIamSupporter = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time);
-                $details->ifSupportDelayed = Support::ifIamSupporter($filter['topicNum'], 1, $nickNames, $submit_time, $delayed = true);
-                $details->ifIAmExplicitSupporter = Support::ifIamExplicitSupporter($filter, $nickNames, "topic");
-            }
-            $response->details = $details;
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Post(path="/edit-topic",
-     *   tags={"Topic"},
-     *   summary="Get topic record",
-     *   description="Get topic details for editing",
-     *   operationId="editTopicRecord",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Edit topic",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *              @OA\Property(
-     *                  property="record_id",
-     *                  description="Record id is required",
-     *                  required=true,
-     *                  type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="event_type",
-     *                   description="Possible values are edit, objected, live, in_review, old, all",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *         )
-     *      )
-     *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
-     * )
-     */
-    public function editTopicRecord(Request $request, Validate $validate)
-    {
-        try {
-            $validationErrors = $validate->validate($request, $this->rules->getEditCaseValidationRules(), $this->validationMessages->getEditCaseValidationMessages());
-            if ($validationErrors) {
-                return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-            }
-            $topic = Topic::where('id', $request->record_id)->first();
-            if ($topic) {
-                // if topic is agreed and live by another supporter, then it is not objectionable.
-                if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
-                    $response = collect($this->resProvider->apiJsonResponse(400, trans('message.error.objection_history_changed', ['history' => 'topic']), '', '')->original)->toArray();
-                    $response['is_live'] = true;
-                    return $response;
-                }
-
-                $nickName = Nickname::topicNicknameUsed($topic->topic_num);
-                $data = new stdClass();
-                $data->topic = $topic;
-                $data->nick_name = $nickName;
-                $response[0] = $data;
-                $indexes = ['topic', 'nick_name'];
-                $response = $this->resourceProvider->jsonResponse($indexes, $response);
-                $response = $response[0];
-                return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
-            } else {
-                return $this->resProvider->apiJsonResponse(404, trans('message.error.record_not_found'), '', '');
-            }
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
-    /**
-     * @OA\Post(path="/discard/change",
-     *   tags={"Topic"},
-     *   summary="discard a change",
-     *   description="Used to discard a change for camp, topic and statement.",
-     *   operationId="discardChange",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *   @OA\RequestBody(
-     *       required=true,
-     *       description="Discard change",
-     *       @OA\MediaType(
-     *           mediaType="application/x-www-form-urlencoded",
-     *           @OA\Schema(
-     *               @OA\Property(
-     *                   property="id",
-     *                   description="Record id is required",
-     *                   required=true,
-     *                   type="integer",
-     *               ),
-     *               @OA\Property(
-     *                   property="type",
-     *                   description="Type (topic, camp, statement)",
-     *                   required=true,
-     *                   type="string",
-     *               ),
-     *         )
-     *      )
-     *   ),
-     *   @OA\Response(response=200, description="Success"),
-     *   @OA\Response(response=400, description="Error message")
-     * )
-     */
-    public function discardChange(Request $request, Validate $validate)
-    {
-        $validationErrors = $validate->validate($request, $this->rules->getDiscardChangeValidationRules(), $this->validationMessages->getDiscardChangeValidationMessages());
-        if ($validationErrors) {
-            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
-        }
-        $inputs = $request->post();
-        $type = $inputs['type'];
-        $id = $inputs['id'];
-        $message = "";
-        $nickNames = Nickname::personNicknameArray();
-        try {
-            if ($type == 'statement') {
-                $model = Statement::where('id', '=', $id)->whereIn('submitter_nick_id', $nickNames)->first();
-            } else if ($type == 'camp') {
-                $model = Camp::where('id', '=', $id)->first();
-            } else if ($type == 'topic') {
-                $model = Topic::where('id', '=', $id)->first();
-            }
-            if (!$model) {
-                return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
-            }
-
-            if ($model->grace_period == 1) {
-                $model->delete();
-            } else {
-                throw new Exception('The Change is already submitted. You cannot discard it.');
-            }
-
-            return $this->resProvider->apiJsonResponse(200, $message, '', '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
-
     private function updateCampNotification($camp, $liveCamp, $link, $request)
     {
         $link = config('global.APP_URL_FRONT_END') . '/camp/history/' . $camp->topic_num . '/' . $camp->camp_num;
@@ -2017,32 +2706,4 @@ class TopicController extends Controller
         // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
-
-    public function hotTopic(Request $request)
-    {
-
-        try {
-            $hotTopics = HotTopic::where('active', '1')->orderBy('id', 'DESC')->get();
-            if (!empty($hotTopics)) {
-                foreach ($hotTopics as $hotTopic) {
-                    $filter['topicNum'] = $hotTopic->topic_num;
-                    $filter['campNum'] = $hotTopic->camp_num ?? 1;
-                    $liveCamp = Camp::getLiveCamp($filter);
-                    $liveTopic = Topic::getLiveTopic($hotTopic->topic_num, ['nofilter' => true]);
-                    if (!empty($liveTopic)) {
-                        $topicTitle = $liveTopic->topic_name;
-                    }
-                    if (!empty($liveCamp)) {
-                        $campTitle = $liveCamp->camp_name;
-                    }
-                    $hotTopic->topic_name = $topicTitle ?? "";
-                    $hotTopic->camp_name = $campTitle ?? "";
-                    $hotTopic->camp_num = $hotTopic->camp_num ?? 1;
-                }
-            }
-            return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $hotTopics, '');
-        } catch (Exception $e) {
-            return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
-        }
-    }
 }

@@ -59,9 +59,9 @@ class Util
                 break;
             default :
                 $returnObject = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
+                    "status_code" => $status,
+                    "message"     => "Internal request failed",
+                    "error"       => $response->body(),
                     "data"        => null
                 ];
         }
@@ -207,7 +207,7 @@ class Util
         return $shortCode;
     }
 
-    public static function topicHistoryLink($topicNum, $campNum = 1, $title, $campName = 'Aggreement' , $type)
+    public static function topicHistoryLink($topicNum, $title, $type, $campNum = 1, $campName = 'Aggreement')
     {
         $regex  = '/[^A-Za-z0-9\-]/';
         $title = preg_replace($regex, '-', $title);
@@ -236,7 +236,10 @@ class Util
             CURLOPT_HTTP_VERSION    => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST   => $type,
             CURLOPT_POSTFIELDS      => $body,
-            CURLOPT_HTTPHEADER      => $headers
+            CURLOPT_HTTPHEADER      => $headers,
+
+            CURLOPT_SSL_VERIFYPEER  => false,
+            CURLOPT_SSL_VERIFYHOST  => false
         );
         
         $curl = curl_init();
@@ -280,7 +283,8 @@ class Util
             // Dispatch job when create a camp/topic
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
-                $delayTime = Carbon::now()->addSeconds($delay);
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds((int)$delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
                 $canonizerServiceData['isUniqueJob'] = false;
                 dispatch((new CanonizerService($canonizerServiceData))->delay($delayTime))->onQueue(env('DELAY_QUEUE_SERVICE_NAME'));
@@ -450,7 +454,6 @@ class Util
                         $supportData = Support::where('topic_num',$topicNum)
                                         ->where('camp_num',$parentCamp)
                                         ->whereIn('nick_name_id',$supporterNicknames)
-                                        ->where('delegate_nick_name_id', 0)
                                         ->where('end','=',0);
                         $results = $supportData->get();
 
@@ -458,7 +461,6 @@ class Util
                         $supportData_child = Support::where('topic_num',$topicNum)
                                         ->whereIn('camp_num',$allChildCamps)
                                         ->whereIn('nick_name_id',$supporterNicknames)
-                                        ->where('delegate_nick_name_id', 0)
                                         ->where('end','=',0);
 
                         $results_child = $supportData_child->get()->toArray();                      
@@ -467,8 +469,19 @@ class Util
                             //if child camp have same supportter of parent camp then remove supportter from parent
                             if(!empty($results_child)){ 
                                 if(array_search($value->nick_name_id, array_column($results_child, 'nick_name_id')) !== FALSE) { //found
-                                   Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id); 
-                                   Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
+                                   // preserve super camp support order 
+                                   $parentSupportOrder = $value->support_order;
+                                   Support::removeSupportWithDelegates($all['topic_num'], $parentCamp, $value->nick_name_id);
+
+                                   foreach($results_child as $child)
+                                   {
+                                        Support::updateSupportOrder($all['topic_num'], $child['camp_num'], $parentSupportOrder, $value->nick_name_id);
+                                        Support::updateDeleagtorsSupportOrder($all['topic_num'], $value->nick_name_id, $child['camp_num'], $parentSupportOrder);
+                                   }
+
+                                   //Support::updateDeleagtorsSupportOrder($topicNum, $support->nick_name_id, $support->camp_num, $order);
+                                    
+                                   //Support::reOrderSupport($all['topic_num'], [$value->nick_name_id]);
                                 } 
                             }
                         } 
@@ -622,7 +635,8 @@ class Util
             ];
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
-                $delayTime = Carbon::now()->addSeconds($delay);
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds((int)$delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('EVENTLINE_QUEUE_SERVICE_NAME'));
@@ -728,8 +742,8 @@ class Util
                     $topic = Camp::getAgreementTopic($topicFilter);
                                         
                     $object = $topic->topic_name ." >> ".$camp->camp_name;
-                    $topicLink  =  Topic::topicLink($topic->topic_num, 1, $topic->title);
-                    $campLink   =  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
+                    $topicLink  =  Topic::topicLink($topic->topic_num, $topic->title, 1);
+                    $campLink   =  Topic::topicLink($topic->topic_num, $topic->title, $camp->camp_num, $camp->camp_name);
                     $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
                     $data['object']     = $object;
                     $data['subject']    = "Camp Unarchived - " . $object. ".";
@@ -810,5 +824,28 @@ class Util
         } catch (CampURLException $th) {
              throw new CampURLException("URL Exception");
          }
+    }
+
+    public function parse_facebook_signed_request($signed_request) {
+        list($encoded_sig, $payload) = explode('.', $signed_request, 2);
+      
+        $secret = env('FACEBOOK_APP_SECRET'); // Load app secret from environment
+      
+        // decode the data
+        $sig = base64_url_decode($encoded_sig);
+        $data = json_decode(base64_url_decode($payload), true);
+      
+        // confirm the signature
+        $expected_sig = hash_hmac('sha256', $payload, $secret, $raw = true);
+        if ($sig !== $expected_sig) {
+          error_log('Bad Signed JSON signature!');
+          return null;
+        }
+      
+        return $data;
+    }
+      
+    public function base64_url_decode($input) {
+        return base64_decode(strtr($input, '-_', '+/'));
     }
 }

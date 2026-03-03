@@ -2,6 +2,8 @@
 
 namespace App\Http\Request;
 
+use function OpenTelemetry\API\Trace\trace;
+
 class ValidationMessages
 {
     public function getTokenValidationMessages(): array
@@ -48,10 +50,10 @@ class ValidationMessages
 
             'password.required' => trans('message.validation_registration.password_required'),
             'password.regex' => trans('message.validation_registration.password_regex'),
-            
+
             'password_confirmation.required' => trans('message.validation_registration.password_confirmation_required'),
             'password_confirmation.same' => trans('message.validation_registration.password_confirmation_same'),
-            
+
             'phone_number.unique' => trans('message.validation_registration.phone_number_unique'),
 
             'country_code.required' => trans('message.validation_registration.country_code_required'),
@@ -239,7 +241,9 @@ class ValidationMessages
             'nick_name.required' => trans('message.validation_topic_store.nick_name_required'),
             'objection_reason.required' => trans('message.validation_topic_store.objection_reason_required'),
             'objection_reason.max' => trans('message.validation_topic_store.objection_reason_max'),
-            'asof.in' => trans('message.validation_topic_store.asof_in')
+            'asof.in' => trans('message.validation_topic_store.asof_in'),
+            'tags.array' => trans('message.tags.topic_tags_must_array'),
+            'is_rank_hidden.boolean' => trans('message.validation_topic_store.is_rank_hidden_boolean')
         ]);
     }
 
@@ -302,7 +306,7 @@ class ValidationMessages
             'as_of.in' => trans('message.validation_get_topic_record.as_of_in'),
             'as_of_date.required_if' => trans('message.validation_get_topic_record.as_of_date_required'),
             'topic_num.required' => trans('message.validation_get_topic_record.topic_num_required'),
-            'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required')
+            'camp_num.required' => trans('message.validation_get_topic_record.camp_num_required'),
         ];
     }
 
@@ -477,6 +481,14 @@ class ValidationMessages
             'objection_reason.required_if' => trans('message.validation_store_statement.objection_reason_required_if'),
         ];
     }
+    public function getPostStatementCountValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_store_statement.topic_num_required'),
+            'camp_num.required' => trans('message.validation_store_statement.camp_num_required'),
+            'statement_id.required' => trans('message.validation_store_statement.statement_id_required_if'),
+        ];
+    }
 
     public function getPostVerifyEmailValidationMessages(): array
     {
@@ -533,7 +545,7 @@ class ValidationMessages
             'type.in' => trans('message.validation_discard_change.type_in'),
         ];
     }
-    
+
     public function getStatementComparisonValidationMessages(): array
     {
         return [
@@ -601,7 +613,7 @@ class ValidationMessages
             'page.required' => trans('message.validation_get_camp_history.page_required'),
         ]);
     }
-    
+
     public function getManageCampValidationMessages(): array
     {
         return [
@@ -613,6 +625,7 @@ class ValidationMessages
             'event_type.required' => trans('message.validation_manage_camp.event_type_required'),
             'event_type.in' => trans('message.validation_manage_camp.event_type_in'),
             'camp_name.required' => trans('message.validation_manage_camp.camp_name_required'),
+            'camp_name.max' => trans('message.validation_camp_store.camp_name_max'),
             'camp_about_url.regex' => trans('message.validation_manage_camp.camp_about_url_regex'),
             'objection_reason.required_if' => trans('message.validation_manage_camp.objection_reason_required_if'),
         ];
@@ -644,7 +657,9 @@ class ValidationMessages
             'submitter.required' => trans('message.validation_manage_topic.submitter_required'),
             'event_type.required' => trans('message.validation_manage_topic.event_type_required'),
             'event_type.in' => trans('message.validation_manage_topic.event_type_in'),
+            'namespace_id.required_unless' => trans('message.validation_manage_topic.namespace_id_required_unless'),
             'objection_reason.required_if' => trans('message.validation_manage_topic.objection_reason_required_if'),
+            'is_rank_hidden.boolean' => trans('message.validation_manage_topic.is_rank_hidden_boolean')
         ];
     }
 
@@ -680,20 +695,21 @@ class ValidationMessages
             'keys.topic_num.required' => trans('message.validation_meta_tags.topic_num_required'),
             'keys.topic_num.numeric' => trans('message.validation_meta_tags.topic_num_numeric'),
             'keys.topic_num.gt' => trans('message.validation_meta_tags.topic_num_gt'),
-            
+
             'keys.camp_num.required' => trans('message.validation_meta_tags.camp_num_required'),
             'keys.camp_num.numeric' => trans('message.validation_meta_tags.camp_num_numeric'),
             'keys.camp_num.gt' => trans('message.validation_meta_tags.camp_num_gt'),
-            
+
             'keys.forum_num.required' => trans('message.validation_meta_tags.forum_num_required'),
             'keys.forum_num.numeric' => trans('message.validation_meta_tags.forum_num_numeric'),
             'keys.forum_num.gt' => trans('message.validation_meta_tags.forum_num_gt'),
 
-
             'keys.video_id.required' => trans('message.validation_meta_tags.video_id_required'),
             'keys.video_id.numeric' => trans('message.validation_meta_tags.video_id_numeric'),
             'keys.video_id.gt' => trans('message.validation_meta_tags.video_id_gt'),
-            
+
+            'keys.keywords.required' => trans('message.validation_meta_tags.keywords_required'),
+
         ];
     }
 
@@ -741,15 +757,15 @@ class ValidationMessages
             'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
             'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
             'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
-            
+
             'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
             'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
-            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
-            
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),
+
             'change_id.required' => trans('message.validation_change_supporters.change_id_required'),
             'change_id.numeric' => trans('message.validation_change_supporters.change_id_numeric'),
-            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),     
-            
+            'change_id.gt' => trans('message.validation_change_supporters.change_id_gt'),
+
             'type.required' => trans('message.validation_change_supporters.type_required'),
             'type.required' => trans('message.validation_change_supporters.type_in'),
         ];
@@ -768,12 +784,73 @@ class ValidationMessages
             'topic_num.required' => trans('message.validation_change_supporters.topic_num_required'),
             'topic_num.numeric' => trans('message.validation_change_supporters.topic_num_numeric'),
             'topic_num.gt' => trans('message.validation_change_supporters.topic_num_gt'),
-            
+
             'camp_num.required' => trans('message.validation_change_supporters.camp_num_required'),
             'camp_num.numeric' => trans('message.validation_change_supporters.camp_num_numeric'),
-            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),    
-            
+            'camp_num.gt' => trans('message.validation_change_supporters.camp_num_gt'),
+
             'thread_id.exists' => trans('message.thread.thread_not_exist'),
+        ];
+    }
+
+    public function getTagsListingValidationMessages(): array
+    {
+        return [
+            'per_page.required_with' => trans('message.tags.page_required_with_per_page'),
+            'page.required_with' => trans('message.tags.per_page_required_with_page'),
+
+            'page.numeric' => trans('message.tags.page_should_be_numeric'),
+            'per_page.numeric' => trans('message.tags.per_page_should_be_numeric'),
+
+            'page.gt' => trans('message.tags.page_should_be_numeric'),
+            'per_page.gt' => trans('message.tags.per_page_should_be_numeric'),
+
+            'sort_by.in' => trans('message.tags.sort_by_in')
+        ];
+    }
+
+    public function createUserTagsValidationMessages(): array
+    {
+        return [
+            'user_tags.required' =>trans('message.user_tag.user_tags_required'),
+            'user_tags.array' => trans('message.user_tag.user_tags_array'),
+            'user_tags.*.integer' => trans('message.user_tag.user_tags_integer'),
+            'user_tags.*.exists' =>  trans('message.user_tag.user_tags_exists'),
+        ];
+    }
+
+    public function updateReadAllValidationMessages(): array
+    {
+        return [
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_read.required' => trans('message.notification_message.isReadRequired'),
+            'is_read.string' => trans('message.notification_message.isReadString'),
+            'is_read.in' => trans('message.notification_message.isReadIn')
+
+        ];
+    }
+
+    public function updateDeleteAllValidationMessages(): array
+    {
+        return [
+            'ids.required_if' =>trans('message.notification_message.idsRequired'),
+            'ids.array' => trans('message.notification_message.idsArray'),
+            'is_delete.required' => trans('message.notification_message.isDeleteRequired'),
+            'is_delete.string' => trans('message.notification_message.isDeleteString'),
+            'is_delete.in' => trans('message.notification_message.isDeleteIn')
+        ];
+    }
+
+    public function getSiblingCampsValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.validation_get_camp_record.topic_num_required'),
+            'camp_num.required' => trans('message.validation_get_camp_record.camp_num_required'),
+            'topic_num.numeric' => trans('message.validation_get_camp_record.topic_num_numeric'),
+            'camp_num.numeric' => trans('message.validation_get_camp_record.camp_num_numeric'),
+            'parent_camp_num.numeric' => trans('message.validation_get_camp_record.parent_camp_num_numeric'),
+            'parent_camp_num.required' => trans('message.validation_get_camp_record.parent_camp_num_required')
         ];
     }
 
@@ -786,10 +863,10 @@ class ValidationMessages
             'topic_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.topic_num_max_numeric')
             ],
-            
+
             'camp_num.required' => trans('message.sign_petition_validation.camp_num_required'),
             'camp_num.numeric' => trans('message.sign_petition_validation.camp_num_numeric'),
-            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),    
+            'camp_num.gt' => trans('message.sign_petition_validation.camp_num_gt'),
             'camp_num.max' => [
                 'numeric' => trans('message.sign_petition_validation.camp_num_max_numeric')
             ],
@@ -802,7 +879,7 @@ class ValidationMessages
             ],
         ]);
     }
-    
+
     public function getEmailUpdateValidationMessages(): array
     {
         return ([
@@ -837,4 +914,26 @@ class ValidationMessages
             'email.unique' => trans('message.validation_registration.email_unique')
         ]);
     }
+
+    public function getfacebookDeleteDataCallBackValidationMessages(): array
+    {
+        return ([
+            'signed_request.required' => trans('message.facebook_deletion_callback.signed_request_is_required'),
+        ]);
+    }
+
+    public function getfacebookDeleteDataStatusValidationMessages(): array
+    {
+        return ([
+            'confirmation_code.required' => trans('message.facebook_deletion_status.confirmation_code_is_required'),
+        ]);
+    }
+
+    public function getGravatarValidationMessages(): array
+    {
+        return ([
+            'email.required' => trans('message.validation_gravatar_profile.email_required'),
+        ]);
+    }
+
 }

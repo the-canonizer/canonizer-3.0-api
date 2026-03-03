@@ -37,7 +37,7 @@ use App\Listeners\ForgotPasswordSendOtpListener;
 use App\Listeners\PromotedDelegatesMailListener;
 use App\Events\NotifyDelegatedAndDelegatorMailEvent;
 use App\Listeners\NotifyDelegatedAndDelegatorMailListener;
-use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use App\Events\UnarchiveCampMailEvent;
 use App\Listeners\UnarchiveCampMailListener;
 use App\Events\EmailChangeEvent;

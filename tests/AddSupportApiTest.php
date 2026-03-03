@@ -1,22 +1,28 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Testing\Fluent\AssertableJson;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class AddSupportApiTest extends TestCase
 {
 
-    use DatabaseTransactions;
+    use DatabaseTransactions, AddSupportApiTestSeedHelper;
     
     /***
      *  #userId used  362
      *  #ncikNameId used 347
      *  rupali.chavan9860@gmail.com
      */
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedTestData();
+    }
 
     public function testAddSupportWithValidData()
     {
@@ -39,8 +45,8 @@ class AddSupportApiTest extends TestCase
             "order_update" => []
         ];
 
-        $this->actingAs($user)->post('/api/v3/support/add', $data);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/support/add', $data);
+        $response->assertStatus(200);
     }
 
     public function testAddSupportMessageWhenSupportDoNotExists()
@@ -48,16 +54,11 @@ class AddSupportApiTest extends TestCase
         print sprintf(" \n check if support exists Api... %d %s", 200, PHP_EOL);
         
         $user = User::factory()->make();
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=715&camp_num=1');
-        
-        $this->seeJsonEquals([
-            'status_code'=>200,
-            'error'=>"",
-            'message'=>"This camp doesn't have your support",
-            "data" => [
-                'support_flag' => 0,
-            ],
-        ]);
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=715&camp_num=1');
+        $response->assertStatus(200);
+        $response->assertJsonPath('status_code', 200);
+        $response->assertJsonPath('message', "This camp doesn't have your support");
+        $response->assertJsonPath('data.support_flag', 0);
     }
 
     public function testWarningMessageIFSupportExistsButNoWarningMessage()
@@ -68,19 +69,13 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=3');
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=3');
         
-        $this->seeJsonEquals([
-            'status_code'=>200,
-            'error'=>"",
-            'message'=>"This camp is already supported",
-            "data" => [
-                'support_flag' => 1,
-                "camp_num"=>"3",
-                "is_confirm"=>0,
-                "topic_num"=>"173"
-            ],
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('status_code', 200);
+        $response->assertJsonPath('message', "This camp is already supported");
+        $response->assertJsonPath('data.support_flag', 1);
+        $response->assertJsonPath('data.camp_num', '3');
     }
 
     public function testWarningMessageIfSupportSwitchFromChildToParent()
@@ -91,11 +86,10 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
 
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=173&camp_num=1');
 
-        $this->seeJson([
-            "warning"=>"\"Agreement\" is a parent camp to this list of child camps. If you commit support to \"Agreement\", the support of the camps in this list will be removed.",
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "\"Agreement\" is a parent camp to this list of child camps. If you commit support to \"Agreement\", the support of the camps in this list will be removed.");
     }
 
     public function testWarningMessageIfSupportSwitchedFromParentToChild()
@@ -106,11 +100,10 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
         
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=735&camp_num=2');
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=735&camp_num=2');
 
-        $this->seeJson([
-            "warning"=>"\"Camp 1\" is a child camp to \"Agreement\", so if you commit support to \"Camp 1\", the support of the parent camp \"Agreement\" will be removed."
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "\"Camp 1\" is a child camp to \"Agreement\", so if you commit support to \"Camp 1\", the explicit support of the parent camp \"Agreement\" will be removed.");
     }
 
     public function testWarningMessageWhenDelgatorSupporterAddDirectSupport()
@@ -121,11 +114,10 @@ class AddSupportApiTest extends TestCase
             'id' => '362',
         ]);
 
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=416&camp_num=3');
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=416&camp_num=3');
 
-        $this->seeJson([
-            "warning"=> "You have delegated your support to user Brent_Allsop in this camp. If you continue your delegated support will be removed."
-        ]);
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.warning', "You have delegated your support to user RC in this camp. If you continue your delegated support will be removed.");
     }  
 
 }

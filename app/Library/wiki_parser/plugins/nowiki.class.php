@@ -17,8 +17,8 @@ require_once(dirname(__FILE__) . '/../interface/postParsing.interface.php');
 
 class nowiki implements preParsing, postParsing
 {
-    const remove_content_regular_expression = '/<nowiki>([\s\S]+?)<\/nowiki>/i';
-    const replace_content_regular_expression = '/<nowiki><\/nowiki>/i';
+    public const remove_content_regular_expression = '/<nowiki>([\s\S]+?)<\/nowiki>/i';
+    public const replace_content_regular_expression = '/<nowiki><\/nowiki>/i';
 
     private $no_wiki_items = null;
     

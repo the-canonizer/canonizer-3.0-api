@@ -16,7 +16,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class pmwiki_attachments implements startOfLine
 {
-    const regular_expression = '/Attach:(.*?)(\..*?|)( |$|<)/i';
+    public const regular_expression = '/Attach:(.*?)(\..*?|)( |$|<)/i';
     
     public function __construct()
     {

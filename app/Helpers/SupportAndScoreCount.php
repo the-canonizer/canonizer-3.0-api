@@ -80,7 +80,7 @@ class SupportAndScoreCount
             if($currentCampSupport){
                 $array[$support->nick_name_id]['score'] = $supportPoint;
                 $array[$support->nick_name_id]['full_score'] = $supportFullPoint;
-                $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $supportOrder, $multiSupport, $delegateTree, $asOfTime, $namespaceId);
+                $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $supportOrder, $multiSupport, $asOfTime, $delegateTree, $namespaceId);
                        
             }
         }
@@ -91,7 +91,7 @@ class SupportAndScoreCount
 
     }
 
-    public function traverseChildTree($algorithm, $topicNum, $campNum, $delegateNickId, $parentSupportOrder, $multiSupport, $delegateTree = [], $asOfTime, $namespaceId = 1)
+    public function traverseChildTree($algorithm, $topicNum, $campNum, $delegateNickId, $parentSupportOrder, $multiSupport, $asOfTime, $delegateTree = [], $namespaceId = 1)
     {
      
         $delegatedSupports = Support::where('topic_num', '=', $topicNum)
@@ -114,7 +114,7 @@ class SupportAndScoreCount
                     $array[$support->nick_name_id]['nick_name_link'] = Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum);
                     $array[$support->nick_name_id]['delegate_nick_name_id'] = $support->delegate_nick_name_id;
                     $delegateArr = $delegateTree[$support->nick_name_id]['delegates'];
-                    $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $parentSupportOrder, $multiSupport,$delegateArr, $asOfTime, $namespaceId);
+                    $array[$support->nick_name_id]['delegates'] = $this->traverseChildTree($algorithm, $topicNum, $campNum, $support->nick_name_id, $parentSupportOrder, $multiSupport, $asOfTime, $delegateArr, $namespaceId);
                 }  
             }
 
@@ -405,7 +405,7 @@ class SupportAndScoreCount
     //    return $nick_name_support_tree;
     // }
 
-    public function getCampTotalSupportScore($algorithm, $topicNum, $startCamp = 1, $asOfTime, $asOf = '')
+    public function getCampTotalSupportScore($algorithm, $topicNum, $asOfTime, $startCamp = 1, $asOf = '')
     {
         if($asOf == 'review') {
             $topicChild = Camp::where('topic_num', '=', $topicNum)
@@ -435,7 +435,7 @@ class SupportAndScoreCount
         $tree[$startCamp]['camp_num'] = $startCamp;
         $tree[$startCamp]['score'] = $this->getCampSupportCount($algorithm, $topicNum, $startCamp, $asOfTime,null,false);
         $tree[$startCamp]['full_score'] = $this->getCampSupportCount($algorithm, $topicNum, $startCamp, $asOfTime,null,true);
-        $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNum, $startCamp, null, $asOfTime);
+        $tree[$startCamp]['children'] = $this->traverseCampTree($algorithm, $topicNum, $startCamp, $asOfTime, null);
         $reducedTree = $this->sumTranversedTreeScore($tree);        
         $sortTree = $this->sortTree($reducedTree);
 
@@ -478,7 +478,7 @@ class SupportAndScoreCount
         return $support_total;
     }
 
-    public function traverseCampTree($algorithm, $topicNum, $parentCamp, $lastParent = null, $asOfTime) 
+    public function traverseCampTree($algorithm, $topicNum, $parentCamp, $asOfTime, $lastParent = null) 
     {
         $key = $topicNum . '-' . $parentCamp . '-' . $lastParent;
 
@@ -494,7 +494,7 @@ class SupportAndScoreCount
             $array[$child->camp_num]['score'] = $this->getCampSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime,null,false);
             $array[$child->camp_num]['full_score'] = $this->getCampSupportCount($algorithm, $child->topic_num, $child->camp_num, $asOfTime,null,true);
            
-            $children = $this->traverseCampTree($algorithm, $child->topic_num, $child->camp_num, $child->parent_camp_num, $asOfTime);
+            $children = $this->traverseCampTree($algorithm, $child->topic_num, $child->camp_num, $asOfTime, $child->parent_camp_num);
             $array[$child->camp_num]['children'] = is_array($children) ? $children : [];
         }
         return $array;

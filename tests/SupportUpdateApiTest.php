@@ -1,7 +1,9 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\User;
 
 class SupportUpdateApiTest extends TestCase
@@ -17,7 +19,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request support re-order api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support-order/update', []);
-        $this->assertEquals(401, $response->status());
+        $response->assertStatus(401);
     }
 
     /**
@@ -27,7 +29,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request remove support  api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support/update', []);
-        $this->assertEquals(401, $response->status());
+        $response->assertStatus(401);
     }
 
     /**
@@ -40,7 +42,7 @@ class SupportUpdateApiTest extends TestCase
         $data = [];
         $this->actingAs($user)
         ->post('/api/v3/support/update',$data);
-        $this->assertEquals(500, $this->response->status());
+        $response->assertStatus(500);
     }
 
 
@@ -59,7 +61,7 @@ class SupportUpdateApiTest extends TestCase
 
         $this->actingAs($user)
         ->post('/api/v3/support/update',$data);
-        $this->assertEquals(200, $this->response->status());
+        $response->assertStatus(200);
     }
 
     public function testUpateSupportWithValidaData()
@@ -83,7 +85,7 @@ class SupportUpdateApiTest extends TestCase
         ];
         $this->actingAs($user)
         ->post('/api/v3/support-order/update',$data);
-        $this->assertEquals(200, $this->response->status());
+        $response->assertStatus(200);
     }
 
     /**
@@ -95,7 +97,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request remove delegate support API. %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support/remove-delegate', []);
-        $this->assertEquals(401, $response->status());
+        $response->assertStatus(401);
     }
 
     public function testRemoveDelegataeSupporttWithValidaData()
@@ -110,8 +112,8 @@ class SupportUpdateApiTest extends TestCase
             "delegated_nick_name_id" => "1"
         ];
 
-        $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
+        $response->assertStatus(200);
     }
     
 }

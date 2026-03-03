@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class EditTopicRecordApiTest extends TestCase
@@ -11,8 +13,8 @@ class EditTopicRecordApiTest extends TestCase
     public function testEdiTopicRecordApiWithoutUserAuth()
     {
         print sprintf("Test without auth");
-        $this->post('/api/v3/edit-topic');
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->post('/api/v3/edit-topic');
+        $response->assertStatus(401);
     }
 
     /**
@@ -23,8 +25,8 @@ class EditTopicRecordApiTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-topic',[]);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/edit-topic',[]);
+        $response->assertStatus(400);
     }
 
     /**
@@ -34,8 +36,8 @@ class EditTopicRecordApiTest extends TestCase
     {
         print sprintf("\n Test edit topic API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-topic');
-        $this->seeJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/edit-topic');
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

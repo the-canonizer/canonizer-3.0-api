@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class StoreNewsFeedApiTest extends TestCase
@@ -16,8 +18,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -39,8 +41,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -62,8 +64,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -73,7 +75,7 @@ class StoreNewsFeedApiTest extends TestCase
     public function testStoreNewsFeedWithoutUserAuth()
     {
         print sprintf("Test with empty form data");
-        $this->post('/api/v3/store-camp-newsfeed', []);
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->post('/api/v3/store-camp-newsfeed', []);
+        $response->assertStatus(401);
     }
 }

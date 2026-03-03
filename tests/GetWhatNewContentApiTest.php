@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetWhatNewContentApiTest extends TestCase
@@ -13,8 +15,8 @@ class GetWhatNewContentApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)->get('/api/v3/get-whats-new-content',$header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->get('/api/v3/get-whats-new-content',$header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 }

@@ -528,10 +528,9 @@ class TopicSupport
             //timeline start
         
             $subjectStatement = "has just delegated their support to";
-            $channel = config('global.notify.email');
-            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId, null, $channel);
+            self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, config('global.notification_type.addDelegate'), $delegateNickNameId, null, [$delegateNickNameId]);
 
-            GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
+            // GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add-delegate', null, $nickName,$delegateNickNameId);
             GetPushNotificationToSupporter::pushNotificationToDelegater($topicNum, $campNum, $nickNameId, $delegateNickNameId);
 
             if($supportToAdd[0]->delegate_nick_name_id)  // if  delegated user is a delegated supporter itself, then notify
@@ -680,7 +679,7 @@ class TopicSupport
      */
     public static function getTopicLink($topic)
     {   
-        return  Topic::topicLink($topic->topic_num, 1, $topic->title);
+        return  Topic::topicLink($topic->topic_num, $topic->title, 1);
     }
 
 
@@ -691,7 +690,7 @@ class TopicSupport
     */
     public static function getCampLink($topic, $camp)
     {
-        return  Topic::topicLink($topic->topic_num, $camp->camp_num, $topic->title, $camp->camp_name);
+        return  Topic::topicLink($topic->topic_num, $topic->title, $camp->camp_num, $camp->camp_name);
     }  
     
     /**
@@ -746,7 +745,7 @@ class TopicSupport
                     $directSupports[$support->nick_name_id]['topic'][$support->topic_num] = array(
                         'topic_num' => $support->topic_num,
                         'title' => $support->title,
-                        'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                        'title_link' => Topic::topicLink($support->topic_num, $support->title, 1),
                         'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '',
                         'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
                         'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '' ,
@@ -771,7 +770,7 @@ class TopicSupport
                         $support->topic_num => array(
                             'topic_num' => $support->topic_num,
                             'title' => $support->title,
-                            'title_link' => Topic::topicLink($support->topic_num,1,$support->title),
+                            'title_link' => Topic::topicLink($support->topic_num, $support->title, 1),
                             'my_nick_name' => isset($support->my_nick_name) ? $support->my_nick_name : '' ,
                             'my_nick_name_link' => Nickname::getNickNameLink($userId, $support->namespace_id, $support->topic_num, $support->camp_num),
                             'delegated_to_nick_name' => isset($support->delegated_to_nick_name) ? $support->delegated_to_nick_name : '',
@@ -798,85 +797,91 @@ class TopicSupport
 
     public static function groupCampsForNickId($results, $nickname,$namespaceId = 1)
     {
-        $supports[$nickname->id] = [];
-        $supports[$nickname->id]['nick_name_id'] = $nickname->id;
-        $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
-        $supports[$nickname->id]['private_status'] = $nickname->private;
-        
-        foreach ($results as $rs) {
-            $topic_num = $rs->topic_num;
-            $camp_num = $rs->camp_num;
-            $filter['topicNum'] = $topic_num;
-            $filter['asOf'] = '';
-            $filter['campNum'] =  $camp_num;
-            $livecamp = Camp::getLiveCamp($filter);
-            $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-            $delegatedToNickname = '';
-            if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
-                continue;
-            }
-            //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
-           // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
-            $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
-            $topic_id = $topic_num . "-" . $title;
-            $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
+            $supports[$nickname->id] = [];
+            $supports[$nickname->id]['nick_name_id'] = $nickname->id;
+            $supports[$nickname->id]['nick_name'] = $nickname->nick_name;
+            $supports[$nickname->id]['private_status'] = $nickname->private;
+            $supports[$nickname->id]['topic'] = [];
             
-            if(isset($rs->delegate_nick_name_id) && $rs->delegate_nick_name_id){
-                $dnModel = Nickname::getNickName($rs->delegate_nick_name_id);
-                $delegatedToNickname = $dnModel->nick_name;
-            }
-
-            if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
-
-                $tempCamp = [
-                            'camp_name' => $livecamp->camp_name, 
-                            'camp_num' => $camp_num, 
-                            'support_order' => $rs->support_order,
-                            'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
-                            'delegate_nick_name_id' => $rs->delegate_nick_name_id,
-                            'delegate_nick_name' => $delegatedToNickname
-                        ];
+            foreach ($results as $rs) {
+                $topic_num = $rs->topic_num;
+                $camp_num = $rs->camp_num;
+                $filter['topicNum'] = $topic_num;
+                $filter['asOf'] = '';
+                $filter['campNum'] =  $camp_num;
+                $livecamp = Camp::getLiveCamp($filter);
+                $liveTopic = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+                $delegatedToNickname = '';
+                if(isset($namespaceId) && $namespaceId != $liveTopic->namespace_id){
+                    continue;
+                }
+                //$topicLive = Topic::getLiveTopic($topic_num,['nofilter'=>true]);
+               // $title = preg_replace('/[^A-Za-z0-9\-]/', '-', ($topicLive->title != '') ? $livecamp->title : $livecamp->camp_name);
+                $title = preg_replace('/[^A-Za-z0-9\-]/', '-', $liveTopic->topic_name); 
+                $topic_id = $topic_num . "-" . $title;
+                $url = Util::getTopicCampUrl($liveTopic->topic_num, 1, $liveTopic, $livecamp, time());
                 
-                if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
-                    array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
-                }else{
-                    $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+                if(isset($rs->delegate_nick_name_id) && $rs->delegate_nick_name_id){
+                    $dnModel = Nickname::getNickName($rs->delegate_nick_name_id);
+                    $delegatedToNickname = $dnModel->nick_name;
                 }
-
-            } else if ($camp_num == 1) { 
-
-                //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-                $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
-                $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, 1, $title);
-                $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
-                $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
-                $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
-                if($rs->delegate_nick_name_id){
-                    $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
-                    $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name'] = $delegatedToNickname;
-                }
-                
-            } else {
-
-                $tempCamp = [
-                    'camp_name' => $livecamp->camp_name, 
-                    'camp_num' => $camp_num, 
-                    'support_order' => $rs->support_order,
-                    'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
-                    'delegate_nick_name_id'=>$rs->delegate_nick_name_id,
-                    'delegate_nick_name' => $delegatedToNickname
-                ];
-
-                if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
-                    array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
-                }else{
-                    $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+    
+                if ($rs->delegate_nick_name_id && $camp_num != 1 ) {
+                    $tempCamp = [
+                                'camp_name' => $livecamp->camp_name, 
+                                'camp_num' => $camp_num, 
+                                'support_order' => $rs->support_order,
+                                'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$rs->title,$rs->camp_name),
+                                'delegate_nick_name_id' => $rs->delegate_nick_name_id,
+                                'delegate_nick_name' => $delegatedToNickname
+                            ];
+                    
+                    if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
+                        array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
+                    }else{
+                        $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+                    }
+    
+                } else if ($camp_num == 1) { 
+                    //$supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
+                    $supports[$nickname->id]['topic'][$topic_num]['topic_num'] = $topic_num;
+                    $supports[$nickname->id]['topic'][$topic_num]['title_link'] = Topic::topicLink($topic_num, $title, 1);
+                    $supports[$nickname->id]['topic'][$topic_num]['title'] = $liveTopic->topic_name;
+                    $supports[$nickname->id]['topic'][$topic_num]['camp_name'] = ($rs->camp_name != "") ? $livecamp->camp_name : $livecamp->title;
+                    $supports[$nickname->id]['topic'][$topic_num]['namespace_id'] = $namespaceId;
+                    if($rs->delegate_nick_name_id){
+                        $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name_id'] = $rs->delegate_nick_name_id;
+                        $supports[$nickname->id]['topic'][$topic_num]['delegate_nick_name'] = $delegatedToNickname;
+                    } 
+                } else {
+                    $tempCamp = [
+                        'camp_name' => $livecamp->camp_name, 
+                        'camp_num' => $camp_num, 
+                        'support_order' => $rs->support_order,
+                        'camp_link' =>  Camp::campLink($rs->topic_num,$rs->camp_num,$liveTopic->topic_name,$rs->camp_name),
+                        'delegate_nick_name_id'=>$rs->delegate_nick_name_id,
+                        'delegate_nick_name' => $delegatedToNickname
+                    ];
+                    if(isset($supports[$nickname->id]['topic'][$topic_num]['camps'])){
+                        array_push($supports[$nickname->id]['topic'][$topic_num]['camps'],$tempCamp);
+                    }else{
+                        $supports[$nickname->id]['topic'][$topic_num]['camps'][] = $tempCamp;
+                    }
                 }
             }
+            $hasCamps = false;
+            foreach ($supports[$nickname->id]['topic'] as $topic_data) {
+                if (!empty($topic_data['camps'])) {
+                    $hasCamps = true;
+                    break;
+                }
+            }
+            // If no camps are found for the nickname, return null or empty array
+            if (!$hasCamps) {
+                return []; // Or return [] if you prefer an empty array
+            }
+            return $supports;
         }
-
-        return $supports;
-    }
 
     /**
      * [Recursive function ro remove delegate support]
@@ -973,15 +978,19 @@ class TopicSupport
      * @param array $data [is mail data]
      * @return void
      */
-    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null, $channel = null)
+    public static function SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, $action = "add", $delegatedNickNameId ='', $previousCampLeaderNickId = null, $excludeNickNameIdForNotification = [])
     {
         $topicFilter = ['topicNum' => $topicNum];
         $campFilter = ['topicNum' => $topicNum, 'campNum' => $campNum];
         $topic = Camp::getAgreementTopic($topicFilter);
         $camp  = self::getLiveCamp($campFilter);
         $nickname =  Nickname::getNickName($nickNameId);
-        $subject = (isset($delegatedNickNameId) && $delegatedNickNameId) ? Nickname::getNickName($delegatedNickNameId)->nick_name : $topic->topic_name ." >> ".$camp->camp_name;
-        $object = (isset($delegatedNickNameId) && $delegatedNickNameId) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, 'camp');
+        $delegatedNickname = null;
+        if (!empty($delegatedNickNameId)) {
+            $delegatedNickname = Nickname::getNickName($delegatedNickNameId);
+        }
+        $subject = ($delegatedNickname) ? $delegatedNickname->nick_name : $topic->topic_name ." >> ".$camp->camp_name;
+        $object = ($delegatedNickname) ? $topic->topic_name : Helpers::renderParentCampLinks($topic->topic_num, $camp->camp_num, $topic->topic_name, true, 'camp');
         $topicLink =  self::getTopicLink($topic);
         $campLink = self::getCampLink($topic,$camp);
         $seoUrlPortion = Util::getSeoBasedUrlPortion($topicNum, $campNum, $topic, $camp);
@@ -1018,7 +1027,7 @@ class TopicSupport
         $liveThread = null;
         $threadId = null;
         $link = null;
-        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, $action, $nickname->nick_name, null);
+        $getMessageData = GetPushNotificationToSupporter::getMessageData(Auth::user(), $topic, $camp, $liveThread, $threadId, $action, $nickname->nick_name, (($delegatedNickname) ? $delegatedNickname->nick_name : null));
 
         $notificationData['email'] = $data;
 
@@ -1033,8 +1042,8 @@ class TopicSupport
                 "thread_id" => !empty($threadId) ? $threadId : null,
             ];
         }
-        $channel = $channel ?? config('global.notify.both');
-        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel));
+        $channel = config('global.notify.both');
+        Event::dispatch(new NotifySupportersEvent($camp, $notificationData, $action, $link, $channel, $excludeNickNameIdForNotification));
         return true;
     }
 
@@ -1287,9 +1296,8 @@ class TopicSupport
                 
                 if ($parent->camp_num != $campNum) {
 
-                    $returnData['is_confirm'] = 1;
-                    $returnData['is_parent'] = 1;   
-                    $returnData['warning'] = '"' . $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the support of the parent camp "' .$parentCampName .'" will be removed.';
+                    $returnData['is_confirm'] = 1;  
+                    $returnData['warning'] = '"' . $onecamp->camp_name .'" is a child camp to "' .$parentCampName .'", so if you commit support to "'.$onecamp->camp_name .'", the explicit support of the parent camp "' .$parentCampName .'" will be removed.';
                 }
             }
         } else {
@@ -1304,7 +1312,7 @@ class TopicSupport
     /**
      *  [This will add support ]
      */
-    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0,$reason,$reason_summary,$citation_link)
+    public static function addSupport($topicNum, $campNum, $supportOrder, $nickNameId, $delegatedNickNameId = 0, $reason,$reason_summary='', $citation_link='')
     {
         $support = new Support();
         $support->topic_num = $topicNum;
@@ -1498,16 +1506,50 @@ class TopicSupport
     /** 
      * Return Add support API message
      */
-    public static function getMessageBasedOnAction($add, $remove, $reOrder)
+    public static function getMessageBasedOnAction($add, $remove, $reOrder, $topicNum)
     {
-        $message = trans('message.support.update_support');
+        $message = []; 
 
-        if($add && !$remove)
+        if(!empty($add))
         {
-            $message = trans('message.support.add_direct_support');
-        }else if(!$add && $remove)
-        {
-            $message = trans('message.support.remove_direct_support');
+            $filter['topicNum'] = $topicNum;
+            $filter['asOf'] = '';
+            $filter['campNum'] = $add['camp_num'];
+            $camp = self::getLiveCamp($filter, ['camp_name']); 
+            $message['add'] = trans('message.support.add_direct_support',['camp_name' => $camp->camp_name]);
+        }
+
+        if(!empty($remove))
+        { 
+            $filter['topicNum'] = $topicNum;
+            $filter['asOf'] = '';
+
+            foreach($remove as $rmCamp) {
+                $filter['campNum'] = $rmCamp;
+                $camp = self::getLiveCamp($filter, ['camp_name']);
+                if(!empty($add)) {
+                    $filter['campNum'] = $add['camp_num'];
+                    $checkParentOfCamp = self::getLiveCamp($filter, ['camp_name']);
+                    $checkParentOfCamp = $checkParentOfCamp->parent_camp_num;
+                    /** if the camp in which we are adding support have parent. 
+                     * then check that parent in remove camp array. 
+                     * if exist then show updated explicit message about support.
+                     * else simple message for removed support.
+                    **/
+                    if (in_array($checkParentOfCamp, $remove)) {
+                        $msg = trans('message.support.remove_direct_support_updated', ['camp_name' => $camp->camp_name]);
+                    } else {
+                        $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                    }
+                } else {
+                    $msg = trans('message.support.remove_direct_support', ['camp_name' => $camp->camp_name]);
+                }
+                $message['remove'][] = $msg;
+            }
+         }
+         
+        if(empty($add) && empty($remove) && !empty($reOrder)){
+            $message['update'] = trans('message.support.update_support');
         }
 
         return $message;
@@ -1520,22 +1562,36 @@ class TopicSupport
      */
     public static function getAllDelegates($topicNum, $nickNameId, $delegates = [])
     {
+
         $delegateSupporters =  Support::getActiveDelegators($topicNum, [$nickNameId]);
-        
-        if(!empty($delegateSupporters))
-        {
-            foreach($delegateSupporters as $ds){
+        if ($delegateSupporters && count($delegateSupporters)) {
+
+            foreach ($delegateSupporters as $ds) {
+
                 $temp = [
                     'nick_name_id' => $ds->nick_name_id,
-                    'delegate_nick_name_id' => $ds->delegate_nick_name_id
+                    'delegate_nick_name_id' => $ds->delegate_nick_name_id,
                 ];
-                array_push($delegates, $temp);
 
-                $subDelegates =  Support::getActiveDelegators($topicNum, [$ds->nick_name_id]);
-               
-                if(count($subDelegates)){
-                    return self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
+                // ✅ Add only if not already included
+                $exists = false;
+                foreach ($delegates as $d) {
+                    if (
+                        $d['nick_name_id'] == $temp['nick_name_id'] &&
+                        $d['delegate_nick_name_id'] == $temp['delegate_nick_name_id']
+                    ) {
+                        $exists = true;
+                        break;
+                    }
                 }
+
+                if (!$exists) {
+                    $delegates[] = $temp;
+                }
+            }
+            foreach ($delegateSupporters as $ds) {
+                // ✅ Recurse deeper (note the "&$delegates" pass-by-reference)
+                $delegates = self::getAllDelegates($topicNum, $ds->nick_name_id, $delegates);
             }
         }
 
@@ -1737,7 +1793,7 @@ class TopicSupport
                 array_push($campsToemoved, $temp);
             }
 
-            $returnData['warning'] = "You have already delegated your support for this camp to user " . $alreadyDelegatedTo->nick_name . ". If you continue your delegated support will be removed.";
+            $returnData['warning'] = "You have already delegated your support for this camp to user:-  " . $alreadyDelegatedTo->nick_name . ". If you continue your delegated support will be removed.";
             $returnData['topic_num'] = $topicNum;
             $returnData['camp_num'] = $campNum;
             $returnData['is_confirm'] = 1;
@@ -1755,13 +1811,17 @@ class TopicSupport
         $livecamp = Camp::getLiveCamp(['topicNum' => $topic_num, 'campNum' => $camp_num]);
         $directSupporters = collect(Support::getDirectSupporter($topic_num, $camp_num));
 
+        $supoortValidation = self::checkSupportValidaionAndWarning($topic_num, $camp_num, $nickNames, $livecamp->camp_leader_nick_id ?? 0);
+        $remove_camps = array_key_exists('remove_camps', $supoortValidation) ? $supoortValidation['remove_camps'] : [];
+        $haveWarning = count($remove_camps) > 0;
+
         /**
          * Case 1: If there not any direct supporter.
          * Tooltip messages from: https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1020
          */
         if ($directSupporters->count() === 0) {
-            $warning = "There is no direct supporter for camp <b>" . $livecamp->camp_name . "</b>. You will be appointed as Camp Leader and your support will also be added to the camp, if you continue.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+            $warning = "There is no direct supporter for camp <b>" . $livecamp->camp_name . "</b>. You will be appointed as Camp Leader and your direct support will also be added to current camp.";
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, $remove_camps, $haveWarning);
         }
 
         /**
@@ -1769,7 +1829,7 @@ class TopicSupport
          */
         if ($directSupporters->count() === 1 && in_array($livecamp->camp_leader_nick_id, $nickNames)) {
             $warning = "As you are the current Camp Leader, hence you cannot sign the petition.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id);
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', $livecamp->camp_leader_nick_id, $remove_camps, $haveWarning);
         }
 
         $userSignedCamp = self::getUserSignedCamp($topic_num, $camp_num, $nickNames);
@@ -1778,8 +1838,8 @@ class TopicSupport
          */
         if ($directSupporters->count() > 0 && !in_array($livecamp->camp_leader_nick_id, $nickNames) && !is_null($livecamp->camp_leader_nick_id) && count($userSignedCamp) === 0) {
             $nickName = Nickname::getNickName($livecamp->camp_leader_nick_id)->nick_name;
-            $warning = "<b>" . $nickName . "</b> is the Leader of this camp. By continuing, your support will be delegated to this user.";
-            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+            $warning = "<b>" . $nickName . "</b> is the leader of this camp. By continuing, your support will be delegated to the leader of this camp.";
+            return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'warning', null, $remove_camps, $haveWarning);
         }
 
         /**
@@ -1789,10 +1849,10 @@ class TopicSupport
             $oldest_direct_supporter = self::findOldestDirectSupporter($topic_num, $camp_num);
             if ($oldest_direct_supporter) {
                 $nickName = Nickname::getNickName($oldest_direct_supporter->nick_name_id)->nick_name;
-                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'you will be added as direct supporter and assigned as camp leader.'
-                : "the oldest direct supporter (\"" . $nickName . "\") will be assigned as new camp leader and your support will be delegated to the camp leader.";
-                $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. If you continue, " . $oldestDirectSupportMessage;
-                return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null);
+                $oldestDirectSupportMessage = in_array($oldest_direct_supporter->nick_name_id, $nickNames) ? 'You will be added as direct supporter and assigned as camp leader. '
+                : "The oldest direct supporter <b>" . $nickName . "</b> will be assigned as new camp leader and your support will be delegated to the camp leader.";
+                $warning = "There is no camp leader of this camp <b>" . $livecamp->camp_name . "</b>. " . $oldestDirectSupportMessage;
+                return self::checkSignCampInfo($topic_num, $camp_num, $warning, 'info', null, $remove_camps, $haveWarning);
             }
         }
 
@@ -1842,13 +1902,13 @@ class TopicSupport
         return $returnData;
     }
 
-    public static function checkSignCampInfo($topic_num, $camp_num, $warning, $warning_type = 'info', $delegated_nick_name_id = null, $remove_camps = []) 
+    public static function checkSignCampInfo($topic_num, $camp_num, $warning, $warning_type = 'info', $delegated_nick_name_id = null, $remove_camps = [], $isHaveWarning = false) 
     {
         
-        $warning = "<span><b>" . ucfirst($warning_type) . "!</b> " . $warning . "</span>";
+        $warning = "<span>" . $warning . "</span>";
 
         return [
-            'warning' => $warning,
+            'warning' => $isHaveWarning ? $warning . " And your support will be removed from following camps." : $warning,
             'topic_num' => $topic_num,
             'camp_num' => $camp_num,
             'delegated_nick_name_id' => $delegated_nick_name_id,

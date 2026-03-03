@@ -67,9 +67,32 @@
 
                             <ul style="padding-left: 50px;">
                                 @if (isset($data['support_list']) && count($data['support_list']) > 0)
-                                    @foreach ($data['support_list'] as $support)
-                                        <li>You are directly supporting <b>{!!  \App\Facades\Util::linkForEmail($support) !!}</b></li>
-                                    @endforeach
+
+                                    <li>You are directly supporting <b><a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
+                                            {{ $data['camp_name'] }} </a></b>
+                                    </li>
+
+                                    @php
+                                        $filtered_supports = [];
+
+                                        foreach ($data['support_list'] as $support) {
+                                            preg_match('/href="([^"]+)"/', $support, $matches);
+                                            $href = $matches[1] ?? '';
+                                            if ($href !== $data['camp_link']) {
+                                                $filtered_supports[] = $support;
+                                            }
+                                        }
+                                    @endphp
+
+                                    @if(count($filtered_supports))
+                                        <p>You have also supported other sibling camps listed below. This list is just to assist you to directly access these camps if you want to.</p>
+                                        <ul>
+                                            @foreach ($filtered_supports as $support)
+                                                <li>You are directly supporting <b>{!! $support !!}</b></li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+
                                 @else
                                     <li>You are directly supporting <b><a href="{{ \App\Facades\Util::linkForEmail($data['camp_link']) }}">
                                             {{ $data['camp_name'] }} </a></b></li>

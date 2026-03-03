@@ -5,11 +5,9 @@ namespace App\Providers;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Nickname;
-use Illuminate\Http\Request;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Dusterio\LumenPassport\LumenPassport;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -30,21 +28,12 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Passport::tokensExpireIn(now()->addMonths(6));
+        Passport::refreshTokensExpireIn(now()->addMonths(7));
+        Passport::personalAccessTokensExpireIn(now()->addMonths(6));
+        Passport::enablePasswordGrant();
 
-        //$this->registerPolicies();
-        LumenPassport::routes($this->app);
-        $this->setPassportConfiguration();
-
-        // Here you may define how you wish users to be authenticated for your Lumen
-        // application. The callback which receives the incoming request instance
-        // should return either a User instance or null. You're free to obtain
-        // the User instance via an API token or any other method necessary.
-
-        $this->app['auth']->viaRequest('api', function ($request) {
-            if ($request->input('api_token')) {
-                return User::where('api_token', $request->input('api_token'))->first();
-            }
-        });
+        // Note: In Laravel 11, we may need to use a separate migrations or commands to manage scopes if needed.
 
         // gate to check nicnameId belonges to authorized user only 
         Gate::define('nickname-check', function (User $user, $nickNameId) {
@@ -54,10 +43,5 @@ class AuthServiceProvider extends ServiceProvider
             }
             return true;
         });
-    }
-
-    private function setPassportConfiguration(): void
-    {
-            LumenPassport::allowMultipleTokens();
     }
 }

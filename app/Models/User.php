@@ -5,7 +5,7 @@ namespace App\Models;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Lumen\Auth\Authorizable;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -109,7 +109,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path'
+       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path', 'birthday', 'gender', 'address_1', 'country', 'state' , 'postal_code'
     ];
 
     /**
@@ -128,6 +128,13 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         }else{
             return $value;
         }
+    }
+
+    // Define the accessor for the profile_picture_path attribute
+    public function getProfilePicturePathAttribute($value)
+    {
+        if(empty($value)) return null;
+        return urldecode(env('AWS_PUBLIC_URL') . '/' . $value);
     }
 
     public function setBirthdayAttribute($value)
@@ -204,6 +211,15 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return Hash::check($password, $owerridedPassword);
     }
 
+    public function tags() {
+        return $this->hasMany(UserTag::class, 'user_id', 'id');
+    }
+
+    public function userActiveTags() {
+        return $this->hasManyThrough(Tag::class, UserTag::class, 'user_id', 'id', 'id', 'tag_id')
+                    ->where('tags.is_active', true);
+    }
+    
     public function userOAuthTokenForFCM()
     {
         return $this->refreshOAuthToken('fcm', $this->id)['token'];

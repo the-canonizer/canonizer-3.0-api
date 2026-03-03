@@ -38,7 +38,8 @@ return [
         'objection_history_changed' => 'Cannot object to the :history. It is already live.',
         'disagree_history_changed' => 'Cannot disagree because this :history is already live.',
         'disagree_objected_history_changed' => 'Cannot disagree because this :history is already objected.',
-        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.'
+        'camp_archive_change_is_already_submitted' => 'Cannot resubmit the camp unarchive change.',
+        'draft_is_already_exists' => 'Draft is already exists.'
     ],
     'success' => [
         'success'          => 'Success',
@@ -59,8 +60,10 @@ return [
         'subscribed'  => 'Subscribed successfully.',
         'unsubscribed'  => 'Unsubscribed successfully.',
         'statement_create'  => 'Statement submitted successfully.',
+        'statement_draft_create'  => 'Draft submitted successfully.',
         'statement_object'  => 'Objection submitted successfully.',
         'statement_update'  => 'Statement updated successfully.',
+        'draft_update'  => 'Draft updated successfully.',
         'statement_commit'  => 'Your change to statement has been submitted to your supporters.',
         'statement_agree'  => ' Your agreement to statement is submitted successfully.',
         'topic_agree'  => ' Your agreement to topic is submitted successfully.',
@@ -70,6 +73,9 @@ return [
         'topic_commit'  => 'Your change to topic has been submitted to your supporters.',
         'topic_object'  => 'Objection submitted successfully.',
         'topic_update'  => 'Topic updated successfully.',
+        'camp_object'  => 'Objection submitted successfully.',
+        'default_nick_name' => 'Default Nickname set successfully.',
+        'preferences_update' => 'Preferences Updated Successfully.'
     ],
     'general' => [
         'nickname_association_absence' => "Nickname not associated.",
@@ -83,17 +89,17 @@ return [
         "namespace_should_numeric" => "Namespace should be integer"
     ],
     'validation_registration' => [
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'first_name_required' => 'The first name field is required.',
         'first_name_max' => 'The first name can not be more than 100.',
         'first_name_string' => 'The first name should be string.',
 
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'middle_name_required' => 'The middle name field is required.',
         'middle_name_max' => 'The middle name can not be more than 100.',
         'middle_name_string' => 'The middle name should be string.',
 
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
         'last_name_required' => 'The last name field is required.',
         'last_name_max' => 'The last name can not be more than 100.',
         'last_name_string' => 'The last name should be string.',
@@ -102,16 +108,16 @@ return [
         'email_string' => 'The email should be string.',
         'email_email' => 'The email should be a valid email.',
         'email_max' => 'The email can not be more than 225.',
-        'email_unique' => 'The email is already used..',
-        
+        'email_unique' => 'This email is already registered.',
+
         'password_required' => 'Password is required.',
         'password_regex' => 'Password must be atleast 8 characters, including atleast one digit, one lower case letter and one special character(@,# !,$..).',
-        
+
         'password_confirmation_required' => 'The confirm password field is required.',
         'password_confirmation_same' => 'The password confirmation does not match.',
-        
-        'phone_number_unique' => 'Phone number is already used.',
-        
+
+        'phone_number_unique' => 'Contact number is already registered.',
+
         'country_code_required' => 'The country code is required.',
     ],
     'validation_change_password' => [
@@ -124,15 +130,15 @@ return [
     ],
     'validation_update_profile' => [
         'first_name_required' => 'First name is required.',
-        'first_name_regex' => 'The first name must be in alphabets and space only.',
+        'first_name_regex' => 'Please enter a valid first name (only letters allowed).',
         'last_name_required' => 'Last name is required.',
-        'last_name_regex' => 'The last name must be in alphabets and space only.',
-        'middle_name_regex' => 'The middle name must be in alphabets and space only.',
+        'last_name_regex' => 'Please enter a valid last name (only letters allowed).',
+        'middle_name_regex' => 'Please enter a valid middle name (only letters allowed).',
         'city_regex' => 'The city name must be in alphabets and space only.',
         'state_regex' => 'The state name must be in alphabets and space only.',
         'country_regex' => 'The country name must be in alphabets and space only.',
         'postal_code_regex' => 'The postal code name must be in alphabets and space only.',
-        
+
         'profile_picture_required' => 'Profile Picture is required.',
         'profile_picture_file' => 'The :attribute must be a file.',
         'profile_picture_mimes' => 'The :attribute must be a file of type: png,jpg,jpeg.',
@@ -151,7 +157,7 @@ return [
         'camp_name_regex' => 'Camp name can only contain space and alphanumeric characters.',
         'nick_name_required' => 'The nick name field is required.',
         'camp_name_required' => 'Camp name is required.',
-        'camp_name_max' => 'Camp name can not be more than 30 characters.',
+        'camp_name_max' => 'Camp name can not be more than 80 characters.',
         'camp_name_unique' => 'The camp name has already been taken.',
         'camp_about_url_max' => "Camp's about url can not be more than 1024 characters.",
         'camp_about_url_regex' => "The camp about url format is invalid. (Example: https://www.example.com?post=1234)",
@@ -164,10 +170,10 @@ return [
     ],
     'validation_topic_store' => [
         'topic_name_required' => 'Topic name is required.',
-        'topic_name_max' => 'Topic name can not be more than 30 characters.',
+        'topic_name_max' => 'Topic name can not be more than 80 characters.',
         'topic_name_regex' => 'Topic name can only contain space and alphanumeric characters.',
         'topic_name_unique' => 'The topic name has already been taken.',
-        'topic_name_under_review' => 'The topic name has already taken and under processing.',
+        'topic_name_under_review' => 'The topic name has already taken and is in review.',
         'namespace_required' => 'Namespace is required.',
         'create_namespace_required_if' => 'The Other Namespace Name field is required when namespace is other.',
         'create_namespace_max' => 'The Other Namespace Name can not be more than 100 characters.',
@@ -175,7 +181,8 @@ return [
         'objection_reason_required' => 'Objection reason is required.',
         'objection_reason_max' => 'Objection reason can not be more than 100.',
         'asof_in' => "Please enter a valid asof value (default, review, bydate) or leave it empty",
-        
+        'is_rank_hidden_boolean' => 'The Hide Rank field should be boolean.'
+
     ],
     'validation_get_statement' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
@@ -235,12 +242,14 @@ return [
         'camp_num_required' => "Camp number is required",
         'topic_num_numeric' => "Topic Num should be a numeric.",
         'camp_num_numeric' => "Camp Num should be a numeric.",
+        'parent_camp_num_numeric' => "Parent camp number should be a numeric.",
+        'parent_camp_num_required' => "Parent camp number is required.",
     ],
     'validation_get_topic_record' => [
         'as_of_in' => "Please enter a valid value (default,review,bydate) or leave it empty",
         'as_of_date_required_if' => "Asof date is required in case of asof bydate",
         'topic_num_required' => "Topic number is required.",
-        'camp_num_required' => "Camp number is required"
+        'camp_num_required' => "Camp number is required",
     ],
     'get_all_parent_camp' => [
         'topic_num_required' => 'Topic Num is required.'
@@ -347,17 +356,19 @@ return [
         'event_type_required' => 'Event type is required.',
     ],
     'support'  => [
-        'add_direct_support' => 'Support added successfully.',
+        'add_direct_support' => 'Thank you for adding your support to camp: :camp_name',
         'add_delegate_support' => 'You have delegated your support successfully.',
         'add_delegation_support' => 'Support delegated successfully.',
+        'sign_petition' => 'Petition has been signed to camp leader successfully.',
         'complete_support_removed' => 'Support removed successfully.',
         'order_update' => 'Support order updated successfully',
         'delegate_support_removed' => 'Your delegation has been removed successfully.',
         'delegate_invalid_request' => 'Invalid request, please try again later.',
         'support_exist' => 'This camp is already supported',
         'support_not_exist' => "This camp doesn't have your support",
-        'update_support' => 'Support updated successfully.',
-        'remove_direct_support' => 'Support removed successfully.',
+        'update_support' => 'Support order updated successfully.',
+        'remove_direct_support' => 'Your support from camp: :camp_name has been removed',
+        'remove_direct_support_updated' => 'Your explicit support for :camp_name has been removed since you now support it implicitly by supporting a child camp.',
         'not_authorized_for_objection' => 'You are not authorized to object to this statement because you do not support this camp.',
         'not_authorized_for_objection_topic' => 'You are not authorized to object to this topic because you do not support this camp.',
         'not_authorized_for_objection_camp' => 'You are not authorized to object to this camp because you do not support this camp.',
@@ -528,8 +539,16 @@ return [
         "objectCamp" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name)",
         "objectTopic" => ":nick_name has objected to your proposed change submitted for topic (:topic_name)",
         "objectStatement" => ":nick_name has objected to your proposed change submitted for Camp (:topic_name/:camp_name) statement",
+        "idsRequired" => "The ids must be an required",
+        "idsArray" => "The ids must be an array",
         "CampLeaderAssigned" => ":nick_name is assigned as camp leader in Camp - :camp_name",
         "CampLeaderRemoved" => ":nick_name is removed as camp leader in Camp - :camp_name",
+        "isReadRequired" => "The isRead must be an required",
+        "isReadString" => "The isRead must be an string",
+        "isReadIn" => "The isRead must be an all or selected",
+        "isDeleteRequired" => "The isDelete must be an required",
+        "isDeleteString" => "The isDelete must be an string",
+        "isDeleteIn" => "The isDelete must be an all or selected",
     ],
     'validation_manage_topic' => [
         'topic_num_required' => "Topic number is required.",
@@ -540,7 +559,9 @@ return [
         'event_type_in' => "Possible values are update, edit, objection.",
         'topic_name_required' => 'Camp name is required.',
         'objection_reason_required_if' => "Objection reason is required.",
-        
+        'namespace_id_required_unless' => "Canon is required.",
+        'is_rank_hidden_boolean' => "The Hide Rank field should be boolean."
+
     ],
     'validation_parse_statement' => [
         'value_required' => "string to be parsed is required."
@@ -549,27 +570,27 @@ return [
         "camp_create" => ":nick_name created a camp",
         "camp_update" => ":nick_name updated a camp",
         "camp_object" => ":nick_name objected a change to camp",
-        
+
         "support_removed" => ":nick_name removed support",
         "support_added" => ":nick_name added support",
         "support_order_updated" => ":nick_name updated support order",
         "support_reason_updated" => ":nick_name updated support",
-        
+
         "news_create" => ":nick_name added a news",
         "news_update" => ":nick_name updated a news",
         "news_delete" => ":nick_name deleted a news",
-        
+
         "statement_create" => ":nick_name created a statement",
         "statement_update" => ":nick_name updated a statement",
         "statement_object" => ":nick_name objected a change to statement",
-        
+
         "thread_create" => ":nick_name created a thread",
         "thread_update" => ":nick_name updated a thread",
-        
+
         "post_create" => ":nick_name created a post",
         "post_update" => ":nick_name updated a post",
-        
-        "topic_create" => ":nick_name created a topic",
+
+        "topic_create" => ":nick_name created a topic and added their support on camp :camp_name",
         "topic_update" => ":nick_name updated a topic",
         "topic_object" => ":nick_name objected a change to topic",
         "commit_change" => ":nick_name proposed a change to the :type",
@@ -599,6 +620,8 @@ return [
         'video_id_required' => "video_id is required.",
         'video_id_numeric' => "video_id should be a numeric.",
         'video_id_gt' => "video_id should be greater than :value.",
+
+        'keywords_required' => "keywords is required.",
     ],
     "validation_change_supporters" => [
         'topic_num_required' => "topic_num is required.",
@@ -612,10 +635,10 @@ return [
         'change_id_required' => "change_id is required.",
         'change_id_numeric' => "change_id should be a numeric.",
         'change_id_gt' => "change_id should be greater than :value.",
-        
+
         'type_required' => ":attribute is required.",
         'type_in' => 'The selected :attribute is invalid.',
-        
+
     ],
     "notify_if_url_not_exist" => [
         'is_type_required' => "is_type is required.",
@@ -649,7 +672,25 @@ return [
         'url_unique' => "The url has already been taken.",
         'ip_invalid' => "The IP address must be a valid IP format.",
         'user_agent_string' => "The :attribute must be a valid user agent string.",
-        
+
+    ],
+    'tags' => [
+        'per_page_required_with_page' => "Page number is also required with per page.",
+        'page_required_with_per_page' => "Per page is also required with page number.",
+        'page_should_be_numeric' => "Page number should be numeric and greater than 0.",
+        'per_page_should_be_numeric' => "Per page should be numeric and greater than 0.",
+        'sort_by_in' => 'Sort by should be asc or desc.',
+        'topic_tags_must_array' => 'Tags must be in array format.',
+    ],
+
+    'user_tag' => [
+        'user_tags_array' => 'The user tags must be an array.',
+        'user_tags_integer' => 'Each user tag id must be an integer.',
+        'user_id_exists' => 'The selected user ID is invalid.',
+        'created' => 'You have successfully updated the Topic tag(s).',
+        'failed' => 'Failed to update the Topic tag(s).',
+        'user_tags_exists' => 'The selected user tag is invalid.',
+        'user_tags_updated' => 'Tags Updated Successfully.'
     ],
     'sign_petition_validation' => [
         'topic_num_required' => "topic num is required.",
@@ -676,7 +717,7 @@ return [
                 'nominated_user_removes_support' => 'This change is now invalid because the nominated camp leader is either removed/delegated his support',
             ]
         ]
-    ],       
+    ],
     'email' => [
         "change_request_with_otp" => "To proceed with email change OTP has been sent on email :email",
         "change_request_verfied"  => "Your email address change request has been successfully verified. You may now proceed to update your email address to the new one",
@@ -686,5 +727,18 @@ return [
         "newemail_added" => "New email added successfully.",
         "newemail_added_verify" => "New email added successfully, please verify email by entering OTP sent on email to make this your primary/default email.",
         "newemail_added_verified" => "Email verified successfully, now this email is your primary/login/notification email"
-    ]
+    ],
+    'facebook_deletion_callback' => [
+        'signed_request_is_required' => 'Signed request is required.',
+    ],
+    'facebook_deletion_status' => [
+        'confirmation_code_is_required' => 'Confirmation code is required.',
+        'confirmation_code_is_invalid' => 'Confirmation code is invalid.',
+        'data_deleted_successfully' => 'Your data has been deleted successfully.',
+        'data_deletion_pending' => 'Your data deletion request is pending.',
+    ],
+    'validation_gravatar_profile' => [
+        'email_required' => 'Email is required.',
+        
+    ],
 ];

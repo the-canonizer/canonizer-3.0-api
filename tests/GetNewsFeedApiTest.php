@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetNewsFeedApiTest extends TestCase
@@ -13,9 +15,9 @@ class GetNewsFeedApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     public function testWithEmptyValues()
@@ -30,9 +32,9 @@ class GetNewsFeedApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     public function testIfNoNewsFeedFound()
@@ -47,9 +49,9 @@ class GetNewsFeedApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
-        //  dd($this->response);
-        $this->assertEquals(404, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        //  dd($response);
+        $response->assertStatus(404);
     }
 
     public function testIfNewsFeedFound()
@@ -64,9 +66,9 @@ class GetNewsFeedApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 
     public function testToSeeApiStructure()
@@ -84,9 +86,9 @@ class GetNewsFeedApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
-        $this->assertEquals(200, $this->response->status());
-        $this->seeJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

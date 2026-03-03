@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
-class CampStatementApiTest extends TestCase
+class GetCampStatementApiTest extends TestCase
 {
 
     /**
@@ -18,9 +20,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', [], $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', [], $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -41,9 +43,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $emptyData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $emptyData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -64,9 +66,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $invalidData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $invalidData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -87,9 +89,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $invalidData, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $invalidData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
     /**
      * Check Api response code with valid data
@@ -107,9 +109,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 
     /**
@@ -128,9 +130,9 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 
     public function testGetStatementApiNotFound()
@@ -147,8 +149,8 @@ class CampStatementApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
-        //  dd($this->response);
-        $this->assertEquals(404, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-statement', $data, $header);
+        //  dd($response);
+        $response->assertStatus(404);
     }
 }

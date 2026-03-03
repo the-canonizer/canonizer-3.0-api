@@ -17,7 +17,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class horizontalrule implements startOfLine
 {
-    const regular_expression = '/^----(\s*)$/';
+    public const regular_expression = '/^----(\s*)$/';
         
     public function __construct()
     {

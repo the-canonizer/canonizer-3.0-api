@@ -20,7 +20,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
  */
 class pmwiki_cF_smaller implements startOfLine
 {
-    const regular_expression = '/\[--.*?--\]/i'; ///(\[\+\+.*?\+\+\]|\[\+.*?\+\]|\[--.*?--\]|\[-.*?-\]|@@.*?@@)
+    public const regular_expression = '/\[--.*?--\]/i'; ///(\[\+\+.*?\+\+\]|\[\+.*?\+\]|\[--.*?--\]|\[-.*?-\]|@@.*?@@)
         
     public function __construct()
     {

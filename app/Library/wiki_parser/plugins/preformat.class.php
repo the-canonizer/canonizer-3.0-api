@@ -16,7 +16,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class preformat implements startOfLine
 {
-    const regular_expression = '/^\s(.*?)$/i';
+    public const regular_expression = '/^\s(.*?)$/i';
         
     public function __construct()
     {

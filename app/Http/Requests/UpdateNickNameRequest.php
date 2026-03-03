@@ -2,16 +2,18 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Http\JsonResponse;
-use Laravel\Lumen\Http\Request;
-use Anik\Form\FormRequest;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Contracts\Validation\Validator;
 use App\Helpers\ResponseInterface;
 
 class UpdateNicknameRequest extends FormRequest
 {
+    protected $resProvider;
 
     public function __construct(ResponseInterface $resProvider)
     {
+        parent::__construct();
         $this->resProvider = $resProvider;
     }
 
@@ -20,7 +22,7 @@ class UpdateNicknameRequest extends FormRequest
      *
      * @return bool
      */
-    protected function authorize(): bool
+    public function authorize(): bool
     {
         return true;
     }
@@ -30,24 +32,19 @@ class UpdateNicknameRequest extends FormRequest
      *
      * @return array
      */
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'visibility_status' => 'required',
         ];
     }
 
-    protected function messages(): array
+    protected function failedValidation(Validator $validator)
     {
-        return [0];
+        $errors = $validator->errors()->messages();
+        
+        throw new HttpResponseException(
+            $this->resProvider->apiJsonResponse(422, "The given data was invalid.", '', $errors)
+        );
     }
-
-    protected function errorResponse(): ?JsonResponse 
-    { 
-
-        return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
-       
-    } 
-
-    
 }

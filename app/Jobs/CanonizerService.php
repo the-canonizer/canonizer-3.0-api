@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Mingalevme\Illuminate\UQueue\Jobs\Uniqueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use App\Exceptions\ServiceAuthenticationException;
 
-class CanonizerService implements ShouldQueue, Uniqueable
+class CanonizerService implements ShouldQueue, ShouldBeUnique
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
@@ -27,12 +27,12 @@ class CanonizerService implements ShouldQueue, Uniqueable
         $this->canonizerData = $data;
     }
 
-    public function uniqueable()
+    public function uniqueId()
     {
-        if ($this->canonizerData['isUniqueJob']) {
+        if (isset($this->canonizerData['isUniqueJob']) && $this->canonizerData['isUniqueJob']) {
             return $this->canonizerData['topic_num']. '_' .$this->canonizerData['camp_num'];
         } else {
-            return null; // for case of delay jobs it will automatically generate random string in unique id.
+            return null;
         }
     }
 

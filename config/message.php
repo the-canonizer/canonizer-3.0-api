@@ -18,6 +18,7 @@ return [
         'verify_otp'       => 'Phone number has been verified successfully.',
         'forgot_password'  => 'Otp sent successfully on your Email Id.',
         'nick_name_update' => 'Nick name visibility status updated successfully.',
-        'nick_name_add'    => 'Nick name added successfully.'
+        'nick_name_add'    => 'Nick name added successfully.',
+        'default_nick_name'    => 'Nick name set as default.'
     ]
 ];

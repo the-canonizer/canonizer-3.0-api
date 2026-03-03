@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ForgotPasswordVerifyOtpApiTest extends TestCase
@@ -20,12 +22,13 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
     public function testForgotPasswordVerifyOtpWithInvalidData()
     {
         print sprintf(" \n Invalid Forgot Password details submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make([
+        $user = User::factory()->create([
             'id' => trans('testSample.user_ids.normal_user.user_2.id'),
             'email' =>  trans('testSample.user_ids.normal_user.user_2.email'),
             'password' => trans('testSample.user_ids.normal_user.user_2.password'),
         ]);
         $user->otp = trans('testSample.user_ids.normal_user.user_2.otp');
+        $user->save();
         $user->username = trans('testSample.user_ids.normal_user.user_2.email');
 
         $token = $user->createToken('TestToken')->accessToken;
@@ -39,17 +42,18 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
             "username" => '',
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/verify-otp', $parameters, $header);
 
-        $this->assertEquals(400, $this->response->status());
+        $response->assertStatus(400);
     }
 
     public function testForgotPasswordVerifyOtpWithValidData()
     {
         print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make([
+        $user = User::factory()->create([
             "otp" => trans('testSample.user_ids.admin_user.otp'),
+            "email" => trans('testSample.user_ids.admin_user.email'),
         ]);
 
         $token = $user->createToken('TestToken')->accessToken;
@@ -63,9 +67,9 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
             "username" => trans('testSample.user_ids.admin_user.email')
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/verify-otp', $parameters, $header);
         
-        $this->assertEquals(200, $this->response->status());
+        $response->assertStatus(200);
     }
 }

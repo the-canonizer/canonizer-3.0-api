@@ -16,7 +16,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class section implements startOfLine
 {
-    const regular_expression = '/(={1,6})(.*?)(={1,6})|(\[.*((={1,6})(.*?)(={1,6})).*\])|^[\|\!\{](.*)(={1,6})(.*?)(={1,6})(.*)/i';
+    public const regular_expression = '/(={1,6})(.*?)(={1,6})|(\[.*((={1,6})(.*?)(={1,6})).*\])|^[\|\!\{](.*)(={1,6})(.*?)(={1,6})(.*)/i';
     private $sections = null;
         
     public function __construct()

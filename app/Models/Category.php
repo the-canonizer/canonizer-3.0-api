@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\Util;
 
-class Category extends Model {
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-    const VIDEO = 'video';
-    const OTHER = 'other'; // Or you can define your own enum ...
+class Category extends Model {
+    use HasFactory;
+
+    public const VIDEO = 'video';
+    public const OTHER = 'other'; // Or you can define your own enum ...
 
     protected $table = 'categories';
     protected $fillable = ['title', 'type'];

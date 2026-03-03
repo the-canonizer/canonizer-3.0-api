@@ -10,6 +10,7 @@ use App\Helpers\ElasticSearch;
 use App\Helpers\TopicSupport;
 use App\Models\Nickname;
 
+#[AllowDynamicProperties]
 class Support extends Model
 {
 
@@ -34,18 +35,18 @@ class Support extends Model
     }
 
     /** on adding or removing support it needs to be updated on elastic search agains nickname for support count */
-    public static function boot() 
+    public static function boot()
     {
         parent::boot();
-            
-        static::saved(function($item) 
-        {    
+
+        static::saved(function($item)
+        {
             $type = "nickname";
             $id = "nickname-" . $item->nick_name_id;
             // get nickname
             $nickNameId = $item->nick_name_id;
             $nicknameModel = Nickname::getNickName($item->nick_name_id);
-    
+
             $typeValue = $nicknameModel->nick_name;
             $topicNum = 0;
             $campNum = 0;
@@ -57,13 +58,13 @@ class Support extends Model
             $userId = Nickname::getUserIDByNickNameId($item->nick_name_id);
             $link = Nickname::getNickNameLink($item->nick_name_id, $namespaceId,'','',true);
             $statementNum =  '';
-            
+
             if($nicknameModel->private){
                 return;
             }
             //echo $supportCount;
-            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $statementNum, $nickNameId, $supportCount);
-        
+            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive = true, $isArchive=0, $statementNum, $nickNameId, $supportCount);
+
         });
     }
 
@@ -77,18 +78,18 @@ class Support extends Model
         $subCampIds = array_unique(Camp::getAllChildCamps($camp));
         $directSupporter = [];
         $alreadyExists = [];
-        foreach ($subCampIds as $camp_id) {            
+        foreach ($subCampIds as $camp_id) {
             $data = self::getDirectSupporter($topic_num, $camp_id);
             if(isset($data) && count($data) > 0){
                 foreach($data as $key=>$value){
                     if(!in_array($value->nick_name_id, $alreadyExists,TRUE)){
                         $directSupporter[] = $value;
                          $alreadyExists[] = $value->nick_name_id;
-                     }  
+                     }
                 }
-                  
+
             }
-            
+
         }
         return $directSupporter;
     }
@@ -122,9 +123,9 @@ class Support extends Model
     }
 
     /*
-    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232 
-    *   Now support at the time of submition will be count as total supporter. 
-    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter   
+    *   https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/232
+    *   Now support at the time of submition will be count as total supporter.
+    *   Also check if submitter is not a direct supporter, then it will be count as direct supporter
     */
     public static function ifIamSupporterForChange($topic_num, $camp_num, $nick_names, $submit_time = null, $delayed = false)
     {
@@ -139,13 +140,13 @@ class Support extends Model
     }
 
 
-    /*Delegation support 
+    /*Delegation support
      *   1.  check if user has any support
      *   2.  if yes, then find any sub-deleagted which will go recursively
      *   3. remove support for existing.
-     *   4. add new support 
+     *   4. add new support
      *  5. All these above will work in recursive ways
-     * 
+     *
     public static function addDelegationSupport($support = array(), $topicNum, $nickNameId, $deleagtedNicknameId)
     {
         $existingSupport =  self::getActiveSupporInTopic($topicNum, $nickNameId);
@@ -188,7 +189,7 @@ class Support extends Model
      *  Get Active support
      *  @param $topicNum is integer, topic number
      *  @param $nicknameId  nick id of user from which topic is being supported and yet not ended.
-     *  
+     *
      */
     public static function getActiveSupporInTopic($topicNum, $nickNameId)
     {
@@ -202,7 +203,7 @@ class Support extends Model
      *  Fetch the delegator of given NickID in specified topic
      */
     public static function getDelegatorForNicknameId($topicNum, $nickNameId)
-    { 
+    {
         $usersNickNames = Nickname::getAllNicknamesByNickId($nickNameId);
         $delegatorsSupport = self::getActiveDelegators($topicNum, $usersNickNames);
 
@@ -212,7 +213,7 @@ class Support extends Model
     /**
      * Remove support from of user from topic
      * This will remove support from all nicknames of that user with nick id @param $nickNameId
-     * 
+     *
      */
     public static function removeSupport($topicNum, $nickNameId='', $campNum = '')
     {
@@ -283,21 +284,7 @@ class Support extends Model
             $camp_leader = Camp::getCampLeaderNickId($topicNum, $camp_num);
             if (!is_null($camp_leader) && in_array($camp_leader, $nickNames)) {
                 $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $camp_num, $camp_leader, false, true);
-                /**
-                 * https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/1051
-                 *
-                 * The issue is that when shifting camp leader support from parent to child camp, system will submit 2 changes at the same time.
-                 * 1. A change of removal of camp leader from parent camp.
-                 * 2. A change of assigning of camp leader to child camp in case of no DS.
-                 * Due to this, mongoDB tree will not be updated correctly. Because of the following issue:
-                 *
-                 * Canonizer Server: app/Services/CampService.php:78 (prepareCampTree)
-                 * This query will get two records(newest and oldest) of the child camp and after group by, it will replace oldest with newest.
-                 *
-                 * That's why removal change is submitted 1 second before current time.
-                 */
-                $changeSubmitAndLiveTime = time() - 1;
-                Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null, $changeSubmitAndLiveTime, $changeSubmitAndLiveTime);
+                Camp::updateCampLeaderFromLiveCamp($topicNum, $camp_num, $oldest_direct_supporter->nick_name_id ?? null);
             }
         }
 
@@ -306,7 +293,7 @@ class Support extends Model
 
     public static function promoteUpDelegates($topicNum, $nickNames, $delgateNickNameId = '')
     {
-        /* 
+        /*
         * In case of promotion of Delegate supporters, removing previous support and adding new support as direct supporter
         * Ticket: https://github.com/the-canonizer/Canonizer-Beta--Issue-Tracking/issues/695
         */
@@ -414,7 +401,7 @@ class Support extends Model
         return [$totalSupporters, count($totalSupporters)];
     }
 
-    public static function ifIamSingleSupporter($topic_num, $camp_num = 0, $userNicknames)
+    public static function ifIamSingleSupporter($topic_num, $userNicknames, $camp_num = 0)
     {
         $supportFlag = 1;
 
@@ -482,7 +469,7 @@ class Support extends Model
             $support = $support->whereIn('camp_num', $camps);
         }
         $support = $support->where('end', '=', '0')->count();
-        
+
         return $support;
     }
 
@@ -500,40 +487,40 @@ class Support extends Model
     {
        $query =  "SELECT  t2.topic_num,t2.camp_num, t2.support_order,t1.title,t2.camp_name, t2.start,t2.end,t2.support_id,t3.namespace_id,t2.nick_name_id,t2.delegate_nick_name_id
                     FROM
-                        (SELECT a.topic_num,a.title 
+                        (SELECT a.topic_num,a.title
                             FROM
-                            camp a 
-                            INNER JOIN 
-                                (SELECT topic_num, MAX(go_live_time) AS live_time 
+                            camp a
+                            INNER JOIN
+                                (SELECT topic_num, MAX(go_live_time) AS live_time
                                     FROM
-                                    camp 
-                                    WHERE objector_nick_id IS NULL 
-                                    AND camp_num = 1 
-                                    AND go_live_time <= UNIX_TIMESTAMP(NOW()) 
-                                    GROUP BY topic_num) b 
-                                    ON a.topic_num = b.topic_num 
-                                    AND a.go_live_time = b.live_time 
+                                    camp
+                                    WHERE objector_nick_id IS NULL
+                                    AND camp_num = 1
+                                    AND go_live_time <= UNIX_TIMESTAMP(NOW())
+                                    GROUP BY topic_num) b
+                                    ON a.topic_num = b.topic_num
+                                    AND a.go_live_time = b.live_time
                                     GROUP BY  a.topic_num, a.title) t1,
                             (SELECT b.topic_num,b.camp_num, c.support_order,b.title AS topic_name,b.camp_name,c.start,c.end, c.delegate_nick_name_id,c.support_id,c.nick_name_id
                             FROM
-                                (SELECT a.* 
-                                FROM camp a INNER JOIN 
-                                    (SELECT  topic_num,camp_num,MAX(`go_live_time`) AS live_time 
-                                    FROM camp 
-                                        WHERE objector_nick_id IS NULL 
-                                        AND go_live_time <= UNIX_TIMESTAMP(NOW()) 
+                                (SELECT a.*
+                                FROM camp a INNER JOIN
+                                    (SELECT  topic_num,camp_num,MAX(`go_live_time`) AS live_time
+                                    FROM camp
+                                        WHERE objector_nick_id IS NULL
+                                        AND go_live_time <= UNIX_TIMESTAMP(NOW())
                                         AND topic_num = $topicNum
-                                    GROUP BY topic_num, camp_num) b 
-                            ON a.topic_num = b.topic_num 
-                            AND a.camp_num = b.camp_num 
+                                    GROUP BY topic_num, camp_num) b
+                            ON a.topic_num = b.topic_num
+                            AND a.camp_num = b.camp_num
                             AND a.go_live_time = b.live_time) b,
-                            support c 
-                            WHERE b.camp_num = c.camp_num 
-                            AND b.topic_num = c.topic_num 
-                            AND c.nick_name_id IN 
-                            (SELECT 
-                                id 
-                            FROM nick_name WHERE user_id = $user_id) 
+                            support c
+                            WHERE b.camp_num = c.camp_num
+                            AND b.topic_num = c.topic_num
+                            AND c.nick_name_id IN
+                            (SELECT
+                                id
+                            FROM nick_name WHERE user_id = $user_id)
                             AND c.end = 0) t2,
                         (SELECT
                                 a.topic_num,
@@ -546,17 +533,17 @@ class Support extends Model
                                 go_live_time
                             FROM
                                 topic
-                            WHERE 
+                            WHERE
                                 go_live_time <= UNIX_TIMESTAMP(NOW())
                             GROUP BY topic_num
                                 ) b
-                            WHERE 
+                            WHERE
                             a.topic_num = b.topic_num
                             AND a.go_live_time = b.go_live_time
                             AND objector_nick_id IS NULL
                             AND a.go_live_time <= UNIX_TIMESTAMP(NOW())
                             GROUP BY topic_num,
-                                namespace_id) t3 
+                                namespace_id) t3
 
                     WHERE t1.topic_num = t2.topic_num AND t1.topic_num = t3.topic_num ORDER BY t2.support_order ASC,t2.start DESC, t2.topic_num";
 
@@ -670,15 +657,7 @@ class Support extends Model
         $supports = self::where('topic_num', '=', $topicNum)
                     ->where('camp_num', $campNum)
                     ->where('nick_name_id', $nickId)
-                    ->where('end', 0)->first();
-                    
-        $supports->update(['end' => time()]);
-
-        $campLeaderNickId = Camp::getCampLeaderNickId($topicNum, $campNum);
-        if ($supports->nick_name_id === $campLeaderNickId) {
-            $oldest_direct_supporter = TopicSupport::findOldestDirectSupporter($topicNum, $campNum, null, false, true);
-            Camp::updateCampLeaderFromLiveCamp($topicNum, $campNum, $oldest_direct_supporter->nick_name_id ?? null);
-        }
+                    ->update(['end' => time()]);
 
         $delegators = self::getDelegatorForNicknameId($topicNum, $nickId);
 
@@ -694,7 +673,7 @@ class Support extends Model
     {
         if(!empty($nickNames)){
             $support = self::getActiveSupporInTopicWithAllNicknames($topicNum, $nickNames);
-            
+
             $order = 1;
             foreach($support as $support)
             {
@@ -722,14 +701,14 @@ class Support extends Model
     {
         $delegators = self::getDelegatorForNicknameId($topicNum, $nicknameId);
         if(count($delegators))
-        { 
+        {
              self::where('topic_num', '=', $topicNum)
             ->where('camp_num', $campNum)
             ->whereIn('delegate_nick_name_id', [$nicknameId])
             ->update(['support_order' => $order]);
 
-            foreach($delegators as $delegator){               
-                return self::updateDeleagtorsSupportOrder($topicNum, $delegator->nick_name_id, $campNum, $order); 
+            foreach($delegators as $delegator){
+                return self::updateDeleagtorsSupportOrder($topicNum, $delegator->nick_name_id, $campNum, $order);
             }
         }
         return;
@@ -737,7 +716,7 @@ class Support extends Model
 
     public static function checkIfDelegateSupportExists($topicNum, $nickNames, $deleagtedNicknameId)
     {
-       
+
         $support = self::where('topic_num', '=', $topicNum)
         ->where('nick_name_id', $deleagtedNicknameId)
         ->whereIn('delegate_nick_name_id', $nickNames)
@@ -768,7 +747,7 @@ class Support extends Model
     {
         $query = self::where('topic_num', '=', $topicNum)
                                 ->whereIn('camp_num', $camps);
-                                
+
 
         if(!$updatedArchiveStatus){
             $query->where('reason','=','archived')
@@ -779,10 +758,10 @@ class Support extends Model
         }
 
         if($directSupport)
-        { 
+        {
             $query->where('delegate_nick_name_id','=', 0);
         }
-        
+
         $supporters = $query->groupBy('nick_name_id')->get();
         return $supporters;
     }
@@ -858,11 +837,11 @@ class Support extends Model
             unset($childCamps[$key]);
         }
 
-       
+
         $query = Support::where('topic_num', $filter['topicNum'])
-                        ->whereIn('camp_num', $childCamps)                       
+                        ->whereIn('camp_num', $childCamps)
                         ->where('delegate_nick_name_id', '=', 0);
-                    
+
         if(!$updatedArchiveStatus){  // when un-archiving camp
            $query =  $query->where('reason','=','archived')
                             ->where('archive_support_flag','=',0);
@@ -870,14 +849,14 @@ class Support extends Model
             $query->where('end', '!=', 0);
         }
 
-        $mysupports = $query->get();              
+        $mysupports = $query->get();
 
         $returnData = [
             'supporters' => $mysupports,
             'supporter_count' => count($mysupports) ?? 0,
             'ifIamExplicitSupporter' => (count($mysupports)) ? true : false,
         ];
-        
+
         if (strlen($returnKey) > 0)
             return $returnData[$returnKey];
         return $returnData;
@@ -899,5 +878,63 @@ class Support extends Model
     {
         return self::whereIn('nick_name_id', $nicknames)
             ->where('end', 0)->count();
+    }
+
+    public static function getAllSupporterOfTopic($topic_num, $camp_num = NULL)
+    {
+       return self::select('nick_name_id')
+        ->where('topic_num', '=', $topic_num)
+        ->when(!empty($camp_num), function ($query) use ($camp_num) {
+            return $query->where('camp_num', $camp_num);
+        })
+        ->where('end', '=', '0')
+        ->orderBy('support_order', 'ASC')
+        ->groupBy('nick_name_id')->get();
+    }
+
+    public static function updateSupportOrder($topicNum, $campNum, $supportOrder, $nickNameId)
+    {
+        return self::where('topic_num', '=', $topicNum)
+            ->where('camp_num', '=', $campNum)
+            ->where('nick_name_id', '=', $nickNameId) 
+            ->where('end', 0)
+            ->update(['support_order' => $supportOrder]);
+
+    }
+    public static function getAllSupporterNicknames($topic_num, $camp_num = null, $limit = null)
+    {
+        return self::select('nick_name.id as nick_name_id', 'nick_name.nick_name', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')
+            ->join('nick_name', 'support.nick_name_id', '=', 'nick_name.id')
+            ->join('person', 'nick_name.user_id', '=', 'person.id') // Assuming nicknames have a relationship with users.
+            ->where('support.topic_num', $topic_num)
+            ->when($camp_num, function ($query, $camp_num) {
+                return $query->where('support.camp_num', $camp_num);
+            })
+            ->where('support.end', '0')
+            ->orderBy('support.support_order', 'ASC')
+            ->groupBy('nick_name.id') // Grouping by nickname to avoid duplicate entries
+            ->limit($limit)
+            ->get();
+    }
+
+    public static function getSupporterCountsByTopicIds($topicNums)
+    {
+        return self::select('topic_num', DB::raw('count(distinct nick_name_id) as count'))
+            ->whereIn('topic_num', $topicNums)
+            ->where('end', '0')
+            ->groupBy('topic_num')
+            ->pluck('count', 'topic_num');
+    }
+
+    public static function getSupportersByTopicIds($topicNums)
+    {
+        return self::select('support.topic_num', 'nick_name.id as nick_name_id', 'nick_name.nick_name', 'person.id as user_id', 'person.first_name', 'person.middle_name', 'person.last_name', 'person.email', 'person.profile_picture_path')
+            ->join('nick_name', 'support.nick_name_id', '=', 'nick_name.id')
+            ->join('person', 'nick_name.user_id', '=', 'person.id')
+            ->whereIn('support.topic_num', $topicNums)
+            ->where('support.end', '0')
+            ->orderBy('support.support_order', 'ASC')
+            ->get()
+            ->groupBy('topic_num');
     }
 }
