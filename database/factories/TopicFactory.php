@@ -20,6 +20,7 @@ class TopicFactory extends Factory
             'proposed' => 0,
             'namespace' => 'General',
             'note' => $this->faker->sentence,
+            'topic_num' => $this->faker->unique()->numberBetween(1000, 9000),
             'submit_time' => time(),
         ];
     }

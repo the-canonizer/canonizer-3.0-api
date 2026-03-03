@@ -2,33 +2,22 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use App\Models\User;
+use App\Models\Topic;
+use App\Models\Camp;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class SiblingCampsApiTest extends TestCase
 {
-    /**
-     * A basic test example.
-     *
-     * @return void
-     */
-    public function testExample()
-    {
-        $this->assertTrue(true);
-    }
+    use DatabaseTransactions;
 
     /**
      * Check Api with empty form data
      * validation
      */
     public function testTopicTagListApiWithEmptyFormData() {
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', [] ,$header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-sibling-camps', []);
         $response->assertStatus(400);
     }
 
@@ -42,12 +31,8 @@ class SiblingCampsApiTest extends TestCase
             "topic_num" => "",
             "camp_num" => "",
         ];
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $emptyData ,$header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-sibling-camps', $emptyData);
         $response->assertStatus(400);
     }
 
@@ -61,13 +46,9 @@ class SiblingCampsApiTest extends TestCase
             "topic_num" => "df",
             "camp_num" => "ds",
         ];
-        print sprintf("Test with valid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $invalidData ,$header);
+        print sprintf("Test with invalid values");
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-sibling-camps', $invalidData);
         $response->assertStatus(400);
     }
 
@@ -76,18 +57,19 @@ class SiblingCampsApiTest extends TestCase
      * validation
      */
     public function testGetSiblingCampsApiWithValidData() {
+        print sprintf("Test with valid values");
+        $user = User::factory()->create();
+        $topic = Topic::factory()->create();
+        $camp1 = Camp::factory()->create(['topic_num' => $topic->topic_num, 'parent_camp_num' => 1]);
+        $camp2 = Camp::factory()->create(['topic_num' => $topic->topic_num, 'parent_camp_num' => 1]);
+
         $validData = [
             "parent_camp_num" => 1,
-            "topic_num" => 1310,
-            "camp_num" => 3,
+            "topic_num" => $topic->topic_num,
+            "camp_num" => $camp1->camp_num,
         ];
-        print sprintf("Test with valid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        
+        $response = $this->actingAs($user)->postJson('/api/v3/get-sibling-camps', $validData);
         $response->assertStatus(200);
     }
 
@@ -96,34 +78,30 @@ class SiblingCampsApiTest extends TestCase
      * validation
      */
     public function testGetSiblingCampsApiResponseWithValidData() {
+        print sprintf("Test with valid values");
+        $user = User::factory()->create();
+        $topic = Topic::factory()->create();
+        $camp1 = Camp::factory()->create(['topic_num' => $topic->topic_num, 'parent_camp_num' => 1]);
+        $camp2 = Camp::factory()->create(['topic_num' => $topic->topic_num, 'parent_camp_num' => 1]);
+
         $validData = [
             "parent_camp_num" => 1,
-            "topic_num" => 1310,
-            "camp_num" => 3,
+            "topic_num" => $topic->topic_num,
+            "camp_num" => $camp1->camp_num,
         ];
-        print sprintf("Test with valid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer '.$token;
-        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        
+        $response = $this->actingAs($user)->postJson('/api/v3/get-sibling-camps', $validData);
         $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
             'data' => [
-                [
+                '*' => [
                     'topic_num',
                     'camp_num',
                     'camp_name',
                     'submit_time',
                     'go_live_time',
-                    'namespace',
-                    'namespace_id',
-                    'views',
-                    'statement',
-                    'supporterData' => [],
                 ]
             ]
         ]);

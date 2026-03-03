@@ -1693,10 +1693,16 @@ class CampController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
+        if (!Gate::allows('nickname-check', $request->nick_name_id)) {
+            return $this->resProvider->apiJsonResponse(403, trans('message.error.invalid_data'), '', '');
+        }
+
         $all = $request->post();
         try {
             // Sign Petition
             $returnValue = TopicSupport::signPetition($request->user(), $all['topic_num'], $all['camp_num'], $all['nick_name_id']);
+
+
             return $this->resProvider->apiJsonResponse(200, trans('message.support.sign_petition'), '', '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage() ?? trans('message.error.exception'), '', '');

@@ -512,6 +512,7 @@ class TopicSupport
             
             /* To update the Mongo Tree while delegating at add support*/
             $topic = Topic::where('topic_num', $topicNum)->orderBy('id','DESC')->first();
+
             if(!empty($campNum)) {
                 Util::dispatchJob($topic, $campNum, 1);
             } else {
@@ -1948,11 +1949,12 @@ class TopicSupport
         $oldest_direct_supporter = TopicSupport::findOldestSupporterAndMakeCampLeader($topic_num, $camp_num, null);
         if ($oldest_direct_supporter) {
             // Delegate user support to oldest direct supporter
-            if ($oldest_direct_supporter->nick_name_id != $nick_name_id) { // Cannot delegate support to itself
-                TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $oldest_direct_supporter->nick_name_id);
-            }
+            TopicSupport::addDelegateSupport($user, $topic_num, $camp_num, $nick_name_id, $oldest_direct_supporter->nick_name_id);
             return;
+        } else {
+             throw new \Exception("Oldest direct supporter not found for topic: $topic_num camp: $camp_num");
         }
+
         
         /**
          * Case 3: If there are no supporters of the camp then add user as a direct supporter and make it a camp leader.

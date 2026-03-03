@@ -58,9 +58,6 @@ class GetCampActivityLogApiTest extends TestCase
         ];
         $user = User::factory()->create();
         $response = $this->actingAs($user)->postJson('/api/v3/get-camp-activity-log', $apiPayload);
-        if ($response->status() != 200) {
-            dd($response->json());
-        }
         // Should return 200 with "no activity logged" message
         $response->assertStatus(200);
         $response->assertJsonFragment(['message' => '']);
