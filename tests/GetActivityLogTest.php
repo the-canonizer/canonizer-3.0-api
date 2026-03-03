@@ -20,8 +20,8 @@ class GetActivityLogTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/get-activity-log', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-activity-log', []);
+        $response->assertStatus(400);
     }
 
 
@@ -38,8 +38,8 @@ class GetActivityLogTest extends TestCase
         ];
         print sprintf("Test with empty values");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/get-activity-log', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-activity-log', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -55,8 +55,8 @@ class GetActivityLogTest extends TestCase
         ];
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/get-activity-log', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-activity-log', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -72,8 +72,8 @@ class GetActivityLogTest extends TestCase
         ];
         print sprintf("Test with valid values");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/get-activity-log', $validData);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/get-activity-log', $validData);
+        $response->assertStatus(200);
     }
 
     /**
@@ -84,8 +84,8 @@ class GetActivityLogTest extends TestCase
     {
         print sprintf("Test with empty form data");
         $user = User::factory()->make();
-        $_res = $this->post('/api/v3/get-activity-log', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/get-activity-log', []);
+        $response->assertStatus(401);
     }
 
     /**
@@ -100,8 +100,8 @@ class GetActivityLogTest extends TestCase
         ];
         print sprintf("\n Test Get Activity Log API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/get-activity-log',$data);
-        $_res->assertJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/get-activity-log',$data);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

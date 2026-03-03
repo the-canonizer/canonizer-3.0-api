@@ -4,6 +4,14 @@ namespace Tests;
 
 class TreeGetApiTest extends TestCase
 {
+    protected $topic;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->topic = \App\Models\Topic::factory()->create();
+        \App\Models\Camp::factory()->create(['topic_num' => $this->topic->topic_num, 'camp_num' => 1]);
+    }
     /**
      * Check Api with empty form data
      * validation
@@ -35,7 +43,7 @@ class TreeGetApiTest extends TestCase
     public function testGetApiWithCorrectValues()
     {
         $response = $this->json('POST', '/api/v1/tree/get', [
-            'topic_num' => 238, 
+            'topic_num' => $this->topic->topic_num, 
             'asofdate' => time(), 
             'algorithm' => 'blind_popularity', 
             'update_all' => 0, 
@@ -47,7 +55,7 @@ class TreeGetApiTest extends TestCase
     public function testWithCorrectValuesForValidResponseStructure()
     {
         $response = $this->json('POST', '/api/v1/tree/get', [
-            'topic_num' => 238, 
+            'topic_num' => $this->topic->topic_num, 
             'asofdate' => time(), 
             'algorithm' => 'blind_popularity', 
             'update_all' => 0
@@ -116,7 +124,7 @@ class TreeGetApiTest extends TestCase
     public function testInvalidModelTypeValue()
     {
         $response = $this->json('POST', '/api/v1/tree/get', [
-            'topic_num' => 238,
+            'topic_num' => $this->topic->topic_num,
             'asofdate' => time(),
             'algorithm' => 'blind_popularity',
             'model_type' => 'invalid_type',
@@ -130,7 +138,7 @@ class TreeGetApiTest extends TestCase
     public function testInvalidUpdateAllValue()
     {
         $response = $this->json('POST', '/api/v1/tree/get', [
-            'topic_num' => 238,
+            'topic_num' => $this->topic->topic_num,
             'asofdate' => time(),
             'algorithm' => 'blind_popularity',
             'update_all' => 5,

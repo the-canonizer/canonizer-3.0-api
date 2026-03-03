@@ -45,8 +45,8 @@ class SendOtpApiTest extends TestCase
         $user = User::factory()->make();
         $this->actingAs($user)
         ->post('/api/v3/send-otp',['phone_number'=>'9876567890']);  
-       // dd($_res);  
-        $_res->assertStatus(400);
+       // dd($response);  
+        $response->assertStatus(400);
     }
 
 
@@ -61,6 +61,6 @@ class SendOtpApiTest extends TestCase
         $this->actingAs($user)
             ->post('/api/v3/send-otp',$parameters);   
 
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 }

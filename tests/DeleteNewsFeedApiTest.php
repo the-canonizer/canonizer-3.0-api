@@ -19,8 +19,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -37,8 +37,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     public function testDeleteNewsFeedApiWithFalseData()
@@ -51,8 +51,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -65,8 +65,8 @@ class DeleteNewsFeedApiTest extends TestCase
         $data = ['newsfeed_id' => $newsFeed->id];
         $user = User::find(1);
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
-        $_res = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $data);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $data);
+        $response->assertStatus(200);
     }
 
     /**
@@ -80,6 +80,6 @@ class DeleteNewsFeedApiTest extends TestCase
             '/api/v3/delete-camp-newsfeed',
             $data
         );
-        $_res->assertStatus(401);
+        $response->assertStatus(401);
     }
 }

@@ -42,8 +42,8 @@ class GetUsedTopicNickNameApiTest extends TestCase
             'topic_num' => '',
         ];
 
-        $_res = $this->actingAs($camp)->post('/api/v3/camp/get-topic-nickname-used', $parameter);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($camp)->post('/api/v3/camp/get-topic-nickname-used', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testGetUsedTopicNickNameWithValidData()
@@ -55,8 +55,8 @@ class GetUsedTopicNickNameApiTest extends TestCase
         $parameters = [
             "topic_num" => (string) $rand,
         ];
-        $_res = $this->call('POST', '/api/v3/camp/get-topic-nickname-used', $parameters);
-        $_res->assertJsonStructure([
+        $response = $this->call('POST', '/api/v3/camp/get-topic-nickname-used', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

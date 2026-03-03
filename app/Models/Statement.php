@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
 use Exception;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[AllowDynamicProperties]
 class Statement extends Model
 {
+    use HasFactory;
     protected $table = 'statement';
     public $timestamps = false;
 

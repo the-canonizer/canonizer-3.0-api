@@ -14,8 +14,8 @@ class GetFeaturedTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->get('/api/v3/featured-topic',$header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/featured-topic',$header);
+        $response->assertStatus(200);
     }
     public function testGetFeaturedTopicApiWithInvalidMetgod()
     {
@@ -25,8 +25,8 @@ class GetFeaturedTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/featured-topic',$header);
-        $_res->assertStatus(405);
+        $response = $this->actingAs($user)->post('/api/v3/featured-topic',$header);
+        $response->assertStatus(405);
     }
     public function testGetFeaturedTopicApiWithInvalidURL()
     {
@@ -36,7 +36,7 @@ class GetFeaturedTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/featured-',$header);
-        $_res->assertStatus(404);
+        $response = $this->actingAs($user)->post('/api/v3/featured-',$header);
+        $response->assertStatus(404);
     }
 }

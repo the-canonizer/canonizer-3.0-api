@@ -20,9 +20,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', [], $header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', [], $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -43,9 +43,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData, $header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $emptyData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -53,9 +53,12 @@ class GetCampRecordApiTest extends TestCase
      */
     public function testGetCampRecordApiStatus()
     {
+        $topic = \App\Models\Topic::factory()->create();
+        $camp = \App\Models\Camp::factory()->create(['topic_num' => $topic->topic_num, 'camp_num' => 1]);
+
         $data = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => $topic->topic_num,
+            'camp_num' => $camp->camp_num,
             'as_of' => "default"
         ];
         print sprintf("\n get camp record ", 200, PHP_EOL);
@@ -64,9 +67,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 
     /**
@@ -88,9 +91,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -111,9 +114,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $invalidData, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     /**
@@ -121,9 +124,12 @@ class GetCampRecordApiTest extends TestCase
      */
     public function testGetCampRecordApiResponse()
     {
+        $topic = \App\Models\Topic::factory()->create();
+        $camp = \App\Models\Camp::factory()->create(['topic_num' => $topic->topic_num, 'camp_num' => 1]);
+
         $data = [
-            'topic_num' => 95,
-            'camp_num' => 5,
+            'topic_num' => $topic->topic_num,
+            'camp_num' => $camp->camp_num,
             'as_of' => "default"
         ];
         print sprintf("\n Test News Feed API Response ", 200, PHP_EOL);
@@ -132,9 +138,9 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 
     public function testGetCampRecordApiNotFoundResponse()
@@ -150,8 +156,8 @@ class GetCampRecordApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
-        //  dd($_res);
-        $_res->assertStatus(404);
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-record', $data, $header);
+        //  dd($response);
+        $response->assertStatus(404);
     }
 }

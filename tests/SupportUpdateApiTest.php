@@ -19,7 +19,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request support re-order api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support-order/update', []);
-        $_res->assertStatus(401);
+        $response->assertStatus(401);
     }
 
     /**
@@ -29,7 +29,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request remove support  api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support/update', []);
-        $_res->assertStatus(401);
+        $response->assertStatus(401);
     }
 
     /**
@@ -42,7 +42,7 @@ class SupportUpdateApiTest extends TestCase
         $data = [];
         $this->actingAs($user)
         ->post('/api/v3/support/update',$data);
-        $_res->assertStatus(500);
+        $response->assertStatus(500);
     }
 
 
@@ -61,7 +61,7 @@ class SupportUpdateApiTest extends TestCase
 
         $this->actingAs($user)
         ->post('/api/v3/support/update',$data);
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     public function testUpateSupportWithValidaData()
@@ -85,7 +85,7 @@ class SupportUpdateApiTest extends TestCase
         ];
         $this->actingAs($user)
         ->post('/api/v3/support-order/update',$data);
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     /**
@@ -97,7 +97,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Unauthorized User can not  request remove delegate support API. %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/support/remove-delegate', []);
-        $_res->assertStatus(401);
+        $response->assertStatus(401);
     }
 
     public function testRemoveDelegataeSupporttWithValidaData()
@@ -112,8 +112,8 @@ class SupportUpdateApiTest extends TestCase
             "delegated_nick_name_id" => "1"
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
+        $response->assertStatus(200);
     }
     
 }

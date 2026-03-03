@@ -55,8 +55,8 @@ class TopicStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $_res = $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testTopicStoreWithValidData()
@@ -71,12 +71,12 @@ class TopicStoreApiTest extends TestCase
             'nick_name'=>'347',
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
+        $response->assertStatus(200);
 
         // After topic creation , check the camp leader is added by default...
-        if($_res->status() == 200) {
-            $checkCampLeader = Camp::where("topic_num", $_res->json()["data"]["topic_num"])
+        if($response->status() == 200) {
+            $checkCampLeader = Camp::where("topic_num", $response->json()["data"]["topic_num"])
                                 ->where("camp_num", 1)->first();
 
             if(!empty($checkCampLeader)) {

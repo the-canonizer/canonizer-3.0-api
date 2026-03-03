@@ -13,7 +13,7 @@ class SupportedCampsApiTest extends TestCase
         print sprintf("Direct supported camps list can not be accessed by guest user %d %s", 401,PHP_EOL);
        
         $response = $this->call('GET', '/api/v3/get-direct-supported-camps', []);
-        $_res->assertStatus(401);       
+        $response->assertStatus(401);       
     }
 
 
@@ -22,6 +22,6 @@ class SupportedCampsApiTest extends TestCase
         print sprintf("Deleagted supported camps list can not be accessed by guest user %d %s", 401,PHP_EOL);
        
         $response = $this->call('GET', '/api/v3/get-delegated-supported-camps', []);
-        $_res->assertStatus(401);       
+        $response->assertStatus(401);       
     }
 }

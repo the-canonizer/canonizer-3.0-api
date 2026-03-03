@@ -14,8 +14,8 @@ class GetHotTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->get('/api/v3/hot-topic',$header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/hot-topic',$header);
+        $response->assertStatus(200);
     }
     public function testGetHotTopicApiWithInvalidMetgod()
     {
@@ -25,8 +25,8 @@ class GetHotTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/hot-topic',$header);
-        $_res->assertStatus(405);
+        $response = $this->actingAs($user)->post('/api/v3/hot-topic',$header);
+        $response->assertStatus(405);
     }
     public function testGetHotTopicApiWithInvalidURL()
     {
@@ -36,7 +36,7 @@ class GetHotTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/hot-',$header);
-        $_res->assertStatus(404);
+        $response = $this->actingAs($user)->post('/api/v3/hot-',$header);
+        $response->assertStatus(404);
     }
 }

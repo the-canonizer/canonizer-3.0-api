@@ -57,8 +57,8 @@ class PostApiTest extends TestCase
             "topic_name" => ""
         ];
 
-        $_res = $this->actingAs($Post)->post('/api/v3/post/save', $parameter);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($Post)->post('/api/v3/post/save', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testPostStoreWithValidData()
@@ -74,10 +74,10 @@ class PostApiTest extends TestCase
             "topic_num" => "290",
             "topic_name" => "Saurabh singh te11s111t 142"
         ];
-        $_res = $this->call('POST', '/api/v3/post/save', $parameters);
+        $response = $this->call('POST', '/api/v3/post/save', $parameters);
 
-        //dd($_res);
-        $_res->assertJsonStructure([
+        //dd($response);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -92,7 +92,7 @@ class PostApiTest extends TestCase
 
         $this->actingAs($Post)
             ->get('/api/v3/post/list?page=1&per_page=10&like=');
-        $_res->assertStatus(404);
+        $response->assertStatus(404);
     }
 
     public function testGetPostListValidData()
@@ -102,14 +102,14 @@ class PostApiTest extends TestCase
 
         $this->actingAs($Post)
             ->get('/api/v3/post/list/465?page=1&per_page=10&like=');
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     public function testPostUpdateInvalidData()
     {
         print sprintf("\n Get Post Update Invalid Data %d %s", 400, PHP_EOL);
         $response = $this->call('PUT', '/api/v3/post/update/465');
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
     public function testPostUpdateValidData()
@@ -126,6 +126,6 @@ class PostApiTest extends TestCase
         ];
         $this->actingAs($Post)
             ->put('/api/v3/post/update/465', $parameters);
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 }

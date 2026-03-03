@@ -56,8 +56,8 @@ class CampStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $_res = $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testCampStoreWithValidData()
@@ -74,8 +74,8 @@ class CampStoreApiTest extends TestCase
             "camp_about_url" => "",
             "asof"=>""
         ];
-        $_res = $this->call('POST', '/api/v3/camp/save', $parameters);
-        $_res->assertJsonStructure([
+        $response = $this->call('POST', '/api/v3/camp/save', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

@@ -26,8 +26,8 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         ];
 
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response->assertStatus(200);
     }
 
     public function testEmbeddedCodeTrackingInvalidURL()
@@ -38,8 +38,8 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         ];
 
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response->assertStatus(400);
     }
     
     public function testEmbeddedCodeTrackingInvalidIP()
@@ -50,8 +50,8 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         ];
 
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response->assertStatus(400);
     }
 
     public function testEmbeddedCodeTrackingSameURL()
@@ -62,7 +62,7 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         ];
 
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
 
         $request = [
             'url' => 'http://xyz.com',
@@ -70,8 +70,8 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         ];
 
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response->assertStatus(400);
     
     }
     public function testEmbeddedCodeTrackingUserAgentMustBeString()
@@ -81,8 +81,8 @@ class EmbeddedCodeTrackingApiTest extends TestCase
             'ip_address' => '192.168.0.1',
             'user_agent' => 12344,
         ];
-        $_res = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/embedded-code-tracking', $request);
+        $response->assertStatus(400);
     }
 
 }

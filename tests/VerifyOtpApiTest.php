@@ -28,10 +28,10 @@ class VerifyOtpApiTest extends TestCase
             "username" => '',
         ];
        
-        $_res = $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/verify-otp',$parameters);   
 
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
     
@@ -44,9 +44,9 @@ class VerifyOtpApiTest extends TestCase
             "otp" => '1234',
         ];
        
-        $_res = $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/verify-otp',$parameters);  
-        $_res->assertStatus(400);
+        $response->assertStatus(400);
     }
 
     public function testVerifyOtpWithValidData(){
@@ -57,7 +57,7 @@ class VerifyOtpApiTest extends TestCase
         $parameters = [
             "otp" => '697427',
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);  
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/verify-otp',$parameters);  
+        $response->assertStatus(200);
     }
 }

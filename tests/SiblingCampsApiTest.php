@@ -28,8 +28,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', [] ,$header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', [] ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -47,8 +47,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $emptyData ,$header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $emptyData ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -67,8 +67,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $invalidData ,$header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $invalidData ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -87,8 +87,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        $response->assertStatus(200);
     }
 
     /**
@@ -107,8 +107,8 @@ class SiblingCampsApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
-        $_res->assertJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/get-sibling-camps', $validData ,$header);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

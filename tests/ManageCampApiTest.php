@@ -20,8 +20,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -45,8 +45,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -68,8 +68,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
+        $response->assertStatus(400);
     }
 
 
@@ -94,8 +94,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response->assertStatus(200);
     }
 
     public function testUpdateManageCampWithInvalidCampLeader()
@@ -115,8 +115,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -150,8 +150,8 @@ class ManageCampApiTest extends TestCase
             'start' => time(),
             'end' => 0,
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $_res->assertStatus(400); // Direct supporter can object their own change
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response->assertStatus(400); // Direct supporter can object their own change
     }
 
     /**
@@ -176,8 +176,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response->assertStatus(200);
     }
 
 
@@ -187,8 +187,8 @@ class ManageCampApiTest extends TestCase
      */
     public function testManageCampApiWithoutAuth()
     {
-        $_res = $this->post('/api/v3/manage-camp', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/manage-camp', []);
+        $response->assertStatus(401);
     }
     
     public function testUpdateManageCampWithValidDataToCheckGracePeriod()
@@ -208,8 +208,8 @@ class ManageCampApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_1')
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response->assertStatus(200);
         
         $camp = Camp::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
         $this->assertNotNull($camp);

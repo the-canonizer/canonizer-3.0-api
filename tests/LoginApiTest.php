@@ -49,8 +49,8 @@ class LoginApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', [],$header);
+        $response->assertStatus(400);
     }
 
 
@@ -81,8 +81,8 @@ class LoginApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 }

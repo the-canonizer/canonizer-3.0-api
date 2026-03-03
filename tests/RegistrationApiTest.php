@@ -55,8 +55,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/register',[],$header);
-        $_res->assertStatus(400);      
+        $response = $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $response->assertStatus(400);      
     }
 
     public function testWhenIncorrectRegisterCurrentPassword(){
@@ -66,8 +66,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/register',['password'=>'Test#123','password_confirmation'=>'Test#123'],$header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/register',['password'=>'Test#123','password_confirmation'=>'Test#123'],$header);
+        $response->assertStatus(400);
     }
 
     public function testRegisterWithInvalidData()
@@ -78,8 +78,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/register',[],$header);
-        $_res->assertStatus(400);      
+        $response = $this->actingAs($user)->post('/api/v3/register',[],$header);
+        $response->assertStatus(400);      
     }
 
 
@@ -113,8 +113,8 @@ class RegistrationApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
-        $_res->assertStatus(200);      
+        $response = $this->actingAs($user)->post('/api/v3/register',$parameters,$header);
+        $response->assertStatus(200);      
     }
 
 }

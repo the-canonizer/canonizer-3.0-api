@@ -6,21 +6,33 @@ use App\Models\User;
 
 class GetStatementHistoryTest extends TestCase
 {
+    protected $user;
+    protected $nickname;
+    protected $topic;
+    protected $camp;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->nickname = \App\Models\Nickname::factory()->create(['user_id' => $this->user->id]);
+        $this->topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $this->nickname->id]);
+        $this->camp = \App\Models\Camp::factory()->create(['topic_num' => $this->topic->topic_num, 'camp_num' => 1, 'submitter_nick_id' => $this->nickname->id]);
+        \App\Models\Statement::factory()->create(['topic_num' => $this->topic->topic_num, 'camp_num' => $this->camp->camp_num, 'submitter_nick_id' => $this->nickname->id]);
+    }
+
     /**
      * Check Api with empty form data
      * validation
      */
     public function testGetStatementHistoryApiWithEmptyFormData()
     {
-        print sprintf("Test with empty form data");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', [] ,$header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', [] ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -35,15 +47,12 @@ class GetStatementHistoryTest extends TestCase
             "topic_num" => "",
             "camp_num" => ""
         ];
-        print sprintf("Test with empty values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $emptyData ,$header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $emptyData ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -55,18 +64,15 @@ class GetStatementHistoryTest extends TestCase
         $validData = [
             "per_page" => "10",
             "page" => "1",
-            "topic_num" => "88",
-            "camp_num" => "1"
+            "topic_num" => $this->topic->topic_num,
+            "camp_num" => $this->camp->camp_num
         ];
-        print sprintf("Test with valid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $validData ,$header);
+        $response->assertStatus(200);
     }
 
     /**
@@ -79,18 +85,16 @@ class GetStatementHistoryTest extends TestCase
             "per_page" => "10",
             "page" => "1",
             "type" => "invalid",
-            "topic_num" => "88",
-            "camp_num" => "1",
+            "topic_num" => $this->topic->topic_num,
+            "camp_num" => $this->camp->camp_num,
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $invalidData ,$header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -102,17 +106,15 @@ class GetStatementHistoryTest extends TestCase
         $validData = [
             "per_page" => "10",
             "page" => "1",
-            "topic_num" => "88",
-            "camp_num" => "1"
+            "topic_num" => $this->topic->topic_num,
+            "camp_num" => $this->camp->camp_num
         ];
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData ,$header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $validData ,$header);
+        $response->assertStatus(200);
     }
 
     /**
@@ -123,18 +125,16 @@ class GetStatementHistoryTest extends TestCase
         $data = [
             "per_page" => "10",
             "page" => "1",
-            "topic_num" => "88",
+            "topic_num" => $this->topic->topic_num,
             "type" => "all",
-            "camp_num" => "1"
+            "camp_num" => $this->camp->camp_num
         ];
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $data ,$header);
+        $response->assertStatus(200);
     }
 
     /**
@@ -144,21 +144,19 @@ class GetStatementHistoryTest extends TestCase
     public function testGetCampStatementHistoryApiWithoutFilterDate()
     {
         $invalidData = [
-            'topic_num' => 45,
-            'camp_num' => 1,
+            'topic_num' => $this->topic->topic_num,
+            'camp_num' => $this->camp->camp_num,
             "type" => "all",
             'as_of' => "bydate"
         ];
 
         print sprintf("Test with invalid values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $invalidData ,$header);
-        //  dd($_res);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $invalidData ,$header);
+        $response->assertStatus(400);
     } 
     
     public function testGetCampStatementHistoryApiNotFound()
@@ -172,14 +170,12 @@ class GetStatementHistoryTest extends TestCase
         ];
 
         print sprintf("Test if camp statement not found");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
+        $token = $this->user->createToken('TestToken')->accessToken;
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $data ,$header);
-        //  dd($_res);
-        $_res->assertStatus(404);
+        $response = $this->actingAs($this->user)->post('/api/v3/get-statement-history', $data ,$header);
+        $response->assertStatus(404);
     }
 
 }

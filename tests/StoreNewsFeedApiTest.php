@@ -18,8 +18,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -41,8 +41,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -64,8 +64,8 @@ class StoreNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-newsfeed', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -75,7 +75,7 @@ class StoreNewsFeedApiTest extends TestCase
     public function testStoreNewsFeedWithoutUserAuth()
     {
         print sprintf("Test with empty form data");
-        $_res = $this->post('/api/v3/store-camp-newsfeed', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/store-camp-newsfeed', []);
+        $response->assertStatus(401);
     }
 }

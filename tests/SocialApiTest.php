@@ -38,8 +38,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'provider' => ''
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialLoginWithValidData()
@@ -49,8 +49,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'provider' => 'google'
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response->assertStatus(200);
     }
 
     public function testSociaCallbackValidateFiled()
@@ -81,8 +81,8 @@ class SocialApiTest extends TestCase
             'provider' => '',
             'code' => ''
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialCallbackWithValidData()
@@ -95,8 +95,8 @@ class SocialApiTest extends TestCase
             'provider' => 'google',
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
-        $_res = $this->call('POST', '/api/v3/user/social/callback', $parameters);
-        $_res->assertJsonStructure([
+        $response = $this->call('POST', '/api/v3/user/social/callback', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -117,10 +117,10 @@ class SocialApiTest extends TestCase
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
 
-        $_res = $this->call('POST', '/api/v3/user/social/social-link', $parameters);
+        $response = $this->call('POST', '/api/v3/user/social/social-link', $parameters);
 
-        // dd($_res);
-        $_res->assertJsonStructure([
+        // dd($response);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -133,7 +133,7 @@ class SocialApiTest extends TestCase
     public function testGetSocialUserListInvalidData(){
         print sprintf("\n Get Social User List Invalid Data %d %s",400, PHP_EOL);
         $response = $this->call('GET', '/api/v3/user/social/list');
-        $_res->assertStatus(400); 
+        $response->assertStatus(400); 
     }
 
     public function testGetSocialUserListValidData(){
@@ -143,13 +143,13 @@ class SocialApiTest extends TestCase
         $this->actingAs($user)
         ->get('/api/v3/user/social/list', []);
 
-        $_res->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     public function testGetSocialUserListDeleteValidData(){
         print sprintf(" \n  Get Social User List Valid Data %d %s", 200,PHP_EOL);
-        $_res = $this->call('DELETE', '/api/v3/user/social/delete/2');
-        $_res->assertJsonStructure([
+        $response = $this->call('DELETE', '/api/v3/user/social/delete/2');
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',
@@ -165,8 +165,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'user_id' => ''
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response->assertStatus(400);
     }
 
     public function testSocialDeactivateUserWithValidData()
@@ -178,8 +178,8 @@ class SocialApiTest extends TestCase
         $parameters = [
             'user_id' => trans('testSample.user_ids.normal_user.user_2.id'),
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response->assertStatus(200);
     }
 
 }

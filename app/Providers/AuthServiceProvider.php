@@ -31,6 +31,7 @@ class AuthServiceProvider extends ServiceProvider
         Passport::tokensExpireIn(now()->addMonths(6));
         Passport::refreshTokensExpireIn(now()->addMonths(7));
         Passport::personalAccessTokensExpireIn(now()->addMonths(6));
+        Passport::enablePasswordGrant();
 
         // Note: In Laravel 11, we may need to use a separate migrations or commands to manage scopes if needed.
 

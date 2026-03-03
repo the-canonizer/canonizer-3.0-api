@@ -18,8 +18,8 @@ class EditNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -36,8 +36,8 @@ class EditNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $emptyData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -54,8 +54,8 @@ class EditNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -69,8 +69,8 @@ class EditNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->post('/api/v3/edit-camp-newsfeed', []);
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/edit-camp-newsfeed', []);
+        $response->assertStatus(401);
     }
 
     /**
@@ -86,8 +86,8 @@ class EditNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $data);
-        $_res->assertJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-newsfeed', $data);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

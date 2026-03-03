@@ -59,9 +59,9 @@ class Util
                 break;
             default :
                 $returnObject = (object)[
-                    "status_code" => 400,
-                    "message"     => "Something went wrong",
-                    "error"       => null,
+                    "status_code" => $status,
+                    "message"     => "Internal request failed",
+                    "error"       => $response->body(),
                     "data"        => null
                 ];
         }

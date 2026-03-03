@@ -51,8 +51,8 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $_res = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', [], $header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', [], $header);
+        $response->assertStatus(400);
     }
 
     public function testNotifyIfTopicOrCampNotExistWithValidData()
@@ -71,8 +71,8 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => "514"
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response->assertStatus(200);
     }
     public function testNotifyIfStatementNotExistWithValidData()
     {
@@ -90,8 +90,8 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => ""
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response->assertStatus(200);
     }
     public function testNotifyIfThreadNotExistWithValidData()
     {
@@ -109,8 +109,8 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => "514"
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response->assertStatus(200);
     }
     public function testNotifyIfNicknameNotExistWithValidData()
     {
@@ -128,7 +128,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "1",
             "thread_id" => ""
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response->assertStatus(200);
     }
 }

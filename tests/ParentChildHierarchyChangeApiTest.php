@@ -30,7 +30,7 @@ class ParentChildHierarchyChangeApiTest extends TestCase
     public function testUnauthorizedUserCannotUpdate(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/manage-camp', []);
-        $_res->assertStatus(401);
+        $response->assertStatus(401);
     }
 
 
@@ -55,10 +55,10 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "from_test_case"=>1
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
-        $_res->assertStatus(200);
-        $_res = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=4');
-        $_res->assertJson([
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
+        $response->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=4');
+        $response->assertJson([
             "support_flag"=> 0
         ]);
 
@@ -84,10 +84,10 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "from_test_case"=>1
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
-        $_res->assertStatus(200);
-        $_res = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=5');
-        $_res->assertJson([
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
+        $response->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=5');
+        $response->assertJson([
             "support_flag"=> 0
         ]);
     }
@@ -100,8 +100,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
     {
         print sprintf("\n Test with empty form data");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', []);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -125,8 +125,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
         $user = User::factory()->make([
             'id' => '1132',
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
+        $response->assertStatus(400);
     }
 
   

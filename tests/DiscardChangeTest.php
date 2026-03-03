@@ -19,8 +19,8 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -39,8 +39,8 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -59,8 +59,8 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -79,8 +79,8 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(400);
     }
 
     /**
@@ -106,7 +106,7 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData, $header);
+        $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData, $header);
 
         $validData = [
             "per_page" => "10",
@@ -114,16 +114,16 @@ class DiscardChangeTest extends TestCase
             "topic_num" => "47",
             "camp_num" => "1"
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData, $header);
-        $response = $_res->getData();
+        $response = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData, $header);
+        $response = $response->getData();
 
         $payload = [
             "id" => $response->data->items[0]->id,
             "type" => "statement",
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(200);
     }
     
     public function testDiscardChangeForTopicWithValidData()
@@ -147,7 +147,7 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
 
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
     
         $validData = [
             "per_page" => "10",
@@ -155,16 +155,16 @@ class DiscardChangeTest extends TestCase
             "topic_num" => "1",
             "type" => "all",
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
-        $response = $_res->getData();
+        $response = $this->actingAs($user)->post('/api/v3/get-topic-history', $validData ,$header);
+        $response = $response->getData();
 
         $payload = [
             "id" => $response->data->items[0]->id,
             "type" => "topic",
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(200);
     }
     
     public function testDiscardChangeForCampWithValidData()
@@ -188,7 +188,7 @@ class DiscardChangeTest extends TestCase
             'Accept' => 'application/json',
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,  
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
         
         $validData = [
             "per_page" => "10",
@@ -197,15 +197,15 @@ class DiscardChangeTest extends TestCase
             "camp_num" => "2",
             "type" => "all",
         ];
-        $_res = $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
-        $response = $_res->getData();
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
+        $response = $response->getData();
 
         $payload = [
             "id" => $response->data->items[0]->id,
             "type" => "camp",
         ];
 
-        $_res = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        $response->assertStatus(200);
     }
 }

@@ -14,6 +14,7 @@ use App\Jobs\WelcomeMail;
 use App\Models\SocialUser;
 use App\Events\SendOtpEvent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Request\Validate;
 use App\Events\WelcomeMailEvent;
 use App\Models\SocialEmailVerify;
@@ -118,26 +119,30 @@ class UserController extends Controller
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $postUrl = URL::to('/') . '/oauth/token';
-            $isFromTestCases = $request->get('from_test_case', null);
-            if ($isFromTestCases == '1') {
-                $postUrl .= '?from_test_case=1';
-            }
             $payload = [
                 'grant_type' => 'client_credentials',
                 'client_id' => $request->client_id,
                 'client_secret' => $request->client_secret,
                 'scope' => '*',
             ];
-            $generateToken = Util::httpPost($postUrl, $payload);
-            if ($generateToken->status_code == 200) {
+            
+            // Internal dispatch to avoid deadlock in single-threaded servers like php artisan serve
+            $dispatchRequest = Request::create('/oauth/token', 'POST', $payload);
+            $response = app()->handle($dispatchRequest);
+            $generateToken = json_decode($response->getContent());
+            
+            if ($response->getStatusCode() == 200) {
                 return (new SuccessResource($generateToken))->response()->setStatusCode(200);
+            }
+            // Ensure status_code is set for ErrorResource
+            if (!isset($generateToken->status_code)) {
+                $generateToken->status_code = $response->getStatusCode();
             }
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $ex) {
-            return $ex->getMessage();
+            Log::error("UserController :: clientToken :: message: ".$ex->getMessage());
             $status = 400;
-            $message = trans('message.error.exception');
+            $message = $ex->getMessage();
             return $this->resProvider->apiJsonResponse($status, $message, null, null);
         }
     }
@@ -418,12 +423,6 @@ class UserController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
-            $postUrl = URL::to('/') . '/oauth/token';
-            $isFromTestCases = $request->get('from_test_case', null);
-            if ($isFromTestCases == '1') {
-                $postUrl .= '?from_test_case=1';
-            }
-            $user->is_admin = ($user->type == 'admin') ? true : false;
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
@@ -433,7 +432,11 @@ class UserController extends Controller
                 'scope' => '*',
             ];
 
-            $generateToken = Util::httpPost($postUrl, $payload);
+            // Internal dispatch to avoid deadlock in single-threaded servers like php artisan serve
+            $dispatchRequest = Request::create('/oauth/token', 'POST', $payload);
+            $response = app()->handle($dispatchRequest);
+            $generateToken = json_decode($response->getContent());
+            
             return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
@@ -601,7 +604,6 @@ class UserController extends Controller
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
 
-            $postUrl = URL::to('/') . '/oauth/token';
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,
@@ -610,7 +612,13 @@ class UserController extends Controller
                 'password' => env('PASSPORT_MASTER_PASSWORD'),
                 'scope' => '*',
             ];
-            $generateToken = Util::httpPost($postUrl, $payload);
+            
+            // Internal dispatch to avoid deadlock in single-threaded servers like php artisan serve
+            $dispatchRequest = Request::create('/oauth/token', 'POST', $payload);
+            $response = app()->handle($dispatchRequest);
+            $generateToken = json_decode($response->getContent());
+            $generateToken->status_code = $response->getStatusCode();
+            
             if ($generateToken->status_code == 200) {
                 $userRes = User::where('email', '=', $request->username)->update(['otp' => '', 'status' => 1]);
                 if ($request->is_login == 0) {

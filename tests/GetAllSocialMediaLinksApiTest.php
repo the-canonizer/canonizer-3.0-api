@@ -16,8 +16,8 @@ class GetAllSocialMediaLinksApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->get('/api/v3/get-social-media-links',$header);
-        //  dd($_res);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/get-social-media-links',$header);
+        //  dd($response);
+        $response->assertStatus(200);
     }
 }

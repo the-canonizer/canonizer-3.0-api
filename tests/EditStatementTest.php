@@ -13,8 +13,8 @@ class EditStatementTest extends TestCase
     public function testEditStatementApiWithoutUserAuth()
     {
         print sprintf("Test without auth");
-        $_res = $this->post('/api/v3/edit-camp-statement');
-        $_res->assertStatus(401);
+        $response = $this->post('/api/v3/edit-camp-statement');
+        $response->assertStatus(401);
     }
 
     /**
@@ -25,8 +25,8 @@ class EditStatementTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-statement',[]);
-        $_res->assertStatus(400);
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-statement',[]);
+        $response->assertStatus(400);
     }
 
     /**
@@ -36,8 +36,8 @@ class EditStatementTest extends TestCase
     {
         print sprintf("\n Test edit statement API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/edit-camp-statement/');
-        $_res->assertJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-statement/');
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

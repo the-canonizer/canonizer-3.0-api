@@ -14,8 +14,8 @@ class GetPreferredTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->get('/api/v3/preferred-topic',$header);
-        $_res->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/preferred-topic',$header);
+        $response->assertStatus(200);
     }
     public function testGetPreferredTopicApiWithInvalidMetgod()
     {
@@ -25,8 +25,8 @@ class GetPreferredTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/preferred-topic',$header);
-        $_res->assertStatus(405);
+        $response = $this->actingAs($user)->post('/api/v3/preferred-topic',$header);
+        $response->assertStatus(405);
     }
     public function testGetPreferredTopicApiWithInvalidURL()
     {
@@ -36,7 +36,7 @@ class GetPreferredTopicApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $_res = $this->actingAs($user)->post('/api/v3/preferred-',$header);
-        $_res->assertStatus(404);
+        $response = $this->actingAs($user)->post('/api/v3/preferred-',$header);
+        $response->assertStatus(404);
     }
 }
