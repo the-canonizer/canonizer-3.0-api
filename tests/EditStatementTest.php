@@ -4,7 +4,7 @@ namespace Tests;
 
 use App\Models\User;
 
-class EditStatmentTest extends TestCase
+class EditStatementTest extends TestCase
 {
     /**
      * Check Api without auth

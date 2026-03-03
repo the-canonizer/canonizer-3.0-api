@@ -283,7 +283,8 @@ class Util
             // Dispatch job when create a camp/topic
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
-                $delayTime = Carbon::now()->addSeconds($delay);
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds((int)$delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
                 $canonizerServiceData['isUniqueJob'] = false;
                 dispatch((new CanonizerService($canonizerServiceData))->delay($delayTime))->onQueue(env('DELAY_QUEUE_SERVICE_NAME'));
@@ -634,7 +635,8 @@ class Util
             ];
             if ($delay) {
                 // Job delay coming in seconds, update the service asOfDate for delay job execution.
-                $delayTime = Carbon::now()->addSeconds($delay);
+                // Job delay coming in seconds, update the service asOfDate for delay job execution.
+                $delayTime = Carbon::now()->addSeconds((int)$delay);
                 $canonizerServiceData['asOfDate'] = $delayTime->timestamp;
             }
             dispatch(new TimelineJob($canonizerServiceData))->onQueue(env('EVENTLINE_QUEUE_SERVICE_NAME'));

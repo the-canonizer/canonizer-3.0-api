@@ -4,7 +4,7 @@ namespace Tests;
 
 use App\Models\User;
 
-class CampStatementApiTest extends TestCase
+class GetCampStatementApiTest extends TestCase
 {
 
     /**

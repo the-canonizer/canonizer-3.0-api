@@ -14,42 +14,51 @@ class CampArchiveTest extends TestCase
     public function testArchiveCampApiWithoutUserAuth()
     {
         print sprintf("Test without auth  %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/manage-camp', []);
-        $_res->assertStatus(401);
+        $response = $this->postJson('/api/v3/manage-camp', []);
+        $response->assertStatus(401);
     }
 
     public function testArchiveCampApiWithInvalidData()
     {
         print sprintf("Test with invalid data  %d %s", 400, PHP_EOL);
-        $user = User::factory()->make();
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp');
-        $_res->assertStatus(400);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/manage-camp');
+        $response->assertStatus(400);
     }
 
     public function testArchiveCampWithValiddata()
     {
-        $validData = [
-            "topic_num" => 534,
-            "camp_num"=>7,
-            "nick_name"=>347, 
-            "submitter"=>347, 
-            "event_type"=>"update",
-            "camp_id"=>3377,
-            "camp_name"=>"camp 5",
-            "parent_camp_num"=>4,
-            "is_archive"=>1,
-
-        ];
-        print sprintf("Archive camp with valid values ");
-        $user = User::factory()->make([
-            'id' => '362',
+        $user = User::factory()->create(['status' => 1]);
+        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
+        $topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
+        $camp = \App\Models\Camp::factory()->create([
+            'topic_num' => $topic->topic_num,
+            'parent_camp_num' => 1,
+            'camp_num' => 2,
+            'submitter_nick_id' => $nickname->id
         ]);
-        $_res = $this->actingAs($user)->post('/api/v3/manage-camp', $validData);
-        $response = $_res->getData();
-        if($response->status_code == 200 && $response->data->is_archive ==1 ){
-            $_res->assertStatus(200);
-        }
 
+        $validData = [
+            "topic_num" => $topic->topic_num,
+            "camp_num" => $camp->camp_num,
+            "camp_id" => $camp->id,
+            "nick_name" => $nickname->id, 
+            "submitter" => $nickname->id, 
+            "event_type" => "update",
+            "camp_name" => "updated camp name",
+            "parent_camp_num" => 1,
+            "is_archive" => 1,
+        ];
+
+        print sprintf("Archive camp with valid values ");
+        $response = $this->actingAs($user)->postJson('/api/v3/manage-camp', $validData);
+        if ($response->status() !== 200) {
+            print_r($response->json());
+        }
+        $response->assertStatus(200);
+        
+        $responseData = $response->getData();
+        $this->assertEquals(1, $responseData->data->is_archive);
     }
 
 }

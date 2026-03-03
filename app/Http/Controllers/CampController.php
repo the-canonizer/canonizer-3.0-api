@@ -1380,7 +1380,7 @@ class CampController extends Controller
                 //     will no go live instantly until committed. So that's why go_live_time will be 1 day for all
                 //     changes except the unit test case.
                 // */
-                $camp->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
+                $camp->go_live_time = time() + 86400;
                 $camp->grace_period = 1;
 
                 if (array_key_exists("from_test_case", $all)) {

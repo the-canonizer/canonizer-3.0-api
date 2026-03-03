@@ -5,7 +5,7 @@ namespace Tests;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class EmbeddedCodeTrackingTest extends TestCase
+class EmbeddedCodeTrackingApiTest extends TestCase
 {
     private $user;
     use DatabaseTransactions;

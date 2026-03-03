@@ -10,9 +10,8 @@ class TreeStoreApiTest extends TestCase
      */
     public function testStoreApiWithEmptyFormData()
     {
-        $response = $this->json('POST', '/api/v1/tree/store', [], [
-            'X-Api-Token' => env('API_TOKEN')
-        ]);
+        $user = \App\Models\User::factory()->create();
+        $response = $this->actingAs($user)->json('POST', '/api/v1/tree/store', []);
         $response->assertStatus(422);
     }
 
@@ -21,13 +20,12 @@ class TreeStoreApiTest extends TestCase
      */
     public function testStoreApiWithEmptyValues()
     {
-        $response = $this->json('POST', '/api/v1/tree/store', [
+        $user = \App\Models\User::factory()->create();
+        $response = $this->actingAs($user)->json('POST', '/api/v1/tree/store', [
             'topic_num' => '',
             'asofdate' => '',
             'algorithm' => '',
             'update_all' => ''
-        ], [
-            'X-Api-Token' => env('API_TOKEN')
         ]);
         $response->assertStatus(422);
     }
@@ -37,13 +35,14 @@ class TreeStoreApiTest extends TestCase
      */
     public function testStoreApiWithCorrectValues()
     {
-        $response = $this->json('POST', '/api/v1/tree/store', [
-            'topic_num' => 238,
+        $user = \App\Models\User::factory()->create();
+        $topic = \App\Models\Topic::factory()->create();
+        
+        $response = $this->actingAs($user)->json('POST', '/api/v1/tree/store', [
+            'topic_num' => $topic->topic_num,
             'asofdate' => time(),
             'algorithm' => 'blind_popularity',
             'update_all' => 0
-        ], [
-            'X-Api-Token' => env('API_TOKEN')
         ]);
         $response->assertStatus(200);
     }
