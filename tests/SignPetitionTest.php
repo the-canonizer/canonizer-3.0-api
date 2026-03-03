@@ -1,7 +1,9 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class SignPetitionTest extends TestCase
 {
@@ -16,9 +18,9 @@ class SignPetitionTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/camp/sign', [], $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', [], $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }   
     
     public function testSignPetitionApiWithEmptyValues()
@@ -34,9 +36,9 @@ class SignPetitionTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 
     public function testSignPetitionApiWithWrongNickname()
@@ -53,9 +55,9 @@ class SignPetitionTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
-        //  dd($this->response);
-        $this->assertEquals(403, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
+        //  dd($response);
+        $response->assertStatus(403);
     }
 
     public function testSignPetitionApiWithMissingKey()
@@ -72,9 +74,9 @@ class SignPetitionTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
 
 
         // Missing camp_num
@@ -83,9 +85,9 @@ class SignPetitionTest extends TestCase
             "topic_num" => 279
         ];
         
-        $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
 
 
         // Missing nick_name_id
@@ -94,8 +96,8 @@ class SignPetitionTest extends TestCase
             "camp_num" => 1
         ];
         
-        $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
-        //  dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/camp/sign', $payload, $header);
+        //  dd($response);
+        $response->assertStatus(400);
     }
 }

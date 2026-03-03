@@ -12,11 +12,16 @@ class CampFactory extends Factory
     public function definition(): array
     {
         return [
-            'nick_name' => 'test',
-            'camp_name' => 'test',
-            'camp_about_url' => '',
-            'parent_camp_num' => '',
-            'asof' => ''
+            'camp_name' => $this->faker->word,
+            'topic_num' => 1,
+            'parent_camp_num' => 1,
+            'submitter_nick_id' => 1,
+            'go_live_time' => time(),
+            'proposed' => 0,
+            'note' => $this->faker->sentence,
+            'key_words' => $this->faker->word,
+            'submit_time' => time(),
+            'title' => $this->faker->word,
         ];
     }
 }

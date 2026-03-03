@@ -1,7 +1,7 @@
 <p align="center">
     <a href="https://canonizer.com" target="_blank" style="border-width:0;"><img src="https://canonizer-public-file.s3.us-east-2.amazonaws.com/site-images/logo.svg" alt="Canonizer" /></a>
     <br>
-    <span style="font-size:12px;">Version: 3.0</span>
+    <span style="font-size:12px;">Version: 3.0 (Unified API)</span>
 </p>
 
 <p align="center">
@@ -14,250 +14,154 @@
 
 <!-- Table of content -->
 # Objective
-This document helps the contributor to understand the high level understanding of the project and setup the development environment into their machine. This is intended for the developers. 
+This project is the unified API backend for Canonizer 3.0, migrated from Lumen to **Laravel 11** and updated for **PHP 8.4**. It consolidates the legacy `canonizer-service` (v1) and the original `canonizer-api` (v3) into a single, high-performance service that manages both MySQL (transactional data) and MongoDB (topic trees/timelines).
 
 <!-- About Project Section -->
 # About the Project
-A wiki system that solves the critical liabilities of Wikipedia. It solves petty "edit wars" by providing contributors the ability to create and join camps and present their views without having them immediately erased. It also provides ways to standardise definitions and vocabulary, especially important in new fields.
+A wiki system that solves the critical liabilities of Wikipedia. It solves petty "edit wars" by providing contributors the ability to create and join camps and present their views without having them immediately erased. It also provides ways to standardize definitions and vocabulary, especially important in new fields.
+
+## Key Modernizations
+- **Framework**: Migrated from Lumen 8.x to Laravel 11.x.
+- **PHP Support**: Fully compatible with PHP 8.4 (using `AllowDynamicProperties` and updated type-hinting).
+- **Consolidation**: Unified `v1` and `v3` route namespaces into a single application.
+- **Dual Database Support**: seamless integration between MySQL and MongoDB.
 
 ## Dependent Modules & Services
-- Canonizer Frontend
-- Canonizer Service (Please refer the [document](https://docs.google.com/document/d/1jXzw8SgIir5Mq1Gr_zpYIe8SF8gso4T2/edit?usp=share_link&ouid=102075822814629424227&rtpof=true&sd=true) for more details.)
-- Mailtrap (Email delivery platform for sandbox environment)
-- SendinBlue (Email delivery platform for production enevironment)
-- Supervisord (For managing background queues on linux enviroment. Please refer the [link](https://www.digitalocean.com/community/tutorials/how-to-install-and-manage-supervisor-on-ubuntu-and-debian-vps) for details) 
+- **Canonizer Frontend**: Next.js based frontend.
+- **Mailtrap**: Email delivery for sandbox environment.
+- **SendinBlue**: Email delivery for production environment.
+- **Supervisord**: For managing background queues (Topic tree caching, Notifications).
 
 ## Architecture & Design
-The application is designed based on SOA (Service Oriented Architectue), where all the different component of the system treated as a service and accessible by the RESTFull api. Please follow the [link](https://drive.google.com/file/d/1ByCvgzlgwuKUcOMG_OAAb2eKnWCN-HXb/view?usp=share_link) for high level architecture and design.
+The application follows a Service-Oriented Architecture (SOA), providing RESTful APIs for the frontend. 
+- **MySQL**: Primary store for topics, camps, users, and support data.
+- **MongoDB**: Optimized store for hierarchical topic trees and timelines.
+
+Please follow the [link](https://drive.google.com/file/d/1ByCvgzlgwuKUcOMG_OAAb2eKnWCN-HXb/view?usp=share_link) for high level architecture and design.
 
 ## Application Queuing System
-Most of the long running jobs are implemented through events and jobs. Application uses the events and jobs provided by the Lumen framework. There are two types of tasks which is implemented by events and jobs.
-- Caching of Topic tree in MongoDB
-- Notifications (Email ans Push)
-
-Please refer the [link](https://docs.google.com/document/d/1Ht6V4POfVhoPL4HS3iGOPAseB_Lxdhx-M9h7GjtXmqA/edit#) to see the implementation and configuration.
+Long-running jobs (MongoDB tree generation, Notifications) are handled via Laravel Queues.
+- **Caching**: Topic trees are pre-rendered and stored in MongoDB via the `tree:all` command.
+- **Notifications**: Email and Push notifications are dispatched via background jobs.
 
 <!-- About Setup Section -->
 # Getting Started
 ## Setup Development Environment
-- Prerequisites
-  - PHP >= 7.3
-    - Open SSL PHP Extension
-    - PDO PHP Extension
-    - Mbstring PHP Extension
-  - MySQL 8.0 
-  - Git 
-    (For installation, please see the [documentations](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git))
-  - Composer
-    (For installation, please see the [documentations](https://getcomposer.org/download))
-  - Access (Read/Write) on the repository
+### Prerequisites
+- **PHP >= 8.4**
+    - BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML, MongoDB extensions.
+- **MySQL >= 8.0**
+- **MongoDB >= 6.0**
+- **Git**
+- **Composer**
 
-    *NOTE: You can install MAMP (MacOS), LAMP (Linux), or XAMPP (Windows) software depending upon the OS. Make sure above extensions have to be enabled.*
-
-<!-- Installation Process -->
-- Installation    
-    Canonizer can be setup in two different ways, either using docker or locally. 
+### Installation
+1. **Clone the repository**:
+    ```sh
+    git clone git@github.com:the-canonizer/canonizer-3.0-api.git
+    cd canonizer-3.0-api
+    ```
+2. **Install dependencies**:
+    ```sh
+    composer install
+    ```
+3. **Environment Setup**:
+    ```sh
+    cp .env.example .env
+    ```
+    Update your `.env` file with MySQL, MongoDB, and Cache settings:
+    ```bash
+    DB_CONNECTION=mysql
+    DB_DATABASE=canonizer3_mono
     
-    ***On local machine***
-
-    Following are the steps to setup the project locally
-    1. Clone the repository inside any folder in the system 
-        ```sh
-        git clone git@github.com:the-canonizer/canonizer-3.0-api.git
-        ```
-    2. Change directory to project's root directory
-        ```sh
-        cd canonizer-3.0-api
-        ```
-    3. Install dependent packages using composer
-        ```sh
-        composer install
-        ```
-    4. Create a copy of .env.example named as .env in the project's root directory
-        ```sh
-        cp .env.example .env
-        ```
-    5. Update the enviroment variable of .env file
-
-    6. Generate application key
-        ```sh
-        php artisan generate:key
-        ```
-    7. Create a MySQL database. Make sure the name should be same as mentioned in the .env file
-
-    8. Run the migration
-        ```sh
-        php artisan migrate
-        ```
-    9. Clear the cache
-        ```sh
-        php artisan cache:clear
-        ```
-    10. Configure virtual host of Apache2 server
-        - Edit Apache configuration file (httpd.conf) and update the below information  
-        ```
-        Listen 80
-        ServerName localhost
-        ```
-        - Edit virtual host file and create a new virtual host 
-        ```
-        <VirtualHost *:80>
-            ServerAdmin webmaster@dummy-host2.example.com
-            DocumentRoot "<absolute path project directory>/canonizer-3.0-api/public"
-            ServerName canonizer3.local
-            ErrorLog "/opt/homebrew/var/log/httpd/dummy-host2.example.com-error_log"
-            CustomLog "/opt/homebrew/var/log/httpd/dummy-host2.example.com-access_log" common
-        </VirtualHost>
-        ```
-        - Edit host file
-        ```
-        127.0.0.1 canonizer3.local
-        ``` 
-        - Restart Apache 
-        ```sh
-        sudo service apache2 restart
-        ```
-    ***Docker***
-
-    Following are the steps to setup the project using Docker
-    1. Follow the step number 1, 2, 4, 5, 6, and 9 as mentioned above
-    2. Run docker compose
-        ```sh
-        docker-compose up --build
-        ```
-        ```sh
-        docker exec -it canonizer_api
-        ```
-        The above command will display the prompt of the canonizer_api container. Execute the below command from the prompt
-        ```sh
-        > cd /opt/canonizer/
-        > composer install
-        > php artisan migrate
-        > php artisan cache:clear
-        ```
-
-<!-- Verfication Process -->
-- Verification
-  - For local setup, enter the below url on browser's address bar
+    MONGODB_DSN=mongodb://127.0.0.1:27017
+    MONGODB_DB=Canonizer
+    
+    CACHE_STORE=file # Recommended for local dev
+    
+    # Testing Environment (optional)
+    DB_DATABASE_TEST=canonizer_testing
     ```
-    http://canonizer3.local
+4. **Generate App Key**:
+    ```sh
+    php artisan key:generate
     ```
-  - For docker setup, enter the below url on browser's address bar
-    ```
-    http://localhost:8000
-    ```
-  - Output
-    ```
-    Lumen (8.3.4) (Laravel Components ^8.0)
-    ```
-## Contribution
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please clone the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-### Create Branch ###
-
-Go to the project root folder ie. canonizer-3.0-api
-- Checkout the base branch and pull the latest changes
-  ```sh
-  git checkout development && git pull origin development
-  ```
-- Create a new branch of type feature/fix/hotfix. For naming convention of branch, refer the [Naming Convention document](https://docs.google.com/document/d/1qm5hqWfayHczDWOe74t-cLG7ovEJVa_jLhjICkaIjv8/edit#heading=h.ivef4du1tbl9)
-  ```sh
-  git checkout -b <branch name>
-  git status [Optional, This is just to verify you are on the same branch that you just created]
-  ```
-
-
-### Commit the Changes ###
-
-Once the changes have been done, make sure to add the new files that have created. Provide a suitable message on every commit. This helps other to understand the changes applied on a specific commit.
-```sh
-git add -A
-git commit -m "<message>"
-```
-
-### Push the Changes ###
-
-Before pushing any changes to the remote repository, please take a pull of the latest changes of the base branch. If there is any conflict then resolve it first and again commit the changes and then push.
-```sh
-git pull origin development
-git commit -am "<message>" [Optional, only required if any conflicts]
-git push -u origin <branch name>
-```
-
-### Create a Pull Request ###
-
-Login to the [github.com](https://github.com/the-canonizer) and select the repository ***canonizer-3.0-api***. After that follow the below instruction
-- Click on Pull Request menu option
-- Click on New Pull Request button
-- Select the base branch (development) and compare branch (the new branch that is to be merged on base)
-- Add reviewer & Assignee
-- Provide proper description, label, and issue number 
-- Click on the Create Pull Request button at the bottom
-
-## Run Test Cases
-
-Update the exiting test cases if required or create a new test case for any new functionality. Before any pushing the changes, please verify that all the test cases are successfully passed. Run the below command from the project's root directory.
-```sh
-./vendor/bin/phpunit
-```
-For all the test functions a specific file 
-```sh
-./vendor/bin/phpunit --filter "<test case file name>"
-```
-
-## Help
-1. Run migration
+5. **Run Migrations**:
     ```sh
     php artisan migrate
     ```
-2. Run a specific migration file
+6. **Populate Topic Trees (MongoDB)**:
     ```sh
-    php artisan migrate --path <file path>
+    php artisan tree:all
     ```
-3. Run a seed 
+7. **Populate Timelines (MongoDB)**:
     ```sh
-    php artisan db:seed
+    php artisan timeline:all
     ```
-4. Run a specific seed 
-    ```sh
-    php artisan db:seed --class=<seeder class name>
+
+### Running Locally
+You can use Laravel's built-in server or a virtual host:
+```sh
+php artisan serve
+```
+Verification endpoint (local): `http://127.0.0.1:8000/api/v3/canonizer/api/get-version`
+
+<!-- Verification Process -->
+- **Verification Output**:
+    ```json
+    { "version": "Laravel 11.x (PHP 8.4.x)" }
     ```
-5. Check supervisor status
-    ```sh
-    sudo supervisorctl status
+
+## Contribution
+1. **Create Branch**: `git checkout -b feature/your-feature-name`
+2. **Commit Changes**: Use clear, descriptive messages.
+3. **Pull Latest changes**: `git pull origin development`
+4. **Push & PR**: Create a Pull Request on GitHub.
+
+## Run Test Cases
+```sh
+php artisan test
+```
+Or for specific filters:
+```sh
+    php artisan test --filter=YourTestName
     ```
-6. Start supervisor
+    
+### External Test Runner (Recommended)
+You can also run tests directly via PHPUnit for faster feedback:
+```sh
+php vendor/bin/phpunit tests/TreeGetApiTest.php
+php vendor/bin/phpunit tests/TimelineGetApiTest.php
+```
+
+### Database for Testing
+If you encounter `Base table or view not found` during tests, ensure your testing database is created:
+```sql
+CREATE DATABASE canonizer_testing;
+```
+Then copy data from your main database if needed (simulating `canonizer3_mono`'s structure):
+```sh
+mysqldump -u root canonizer3_mono | mysql -u root canonizer_testing
+```
+
+## Help
+1. **Clear Config/Cache**:
     ```sh
-    sudo supervisorctl start all
+    php artisan config:clear && php artisan cache:clear
     ```
-7. Stop supervisor
+2. **Remove Duplicate Trees**:
     ```sh
-    sudo supervisorctl stop all
+    php artisan tree:remove-duplicate
     ```
-8. Restart supervisor
+3. **List All Routes**:
     ```sh
-    sudo supervisorctl restart all
+    php artisan route:list
     ```
 
 # License
-
 Lesser MIT License
-
-Copyright (c) 2006-2023 Canonizer.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software with minimal restriction, including without limitation the rights to use, copy, modify, merge, publish, and distribute copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-Any activity arising from use under this license must maintain compliance with all related and dependent licensees.
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Copyright (c) 2006-2026 Canonizer.com
 
 # Contact
-Brent Allsop - [@Brent's_twitter](https://twitter.com/your_username) - brent.allsop@gmail.com
-
+Brent Allsop - brent.allsop@gmail.com
 Project Link: [https://canonizer.com](https://canonizer.com)

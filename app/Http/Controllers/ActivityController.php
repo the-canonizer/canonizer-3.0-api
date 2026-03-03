@@ -21,7 +21,7 @@ class ActivityController extends Controller
         $this->rules = $rules;
         $this->validationMessages = $validationMessages;
         $this->resourceProvider  = $resProvider;
-        $this->resProvider = $respProvider;
+        $this->resProvider = $respProvider;       
     }
 
     /**
@@ -30,15 +30,7 @@ class ActivityController extends Controller
      *   summary="Get activity log",
      *   description="This is used to get activity log.",
      *   operationId="GetActivityLog",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *   ),
+     *  security={{"loginAuthToken":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get activity log",
@@ -48,19 +40,19 @@ class ActivityController extends Controller
      *               @OA\Property(
      *                   property="per_page",
      *                   description="Number of records per page",
-     *                   required=true,
+     *                   required={"true"},
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="page",
      *                   description="page number",
-     *                   required=true,
+     *                   required={"true"},
      *                   type="integer",
      *               ),
      *               @OA\Property(
      *                   property="log_type",
      *                   description="Type of log",
-     *                   required=true,
+     *                   required={"true"},
      *                   type="string",
      *               )
      *           )
@@ -101,13 +93,13 @@ class ActivityController extends Controller
         }
     }
 
-
     /**
      * @OA\Post(path="/get-camp-activity-log",
      *   tags={"Activity Log"},
      *   summary="Get 10 recent camp activity logs",
      *   description="This is used to get 10 recent camp activity logs.",
-     *   operationId="GetCamp10RecentActivityLog",
+     *   operationId="GetCampActivityLog",
+     *   security={{"clientAuth":{}}},
      *   @OA\RequestBody(
      *       required=true,
      *       description="Get camp recent activities",
@@ -117,13 +109,13 @@ class ActivityController extends Controller
      *              @OA\Property(
      *                  property="topic_num",
      *                  description="Topic number is required",
-     *                  required=true,
+     *                  required={"true"},
      *                  type="integer",
      *              ),
      *              @OA\Property(
      *                  property="camp_num",
      *                  description="Camp number is required",
-     *                  required=true,
+     *                  required={"true"},
      *                  type="integer",
      *              )
      *         )
@@ -159,9 +151,8 @@ class ActivityController extends Controller
                     'is_show_all_btn' => $is_show_all_btn,
                 ];
             }
-
             if (count($log) < 1) 
-                return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.no_activity_logged'));
+                return $this->resProvider->apiJsonResponse(200, '', null, trans('message.error.no_activity_logged'));
 
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $data, '');
         } catch (Exception $e) {

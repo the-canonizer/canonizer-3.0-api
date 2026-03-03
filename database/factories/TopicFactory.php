@@ -12,11 +12,15 @@ class TopicFactory extends Factory
     public function definition(): array
     {
         return [
-            'topic_name' => 'test',
-            'namespace'=>'12',
-            'create_namespace'=>'',
-            'nick_name'=>'12',
-            'asof'=>''
+            'topic_name' => $this->faker->name,
+            'namespace_id' => 1,
+            'submitter_nick_id' => 1,
+            'go_live_time' => time(),
+            'language' => 'English',
+            'proposed' => 0,
+            'namespace' => 'General',
+            'note' => $this->faker->sentence,
+            'submit_time' => time(),
         ];
     }
 }

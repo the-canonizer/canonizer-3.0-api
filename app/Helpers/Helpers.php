@@ -2,11 +2,51 @@
 
 namespace App\Helpers;
 
-use App\Models\{Camp, Statement, Topic};
 use Carbon\Carbon;
+use App\Models\{Camp, Nickname, Statement, Topic, TopicView};
+use Illuminate\Support\Facades\DB;
 
 class Helpers
 {
+    public static function getStartOfTheDay($dateTime)
+    {
+        return Carbon::parse($dateTime)->startOfDay()->timestamp;
+    }
+
+    public static function getNickNamesByEmail($email)
+    {
+        try {
+            $user = DB::table('person')->where('email', $email)->first();
+            if (!empty($user)) {
+                return (new Nickname())->where('user_id', $user->id)->orderBy('nick_name', 'ASC')->pluck('id')->toArray();
+            } else {
+                return [];
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public static function renderParentsCampTree($topic_num, $camp_num)
+    {
+        $camp = Camp::where([
+            'camp_num' => $camp_num,
+            'topic_num' => $topic_num,
+            'grace_period' => 0,
+            'objector_nick_id' => null,
+        ])->orderBy('submit_time', 'desc')->first();
+
+        if (!$camp) {
+            return [];
+        }
+
+        if ($camp && is_null($camp->parent_camp_num)) {
+            return [$camp->camp_num];
+        }
+
+        return array_merge([$camp->camp_num], self::renderParentsCampTree($topic_num, $camp->parent_camp_num));
+    }
+
     public static function renderParentCampLinks($topic_num, $camp_num, $topic_name, $withLinks = false, $change_type = null, $iteration = 0) // Always place $iteration as the last parameter
     {
         $seprator = '<img src="' . env('APP_URL') . '/assets/images/seprator.png" alt="seprator" />';
@@ -19,11 +59,11 @@ class Helpers
         }
 
         if (is_null($camp->parent_camp_num)) {
-            $topicLink = Topic::topicLink($topic_num, 1, $topic_name);
+            $topicLink = Topic::topicLink($topic_num, $topic_name, 1);
             return self::createLink($topic_name . ($change_type === 'camp' && $camp_num === 1 && $iteration == 0 ? ' ' . $seprator . ' ' . $camp->camp_name : ''), $topicLink) ?? $camp->camp_name;
         }
 
-        $campLink = Topic::topicLink($topic_num, $camp->camp_num, $topic_name, $camp->camp_name);
+        $campLink = Topic::topicLink($topic_num, $topic_name, $camp->camp_num, $camp->camp_name);
 
         return self::renderParentCampLinks($topic_num, $camp->parent_camp_num, $topic_name, $withLinks, $change_type, ++$iteration) . ' ' . $seprator . ' ' . self::createLink($camp->camp_name, $campLink);
     }
@@ -47,10 +87,148 @@ class Helpers
         if (!($model instanceof Topic)) {
             $where[] = ['camp_num', '=', $camp_num];
         }
+        if ($model instanceof Statement) {
+            $where[] = ['is_draft', '=', 0];
+        }
 
         return $model::where('topic_num', $topic_num)
             ->where($where)
             ->count();
+    }
+
+    public static function getCampViewsByDate(int $topic_num, int $camp_num = 1, ?Carbon $startDate = null, ?Carbon $endDate = null)
+    {
+        return TopicView::where('topic_num', $topic_num)
+            ->when($camp_num > 1, fn ($query) => $query->where('camp_num', $camp_num))
+            ->when(
+                $startDate && $endDate,
+                fn ($query) => $query->whereBetween('created_at', [$startDate->startOfDay()->timestamp, $endDate->endOfDay()->timestamp]),
+                fn ($query) => $query->when(
+                    $endDate,
+                    fn ($query) => $query->where('created_at', '<=', $endDate->endOfDay()->timestamp),
+                    fn ($query) => $query->when(
+                        $startDate,
+                        fn ($query) => $query->where('created_at', '>=', $startDate->startOfDay()->timestamp),
+                    )
+                )
+            )->sum('views');
+    }
+
+    
+    /**
+     * Removes specified HTML tags from the input string, excluding certain tags.
+     *
+     * @param ?string $html The HTML string to process.
+     * @param array $excludeTags An array of HTML tags to exclude from removal.
+     * @return string The processed HTML string with excluded tags removed.
+    */
+    public static function stripTagsExcept(?string $html, array $excludeTags = ['a', 'img', 'figure', 'table','iframe','video','picture']): string
+    {
+        if (is_null($html)) {
+            return '';
+        }
+
+        // Handle anchor tags separately
+        $html = preg_replace_callback(
+            '/<a\b[^>]*href=["\'](.*?)["\'][^>]*>(.*?)<\/a>/is',
+            function ($matches) {
+                $href = trim($matches[1]);
+                $innerText = trim($matches[2]);
+                
+                // If inner text and href are the same, remove the tag completely
+                if ($href === $innerText) {
+                    return '';
+                }
+
+                // Otherwise, retain only the inner text
+                return $innerText;
+            },
+            $html
+        );
+    
+        // Pattern to match the tags and their content for removal
+        $excludeTagsPattern = implode('|', array_map(function ($tag) {
+            return preg_quote($tag, '/');
+        }, $excludeTags));
+    
+        if (!empty($excludeTagsPattern)) {
+            $pattern = '/<(' . $excludeTagsPattern . ')\b[^>]*>.*?<\/\1>/is';
+            $html = preg_replace($pattern, '', $html);
+        }
+    
+        // Strip all remaining tags
+        $html = strip_tags($html);
+    
+        // Decode HTML entities for readable text
+        return html_entity_decode($html, ENT_QUOTES, 'UTF-8');
+    }
+
+    public static function getHistoryCountsByChange($liveRecord, $filter)
+    {
+
+        if (($liveRecord instanceof Topic)) {
+            $baseQuery = Topic::where('topic_num', $filter['topicNum'])->latest('submit_time');
+        } else if ($liveRecord instanceof Camp) {
+            $baseQuery = Camp::where('topic_num', $filter['topicNum'])->where('camp_num', '=', $filter['campNum'])->latest('submit_time');
+        } else if ($liveRecord instanceof Statement) {
+            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
+                ->where('is_draft', 0)
+                ->latest('submit_time');
+        } else {
+            /* This is the case for statement only, Becuase when we create new topic so in this only 
+            statement is empty first time */
+            $baseQuery = Statement::where('topic_num', $filter['topicNum'])->where('camp_num', $filter['campNum'])
+                ->where('is_draft', 0)
+                ->latest('submit_time');
+        }
+        
+        // Current timestamp for consistent comparison
+        $currentTime = time();
+        $liveRecordId = $liveRecord->id ?? 0;
+
+        $nickNameIds = isset(request()->user()->id) ? Nickname::getNicknamesIdsByUserId(request()->user()->id) : [];
+
+        // If the array is empty, provide a fallback value (e.g., -1).
+        $nickNameIdsImploded = empty($nickNameIds) ? '-1' : implode(',', $nickNameIds);
+        $counts = $baseQuery->select(
+            DB::raw('COUNT(*) as total_changes'),
+            DB::raw('SUM(CASE WHEN id = ' . $liveRecordId . ' THEN 1 ELSE 0 END) as live_changes'),
+            DB::raw('SUM(CASE WHEN objector_nick_id IS NOT NULL THEN 1 ELSE 0 END) as objected_changes'),
+            DB::raw('SUM(CASE WHEN go_live_time > ' . $currentTime . ' AND objector_nick_id IS NULL AND submit_time <= ' . $currentTime . ' 
+            AND (grace_period = 0 OR (grace_period = 1 AND submitter_nick_id IN (' . $nickNameIdsImploded . ')))
+            THEN 1 ELSE 0 END) as in_review_changes'),
+            DB::raw('SUM(CASE WHEN go_live_time <= ' . $currentTime . ' AND objector_nick_id IS NULL AND id != ' . $liveRecordId . ' AND submit_time <= ' . $currentTime . ' THEN 1 ELSE 0 END) as old_changes')
+        )->first();
+
+        $historyCounts = [
+            'total_changes' => (int) ($counts->live_changes + $counts->objected_changes + $counts->in_review_changes + $counts->old_changes),
+            'live_changes' => (int) $counts->live_changes,
+            'objected_changes' => (int) $counts->objected_changes,
+            'in_review_changes' => (int) $counts->in_review_changes,
+            'old_changes' => (int) $counts->old_changes,
+        ];
+
+        return $historyCounts;
+    }
+
+    public static function getLiveHistoryRecord($liveRecord, $filter)
+    {
+
+        $modelInstance = get_class($liveRecord);
+        $modelName = class_basename($liveRecord);
+
+        $getLiveRecordId = $modelInstance::select('id')
+            ->where('topic_num', $filter['topicNum'])
+            ->when(($modelName == "Camp" || $modelName == "Statement"), function ($q) use ($filter) {
+                $q->where('camp_num', '=', $filter['campNum']);
+            })
+            ->when($modelName == "Statement", function ($q) {
+                $q->where('is_draft', 0);
+            })
+            ->where('id',  $liveRecord->id)
+            ->latest('submit_time')->first();
+
+        return $getLiveRecordId->id ?? 0;
     }
 
     public static function updateTopicsInReview($topic)

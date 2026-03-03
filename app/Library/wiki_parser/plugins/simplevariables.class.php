@@ -17,7 +17,7 @@ use App\Library\wiki_parser\wikiParser as wikiParser;
 
 class simplevariables implements startOfLine
 {
-    const regular_expression = '/(\{\{([^\}]*?)\}\})/i';
+    public const regular_expression = '/(\{\{([^\}]*?)\}\})/i';
     private $variables = null;
     
     public function __construct()

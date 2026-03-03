@@ -12,7 +12,13 @@ class NewsFeedFactory extends Factory
     public function definition(): array
     {
         return [
-            "id" => rand(20000,90000)
+            'display_text' => $this->faker->sentence,
+            'link' => $this->faker->url,
+            'available_for_child' => 1,
+            'submitter_nick_id' => 1,
+            'topic_num' => 1,
+            'camp_num' => 1,
+            'submit_time' => time(),
         ];
     }
 }

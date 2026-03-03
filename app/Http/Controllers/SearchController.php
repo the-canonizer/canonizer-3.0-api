@@ -13,130 +13,207 @@ class SearchController extends Controller
     
     public function __construct(ResponseInterface $respProvider)
     {
-       $this->resProvider = $respProvider;
+        $this->resProvider = $respProvider;
     }
+    /**
+ * @OA\Get(
+ *     path="/search",
+ *     summary="Get search results",
+ *     tags={"Search"},
+ *     @OA\Parameter(
+ *         name="term",
+ *         in="query",
+ *         required=true,
+ *         description="Search term",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="type",
+ *         in="query",
+ *         required=false,
+ *         description="Type of search (topic, camp, statement, nickname)",
+ *         @OA\Schema(type="string", enum={"topic", "camp", "statement", "nickname"})
+ *     ),
+ *     @OA\Parameter(
+ *         name="size",
+ *         in="query",
+ *         required=false,
+ *         description="Number of results per page",
+ *         @OA\Schema(type="integer", default=20)
+ *     ),
+ *     @OA\Parameter(
+ *         name="page",
+ *         in="query",
+ *         required=false,
+ *         description="Page number for pagination",
+ *         @OA\Schema(type="integer", default=1)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Successful response",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="status", type="integer", example=200),
+ *             @OA\Property(property="message", type="string", example="Success"),
+ *             @OA\Property(property="data", type="object", additionalProperties=true),
+ *             @OA\Property(property="total", type="integer", example=100)
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Bad request",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="status", type="integer", example=400),
+ *             @OA\Property(property="message", type="string", example="Error message"),
+ *             @OA\Property(property="data", type="null")
+ *         )
+ *     )
+ * )
+ */
 
     public function getSearchResults(Request $request)
     {
         $term = $request->get('term');
         $type = $request->get('type') ?? '';
-        $size = $request->get('size') ?? 25;
+        $size = $request->get('size') ?? 0;
         $page = $request->get('page') ?? 1;
+        $totalCounts = [];
+        $total = 0;
+        $data = [];
+        $search_ids=[];
         try{
-
-            if(isset($type) && empty(trim($type)))
-            {
-                //$type = ['topic','camp','statement','nickname'];
-                $topic = Search::getSearchData($term, ['topic'], $size, $page);
-                $camp = Search::getSearchData($term, ['camp'], $size, $page);
-                $statement = Search::getSearchData($term, ['statement'], $size, $page);
-                $nickName = Search::getSearchData($term, ['nickname'], $size, $page);  
-                
-                $data['topic'] = $topic['data'];
-                $data['camp'] = $camp['data'];
-                $data['statement'] = $statement['data'];
-                $data['nickname'] = $nickName['data'];
-                
-                $total = $topic['count'] + $camp['count'] + $statement['count'] + $nickName['count'];
-
-                $totalTopicCounts       = isset($topic['type_counts']['topic']) ? $topic['type_counts']['topic']  : 0;
-                $totalCampCounts        = isset($camp['type_counts']['camp']) ? $camp['type_counts']['camp'] : 0;
-                $totalStatementCounts   = isset($statement['type_counts']['statement']) ? $statement['type_counts']['statement'] :0;
-                $totalNicknameCounts    = isset($nickName['type_counts']['nickname']) ? $nickName['type_counts']['nickname'] : 0;
-
-                //$data =  self::optimizeResponse($searchData,'all',$page,$size);
-            
-            }else{
-                $searchData = Search::getSearchData($term, [$type], $size, $page);
-                $data[$type] = $searchData['data'];
-                $total = $searchData['count'];
-
-              //  =  self::optimizeResponse($searchData, $type,$page,$size);
-            } 
-
-            $response = self::optimizeResponse($data, $total, $page, $size, $totalTopicCounts, $totalCampCounts, $totalStatementCounts, $totalNicknameCounts);
-
-            //$data = $data;
+            // Define types when $type is empty or not set
+            $typesToSearch = isset($type) && empty(trim($type)) ? ['topic', 'camp', 'statement', 'nickname'] : [$type];
+            foreach ($typesToSearch as $searchType) {
+                $result = Search::getSearchData($term, [$searchType], $size, $page, $isLive = true,$asof = 'default', $asofdate = time());
+                $data[$searchType] = $result['data'];
+                $totalCounts[$searchType] = $result['count'];
+                $total += $result['count'];
+            }
+            $response = self::optimizeResponse($data, $total, $page, $size, $search_ids, $totalCounts);
             $status = 200;
             $message =  trans('message.success.success');
-            
             return $this->resProvider->apiJsonResponse($status, $message, $response, null);
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, $e->getMessage(), null, null);
         }
-        
-        
-
-        return ($result);
     }
 
-    public static function optimizeResponse($data, $total, $page, $size, $totalTopicCounts = 0, $totalCampCounts = 0, $totalStatementCounts = 0, $totalNicknameCounts = 0)
+    public static function optimizeResponse($data, $total, $page, $size, $search_ids, $totalCounts = [] )
     { 
-        
-        
-       return $response = [
-                'data' => $data,
-                'meta_data' => [
-                    'total' => $total,
-                    'page' => $page,
-                    'size' => $size,
-                    'topic_total' => $totalTopicCounts,
-                    'camp_total'  => $totalCampCounts,
-                    'statement_total' => $totalStatementCounts,
-                    'nickname_total' => $totalNicknameCounts
-                ]
+        return $response = [
+            'data' => $data,
+            'meta_data' => [
+                'total' => $total,
+                'page' => $page,
+                'size' => $size,
+                'topic_total' => isset($totalCounts['topic']) ? $totalCounts['topic'] : 0,
+                'camp_total'  => isset($totalCounts['camp']) ? $totalCounts['camp'] : 0,
+                'statement_total' =>isset($totalCounts['statement']) ? $totalCounts['statement'] : 0,
+                'nickname_total' => isset($totalCounts['nickname']) ? $totalCounts['nickname'] : 0,
+                'search_ids'=> $search_ids
+            ]
         ];
     }
+    
+    /**
+     * @OA\Post(
+     *     path="/search-filter",
+     *     summary="Get advanced search filter results",
+     *     tags={"Search"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="type", 
+     *                 type="string", 
+     *                 description="Type of search", 
+     *                 enum={"topic", "camp", "statement", "nickname"}
+     *             ),
+     *             @OA\Property(
+     *                 property="nick_ids", 
+     *                 type="array", 
+     *                 @OA\Items(type="integer"), 
+     *                 description="Nickname IDs for advanced filter search"
+     *             ),
+     *             @OA\Property(property="search", type="string", description="Search term"),
+     *             @OA\Property(property="query", type="string", description="Query (optional)"),
+     *             @OA\Property(property="algo", type="string", description="Algorithm"),
+     *             @OA\Property(property="asof", type="string", description="As of date type", default="default"),
+     *             @OA\Property(property="score", type="integer", description="Score"),
+     *             @OA\Property(property="asofdate", type="number", description="As of date (timestamp)"),
+     *             @OA\Property(property="page_number", type="integer", description="Page number for pagination", default=1),
+     *             @OA\Property(property="page_size", type="integer", description="Number of results per page", default=20)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful response",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Success"),
+     *             @OA\Property(property="data", type="object", additionalProperties=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="integer", example=400),
+     *             @OA\Property(property="message", type="string", example="Error message"),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     )
+     * )
+     */
 
     public function advanceSearchFilter(Request $request)
     {
         $all        = $request->all();
         $type       = $all['type'];
         $nickIds    = $all['nick_ids'] ?? [];   //advance filter serach query on nickname
-        $search     = $all['search'];
+        $search     = $all['search'] ?? '';
         $algorithm  = $all['algo'] ??  '';
-        $asof       = $all['asof'] ??  '';   //search type
+        $asof       = $all['asof'] ??  'default';   //search type
         $score      = $all['score'] ??  0;
         $query      = $all['query'] ?? '';
-        $campIds    = $all['camp_ids'] ?? '';
-        $topicIds   = $all['topic_ids'] ?? '';
         $pageNumber = $all['page_number'] ?? 1;
-        $pageSize   = $all['page_size'] ?? 2;
-        $asofdate   = $all['asofdate'] ?? time();
+        $pageSize   = $all['page_size'] ?? 20;
+        $asofdate   = $all['asofdate'] ?? '';
 
         $status = 200;
         $message =  trans('message.success.success');
         switch ($type) {
             case 'nickname':
-                $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
-                $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
-                
-                break;
-            case 'camp':
-                $response['camp'] = [];
-                if(!empty($topicIds) || !empty($campIds)){
-                    $response['camp'] = Search::advanceCampSearch($topicIds, $campIds, $asof, $asofdate); 
-                }
+                    $response['topic'] = Search::advanceTopicFilterByNickname($nickIds, $query);
+                    $response['camp']  = Search::advanceCampFilterByNickname($nickIds, $query);
                 break;
             case 'topic':
-                $data = Search::advanceTopicSearch($search, $algorithm, $asof, $score, $asofdate, $pageNumber, $pageSize);
-                $status = $data['code'];
-                $message = $data['message'];
-                $response['topic'] = $data['data'];
+                $response['topic'] = [];
+                $result = Search::advanceSearchFilter('topic', $asof, $asofdate, $search, $pageNumber, $pageSize);
+                $response['topic']  = $result['data'];
+                $response['topic_total'] = $result['total'];
+                break;
+            case 'camp':
+                    $response['camp'] = [];
+                    $result = Search::advanceSearchFilter('camp', $asof, $asofdate, $search, $pageNumber, $pageSize); 
+                    $response['camp']  = $result['data'];
+                    $response['camp_total'] = $result['total'];
                 break;
             case 'statement':
-                $response['statement'] = [];
-                if(!empty($topicIds) && !empty($campIds)){
-                    $response['statement'] = Search::advanceStatementSearch($topicIds, $campIds, $asof, $asofdate);
-                }
-               break;
+            $response['statement'] = [];
+                $result = Search::advanceSearchFilter('statement', $asof, $asofdate, $search, $pageNumber, $pageSize);
+                $response['statement'] = $result['data'];
+                $response['statement_total'] = $result['total'];
+            break;
             default:
                 // Do something if none of the above cases match
                 break;
         }
-
-        
-        
         return $this->resProvider->apiJsonResponse($status, $message, $response, null);
     }
 

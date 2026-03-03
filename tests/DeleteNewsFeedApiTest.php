@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 use App\Models\NewsFeed;
 
@@ -17,8 +19,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', []);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -35,8 +37,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     public function testDeleteNewsFeedApiWithFalseData()
@@ -49,8 +51,8 @@ class DeleteNewsFeedApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -63,8 +65,8 @@ class DeleteNewsFeedApiTest extends TestCase
         $data = ['newsfeed_id' => $newsFeed->id];
         $user = User::find(1);
         print sprintf("\n post NewsFeed ", 200, PHP_EOL);
-        $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $data);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/delete-camp-newsfeed', $data);
+        $response->assertStatus(200);
     }
 
     /**
@@ -78,6 +80,6 @@ class DeleteNewsFeedApiTest extends TestCase
             '/api/v3/delete-camp-newsfeed',
             $data
         );
-        $this->assertEquals(401, $this->response->status());
+        $response->assertStatus(401);
     }
 }

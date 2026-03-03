@@ -20,9 +20,7 @@ class GetPushNotificationToSupporter
         $bcc_user = [];
         $sub_bcc_user = [];
         $userExist = [];
-        $directSupporter = collect(Support::getAllDirectSupporters($topicNum, $campNum))->filter(function ($supporter) use ($delegateNickNameId) {
-            return $supporter['nick_name_id'] !== $delegateNickNameId;
-        })->values()->all();
+        $directSupporter = Support::getAllDirectSupporters($topicNum, $campNum);
         $subscribers = Camp::getCampSubscribers($topicNum, $campNum);
         $topic = Topic::getLiveTopic($topicNum, "");
         $filter['topicNum'] = $topicNum;
@@ -263,7 +261,7 @@ class GetPushNotificationToSupporter
             $PushNotificationData->message_body = trans('message.notification_message.addDelegateMessage', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
             $PushNotificationData->fcm_token = $delegatedUser->fcm_token;
             $PushNotificationData->user_id = $delegatedUser->id;
-            if (!empty($delegatedUser->fcm_token) && !empty($PushNotificationData)) {
+            if (!empty($PushNotificationData)) {
                 PushNotification::sendPushNotification($PushNotificationData);
             }
         }
@@ -273,7 +271,7 @@ class GetPushNotificationToSupporter
         $PushNotificationData->message_body = trans('message.notification_message.addDelegateSupportUser', ['nick_name' => $nickName,'delegate_nick_name' => $delegatedNickname, 'topic_name' => $topic->topic_name]);
         $PushNotificationData->fcm_token = $user->fcm_token;
         $PushNotificationData->user_id = $user->id;
-        if (!empty($user->fcm_token) && !empty($PushNotificationData)) {
+        if (!empty($PushNotificationData)) {
             PushNotification::sendPushNotification($PushNotificationData);
         }
     }

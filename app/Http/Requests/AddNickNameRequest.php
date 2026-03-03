@@ -2,22 +2,18 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Http\JsonResponse;
-use Laravel\Lumen\Http\Request;
-use Anik\Form\FormRequest;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Contracts\Validation\Validator;
 use App\Helpers\ResponseInterface;
 
 class AddNickNameRequest extends FormRequest
 {
-    /**
-     * The sanitized input.
-     *
-     * @var array
-     */
-    protected $sanitized;
+    protected $resProvider;
 
     public function __construct(ResponseInterface $resProvider)
     {
+        parent::__construct();
         $this->resProvider = $resProvider;
     }
 
@@ -26,73 +22,56 @@ class AddNickNameRequest extends FormRequest
      *
      * @return bool
      */
-    protected function authorize(): bool
+    public function authorize(): bool
     {
         return true;
     }
-
-
-    public function validate(): void
-    {
-        if (false === $this->authorize()) {
-            $this->failedAuthorization();
-        }
-      
-
-        $this->validator = $this->app->make('validator')
-                                     ->make($this->sanitizeInput(), $this->rules(), $this->messages(), $this->attributes());
-
-        if ($this->validator->fails()) {
-            $this->validationFailed();
-        }
-
-        $this->validationPassed();
-    }
-
-
 
     /**
      * Get the validation rules that apply to the request.
      *
      * @return array
      */
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'nick_name' => 'required|unique:nick_name|max:50',
             'visibility_status' => 'required',
+            'default' => 'required|boolean',
         ];
     }
 
-    protected function messages(): array
+    public function messages(): array
     {
         return [
-          'nick_name.required' => "Nick name is required",
-          'nick_name.unique' => "Nick name already exists, please try another one.",
-          'nick_name.max' => "Nick name can not be more than 50 characters."
-
+            'nick_name.required' => "Nick name is required",
+            'nick_name.unique' => "Nick name already exists, please try another one.",
+            'nick_name.max' => "Nick name can not be more than 50 characters.",
+            'default.required' => "Default field is required",
+            'default.boolean' => "Default field should be either 0|1 or true|false.",
         ];
     }
 
-    protected function errorResponse(): ?JsonResponse
-    { 
-        return $this->resProvider->apiJsonResponse(422, $this->errorMessage(), '', $this->validator->errors()->messages());
-    } 
-
-     /**
-     * Sanitize the input.
-     *
-     * @return array
-     */
-    protected function sanitizeInput()
-    {   
-        foreach($this->all() as $key => $input){
-           $arr[$key] = trim($input);
-        }
-        $this->merge($arr);
-        return $this->all();
-
+    protected function failedValidation(Validator $validator)
+    {
+        $errors = $validator->errors()->messages();
+        
+        throw new HttpResponseException(
+            $this->resProvider->apiJsonResponse(422, "The given data was invalid.", '', $errors)
+        );
     }
 
-    
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        $arr = [];
+        foreach ($this->all() as $key => $input) {
+            $arr[$key] = is_string($input) ? trim($input) : $input;
+        }
+        $this->merge($arr);
+    }
 }

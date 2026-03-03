@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class GetCampActivityLogApiTest extends TestCase
@@ -13,8 +15,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertStatus(400);
     }
 
     public function testWithEmptyValues()
@@ -29,8 +31,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertStatus(400);
     }
 
     public function testWithInvaidTopicNum()
@@ -45,8 +47,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->assertEquals(404, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertStatus(404);
     }
 
     public function testIfActivityIsNotLogged()
@@ -61,8 +63,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->assertEquals(404, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertStatus(404);
     }
 
     public function testWithValidValues()
@@ -77,8 +79,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertStatus(200);
     }
 
     public function testApiStructureValidValues()
@@ -93,8 +95,8 @@ class GetCampActivityLogApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
-        $this->seeJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/get-camp-activity-log', $apiPayload, $header);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

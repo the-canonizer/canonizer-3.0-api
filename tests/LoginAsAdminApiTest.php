@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
 class LoginAsAdminApiTest extends TestCase
@@ -16,8 +18,8 @@ class LoginAsAdminApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/login-as-user', []);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/login-as-user', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -34,8 +36,8 @@ class LoginAsAdminApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/login-as-user', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/login-as-user', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -52,8 +54,8 @@ class LoginAsAdminApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/login-as-user', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/login-as-user', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -63,8 +65,8 @@ class LoginAsAdminApiTest extends TestCase
     public function testLoginAsAdminApiWithoutUserAuth()
     {
         print sprintf("Test with empty form data");
-        $this->post('/api/v3/login-as-user', []);
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->post('/api/v3/login-as-user', []);
+        $response->assertStatus(401);
     }
 
     /**
@@ -77,8 +79,8 @@ class LoginAsAdminApiTest extends TestCase
         $user = User::factory()->make([
             'id' => trans('testSample.user_ids.normal_user.user_4.id')
         ]);
-        $this->actingAs($user)->post('/api/v3/login-as-user', []);
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/login-as-user', []);
+        $response->assertStatus(401);
     }
 
     /**
@@ -94,9 +96,9 @@ class LoginAsAdminApiTest extends TestCase
             'id' => trans('testSample.user_ids.admin_user.admin_1'),
             'type' => 'admin'
         ]);
-        $this->actingAs($user)->post('/api/v3/login-as-user', $data);
+        $response = $this->actingAs($user)->post('/api/v3/login-as-user', $data);
         
-        $this->seeJsonStructure([
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

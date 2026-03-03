@@ -1,7 +1,9 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 
@@ -16,31 +18,29 @@ class ForgotPasswordUpdateApiTest extends TestCase
     public function testForgotPasswordApiWithInvalidData()
     {
         print sprintf("Invalid Forgot Password update details submitted %d %s", 302, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-         $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response->assertStatus(400);
     }
 
     public function testForgotPasswordUnauthorizedUserCanNotUpdate()
     {
         print sprintf("\n Unauthorized ForgotPassword update User can not  request this api %d %s", 500, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
         ->post('/api/v3/forgot-password/update',  [],$header);
-        // dd($this->response);
-        $this->assertEquals(400, $this->response->status());
+        $response->assertStatus(400);
     }
 
     public function testForgotPasswordUpdateValidateFiled()
@@ -65,23 +65,24 @@ class ForgotPasswordUpdateApiTest extends TestCase
     {
         print sprintf(" \n Invalid Forgot Password Update details submitted %d %s", 400, PHP_EOL);
 
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $token = $user->createToken('TestToken')->accessToken;
 
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
-        $user = User::factory()->make();
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/update', [],$header);
-        $this->assertEquals(400, $this->response->status());
+        $response->assertStatus(400);
     }
 
 
     public function testForgotPasswordUpdateWithValidaData()
     {
         print sprintf(" \n Forgot Password updated wit valid data %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create([
+            'email' => trans('testSample.user_ids.normal_user.user_2.email'),
+        ]);
 
         $token = $user->createToken('TestToken')->accessToken;
 
@@ -94,8 +95,8 @@ class ForgotPasswordUpdateApiTest extends TestCase
             "confirm_password" => trans('testSample.user_ids.normal_user.user_2.password'),
         ];
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->post('/api/v3/forgot-password/update',  $data,$header);
-        $this->assertEquals(200, $this->response->status());
+        $response->assertStatus(200);
     }
 }

@@ -12,11 +12,11 @@ class ThreadFactory extends Factory
     public function definition(): array
     {
         return [
-            "title" => "Test 3",
-            "nick_name" => "449",
-            "camp_num" => "1",
-            "topic_num" => "290",
-            "topic_name" => "Saurabh singh te11s111t 142"
+            'title' => $this->faker->sentence,
+            'body' => $this->faker->paragraph,
+            'user_id' => 1,
+            'topic_id' => 1,
+            'camp_id' => 1,
         ];
     }
 }

@@ -19,7 +19,7 @@ class CreateThreadOldTable extends Migration
                 $table->unsignedBigInteger('thread_num')->default(0);
                 $table->unsignedBigInteger('topic_num')->default(0);
                 $table->unsignedBigInteger('camp_num')->default(0);
-                $table->text('subject')->default(0);
+                $table->text('subject');
                 $table->unsignedInteger('views')->default(0);
             });
         }

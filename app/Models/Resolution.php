@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Resolution extends Model
 {
+    use HasFactory;
     protected $table = 'resolutions';
     protected $fillable = ['title', 'resolution'];
     public $timestamps = true;

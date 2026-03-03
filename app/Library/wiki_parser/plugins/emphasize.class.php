@@ -18,7 +18,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfLine.interface.php');
 
 class emphasize implements startOfLine
 {
-    const regular_expression = '/(\'{2,5})(.+?)(\'{2,5}|$)/';
+    public const regular_expression = '/(\'{2,5})(.+?)(\'{2,5}|$)/';
     
     public function __construct()
     {

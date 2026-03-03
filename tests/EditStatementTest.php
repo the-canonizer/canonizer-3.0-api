@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use App\Models\User;
 
-class EditStatmentTest extends TestCase
+class EditStatementTest extends TestCase
 {
     /**
      * Check Api without auth
@@ -11,8 +13,8 @@ class EditStatmentTest extends TestCase
     public function testEditStatementApiWithoutUserAuth()
     {
         print sprintf("Test without auth");
-        $this->post('/api/v3/edit-camp-statement');
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->post('/api/v3/edit-camp-statement');
+        $response->assertStatus(401);
     }
 
     /**
@@ -23,8 +25,8 @@ class EditStatmentTest extends TestCase
     {
         print sprintf("Test with invalid values");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-camp-statement',[]);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-statement',[]);
+        $response->assertStatus(400);
     }
 
     /**
@@ -34,8 +36,8 @@ class EditStatmentTest extends TestCase
     {
         print sprintf("\n Test edit statement API Response ", 200, PHP_EOL);
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/edit-camp-statement/');
-        $this->seeJsonStructure([
+        $response = $this->actingAs($user)->post('/api/v3/edit-camp-statement/');
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

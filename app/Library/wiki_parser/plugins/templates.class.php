@@ -24,7 +24,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfFile.interface.php');
  */
 class templates implements startOfFile
 {
-    const regular_expression = '{{(.*?)}}';
+    public const regular_expression = '{{(.*?)}}';
     
     public function __construct() 
     {

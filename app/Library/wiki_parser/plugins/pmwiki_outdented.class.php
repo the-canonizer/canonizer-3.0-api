@@ -17,7 +17,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfLine.interface.php');
 
 class pmwiki_outdented implements startOfLine, endOfLine
 {
-    const regular_expression = '/^-\</i';
+    public const regular_expression = '/^-\</i';
     private $enabled = false;
     
     public function __construct()

@@ -10,16 +10,21 @@ use App\Jobs\ForgetCacheKeyJob;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use App\Library\wiki_parser\wikiParser as wikiParser;
+use Exception;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+#[AllowDynamicProperties]
 class Statement extends Model
 {
+    use HasFactory;
     protected $table = 'statement';
     public $timestamps = false;
 
+   /* The above PHP code is defining a static method `boot()` within a class. Inside this method, there
+   is a callback function attached to the `saved` event of the model. When an item is saved, the
+   callback function is triggered. Here is a breakdown of what the code is doing within the callback
+   function: */
 
-    /**
-     * 
-     */ 
     public static function boot() 
     {
         parent::boot();
@@ -28,31 +33,36 @@ class Statement extends Model
         {
             //forget cache
             self::forgetCache($item);
-            
             $topicNum  = $item->topic_num;
             $campNum = $item->camp_num;
             $liveTopic = Topic::getLiveTopic($item->topic_num);
-            $filter['topicNum'] = $item->topic_num;
-            $filter['asOf'] = '';
-            $filter['campNum'] = $item->camp_num;
-            $liveCamp = Camp::getLiveCamp($filter);
-            $id = "statement-" .$item->topic_num ."-" . $item->camp_num;
+            // $filter['topicNum'] = $item->topic_num;
+            // $filter['asOf'] = '';
+            // $filter['campNum'] = $item->camp_num;
+            // $liveCamp = Camp::getLiveCamp($filter);
+            // $campName = $liveCamp->camp_name;
+            $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-live';
             $type = "statement";
-            $typeValue = $item->parsed_value;
+            $typeValue  = $item->parsed_value;
             $goLiveTime = $item->go_live_time;
-            $namespace = '';
-            $campName = $liveCamp->camp_name;
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-            }            
-            $link = '';  //Camp::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName);
-            // breadcrumb
             $breadcrumb = Search::getCampBreadCrumbData($liveTopic, $topicNum, $campNum);
+            $link = '';  
+            $namespace = '';
             
-            if($item->go_live_time <= time()){ 
-                // then update table
-                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb);
+            if($goLiveTime <= time())
+            { 
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive=true, $isArchive=0, $statementNum = '', $nickNameId = '', $supportCount = '');
+
+                $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-review';
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive=false, $isArchive=0, $statementNum = '', $nickNameId = '', $supportCount = '');
+                return true;
+            }
+
+            if($goLiveTime > time() && $item->grace_period!=1){
+                $id = "statement-" .$item->topic_num ."-" . $item->camp_num.'-review';
+                $isLive=false;
+                ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive=0,$statementNum = '', $nickNameId = '', $supportCount = '');
+                return true;
             }
         });
     }
@@ -89,6 +99,7 @@ class Statement extends Model
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
                 ->where('go_live_time', '<=', time())
+                ->where('is_draft', 0)
                 ->orderBy('submit_time', 'desc')
                 ->first();
         });
@@ -102,7 +113,8 @@ class Statement extends Model
             return self::where('topic_num', $filter['topicNum'])
                 ->where('camp_num', $filter['campNum'])
                 ->where('objector_nick_id', '=', NULL)
-                ->where('grace_period', 0) 
+                ->where('grace_period', 0)
+                ->where('is_draft', 0)
                 ->orderBy('go_live_time', 'desc')
                 ->first();
         });
@@ -116,6 +128,7 @@ class Statement extends Model
             ->where('camp_num', $filter['campNum'])
             ->where('go_live_time', '<=', $asofdate)
             ->orderBy('go_live_time', 'desc')
+            ->where('is_draft', 0)
             ->first();
     }
 
@@ -150,6 +163,7 @@ class Statement extends Model
 
     public static function statementHistory($statement_query, $response, $filter, $campLiveStatement, $request)
     {
+        $statement_query->where('is_draft', 0);
         $statement_query->when($filter['type'] == "objected", function ($q) {
             $q->where('objector_nick_id', '!=', NULL);
         });
@@ -225,6 +239,11 @@ class Statement extends Model
                 $val->ifIAmExplicitSupporter = Support::ifIamExplicitSupporterBySubmitTime($filter, $nickNames, $submittime, null, false, 'ifIamExplicitSupporter');
 
                 switch ($val) {
+                    case $val->is_draft === 1:
+                        $val->status = "draft";
+                        $val->agreed_supporters = 0;
+                        $val->total_supporters = 0;
+                        break;
                     case $val->objector_nick_id !== NULL:
                         $val->status = "objected";
                         $val->objector_nick_name = $val->objectorNickName->nick_name;
@@ -256,4 +275,158 @@ class Statement extends Model
         return  $data;
     }
 
+    public static function getDraftRecord(int $topic_num, int $camp_num, $nickNames = [])
+    {
+        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
+        $draft = self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 1)->first();
+        return $draft ? $draft->id : null;
+    }
+
+    public static function getGracePeriodRecordCount(int $topic_num, int $camp_num, $nickNames = [])
+    {
+        $nickNames = $nickNames ? $nickNames : NickName::personNicknameArray();
+        return self::where('topic_num', $topic_num)->where('camp_num', $camp_num)->whereIn('submitter_nick_id', $nickNames)->where('is_draft', 0)->where('grace_period', 1)->count();
+    }
+
+    public static function getProposeStatementEditId(array $filter)
+    {
+
+        try {
+
+            /*
+            * Here implement the logic to get the edit record id
+            * First check the change in grace period by current user , if found return the record id.
+            * Else check if the latest change is not committed yet.
+            */
+            $propose_edit_response = [
+                'edit_id' => NULL,
+                'grace_period' => 0,
+                'status' => '',
+            ];
+
+            $nickNames = NickName::personNicknameArray();
+            $checkCurrentUserNonCommitted = self::where('topic_num', $filter['topicNum'])
+                ->whereIn('submitter_nick_id', $nickNames)
+                ->where('camp_num', $filter['campNum'])
+                ->where('is_draft', 0)
+                ->where('grace_period', 1)
+                ->orderBy('submit_time', 'desc')
+                ->first();
+
+            if (!empty($checkCurrentUserNonCommitted)) {
+                $propose_edit_response['edit_id'] = $checkCurrentUserNonCommitted->id;
+                $propose_edit_response['grace_period'] = 1;
+                $propose_edit_response['status'] = 'in_grace_period';
+            } else {
+
+                $getTheLatestStatementRecord = self::where('topic_num', $filter['topicNum'])
+                    ->where('camp_num', $filter['campNum'])
+                    ->where('is_draft', 0)
+                    ->where('grace_period', 0)
+                    ->orderBy('submit_time', 'desc')
+                    ->first();
+
+                $propose_edit_response['edit_id'] = $getTheLatestStatementRecord->id ?? NULL;
+                if ($getTheLatestStatementRecord) {
+                    switch ($getTheLatestStatementRecord) {
+                        case $getTheLatestStatementRecord->objector_nick_id !== NULL:
+                            $propose_edit_response['status'] = "objected";
+                            break;
+    
+                        case time() < $getTheLatestStatementRecord->go_live_time && time() >= $getTheLatestStatementRecord->submit_time:
+                            $propose_edit_response['status'] = "in_review";
+                            break;
+    
+                        case time() > $getTheLatestStatementRecord->go_live_time:
+                            $propose_edit_response['status'] = "live";
+                            break;
+                        default:
+                            $propose_edit_response['status'] = "old";
+                    }
+                }
+            }
+
+            return $propose_edit_response;
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+
+    /**
+     * Retrieve live statements for multiple topics.
+     *
+     * @param array $topicIds
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getLiveStatementsByTopics($topicIds)
+    {
+        $latestStatements = self::select('topic_num', \Illuminate\Support\Facades\DB::raw('MAX(submit_time) as max_submit_time'))
+            ->whereIn('topic_num', $topicIds)
+            ->where('camp_num', 1)
+            ->whereNull('objector_nick_id')
+            ->where('go_live_time', '<=', time())
+            ->where('is_draft', 0)
+            ->groupBy('topic_num');
+
+        // Join with the main table to get the full statement text
+        $statements = self::joinSub($latestStatements, 'latest', function ($join) {
+                $join->on('statement.topic_num', '=', 'latest.topic_num')
+                     ->on('statement.submit_time', '=', 'latest.max_submit_time');
+            })
+            ->where('camp_num', 1)
+            ->get(['statement.topic_num', 'statement.parsed_value', 'statement.value']);
+
+        return $statements->mapWithKeys(function ($item) {
+            $text = self::stripTagsExcept($item->parsed_value ?? $item->value ?? null);
+            return [$item->topic_num => \Illuminate\Support\Str::of($text)->trim()];
+        });
+    }
+
+    /**
+     * Removes specified HTML tags from the input string, excluding certain tags.
+     *
+     * @param ?string $html The HTML string to process.
+     * @param array $excludeTags An array of HTML tags to exclude from removal.
+     * @return string The processed HTML string with excluded tags removed.
+     */
+    public static function stripTagsExcept(?string $html, array $excludeTags = ['a', 'img', 'figure', 'table', 'iframe', 'video', 'picture']): string
+    {
+        if (is_null($html)) {
+            return '';
+        }
+
+        // Handle anchor tags separately
+        $html = preg_replace_callback(
+            '/<a\b[^>]*href=["\'](.*?)["\'][^>]*>(.*?)<\/a>/is',
+            function ($matches) {
+                $href = trim($matches[1]);
+                $innerText = trim($matches[2]);
+
+                // If inner text and href are the same, remove the tag completely
+                if ($href === $innerText) {
+                    return '';
+                }
+
+                // Otherwise, retain only the inner text
+                return $innerText;
+            },
+            $html
+        );
+
+        // Pattern to match the tags and their content for removal
+        $excludeTagsPattern = implode('|', array_map(function ($tag) {
+            return preg_quote($tag, '/');
+        }, $excludeTags));
+
+        if (!empty($excludeTagsPattern)) {
+            $pattern = '/<(' . $excludeTagsPattern . ')\b[^>]*>.*?<\/\1>/is';
+            $html = preg_replace($pattern, '', $html);
+        }
+
+        // Strip all remaining tags
+        $html = strip_tags($html);
+
+        // Decode HTML entities for readable text
+        return html_entity_decode($html, ENT_QUOTES, 'UTF-8');
+    }
 }

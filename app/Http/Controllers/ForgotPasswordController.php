@@ -31,70 +31,61 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * @OA\POST(path="/forgotpassword/sendOtp",
+     * @OA\Post(
+     *   path="/forgot-password/send-otp",
      *   tags={"Forgot Password"},
-     *   summary="forgot password send Otp",
-     *   description="This api used to forgot password send Otp",
+     *   summary="Send OTP for Forgot Password",
+     *   description="Sends a one-time password (OTP) to the user's registered email for password reset.",
      *   operationId="forgotPassword",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="authorization"
-     *         ) 
-     *    ),
-     *  @OA\RequestBody(
-     *     required=true,
-     *     description="User Email Id",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *              @OA\Property(
-     *                  property="email",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="User's email address",
+     *       @OA\JsonContent(
+     *           required={"email"},
+     *           @OA\Property(
+     *               property="email",
+     *               type="string",
+     *               format="email",
+     *               description="Registered email ID of the user"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=200,
+     *       description="OTP sent successfully",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="OTP sent successfully"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="otp", type="integer", example=123456)
+     *           )
+     *       )
      *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=400,
+     *       description="Invalid request or email not found",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid email or request"),
+     *           @OA\Property(property="error", type="string", example="User not found")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Request forbidden due to an error",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=403),
+     *           @OA\Property(property="message", type="string", example="Action not allowed"),
+     *           @OA\Property(property="error", type="string", example="Too many requests")
+     *       )
      *   )
-     *
      * )
      */
 
@@ -133,74 +124,62 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * @OA\Post(path="/forgotpassword/verifyOtp",
+     * @OA\Post(
+     *   path="/forgot-password/verify-otp",
      *   tags={"Forgot Password"},
-     *   summary="forgot password verify Otp",
-     *   description="This api used to forgot password verify Otp",
+     *   summary="Verify OTP for Forgot Password",
+     *   description="This API verifies the OTP sent to the user's email for password reset.",
      *   operationId="forgotPasswordVerifyOtp",
-     * @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *              @OA\Property(
-     *                  property="email",
-     *                  type="string"
-     *              ),
-     *              @OA\Property(
-     *                  property="otp",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="Request body with email and OTP",
+     *       @OA\JsonContent(
+     *           required={"email", "otp"},
+     *           @OA\Property(
+     *               property="email",
+     *               type="string",
+     *               format="email",
+     *               description="Registered email ID"
+     *           ),
+     *           @OA\Property(
+     *               property="otp",
+     *               type="integer",
+     *               description="One-time password received via email"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=200,
+     *       description="OTP verification successful",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="OTP verified successfully"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(property="data", type="object")
+     *       )
      *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=400,
+     *       description="Invalid OTP or email",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Invalid OTP or email"),
+     *           @OA\Property(property="error", type="string", example="OTP expired or incorrect")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Too many failed attempts or blocked request",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=403),
+     *           @OA\Property(property="message", type="string", example="Too many failed attempts"),
+     *           @OA\Property(property="error", type="string", example="Account temporarily locked")
+     *       )
      *   )
-     *
      * )
      */
 
@@ -210,9 +189,7 @@ class ForgotPasswordController extends Controller
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
-
         try {
-
             $user = User::where('email', '=', $request->username)->first();
             if (strlen($request->otp) < 6) {
                 $status = 403;
@@ -242,78 +219,71 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * @OA\Post(path="/forgotpassword/update",
+     * @OA\Post(
+     *   path="/forgot-password/update",
      *   tags={"Forgot Password"},
-     *   summary="forgot password update",
-     *   description="This api used to forgot password update",
-     *   operationId="forgotPasswordupdate",
-     *   @OA\Parameter(
-     *         name="Authorization",
-     *         in="header",
-     *         required=true,
-     *         description="Bearer {access-token}",
-     *         @OA\Schema(
-     *              type="Authorization"
-     *         ) 
-     *    ),
-     *    @OA\RequestBody(
-     *     required=true,
-     *     description="Request Body Json Parameter",
-     *     @OA\MediaType(
-     *          mediaType="application/json",
-     *          @OA\Schema(
-     *               @OA\Property(
-     *                  property="username",
-     *                  type="string"
-     *              ),
-     *              @OA\Property(
-     *                  property="new_password",
-     *                  type="string"
-     *              ),
-     *              @OA\Property(
-     *                  property="confirm_password",
-     *                  type="string"
-     *              )
-     *          )
-     *     ),
+     *   summary="Update Password",
+     *   description="This API allows users to update their password after verifying their identity.",
+     *   operationId="forgotPasswordUpdate",
+     *   security={{"clientAuth":{}}},
+     *   @OA\RequestBody(
+     *       required=true,
+     *       description="User credentials for password update",
+     *       @OA\JsonContent(
+     *           required={"username", "new_password", "confirm_password"},
+     *           @OA\Property(
+     *               property="username",
+     *               type="string",
+     *               description="User's registered username or email",
+     *               example="user@example.com"
+     *           ),
+     *           @OA\Property(
+     *               property="new_password",
+     *               type="string",
+     *               description="New password (must meet security criteria)",
+     *               minLength=8,
+     *               example="NewPass@123"
+     *           ),
+     *           @OA\Property(
+     *               property="confirm_password",
+     *               type="string",
+     *               description="Confirm new password (must match new_password)",
+     *               minLength=8,
+     *               example="NewPass@123"
+     *           )
+     *       )
      *   ),
-     *   @OA\Response(response=200,description="successful operation",
-     *                             @OA\JsonContent(
-     *                                 type="object",
-     *                                 @OA\Property(
-     *                                         property="status_code",
-     *                                         type="integer"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="message",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="error",
-     *                                         type="string"
-     *                                    ),
-     *                                    @OA\Property(
-     *                                         property="data",
-     *                                         type="object"
-     *                                    )
-     *                                 )
-     *                            ),
-     *
-     *    @OA\Response(
-     *     response=400,
-     *     description="Something went wrong",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=200,
+     *       description="Password updated successfully",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=200),
+     *           @OA\Property(property="message", type="string", example="Password updated successfully"),
+     *           @OA\Property(property="error", type="string", nullable=true),
+     *           @OA\Property(property="data", type="object", nullable=true)
+     *       )
      *   ),
-     *    @OA\Response(
-     *     response=403,
-     *     description="Exception Throwable",
-     *     @OA\JsonContent(
-     *          oneOf={@OA\Schema(ref="#/components/schemas/ExceptionRes")}
-     *     )
+     *   @OA\Response(
+     *       response=400,
+     *       description="Invalid request parameters",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=400),
+     *           @OA\Property(property="message", type="string", example="Passwords do not match"),
+     *           @OA\Property(property="error", type="string", example="Validation error")
+     *       )
+     *   ),
+     *   @OA\Response(
+     *       response=403,
+     *       description="Unauthorized or expired token",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status_code", type="integer", example=403),
+     *           @OA\Property(property="message", type="string", example="Unauthorized request"),
+     *           @OA\Property(property="error", type="string", example="Invalid token or session expired")
+     *       )
      *   )
-     *
      * )
      */
 

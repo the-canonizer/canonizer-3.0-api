@@ -12,7 +12,58 @@ use Illuminate\Http\Request;
 
 class SitemapXmlController extends Controller
 {
-
+    /**
+     * @OA\Get(
+     *   path="/sitemap",
+     *   tags={"Sitemap"},
+     *   summary="Get the sitemap index",
+     *   description="Retrieve a list of available sitemaps with their last modified dates.",
+     *   operationId="getSitemapIndex",
+     *   security={{"clientAuth":{}}},
+     *   @OA\Response(
+     *       response=200,
+     *       description="Sitemap index retrieved successfully",
+     *       @OA\JsonContent(
+     *           type="object",
+     *           @OA\Property(property="status", type="integer"),
+     *           @OA\Property(property="message", type="string"),
+     *           @OA\Property(
+     *               property="data",
+     *               type="object",
+     *               @OA\Property(property="index", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_home.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_topic.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_camp.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_thread.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_post.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               )),
+     *               @OA\Property(property="sitemap_videos.xml", type="array", @OA\Items(
+     *                   @OA\Property(property="url", type="string"),
+     *                   @OA\Property(property="last_modified", type="string", format="date-time")
+     *               ))
+     *           )
+     *       )
+     *   ),
+     *   @OA\Response(response=400, description="Bad request")
+     * )
+     */
     public function index(Request $request)
     {
         $data = [
@@ -27,26 +78,6 @@ class SitemapXmlController extends Controller
         $status = 200;
         $message = trans('message.success.success');
         return $this->resProvider->apiJsonResponse($status, $message, $data, null);
-    }
-
-    private function getIndexSiteMap()
-    {
-        $urls = [
-            'sitemap_home.xml',
-            'sitemap_topic.xml',
-            'sitemap_camp.xml',
-            'sitemap_thread.xml',
-            'sitemap_post.xml',
-            'sitemap_videos.xml',
-        ];
-        $lastModified = Carbon::now()->startOfDay()->toIso8601String();
-        $siteMaps = array_map(function ($url) use ($lastModified) {
-            return [
-                'url' => $url,
-                'last_modified' => $lastModified,
-            ];
-        }, $urls);
-        return $siteMaps;
     }
 
     public function getHomeSiteMapUrls()
@@ -68,6 +99,26 @@ class SitemapXmlController extends Controller
             return [
                 'url' => $url,
                 'last_modified' => Carbon::now()->startOfDay()->toIso8601String()
+            ];
+        }, $urls);
+        return $siteMaps;
+    }
+    
+    private function getIndexSiteMap()
+    {
+        $urls = [
+            'sitemap_home.xml',
+            'sitemap_topic.xml',
+            'sitemap_camp.xml',
+            'sitemap_thread.xml',
+            'sitemap_post.xml',
+            'sitemap_videos.xml',
+        ];
+        $lastModified = Carbon::now()->startOfDay()->toIso8601String();
+        $siteMaps = array_map(function ($url) use ($lastModified) {
+            return [
+                'url' => $url,
+                'last_modified' => $lastModified,
             ];
         }, $urls);
         return $siteMaps;

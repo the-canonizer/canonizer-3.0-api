@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
 use App\Models\User;
 
@@ -9,9 +11,9 @@ class CampSubscriptionTest extends TestCase
      * Check Api without payload
     */
     public function testCampSubscriptionApiWithoutPayload() {
-        $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', []);
-        $this->assertEquals(400,  $this->response->status());
+        $user = User::factory()->create(['status' => 1]);
+        $response = $this->actingAs($user)->post('/api/v3/camp/subscription', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -26,9 +28,9 @@ class CampSubscriptionTest extends TestCase
             "checked" => "",
             "subscription_id" => ""
         ];
-        $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $emptyData);
-        $this->assertEquals(400, $this->response->status());
+        $user = User::factory()->create(['status' => 1]);
+        $response = $this->actingAs($user)->post('/api/v3/camp/subscription', $emptyData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -43,9 +45,9 @@ class CampSubscriptionTest extends TestCase
             "checked" => "xyz",
             "subscription_id" => "abc"
         ];
-        $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $user = User::factory()->create(['status' => 1]);
+        $response = $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -59,20 +61,20 @@ class CampSubscriptionTest extends TestCase
             "checked" => true,
             "subscription_id" => ""
         ];
-        $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+        $user = User::factory()->create(['status' => 1]);
+        $response = $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
         
-        $this->assertEquals(200,  $this->response->status());
+        $response->assertStatus(200);
 
         /// Unit test for the un-subscription on above subscription ...
-        if($this->response->getData()->status_code == 200) {
+        if($response->getData()->status_code == 200) {
             // Update the payload ...
-            $validData["subscription_id"] = $this->response->getData()->data->subscriptionId;
+            $validData["subscription_id"] = $response->getData()->data->subscriptionId;
             $validData["checked"] = false;
 
-            $user = User::factory()->make();
-            $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
-            $this->assertEquals(200,  $this->response->status());
+            $user = User::factory()->create(['status' => 1]);
+            $response = $this->actingAs($user)->post('/api/v3/camp/subscription', $validData);
+            $response->assertStatus(200);
         }
     }
 
@@ -87,9 +89,9 @@ class CampSubscriptionTest extends TestCase
             "checked" => false,
             "subscription_id" => ""
         ];
-        $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $user = User::factory()->create(['status' => 1]);
+        $response = $this->actingAs($user)->post('/api/v3/camp/subscription', $invalidData);
+        $response->assertStatus(400);
     }
 
     /**
@@ -97,25 +99,25 @@ class CampSubscriptionTest extends TestCase
     */
     public function  testCampSubscriptionApiWithoutUserAuth()
     {
-        $this->post('/api/v3/camp/subscription', []);
-        $this->assertEquals(401,  $this->response->status());
+        $response = $this->post('/api/v3/camp/subscription', []);
+        $response->assertStatus(401);
     }
 
     /**
      * Check subscription listing without user auth
     */
     public function testGetCampSubscriptionListWithoutUserAuth() {
-        $response = $this->call('GET', '/api/v3/camp/subscription/list/');
-        $this->assertEquals(401, $response->status()); 
+        $response = $this->get('/api/v3/camp/subscription/list/');
+        $response->assertStatus(401); 
     }
 
     /**
     * Check subscription listing without user auth
     */
     public function testGetCampSubscriptionListValidData() {
-        $camp = Camp::factory()->make();
+        $user = User::factory()->create(['status' => 1]);
 
-        $this->actingAs($camp)->get('/api/v3/camp/subscription/list?page=1&per_page=10');
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->get('/api/v3/camp/subscription/list?page=1&per_page=10');
+        $response->assertStatus(200);
     }
 }

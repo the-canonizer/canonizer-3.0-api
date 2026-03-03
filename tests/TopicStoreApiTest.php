@@ -1,11 +1,13 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
 use App\Models\Thread;
 use App\Models\Topic;
 use App\Models\User;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TopicStoreApiTest extends TestCase
@@ -22,7 +24,7 @@ class TopicStoreApiTest extends TestCase
     public function testTopicStoreValidateFiled()
     {
         $rules = [
-            'topic_name' => 'required|max:30|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
+            'topic_name' => 'required|max:80|unique:topic|regex:/^[a-zA-Z0-9\s]+$/',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',
@@ -53,8 +55,8 @@ class TopicStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($topic)->post('/api/v3/topic/save', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testTopicStoreWithValidData()
@@ -69,12 +71,12 @@ class TopicStoreApiTest extends TestCase
             'nick_name'=>'347',
         ];
 
-        $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
-        $this->assertEquals(200, $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/topic/save', $parameters);
+        $response->assertStatus(200);
 
         // After topic creation , check the camp leader is added by default...
-        if($this->response->status() == 200) {
-            $checkCampLeader = Camp::where("topic_num", $this->response->json()["data"]["topic_num"])
+        if($response->status() == 200) {
+            $checkCampLeader = Camp::where("topic_num", $response->json()["data"]["topic_num"])
                                 ->where("camp_num", 1)->first();
 
             if(!empty($checkCampLeader)) {

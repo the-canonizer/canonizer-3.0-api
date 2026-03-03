@@ -16,7 +16,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 use App\Library\wiki_parser\wikiParser as wikiParser;
 class internallink implements startOfLine
 {
-    const regular_expression = '/(\[\[(([^\]]*?)\:)?([^\]]*?)([\|]([^\]]*?))?\]\]([a-z]+)?)/i';
+    public const regular_expression = '/(\[\[(([^\]]*?)\:)?([^\]]*?)([\|]([^\]]*?))?\]\]([a-z]+)?)/i';
     
     public function __construct()
     {

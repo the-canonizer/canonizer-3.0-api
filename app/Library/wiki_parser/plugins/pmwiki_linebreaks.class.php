@@ -17,7 +17,7 @@ require_once(dirname(__FILE__) . '/../interface/endOfLine.interface.php');
 
 class pmwiki_linebreaks implements startOfLine, endOfLine
 {
-    const regular_expression = '/^[^\!](.*?)(\\{1,3}|)$/i';
+    public const regular_expression = '/^[^\!](.*?)(\\{1,3}|)$/i';
     
     private $paragraph_open = false;
     

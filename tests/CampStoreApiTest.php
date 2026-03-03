@@ -1,10 +1,12 @@
 <?php
 
+namespace Tests;
+
 use App\Models\Camp;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Laravel\Lumen\Testing\WithoutMiddleware;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 
 class CampStoreApiTest extends TestCase
 {
@@ -23,7 +25,7 @@ class CampStoreApiTest extends TestCase
 
         $rules = [
             'nick_name' => 'required',
-            'camp_name' => 'required|unique:camp|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'camp_name' => 'required|unique:camp|max:80|regex:/^[a-zA-Z0-9\s]+$/',
             'camp_about_url' => 'nullable|max:1024|regex:' . $regex,
             'parent_camp_num' => 'nullable',
             'asof' => 'in:default,review,bydate'
@@ -54,8 +56,8 @@ class CampStoreApiTest extends TestCase
             'asof' => ''
         ];
 
-        $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
-        $this->assertEquals(400, $this->response->status());
+        $response = $this->actingAs($camp)->post('/api/v3/camp/save', $parameter);
+        $response->assertStatus(400);
     }
 
     public function testCampStoreWithValidData()
@@ -72,8 +74,8 @@ class CampStoreApiTest extends TestCase
             "camp_about_url" => "",
             "asof"=>""
         ];
-        $this->call('POST', '/api/v3/camp/save', $parameters);
-        $this->seeJsonStructure([
+        $response = $this->call('POST', '/api/v3/camp/save', $parameters);
+        $response->assertJsonStructure([
             'status_code',
             'message',
             'error',

@@ -1,7 +1,9 @@
 <?php
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
-use Laravel\Lumen\Testing\DatabaseTransactions;
+namespace Tests;
+
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Testing\Fluent\AssertableJson;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -28,7 +30,7 @@ class ParentChildHierarchyChangeApiTest extends TestCase
     public function testUnauthorizedUserCannotUpdate(){
         print sprintf("\n Unauthorized User can not  request this api %d %s", 401,PHP_EOL);
         $response = $this->call('POST', '/api/v3/manage-camp', []);
-        $this->assertEquals(401, $response->status());
+        $response->assertStatus(401);
     }
 
 
@@ -53,10 +55,10 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "from_test_case"=>1
         ];
 
-        $this->actingAs($user)->post('/api/v3/manage-camp', $data);
-        $this->assertEquals(200, $this->response->status());
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=4');
-        $this->seeJson([
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
+        $response->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=4');
+        $response->assertJson([
             "support_flag"=> 0
         ]);
 
@@ -82,10 +84,10 @@ class ParentChildHierarchyChangeApiTest extends TestCase
             "from_test_case"=>1
         ];
 
-        $this->actingAs($user)->post('/api/v3/manage-camp', $data);
-        $this->assertEquals(200, $this->response->status());
-        $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=5');
-        $this->seeJson([
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $data);
+        $response->assertStatus(200);
+        $response = $this->actingAs($user)->get('/api/v3/support/check?topic_num=534&camp_num=5');
+        $response->assertJson([
             "support_flag"=> 0
         ]);
     }
@@ -98,8 +100,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
     {
         print sprintf("\n Test with empty form data");
         $user = User::factory()->make();
-        $this->actingAs($user)->post('/api/v3/manage-camp', []);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', []);
+        $response->assertStatus(400);
     }
 
     /**
@@ -123,8 +125,8 @@ class ParentChildHierarchyChangeApiTest extends TestCase
         $user = User::factory()->make([
             'id' => '1132',
         ]);
-        $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
-        $this->assertEquals(400,  $this->response->status());
+        $response = $this->actingAs($user)->post('/api/v3/manage-camp', $invalidData);
+        $response->assertStatus(400);
     }
 
   

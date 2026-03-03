@@ -16,7 +16,7 @@ require_once(dirname(__FILE__) . '/../interface/startOfLine.interface.php');
 
 class lists implements startOfLine
 {
-    const regular_expression = '/^([\*\#]+)(.*?)$/i';
+    public const regular_expression = '/^([\*\#]+)(.*?)$/i';
     private $current_lists = array();    
     
     public function __construct()
