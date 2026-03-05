@@ -5,12 +5,33 @@ namespace Tests;
 use App\Models\User;
 use App\Models\Support;
 use App\Models\Topic;
+use App\Models\Nickname;
+use App\Models\Namespaces;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class ManageTopicApiTest extends TestCase
 {
-
     use DatabaseTransactions;
+
+    protected $user;
+    protected $nickname;
+    protected $topic;
+    protected $namespace;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->nickname = Nickname::factory()->create(['user_id' => $this->user->id]);
+        
+        // Ensure at least one namespace exists
+        $this->namespace = Namespaces::first() ?? Namespaces::factory()->create();
+        
+        $this->topic = Topic::factory()->create([
+            'submitter_nick_id' => $this->nickname->id,
+            'namespace_id' => $this->namespace->id
+        ]);
+    }
 
      /**
      * Check Api with empty form data
@@ -19,10 +40,7 @@ class ManageTopicApiTest extends TestCase
     public function testManageTopicApiWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', []);
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', []);
         $response->assertStatus(400);
     }
 
@@ -43,10 +61,7 @@ class ManageTopicApiTest extends TestCase
             "event_type" => "",
         ];
         print sprintf("Test with empty values");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $emptyData);
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $emptyData);
         $response->assertStatus(400);
     }
 
@@ -57,29 +72,24 @@ class ManageTopicApiTest extends TestCase
     public function testManageTopicApiWithInvalidData()
     {
         $invalidData = [
-            "topic_num" => "1",
-            "topic_id" => "1",
-            "nick_name" => "347",
+            "topic_num" => $this->topic->topic_num,
+            "topic_id" => $this->topic->id,
+            "nick_name" => $this->nickname->id,
             "topic_name" => "1",
-            "submitter" => "1",
-            "namespace_id" => "1",
+            "submitter" => $this->nickname->id,
+            "namespace_id" => $this->namespace->id,
             "note" => "1",
             "event_type" => "533",
         ];
         print sprintf("Test with invalid values");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        Support::insert([
-            'nick_name_id' => 347,
-            'delegate_nick_name_id' => 0,
-            'topic_num' => 1,
+        
+        Support::factory()->create([
+            'nick_name_id' => $this->nickname->id,
+            'topic_num' => $this->topic->topic_num,
             'camp_num'  =>  1,
-            'support_order' =>  1,
-            'start' => time(),
-            'end' => 0,
         ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $invalidData);
+
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $invalidData);
         $response->assertStatus(400);
     }
 
@@ -91,20 +101,17 @@ class ManageTopicApiTest extends TestCase
     public function testUpdateManageTopicWithValidData()
     {
         $validData = [
-            "topic_num" => "1",
-            "topic_id" => "1",
-            "nick_name" => "347",
+            "topic_num" => $this->topic->topic_num,
+            "topic_id" => $this->topic->id,
+            "nick_name" => $this->nickname->id,
             "topic_name" => rand(),
-            "submitter" => "1",
-            "namespace_id" => "1",
+            "submitter" => $this->nickname->id,
+            "namespace_id" => $this->namespace->id,
             "note" => "1",
             "event_type" => "update",
         ];
-        print sprintf("Test with valid values for updating camp based on a version");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        print sprintf("Test with valid values for updating topic based on a version");
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $validData);
         $response->assertStatus(200);
     }
 
@@ -114,24 +121,21 @@ class ManageTopicApiTest extends TestCase
      */
     public function testObjectionManageTopicWithValidDataAfterChangeIsSubmitted()
     {
-
         $validData = [
-            "topic_num" => "1",
-            "topic_id" => "1",
-            "nick_name" => "347",
+            "topic_num" => $this->topic->topic_num,
+            "topic_id" => $this->topic->id,
+            "nick_name" => $this->nickname->id,
             "topic_name" => rand(),
-            "submitter" => "1",
-            "namespace_id" => 1,
+            "submitter" => $this->nickname->id,
+            "namespace_id" => $this->namespace->id,
             "note" => "1",
             "event_type" => "objection",
             "objection_reason" => "reason",
         ];
-        print sprintf("Test with valid values for objecting a camp after the change is submitted");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
-        $response->assertStatus(400);
+        print sprintf("Test with valid values for objecting a topic after the change is submitted");
+        
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $validData);
+        $response->assertStatus(400); // Should fail if not a supporter or if direct supporter
     }
 
     /**
@@ -141,20 +145,17 @@ class ManageTopicApiTest extends TestCase
     public function testEditManageTopicWithValidData()
     {
         $validData = [
-            "topic_num" => "1",
-            "topic_id" => "1",
-            "nick_name" => "347",
+            "topic_num" => $this->topic->topic_num,
+            "topic_id" => $this->topic->id,
+            "nick_name" => $this->nickname->id,
             "topic_name" =>  rand(),
-            "submitter" => "1",
-            "namespace_id" => "1",
+            "submitter" => $this->nickname->id,
+            "namespace_id" => $this->namespace->id,
             "note" => "1",
             "event_type" => "edit"
         ];
-        print sprintf("Test with valid values for editing a camp");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        print sprintf("Test with valid values for editing a topic");
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $validData);
         $response->assertStatus(200);
     }
 
@@ -165,30 +166,27 @@ class ManageTopicApiTest extends TestCase
      */
     public function testManageTopicApiWithoutAuth()
     {
-        $response = $this->post('/api/v3/manage-topic', []);
+        $response = $this->postJson('/api/v3/manage-topic', []);
         $response->assertStatus(401);
     }
 
     public function testUpdateManageTopicWithValidDataToCheckGracePeriod()
     {
         $validData = [
-            "topic_num" => "1",
-            "topic_id" => "1",
-            "nick_name" => "347",
+            "topic_num" => $this->topic->topic_num,
+            "topic_id" => $this->topic->id,
+            "nick_name" => $this->nickname->id,
             "topic_name" => rand(),
-            "submitter" => "1",
-            "namespace_id" => "1",
+            "submitter" => $this->nickname->id,
+            "namespace_id" => $this->namespace->id,
             "note" => "1",
             "event_type" => "update",
         ];
-        print sprintf("Test with valid values for updating topic and check if it is in grace peroid");
-        $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData);
+        print sprintf("Test with valid values for updating topic and check if it is in grace period");
+        $response = $this->actingAs($this->user)->postJson('/api/v3/manage-topic', $validData);
         $response->assertStatus(200);
 
-        $topic = Topic::where('submitter_nick_id', 347)->orderBy('submit_time', 'desc')->first();
+        $topic = Topic::where('submitter_nick_id', $this->nickname->id)->orderBy('id', 'desc')->first();
         $this->assertNotNull($topic);
         $this->assertEquals(1, $topic->grace_period);
     }
