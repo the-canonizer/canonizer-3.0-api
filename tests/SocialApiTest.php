@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\WithoutMiddleware;
 class SocialApiTest extends TestCase
 {
 
-    use WithoutMiddleware;
+    use WithoutMiddleware, DatabaseTransactions;
 
     /**
      * A basic test example.
@@ -34,22 +34,22 @@ class SocialApiTest extends TestCase
     public function testSocialLoginWithInvalidData()
     {
         print sprintf(" \n Invalid Social Login provider submitted %d %s", 400, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             'provider' => ''
         ];
-        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response = $this->actingAs($user)->postJson('/api/v3/user/social/login', $parameters);
         $response->assertStatus(400);
     }
 
     public function testSocialLoginWithValidData()
     {
         print sprintf(" \n Valid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             'provider' => 'google'
         ];
-        $response = $this->actingAs($user)->post('/api/v3/user/social/login', $parameters);
+        $response = $this->actingAs($user)->postJson('/api/v3/user/social/login', $parameters);
         $response->assertStatus(200);
     }
 
@@ -74,28 +74,28 @@ class SocialApiTest extends TestCase
     public function testSocialCallbackWithInvalidData()
     {
         print sprintf(" \n Invalid Social Login provider submitted %d %s", 400, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             "client_id" => "",
             "client_secret" => "",
             'provider' => '',
             'code' => ''
         ];
-        $response = $this->actingAs($user)->post('/api/v3/user/social/callback', $parameters);
+        $response = $this->actingAs($user)->postJson('/api/v3/user/social/callback', $parameters);
         $response->assertStatus(400);
     }
 
     public function testSocialCallbackWithValidData()
     {
         print sprintf(" \n Valid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             "client_id" => "4",
             "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
             'provider' => 'google',
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
-        $response = $this->call('POST', '/api/v3/user/social/callback', $parameters);
+        $response = $this->postJson('/api/v3/user/social/callback', $parameters);
         $response->assertJsonStructure([
             'status_code',
             'message',
@@ -109,7 +109,7 @@ class SocialApiTest extends TestCase
     public function testSocialSocialLinkWithValidData()
     {
         print sprintf(" \n Valid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             "client_id" => "4",
             "client_secret" => "vzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4",
@@ -117,7 +117,7 @@ class SocialApiTest extends TestCase
             'code' => 'goovzPs1YN0KOqImwj6TFdFt6LMekguxE1EX5xoh4A4gle'
         ];
 
-        $response = $this->call('POST', '/api/v3/user/social/social-link', $parameters);
+        $response = $this->postJson('/api/v3/user/social/social-link', $parameters);
 
         // dd($response);
         $response->assertJsonStructure([
@@ -132,23 +132,23 @@ class SocialApiTest extends TestCase
 
     public function testGetSocialUserListInvalidData(){
         print sprintf("\n Get Social User List Invalid Data %d %s",400, PHP_EOL);
-        $response = $this->call('GET', '/api/v3/user/social/list');
+        $response = $this->getJson('/api/v3/user/social/list');
         $response->assertStatus(400); 
     }
 
     public function testGetSocialUserListValidData(){
         print sprintf(" \n  Get Social User List Valid Data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
 
-        $this->actingAs($user)
-        ->get('/api/v3/user/social/list', []);
+        $response = $this->actingAs($user)
+        ->getJson('/api/v3/user/social/list');
 
         $response->assertStatus(200);
     }
 
     public function testGetSocialUserListDeleteValidData(){
         print sprintf(" \n  Get Social User List Valid Data %d %s", 200,PHP_EOL);
-        $response = $this->call('DELETE', '/api/v3/user/social/delete/2');
+        $response = $this->deleteJson('/api/v3/user/social/delete/2');
         $response->assertJsonStructure([
             'status_code',
             'message',
@@ -161,25 +161,24 @@ class SocialApiTest extends TestCase
     public function testSocialDeactivateUserWithInvalidData()
     {
         print sprintf(" \n Invalid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $parameters = [
             'user_id' => ''
         ];
-        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response = $this->actingAs($user)->postJson('/api/v3/user/deactivate', $parameters);
         $response->assertStatus(400);
     }
 
     public function testSocialDeactivateUserWithValidData()
     {
         print sprintf(" \n Valid Social Login provider submitted %d %s", 200, PHP_EOL);
-        $user = User::factory()->make([
-            'id'=> trans('testSample.user_ids.normal_user.user_2.id'),
-        ]);
+        $user = User::factory()->create();
         $parameters = [
-            'user_id' => trans('testSample.user_ids.normal_user.user_2.id'),
+            'user_id' => $user->id,
         ];
-        $response = $this->actingAs($user)->post('/api/v3/user/deactivate', $parameters);
+        $response = $this->actingAs($user)->postJson('/api/v3/user/deactivate', $parameters);
         $response->assertStatus(200);
     }
 
 }
+

@@ -18,7 +18,7 @@ class SupportUpdateApiTest extends TestCase
     public function testUnauthorizedUserCannotUpdateSupportOrder()
     {
         print sprintf("\n Unauthorized User can not  request support re-order api %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/support-order/update', []);
+        $response = $this->postJson('/api/v3/support-order/update', []);
         $response->assertStatus(401);
     }
 
@@ -28,7 +28,7 @@ class SupportUpdateApiTest extends TestCase
     public function testUnauthorizedUserCannotRemoveSupport()
     {
         print sprintf("\n Unauthorized User can not  request remove support  api %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/support/update', []);
+        $response = $this->postJson('/api/v3/support/update', []);
         $response->assertStatus(401);
     }
 
@@ -38,11 +38,11 @@ class SupportUpdateApiTest extends TestCase
     public function testRemoveSupportWithInvalidData()
     {
         print sprintf("\n Remove or update direct  Support with invalid data %d %s", 400,PHP_EOL);
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $data = [];
-        $this->actingAs($user)
-        ->post('/api/v3/support/update',$data);
-        $response->assertStatus(500);
+        $response = $this->actingAs($user)
+        ->postJson('/api/v3/support/update',$data);
+        $response->assertStatus(400);
     }
 
 
@@ -50,7 +50,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Remove or update direct support with valid data %d %s", 200 ,PHP_EOL);
 
-        $user = User::factory()->make();
+        $user = User::factory()->create();
         $data = [
             "topic_num" => '1',
             'camp_num' =>[],
@@ -59,8 +59,8 @@ class SupportUpdateApiTest extends TestCase
             'type'=>'direct',
         ];
 
-        $this->actingAs($user)
-        ->post('/api/v3/support/update',$data);
+        $response = $this->actingAs($user)
+        ->postJson('/api/v3/support/update',$data);
         $response->assertStatus(200);
     }
 
@@ -68,9 +68,7 @@ class SupportUpdateApiTest extends TestCase
     {
         print sprintf("\n Support re-order api %d %s", 200,PHP_EOL);
 
-        $user = User::factory()->make([
-            'id' => '362',
-        ]);
+        $user = User::factory()->create();
 
         $data = [
             "topic_num" => '173',
@@ -83,8 +81,8 @@ class SupportUpdateApiTest extends TestCase
                 ]
             ]
         ];
-        $this->actingAs($user)
-        ->post('/api/v3/support-order/update',$data);
+        $response = $this->actingAs($user)
+        ->postJson('/api/v3/support-order/update',$data);
         $response->assertStatus(200);
     }
 
@@ -96,24 +94,23 @@ class SupportUpdateApiTest extends TestCase
     public function testUnauthorizedUserCannotRemoveDelegateSupport()
     {
         print sprintf("\n Unauthorized User can not  request remove delegate support API. %d %s", 401,PHP_EOL);
-        $response = $this->call('POST', '/api/v3/support/remove-delegate', []);
+        $response = $this->postJson('/api/v3/support/remove-delegate', []);
         $response->assertStatus(401);
     }
 
     public function testRemoveDelegataeSupporttWithValidaData()
     {
         print sprintf("\n Remove delegate support with valida data %d %s", 200,PHP_EOL);
-        $user = User::factory()->make([
-            'id' => '362',
-        ]);
+        $user = User::factory()->create();
         $data = [
             "topic_num"=>"416",
             "nick_name_id" => "347",
             "delegated_nick_name_id" => "1"
         ];
 
-        $response = $this->actingAs($user)->post('/api/v3/support/remove-delegate',$data);
+        $response = $this->actingAs($user)->postJson('/api/v3/support/remove-delegate',$data);
         $response->assertStatus(200);
     }
+
     
 }

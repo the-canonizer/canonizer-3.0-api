@@ -750,5 +750,32 @@ class ValidationRules
         ]);
     }
 
+    public function getRemoveSupportValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'action' => 'required|in:all,partial',
+        ];
+    }
+
+    public function getUpdateSupportOrderValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'order_update' => 'required|array',
+        ];
+    }
+
+    public function getRemoveDelegateSupportValidationRules(): array
+    {
+        return [
+            'topic_num' => 'required|integer',
+            'nick_name_id' => 'required|integer',
+            'delegated_nick_name_id' => 'required|integer'
+        ];
+    }
+
     
 }

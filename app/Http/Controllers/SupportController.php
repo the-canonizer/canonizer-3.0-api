@@ -293,8 +293,13 @@ class SupportController extends Controller
      *     )
      * )
      */
-    public function removeSupport(Request $request)
+    public function removeSupport(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getRemoveSupportValidationRules(), $this->validationMessages->getRemoveSupportValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
         $all = $request->all();
         // return json_encode($all);
         $user = $request->user();
@@ -368,16 +373,17 @@ class SupportController extends Controller
      *     )
      * )
      */
-    public function removeDelegateSupport(Request $request)
+    public function removeDelegateSupport(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getRemoveDelegateSupportValidationRules(), $this->validationMessages->getRemoveDelegateSupportValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
         $all = $request->all();
         $topicNum =$all['topic_num'];
         $nickNameId = $all['nick_name_id'];
         $delegatedNickNameId = $all['delegated_nick_name_id'];
-
-        if(!$delegatedNickNameId || !$topicNum || !$nickNameId){
-            return $this->resProvider->apiJsonResponse(400, trans('message.support.delegate_invalid_request'), '', $e->getMessage());
-        }
         try{
             TopicSupport::removeDelegateSupport($topicNum, $nickNameId, $delegatedNickNameId);   
             $message = ['remove' => [ trans('message.support.delegate_support_removed') ]];            
@@ -430,8 +436,13 @@ class SupportController extends Controller
      *     )
      * )
      */
-    public function updateSupportOrder(Request $request)
+    public function updateSupportOrder(Request $request, Validate $validate)
     {
+        $validationErrors = $validate->validate($request, $this->rules->getUpdateSupportOrderValidationRules(), $this->validationMessages->getUpdateSupportOrderValidationMessages());
+        if ($validationErrors) {
+            return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
+        }
+
         $all = $request->all();
         $topicNum =$all['topic_num'];
         $campNum = isset($all['camp_num']) && $all['camp_num'] ? $all['camp_num'] : '';

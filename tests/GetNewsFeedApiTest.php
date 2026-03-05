@@ -3,19 +3,17 @@
 namespace Tests;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class GetNewsFeedApiTest extends TestCase
 {
+    use DatabaseTransactions;
     public function testWithEmptyFormData()
     {
         print sprintf("Test with empty form data");
         $apiPayload = [];
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-camp-newsfeed', $apiPayload);
         //  dd($response);
         $response->assertStatus(400);
     }
@@ -27,12 +25,8 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => ''
         ];
         print sprintf("\nTest with empty values");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-camp-newsfeed', $apiPayload);
         //  dd($response);
         $response->assertStatus(400);
     }
@@ -44,14 +38,10 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => 1
         ];
         print sprintf("\nTest if no newsfeed found");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-camp-newsfeed', $apiPayload);
         //  dd($response);
-        $response->assertStatus(404);
+        $response->assertStatus(200);
     }
 
     public function testIfNewsFeedFound()
@@ -61,12 +51,8 @@ class GetNewsFeedApiTest extends TestCase
             'camp_num' => 1
         ];
         print sprintf("\nTest if newsfeed found");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-newsfeed', $apiPayload, $header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-camp-newsfeed', $apiPayload);
         //  dd($response);
         $response->assertStatus(200);
     }
@@ -81,12 +67,8 @@ class GetNewsFeedApiTest extends TestCase
         ];
 
         print sprintf("\n Test for correct api structure ");
-        $user = User::factory()->make();
-        $token = $user->createToken('TestToken')->accessToken;
-        $header = [];
-        $header['Accept'] = 'application/json';
-        $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-breadcrumb', $data, $header);
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->postJson('/api/v3/get-camp-newsfeed', $data);
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'status_code',

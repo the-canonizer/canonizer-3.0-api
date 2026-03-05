@@ -936,4 +936,40 @@ class ValidationMessages
         ]);
     }
 
+    public function getRemoveSupportValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.support_validation.topic_num_required'),
+            'topic_num.integer' => trans('message.support_validation.topic_num_invalid'),
+            'nick_name_id.required' => trans('message.support_validation.nick_name_required'),
+            'nick_name_id.integer' => trans('message.support_validation.nick_name_invalid'),
+            'action.required' => trans('message.support_validation.action_required'),
+            'action.in' => trans('message.support_validation.action_in'),
+        ];
+    }
+
+    public function getUpdateSupportOrderValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.support_validation.topic_num_required'),
+            'topic_num.integer' => trans('message.support_validation.topic_num_invalid'),
+            'nick_name_id.required' => trans('message.support_validation.nick_name_required'),
+            'nick_name_id.integer' => trans('message.support_validation.nick_name_invalid'),
+            'order_update.required' => trans('message.support_validation.order_update_required'),
+            'order_update.array' => trans('message.support_validation.order_update_array'),
+        ];
+    }
+
+    public function getRemoveDelegateSupportValidationMessages(): array
+    {
+        return [
+            'topic_num.required' => trans('message.delegate_support_validation.topic_num_required'),
+            'topic_num.integer' => trans('message.delegate_support_validation.topic_num_invalid'),
+            'nick_name_id.required' => trans('message.delegate_support_validation.nick_name_required'),
+            'nick_name_id.integer' => trans('message.delegate_support_validation.nick_name_invalid'),
+            'delegated_nick_name_id.required' => trans('message.delegate_support_validation.delegate_nick_name_required'),
+            'delegated_nick_name_id.integer' => trans('message.delegate_support_validation.delegate_nick_name_invalid'),
+        ];
+    }
+
 }
