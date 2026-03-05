@@ -4,9 +4,11 @@ namespace Tests;
 
 use App\Models\User;
 use App\Models\NewsFeed;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class UpdateNewsFeedApiTest extends TestCase
 {
+    use DatabaseTransactions;
 
     /**
      * Check Api with empty form data
@@ -19,7 +21,7 @@ class UpdateNewsFeedApiTest extends TestCase
             'type' => 'admin',
             'status' => 1
         ]);
-        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', []);
+        $response = $this->actingAs($user)->postJson('/api/v3/update-camp-newsfeed', []);
         $response->assertStatus(400);
     }
 
@@ -41,7 +43,7 @@ class UpdateNewsFeedApiTest extends TestCase
             'type' => 'admin',
             'status' => 1
         ]);
-        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $emptyData);
+        $response = $this->actingAs($user)->postJson('/api/v3/update-camp-newsfeed', $emptyData);
         $response->assertStatus(400);
     }
 
@@ -63,7 +65,7 @@ class UpdateNewsFeedApiTest extends TestCase
             'type' => 'admin',
             'status' => 1
         ]);
-        $response = $this->actingAs($user)->post('/api/v3/update-camp-newsfeed', $invalidData);
+        $response = $this->actingAs($user)->postJson('/api/v3/update-camp-newsfeed', $invalidData);
         $response->assertStatus(400);
     }
 
@@ -84,7 +86,7 @@ class UpdateNewsFeedApiTest extends TestCase
         ];
         print sprintf("\n Update NewsFeed ", 200, PHP_EOL);
         
-        $response = $this->actingAs($user)->post(
+        $response = $this->actingAs($user)->postJson(
             '/api/v3/update-camp-newsfeed',
             $data
         );
