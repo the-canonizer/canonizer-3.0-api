@@ -34,7 +34,11 @@ class NotifyAdministratorListner implements ShouldQueue
     {
         $url = $event->url;
         $refererURL = $event->refererURL;
-        $emails = explode(',', env('EMAILS_FOR_NOTIFY_ADMINISTRATOR'));
+        $adminEmails = env('EMAILS_FOR_NOTIFY_ADMINISTRATOR');
+        if (!$adminEmails) {
+            return;
+        }
+        $emails = explode(',', $adminEmails);
         foreach($emails as $email){
             Mail::to($email)->send(new NotifyAdministratorMail($url, $refererURL));
         }

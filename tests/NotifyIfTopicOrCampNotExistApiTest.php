@@ -51,7 +51,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
         $header = [];
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer ' . $token;
-        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', [], $header);
+        $response = $this->actingAs($user)->postJson('/api/v3/notify-if-url-not-exist', []);
         $response->assertStatus(400);
     }
 
@@ -71,7 +71,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => "514"
         ];
-        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response = $this->actingAs($user)->postJson('/api/v3/notify-if-url-not-exist', $data);
         $response->assertStatus(200);
     }
     public function testNotifyIfStatementNotExistWithValidData()
@@ -90,7 +90,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => ""
         ];
-        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response = $this->actingAs($user)->postJson('/api/v3/notify-if-url-not-exist', $data);
         $response->assertStatus(200);
     }
     public function testNotifyIfThreadNotExistWithValidData()
@@ -109,7 +109,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "",
             "thread_id" => "514"
         ];
-        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response = $this->actingAs($user)->postJson('/api/v3/notify-if-url-not-exist', $data);
         $response->assertStatus(200);
     }
     public function testNotifyIfNicknameNotExistWithValidData()
@@ -128,7 +128,7 @@ class NotifyIfTopicOrCampNotExistApiTest extends TestCase
             "nick_id" => "1",
             "thread_id" => ""
         ];
-        $response = $this->actingAs($user)->post('/api/v3/notify-if-url-not-exist', $data, $header);
+        $response = $this->actingAs($user)->postJson('/api/v3/notify-if-url-not-exist', $data);
         $response->assertStatus(200);
     }
 }
