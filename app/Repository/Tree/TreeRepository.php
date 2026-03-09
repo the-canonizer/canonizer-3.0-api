@@ -59,7 +59,7 @@ class TreeRepository implements TreeInterface
             Log::info('Tree upserted successfully for topic ' . $conditions['topic_id']);
             return $record;
         } catch (\Throwable $th) {
-            Log::error('Tree upsert failed: ' . $th->getMessage());
+            \Log::error('Tree upsert failed: ' . $th->getMessage());
             return $th->getMessage();
         }
     }

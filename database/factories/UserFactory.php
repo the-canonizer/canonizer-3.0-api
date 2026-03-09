@@ -24,7 +24,6 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            'id'=> mt_rand(100000, 999999),
             'first_name' => $this->faker->name,
             'last_name'=>'test',
             'email' => $this->faker->unique()->safeEmail,

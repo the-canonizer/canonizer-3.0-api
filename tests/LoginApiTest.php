@@ -63,13 +63,21 @@ class LoginApiTest extends TestCase
             'status' => 1
         ]);
 
-        Http::fake([
-            '*/oauth/token*' => Http::response([
-                'access_token' => 'mock_token',
-                'token_type' => 'Bearer',
-                'expires_in' => 3600
-            ], 200),
-        ]);
+        // Ensure Passport client exists
+        \Illuminate\Support\Facades\DB::table('oauth_clients')->updateOrInsert(
+            ['id' => trans('testSample.user_ids.normal_user.user_3.client_id')],
+            [
+                'name' => 'Test Password Client',
+                'secret' => trans('testSample.user_ids.normal_user.user_3.client_secret'),
+                'provider' => 'users',
+                'redirect' => 'http://localhost',
+                'personal_access_client' => 0,
+                'password_client' => 1,
+                'revoked' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
         $parameters = [
             "client_id" =>  trans('testSample.user_ids.normal_user.user_3.client_id'),
@@ -82,7 +90,6 @@ class LoginApiTest extends TestCase
         $header['Accept'] = 'application/json';
         $header['Authorization'] = 'Bearer '.$token;
         $response = $this->actingAs($user)->post('/api/v3/user/login?from_test_case=1', $parameters,$header);
-        //  dd($response);
         $response->assertStatus(200);
     }
 }

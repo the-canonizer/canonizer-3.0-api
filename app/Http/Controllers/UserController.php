@@ -435,7 +435,10 @@ class UserController extends Controller
             // Internal dispatch to avoid deadlock in single-threaded servers like php artisan serve
             $dispatchRequest = Request::create('/oauth/token', 'POST', $payload);
             $response = app()->handle($dispatchRequest);
-            $generateToken = json_decode($response->getContent());
+            $generateToken = (object) [
+                'status_code' => $response->getStatusCode(),
+                'data' => json_decode($response->getContent())
+            ];
             
             return $this->getTokenResponse($generateToken, $user);
         } catch (Exception $e) {

@@ -264,7 +264,9 @@ class Util
      * @return void
      */
     public function dispatchJob($topic, $campNum = 1, $updateAll = 0, $delay = null, $additionalInfo = []) {
-
+        if (!$topic) {
+            return;
+        }
         try{
             $selectedAlgo = 'blind_popularity';
             $asOf = 'default';

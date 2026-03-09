@@ -30,22 +30,18 @@ class GetFeaturedTopicApiTest extends TestCase
             'submitter_nick_id' => $this->nickname->id
         ]);
         
-        /*
+        // Create a Featured Topic entry
         FeatureTopic::create([
             'topic_num' => $this->topic->topic_num,
             'camp_num' => $this->camp->camp_num,
             'active' => '1'
         ]);
-        */
     }
 
     public function testGetFeaturedTopicApi()
     {
         print sprintf("Call the get featured Topic Api");
         $response = $this->actingAs($this->user)->getJson('/api/v3/featured-topic');
-        if ($response->status() != 200) {
-            dd($response->json());
-        }
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'status_code',
@@ -55,7 +51,7 @@ class GetFeaturedTopicApiTest extends TestCase
                 'current_page',
                 'per_page',
                 'last_page',
-                'total_count'
+                'total_rows'
             ]
         ]);
     }
