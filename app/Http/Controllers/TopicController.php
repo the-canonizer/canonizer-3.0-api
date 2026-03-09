@@ -1955,6 +1955,10 @@ class TopicController extends Controller
                 return $this->resProvider->apiJsonResponse(400, trans('message.error.record_not_found'), '', '');
             }
 
+            if ($model->grace_period != 1) {
+                fwrite(STDOUT, "discardChange failure: type=" . $type . " id=" . $id . " grace_period=" . $model->grace_period . " go_live_time=" . $model->go_live_time . " now=" . time() . "\n");
+            }
+
             if ($model->grace_period == 1) {
                 if ($model instanceof Topic) {
                     $model->tags()->detach();

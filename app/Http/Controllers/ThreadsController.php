@@ -279,6 +279,7 @@ class ThreadsController extends Controller
         }
 
         if (!Topic::getLiveTopic($request->topic_num) || !Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num])) {
+            fwrite(STDOUT, "threadList 404: topic=" . $request->topic_num . " camp=" . $request->camp_num . " topicLive=" . (Topic::getLiveTopic($request->topic_num) ? 'yes' : 'no') . " campLive=" . (Camp::getLiveCamp(['topicNum' => $request->topic_num, 'campNum' => $request->camp_num]) ? 'yes' : 'no') . "\n");
             return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.record_not_found'));
         }
         

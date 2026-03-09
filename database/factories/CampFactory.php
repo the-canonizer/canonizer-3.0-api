@@ -21,7 +21,7 @@ class CampFactory extends Factory
             'note' => $this->faker->sentence,
             'key_words' => $this->faker->word,
             'submit_time' => time(),
-            'camp_num' => $this->faker->unique()->numberBetween(1, 100),
+            'camp_num' => $this->faker->numberBetween(1, 10000),
             'title' => $this->faker->word,
         ];
     }

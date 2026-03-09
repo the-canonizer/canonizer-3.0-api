@@ -42,7 +42,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
      *
      * @var array
      */
-    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name', 'camp_leader_nick_id'];
+    protected $fillable = ['topic_num','is_disabled','is_one_level', 'parent_camp_num', 'key_words', 'language', 'note', 'submit_time', 'submitter_nick_id', 'go_live_time', 'title', 'camp_name', 'camp_num','camp_about_nick_id','camp_about_url', 'objector_nick_name', 'camp_leader_nick_id', 'grace_period'];
     protected $parent_change_in_review;
 
     /**
@@ -55,7 +55,7 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     public static function boot() 
     {
         parent::boot();
-            
+
         static::saved(function($item) 
         {
             self::forgetCache($item);
@@ -83,7 +83,6 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
             {
                 $isLive=true;
                 ElasticSearch::ingestData($liveId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
-
                 $isLive=false;
                 ElasticSearch::ingestData($reviewId, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive, $isArchive, $statementNum = '', $nickNameId = '', $supportCount = '');
             }

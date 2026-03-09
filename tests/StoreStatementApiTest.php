@@ -17,6 +17,9 @@ class StoreStatementApiTest extends TestCase
         parent::setUp();
         \Illuminate\Support\Facades\Bus::fake();
         \Illuminate\Support\Facades\Event::fake();
+        \App\Facades\GetPushNotificationToSupporter::shouldReceive('pushNotificationToSupporter')->andReturnNull();
+        \App\Facades\GetPushNotificationToSupporter::shouldReceive('pushNotificationOnObject')->andReturnNull();
+        \App\Facades\PushNotification::shouldReceive('sendPushNotification')->andReturnNull();
     }
     
     /**
@@ -105,7 +108,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testCreateStatementApiWithValidData()
     {
-        print sprintf("Test with valid values for creating a statement");
+        print sprintf("\nTest with valid values for creating a statement\n");
         $user = User::factory()->create();
         $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
         $topic = \App\Models\Topic::factory()->create();
@@ -121,7 +124,9 @@ class StoreStatementApiTest extends TestCase
             "event_type" => "create",
         ];
 
+        print "Sending POST request...\n";
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        print "POST request finished with status: " . $response->status() . "\n";
         $response->assertStatus(200);
     }
 
@@ -131,7 +136,6 @@ class StoreStatementApiTest extends TestCase
      */
     public function testObjectionStatementApiWithValidDataAfterChangeIsSubmitted()
     {
-        print "\nRunning testObjectionStatementApiWithValidDataAfterChangeIsSubmitted...\n";
         $user = \App\Models\User::factory()->create();
         $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
 
@@ -149,6 +153,7 @@ class StoreStatementApiTest extends TestCase
             "objection_reason" => "reason",
         ];
 
+        print "Creating Statement...\n";
         $statement = new Statement();
         $statement->topic_num = $topic->topic_num;
         $statement->camp_num = 1;
@@ -163,6 +168,7 @@ class StoreStatementApiTest extends TestCase
 
         $validData['statement_id'] = $statement->id;
 
+        print "Inserting Support...\n";
         Support::insert([
             'nick_name_id' => $nickname->id,
             'delegate_nick_name_id' => 0,
@@ -173,8 +179,9 @@ class StoreStatementApiTest extends TestCase
             'end' => 0,
         ]);
 
+        print "Sending POST request for objection...\n";
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        // echo "\nResponse: " . $response->getContent() . "\n";
+        print "POST request for objection finished with status: " . $response->status() . "\n";
         $response->assertStatus(200); // Change 400 to 200 due to test objection
     }
 
