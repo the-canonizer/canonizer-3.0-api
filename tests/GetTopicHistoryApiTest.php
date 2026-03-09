@@ -4,8 +4,12 @@ namespace Tests;
 
 use App\Models\User;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Cache;
+
 class GetTopicHistoryApiTest extends TestCase
 {
+    use DatabaseTransactions;
     protected $user;
     protected $nickname;
     protected $topic;
@@ -13,9 +17,20 @@ class GetTopicHistoryApiTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+        Cache::flush();
         $this->user = User::factory()->create();
         $this->nickname = \App\Models\Nickname::factory()->create(['user_id' => $this->user->id]);
         $this->topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $this->nickname->id]);
+        
+        // Create Agreement camp (camp_num 1) for this topic
+        \App\Models\Camp::factory()->create([
+            'topic_num' => $this->topic->topic_num,
+            'camp_num' => 1,
+            'camp_name' => 'Agreement',
+            'submitter_nick_id' => $this->nickname->id,
+            'go_live_time' => time(),
+            'submit_time' => time(),
+        ]);
     }
 
      /**

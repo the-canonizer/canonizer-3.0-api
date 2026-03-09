@@ -4,8 +4,58 @@ namespace Tests;
 
 use App\Models\User;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Models\MetaTag;
+use App\Models\Topic;
+use App\Models\Camp;
+
 class GetMetaTagsTest extends TestCase
 {
+    use DatabaseTransactions;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        
+        // Seed MetaTag for static pages
+        MetaTag::create([
+            'page_name' => 'Home',
+            'title' => 'Home Page',
+            'description' => 'Home Page Description',
+            'is_static' => 1
+        ]);
+
+        // Seed MetaTag for dynamic pages
+        MetaTag::create([
+            'page_name' => 'TopicDetailsPage',
+            'title' => 'Topic: [topic_name]',
+            'description' => '[topic_description]',
+            'is_static' => 0
+        ]);
+
+        MetaTag::create([
+            'page_name' => 'VideosPage',
+            'title' => 'Video: [video_name]',
+            'description' => '[video_name] Description',
+            'is_static' => 0
+        ]);
+
+        MetaTag::create([
+            'page_name' => 'SearchResultsPage',
+            'title' => 'Search Results for [keywords]',
+            'description' => 'Search Results for [keywords]',
+            'is_static' => 0
+        ]);
+
+        // Ensure topic 904 exists for dynamic tests
+        if (!Topic::where('topic_num', 904)->exists()) {
+            Topic::factory()->create(['topic_num' => 904, 'topic_name' => 'Test Topic']);
+        }
+        if (!Camp::where('topic_num', 904)->where('camp_num', 1)->exists()) {
+            Camp::factory()->create(['topic_num' => 904, 'camp_num' => 1, 'camp_name' => 'Agreement']);
+        }
+    }
+
     public function testGetMetatagsWithoutPayload()
     {
         $payload = [];
