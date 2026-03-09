@@ -16,6 +16,7 @@ class StoreStatementApiTest extends TestCase
     {
         parent::setUp();
         \Illuminate\Support\Facades\Bus::fake();
+        \Illuminate\Support\Facades\Event::fake();
     }
     
     /**
@@ -24,11 +25,8 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithEmptyFormData()
     {
-        print sprintf("Test with empty form data");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', []);
+        print "\nRunning testStoreStatementApiWithEmptyFormData...\n";
+        $response = $this->actingAs($user ?? User::factory()->create())->post('/api/v3/store-camp-statement', []);
         $response->assertStatus(400);
     }
 
@@ -38,6 +36,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithEmptyValues()
     {
+        print "\nRunning testStoreStatementApiWithEmptyValues...\n";
         $emptyData = [
             "topic_num" => "",
             "camp_num" => "",
@@ -46,10 +45,7 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "",
             "statement" => "",
         ];
-        print sprintf("Test with empty values");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
+        $user = User::factory()->create();
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $emptyData);
         $response->assertStatus(400);
     }
@@ -60,6 +56,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithInvalidData() 
     {
+        print "\nRunning testStoreStatementApiWithInvalidData...\n";
         $invalidData = [
             "topic_num" => "47",
             "camp_num" => "1",
@@ -68,10 +65,7 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "1",
             "objection" => "1",
         ];
-        print sprintf("Test with invalid values");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
+        $user = User::factory()->create();
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $invalidData);
         $response->assertStatus(400);
     }
@@ -137,6 +131,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testObjectionStatementApiWithValidDataAfterChangeIsSubmitted()
     {
+        print "\nRunning testObjectionStatementApiWithValidDataAfterChangeIsSubmitted...\n";
         $user = \App\Models\User::factory()->create();
         $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
 
@@ -218,7 +213,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithoutAuth()
     {
-        print sprintf("Test with empty form data");
+        print "\nRunning testStoreStatementApiWithoutAuth...\n";
         $response = $this->post('/api/v3/store-camp-statement', []);
         $response->assertStatus(401);
     }

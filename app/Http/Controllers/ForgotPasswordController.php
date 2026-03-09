@@ -185,15 +185,12 @@ class ForgotPasswordController extends Controller
 
     public function verifyOtp(Request $request, Validate $validate)
     {
-        \Log::info("verifyOtp called with otp: " . $request->otp . " and username: " . $request->username);
         $validationErrors = $validate->validate($request, $this->rules->getForgotPasswordVerifyOtpValidationRules(), $this->validationMessages->getForgotPasswordVerifyOtpValidationMessages());
         if ($validationErrors) {
-            \Log::info("Validation Errors: " . json_encode($validationErrors));
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
             $user = User::where('email', '=', $request->username)->first();
-            \Log::info("User found: " . ($user ? $user->id : 'null'));
             if (strlen($request->otp) < 6) {
                 $status = 403;
                 $message = trans('message.error.otp_lenth_match');
@@ -203,23 +200,19 @@ class ForgotPasswordController extends Controller
                 $message = trans('message.error.otp_lenth_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
-            \Log::info("OTP Length OK");
             if (empty($user) || $request->otp != $user->otp) {
-                \Log::info("OTP Not Match or User Empty. Request OTP: " . $request->otp . ", User OTP: " . ($user ? $user->otp : 'N/A'));
                 $status = 403;
                 $message = trans('message.error.otp_not_match');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             } else {
-                \Log::info("OTP Match. Updating user...");
-                $userRes = User::where('email', '=', $request->username)->update(['otp' => '']);
-                \Log::info("User updated. Result: " . $userRes);
+                $user->otp = '';
+                $user->save();
 
                 $status = 200;
                 $message = trans('message.success.otp_verified');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
         } catch (Exception $e) {
-            \Log::error("Exception in verifyOtp: " . $e->getMessage());
             $status = 400;
             $message = trans('message.error.exception');
             return $this->resProvider->apiJsonResponse($status, $message, null, null);

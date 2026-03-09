@@ -90,9 +90,9 @@ class DiscardChangeTest extends TestCase
     public function testDiscardChangeForStatementWithValidData()
     {
         $validData = [
-            "topic_num" => "47",
+            "topic_num" => "1",
             "camp_num" => "1",
-            "nick_name" => "347",
+            "nick_name" => "1",
             "note" => "note",
             "submitter" => "1",
             "statement" => "testDiscardChange",
@@ -111,7 +111,7 @@ class DiscardChangeTest extends TestCase
         $validData = [
             "per_page" => "10",
             "page" => "1",
-            "topic_num" => "47",
+            "topic_num" => "1",
             "camp_num" => "1"
         ];
         $response = $this->actingAs($user)->post('/api/v3/get-statement-history', $validData, $header);
@@ -132,7 +132,7 @@ class DiscardChangeTest extends TestCase
         $validData = [
             "topic_num" => "1",
             "topic_id" => "1",
-            "nick_name" => "347",
+            "nick_name" => "1",
             "topic_name" => rand(),
             "submitter" => "1",
             "namespace_id" => "1",
@@ -171,11 +171,11 @@ class DiscardChangeTest extends TestCase
     {
 
         $validData = [
-            "topic_num" => "47",
-            "camp_num" => "2",
-            "camp_id" => "2",
+            "topic_num" => "1",
+            "camp_num" => "1",
+            "camp_id" => "1",
             "camp_name" => rand(),
-            "nick_name" => "347",
+            "nick_name" => "1",
             "camp_about_nick_id" => "123",
             "note" => "note",
             "submitter" => "1",
@@ -193,8 +193,8 @@ class DiscardChangeTest extends TestCase
         $validData = [
             "per_page" => "10",
             "page" => "1",
-            "topic_num" => "47",
-            "camp_num" => "2",
+            "topic_num" => "1",
+            "camp_num" => "1",
             "type" => "all",
         ];
         $response = $this->actingAs($user)->post('/api/v3/get-camp-history', $validData ,$header);
