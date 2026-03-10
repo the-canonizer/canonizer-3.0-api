@@ -10,7 +10,12 @@ class TreeGetApiTest extends TestCase
     {
         parent::setUp();
         $this->topic = \App\Models\Topic::factory()->create();
-        \App\Models\Camp::factory()->create(['topic_num' => $this->topic->topic_num, 'camp_num' => 1]);
+        \App\Models\Camp::factory()->create([
+            'topic_num' => $this->topic->topic_num,
+            'camp_num' => 1,
+            'camp_name' => 'Agreement',
+            'parent_camp_num' => 0
+        ]);
     }
     /**
      * Check Api with empty form data

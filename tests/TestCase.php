@@ -17,6 +17,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Cache::flush();
         $this->withHeaders([
             'Accept' => 'application/json',
         ]);

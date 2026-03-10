@@ -16,6 +16,10 @@ class StoreStatementApiTest extends TestCase
     {
         parent::setUp();
         \Illuminate\Support\Facades\Bus::fake();
+        \Illuminate\Support\Facades\Event::fake();
+        \App\Facades\GetPushNotificationToSupporter::shouldReceive('pushNotificationToSupporter')->andReturnNull();
+        \App\Facades\GetPushNotificationToSupporter::shouldReceive('pushNotificationOnObject')->andReturnNull();
+        \App\Facades\PushNotification::shouldReceive('sendPushNotification')->andReturnNull();
     }
     
     /**
@@ -24,11 +28,8 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithEmptyFormData()
     {
-        print sprintf("Test with empty form data");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
-        $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', []);
+        print "\nRunning testStoreStatementApiWithEmptyFormData...\n";
+        $response = $this->actingAs($user ?? User::factory()->create())->post('/api/v3/store-camp-statement', []);
         $response->assertStatus(400);
     }
 
@@ -38,6 +39,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithEmptyValues()
     {
+        print "\nRunning testStoreStatementApiWithEmptyValues...\n";
         $emptyData = [
             "topic_num" => "",
             "camp_num" => "",
@@ -46,10 +48,7 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "",
             "statement" => "",
         ];
-        print sprintf("Test with empty values");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
+        $user = User::factory()->create();
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $emptyData);
         $response->assertStatus(400);
     }
@@ -60,6 +59,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithInvalidData() 
     {
+        print "\nRunning testStoreStatementApiWithInvalidData...\n";
         $invalidData = [
             "topic_num" => "47",
             "camp_num" => "1",
@@ -68,10 +68,7 @@ class StoreStatementApiTest extends TestCase
             "submitter" => "1",
             "objection" => "1",
         ];
-        print sprintf("Test with invalid values");
-           $user = User::factory()->make([
-            'id' => trans('testSample.user_ids.normal_user.user_1')
-        ]);
+        $user = User::factory()->create();
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $invalidData);
         $response->assertStatus(400);
     }
@@ -111,7 +108,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testCreateStatementApiWithValidData()
     {
-        print sprintf("Test with valid values for creating a statement");
+        print sprintf("\nTest with valid values for creating a statement\n");
         $user = User::factory()->create();
         $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
         $topic = \App\Models\Topic::factory()->create();
@@ -127,7 +124,9 @@ class StoreStatementApiTest extends TestCase
             "event_type" => "create",
         ];
 
+        print "Sending POST request...\n";
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
+        print "POST request finished with status: " . $response->status() . "\n";
         $response->assertStatus(200);
     }
 
@@ -154,6 +153,7 @@ class StoreStatementApiTest extends TestCase
             "objection_reason" => "reason",
         ];
 
+        print "Creating Statement...\n";
         $statement = new Statement();
         $statement->topic_num = $topic->topic_num;
         $statement->camp_num = 1;
@@ -168,6 +168,7 @@ class StoreStatementApiTest extends TestCase
 
         $validData['statement_id'] = $statement->id;
 
+        print "Inserting Support...\n";
         Support::insert([
             'nick_name_id' => $nickname->id,
             'delegate_nick_name_id' => 0,
@@ -178,8 +179,9 @@ class StoreStatementApiTest extends TestCase
             'end' => 0,
         ]);
 
+        print "Sending POST request for objection...\n";
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData);
-        // echo "\nResponse: " . $response->getContent() . "\n";
+        print "POST request for objection finished with status: " . $response->status() . "\n";
         $response->assertStatus(200); // Change 400 to 200 due to test objection
     }
 
@@ -218,7 +220,7 @@ class StoreStatementApiTest extends TestCase
      */
     public function testStoreStatementApiWithoutAuth()
     {
-        print sprintf("Test with empty form data");
+        print "\nRunning testStoreStatementApiWithoutAuth...\n";
         $response = $this->post('/api/v3/store-camp-statement', []);
         $response->assertStatus(401);
     }

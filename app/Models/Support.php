@@ -585,6 +585,9 @@ class Support extends Model
                 ->toArray();
             }else{
                 $liveCamp = Camp::getLiveCamp($filter);
+                if (!$liveCamp) {
+                    return false;
+                }
                 $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
                 $key = array_search($liveCamp->camp_num, $childCamps, true);
                 if ($key !== false) {
@@ -613,6 +616,14 @@ class Support extends Model
                 ->toArray();
         } else {
             $liveCamp = Camp::getLiveCamp($filter);
+            if (!$liveCamp) {
+                $returnData = [
+                    'supporters' => collect(),
+                    'supporter_count' => 0,
+                    'ifIamExplicitSupporter' => false,
+                ];
+                return strlen($returnKey) > 0 ? $returnData[$returnKey] : $returnData;
+            }
             $childCamps = array_unique(Camp::getAllChildCamps($liveCamp));
             $key = array_search($liveCamp->camp_num, $childCamps, true);
             if ($key !== false) {

@@ -51,10 +51,9 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
     public function testForgotPasswordVerifyOtpWithValidData()
     {
         print sprintf(" \n Correct Forgot Password Otp  submitted %d %s", 200, PHP_EOL);
-        $email = 'test_' . time() . '@example.com';
         $user = User::factory()->create([
             "otp" => trans('testSample.user_ids.admin_user.otp'),
-            "email" => $email,
+            "email" => trans('testSample.user_ids.admin_user.email'),
         ]);
 
         $token = $user->createToken('TestToken')->accessToken;
@@ -65,7 +64,7 @@ class ForgotPasswordVerifyOtpApiTest extends TestCase
         
         $parameters = [
             "otp" => trans('testSample.user_ids.admin_user.otp'),
-            "username" => $email
+            "username" => trans('testSample.user_ids.admin_user.email')
         ];
 
         $response = $this->actingAs($user)
