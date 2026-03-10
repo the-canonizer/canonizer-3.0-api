@@ -97,6 +97,12 @@ class ThreadsApiTest extends TestCase
         print sprintf(" \n  Get Thread List Valid Data %d %s", 200,PHP_EOL);
         $user = \App\Models\User::factory()->create();
         $topic = \App\Models\Topic::factory()->create(['go_live_time' => time() - 3600]);
+        \App\Models\Camp::factory()->create([
+            'topic_num' => $topic->topic_num,
+            'camp_num' => 1,
+            'camp_name' => 'Agreement',
+            'go_live_time' => time() - 3600
+        ]);
 
         $response = $this->actingAs($user)
         ->getJson('/api/v3/thread/list?camp_num=1&topic_num=' . $topic->topic_num . '&type=all');
