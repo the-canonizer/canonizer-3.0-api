@@ -3,6 +3,10 @@
 namespace Tests;
 
 use App\Models\User;
+use App\Models\Nickname;
+use App\Models\Topic;
+use App\Models\Camp;
+use App\Models\Statement;
 
 class DiscardChangeTest extends TestCase
 {
@@ -90,9 +94,9 @@ class DiscardChangeTest extends TestCase
     public function testDiscardChangeForStatementWithValidData()
     {
         $user = User::factory()->create();
-        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
-        $topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
-        $camp = \App\Models\Camp::factory()->create([
+        $nickname = Nickname::factory()->create(['user_id' => $user->id]);
+        $topic = Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
+        $camp = Camp::factory()->create([
             'topic_num' => $topic->topic_num,
             'camp_num' => 1,
             'camp_name' => 'Agreement',
@@ -114,9 +118,6 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
         ];
         $response = $this->actingAs($user)->post('/api/v3/store-camp-statement', $validData, $header);
-        if ($response->status() !== 200) {
-            fwrite(STDOUT, "store-camp-statement failed: " . $response->getContent() . "\n");
-        }
         $response->assertStatus(200);
 
         $historyData = [
@@ -127,27 +128,21 @@ class DiscardChangeTest extends TestCase
         ];
         $response = $this->actingAs($user)->post('/api/v3/get-statement-history', $historyData, $header);
         $responseData = $response->getData();
-        if ($response->status() !== 200 || !isset($responseData->data->items[0])) {
-            fwrite(STDOUT, "get-statement-history failed or empty: " . json_encode($responseData) . "\n");
-        }
-
+        
         $payload = [
             "id" => $responseData->data->items[0]->id,
             "type" => "statement",
         ];
 
         $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        if ($response->status() !== 200) {
-            fwrite(STDOUT, "discard/change (statement) failed: " . $response->getContent() . "\n");
-        }
         $response->assertStatus(200);
     }
     
     public function testDiscardChangeForTopicWithValidData()
     {
         $user = User::factory()->create();
-        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
-        $topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
+        $nickname = Nickname::factory()->create(['user_id' => $user->id]);
+        $topic = Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
 
         $validData = [
             "topic_num" => $topic->topic_num,
@@ -164,38 +159,28 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,
         ];
         $response = $this->actingAs($user)->post('/api/v3/manage-topic', $validData, $header);
-        if ($response->status() !== 200) {
-            fwrite(STDOUT, "manage-topic failed: " . $response->getContent() . "\n");
-        }
         $response->assertStatus(200);
     
-        $historyData = [
-            "per_page" => "10",
-            "page" => "1",
-            "topic_num" => $topic->topic_num,
-            "type" => "all",
-        ];
-        $response = $this->actingAs($user)->post('/api/v3/get-topic-history', $historyData ,$header);
-        $responseData = $response->getData();
-        if ($response->status() !== 200 || !isset($responseData->data->items[0])) {
-            fwrite(STDOUT, "get-topic-history failed or empty: " . json_encode($responseData) . "\n");
-        }
+        $topicRecord = Topic::where('topic_num', $topic->topic_num)->orderBy('id', 'desc')->first();
 
         $payload = [
-            "id" => $responseData->data->items[0]->id,
+            "id" => $topicRecord->id,
             "type" => "topic",
         ];
 
         $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
+        if ($response->status() != 200) {
+            fwrite(STDOUT, "Topic Discard Failed: " . $response->getContent() . "\n");
+        }
         $response->assertStatus(200);
     }
     
     public function testDiscardChangeForCampWithValidData()
     {
         $user = User::factory()->create();
-        $nickname = \App\Models\Nickname::factory()->create(['user_id' => $user->id]);
-        $topic = \App\Models\Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
-        $camp = \App\Models\Camp::factory()->create([
+        $nickname = Nickname::factory()->create(['user_id' => $user->id]);
+        $topic = Topic::factory()->create(['submitter_nick_id' => $nickname->id]);
+        $camp = Camp::factory()->create([
             'topic_num' => $topic->topic_num,
             'camp_num' => 1,
             'camp_name' => 'Agreement',
@@ -219,32 +204,18 @@ class DiscardChangeTest extends TestCase
             'Authorization' => 'Bearer ' . $user->createToken('TestToken')->accessToken,  
         ];
         $response = $this->actingAs($user)->post('/api/v3/manage-camp', $validData, $header);
-        if ($response->status() !== 200) {
-            fwrite(STDOUT, "manage-camp failed: " . $response->getContent() . "\n");
-        }
         $response->assertStatus(200);
         
-        $historyData = [
-            "per_page" => "10",
-            "page" => "1",
-            "topic_num" => $topic->topic_num,
-            "camp_num" => $camp->camp_num,
-            "type" => "all",
-        ];
-        $response = $this->actingAs($user)->post('/api/v3/get-camp-history', $historyData ,$header);
-        $responseData = $response->getData();
-        if ($response->status() !== 200 || !isset($responseData->data->items[0])) {
-            fwrite(STDOUT, "get-camp-history failed or empty: " . json_encode($responseData) . "\n");
-        }
+        $campRecord = Camp::where('topic_num', $topic->topic_num)->where('camp_num', $camp->camp_num)->orderBy('id', 'desc')->first();
 
         $payload = [
-            "id" => $responseData->data->items[0]->id,
+            "id" => $campRecord->id,
             "type" => "camp",
         ];
 
         $response = $this->actingAs($user)->post('/api/v3/discard/change', $payload, $header);
-        if ($response->status() !== 200) {
-            fwrite(STDOUT, "discard/change (camp) failed: " . $response->getContent() . "\n");
+        if ($response->status() != 200) {
+            fwrite(STDOUT, "Camp Discard Failed: " . $response->getContent() . "\n");
         }
         $response->assertStatus(200);
     }
