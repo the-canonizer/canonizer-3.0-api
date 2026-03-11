@@ -51,8 +51,13 @@ class TopicController extends Controller
             $topicsFoundInMongo = Tree::count();
 
             if ($asofdateTime >= $today && $topicsFoundInMongo && !$commandStatus && in_array($algorithm, $algorithms)) {
-                $topics = TopicServiceFacade::getTopicsWithScore($namespaceId, $today, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $search, $asof, $archive, $sort, $page, $topic_tags);
-                extract($topics);
+                $topicsResponse = TopicServiceFacade::getTopicsWithScore($namespaceId, $today, $algorithm, $skip, $pageSize, $filter, $nickNameIds, $search, $asof, $archive, $sort, $page, $topic_tags);
+                if (isset($topicsResponse['topics'])) {
+                    $topics = $topicsResponse['topics'];
+                    $totalCount = $topicsResponse['totalCount'] ?? 0;
+                } else {
+                    $topics = $topicsResponse;
+                }
             } else {
                 $topics = CampServiceFacade::getAllAgreementTopicCamps($pageSize, $skip, $asof, $asofdateTime, $namespaceId, $nickNameIds, $search, false, $archive, $sort, $topic_tags);
                 if ($page === 'browse') {

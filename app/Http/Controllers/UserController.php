@@ -132,7 +132,7 @@ class UserController extends Controller
             $generateToken = json_decode($response->getContent());
             
             if ($response->getStatusCode() == 200) {
-                return (new SuccessResource($generateToken))->response()->setStatusCode(200);
+                return (new SuccessResource((object)['data' => $generateToken]))->response()->setStatusCode(200);
             }
             // Ensure status_code is set for ErrorResource
             if (!isset($generateToken->status_code)) {
