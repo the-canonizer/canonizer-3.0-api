@@ -1171,22 +1171,22 @@ class ProfileController extends Controller
 
     public function getUserTags(Request $request)
     {
-        $user = $request->user();
-         // Load the tags relationship
-        $user->load('tags');
-        // $tags = Tag::select('tags.*')
-        //         ->join('user_tags', 'tags.id', '=', 'user_tags.tag_id')
-        //         ->where('user_tags.user_id', $user->id)
-        //         ->get();
+        try {
+            $user = $request->user();
+            // Load the tags relationship
+            $user->load('tags');
 
-        $data = [
-            'language' => $user->language,
-            'default_algo' => $user->default_algo,
-            'tags' => $user->tags
+            $data = [
+                'language' => $user->language,
+                'default_algo' => $user->default_algo,
+                'tags' => $user->tags
+            ];
 
-        ];
-
-        return $data;
+            return $data;
+        } catch (\Exception $e) {
+            \Log::error('getUserTags error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            throw $e;
+        }
     }
 
 

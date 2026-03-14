@@ -16,10 +16,11 @@ class ElasticSearch
         $host     = env('ELASTICSEARCH_HOSTS', 'localhost:9200');
         $username = env('ELASTICSEARCH_BASIC_AUTH_USERNAME', null);
         $password = env('ELASTICSEARCH_BASIC_AUTH_PASSWORD', null);
-        return $this->elasticsearchClient = ClientBuilder::create()
-            ->setBasicAuthentication($username, $password)
-            ->setHosts(['host' => $host])
-            ->build();
+        $clientBuilder = ClientBuilder::create()->setHosts([$host]);
+        if (!empty($username)) {
+            $clientBuilder->setBasicAuthentication($username, $password);
+        }
+        return $this->elasticsearchClient = $clientBuilder->build();
     }
 
     public static function ingestData($id, 
@@ -43,36 +44,38 @@ class ElasticSearch
         }
         $isLiveValue = filter_var($isLive, FILTER_VALIDATE_BOOLEAN); 
         $isArchiveValue = filter_var($isArchive, FILTER_VALIDATE_BOOLEAN); 
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $bulkData = []; // An array to accumulate data for bulk indexing
-             $bulkData[] = [
-                 'index' => [
-                     '_index' => self::$indexName,
-                     '_id' => $id,
-                 ]
-             ];
-            $bulkData[] = [
-                'id' => $id,
-                'type_value' => $typeValue,
-                'type' => $type,
-                'camp_num' => $campNum,
-                'topic_num' => $topicNum,
-                'statement_num' => $statementNum,
-                'go_live_time' => $goLiveTime,
-                'nick_name_id' => $nickNameId,
-                'support_count' => $supportCount,
-                'namespace' => $namespace,
-                'link' => $link,
-                'breadcrumb_data' => $breadcrumb,
-                'is_live'=> $isLiveValue,
-                'is_archive' => $isArchiveValue
-            ];
-            \Log::info("nicknamesss");
-        // Use the Bulk API to send the data in a batch
-        $params = ['body' => $bulkData];
-        \Log::info($bulkData);
-        $response = $elasticsearch->bulk($params);
-        \Log::info($response);
+        
+        try {
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+            $bulkData = []; // An array to accumulate data for bulk indexing
+                 $bulkData[] = [
+                     'index' => [
+                         '_index' => self::$indexName,
+                         '_id' => $id,
+                     ]
+                 ];
+                $bulkData[] = [
+                    'id' => $id,
+                    'type_value' => $typeValue,
+                    'type' => $type,
+                    'camp_num' => $campNum,
+                    'topic_num' => $topicNum,
+                    'statement_num' => $statementNum,
+                    'go_live_time' => $goLiveTime,
+                    'nick_name_id' => $nickNameId,
+                    'support_count' => $supportCount,
+                    'namespace' => $namespace,
+                    'link' => $link,
+                    'breadcrumb_data' => $breadcrumb,
+                    'is_live'=> $isLiveValue,
+                    'is_archive' => $isArchiveValue
+                ];
+            // Use the Bulk API to send the data in a batch
+            $params = ['body' => $bulkData];
+            $response = $elasticsearch->bulk($params);
+        } catch (\Exception $e) {
+            \Log::error("ElasticSearch ingestData error: " . $e->getMessage());
+        }
         return;
 
     }
@@ -82,25 +85,29 @@ class ElasticSearch
         if (app()->environment('testing')) {
             return;
         }
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $params = [
-            'index' => self::$indexName,
-            'body'  => [
-                'query' => [
-                    'terms' => [
-                        '_id' => [$id]
+        try {
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+            $params = [
+                'index' => self::$indexName,
+                'body'  => [
+                    'query' => [
+                        'terms' => [
+                            '_id' => [$id]
+                        ]
                     ]
                 ]
-            ]
-        ];      
-        $response = $elasticsearch->search($params);
-        if (isset($response['hits']['hits']) && !empty($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
-            $delParam = [
-                'index' => self::$indexName,
-                'id'    => $id
-            ];
-            $response = $elasticsearch->delete($delParam);
-            // Process the response if needed          
+            ];      
+            $response = $elasticsearch->search($params);
+            if (isset($response['hits']['hits']) && !empty($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
+                $delParam = [
+                    'index' => self::$indexName,
+                    'id'    => $id
+                ];
+                $response = $elasticsearch->delete($delParam);
+                // Process the response if needed          
+            }
+        } catch (\Exception $e) {
+            \Log::error("ElasticSearch deleteData error: " . $e->getMessage());
         }
         return;
     }

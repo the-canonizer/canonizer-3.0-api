@@ -138,6 +138,8 @@ Route::group(['prefix' => 'v3'], function () {
         Route::post('/update-email', [ProfileController::class, 'verifyAndUpdateEmail']);
         Route::post('/add-email', [ProfileController::class, 'addEmail']);
         Route::get('/users-email', [ProfileController::class, 'getAllEmail']);
+        Route::get('/get-user-tags', [ProfileController::class, 'getUserTags']);
+        Route::post('/save-user-tags', [ProfileController::class, 'saveUserTags']);
 
         Route::post('add-nick-name', [NicknameController::class, 'addNickName']);
         Route::post('set-default-nick-name', [NicknameController::class, 'setDefaultNickName']);
