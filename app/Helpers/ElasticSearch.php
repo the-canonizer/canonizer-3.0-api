@@ -30,7 +30,7 @@ class ElasticSearch
      */
     public static function ensureIndexExists($elasticsearch)
     {
-        if (self::$indexChecked) {
+        if (self::$indexChecked || $elasticsearch === null) {
             return;
         }
 
