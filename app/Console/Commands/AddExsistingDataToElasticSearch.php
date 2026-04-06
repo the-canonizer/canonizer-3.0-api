@@ -34,10 +34,12 @@ class AddExsistingDataToElasticSearch extends Command
             $indexName = 'canonizer_elastic_search';
             $elasticsearch = (new Elasticsearch())->elasticsearchClient;
 
-            // Delete index if it exists
-            if ($elasticsearch->indices()->exists(['index' => $indexName])) {
+            // Delete index if it exists (handle 404 gracefully for fresh setups)
+            try {
                 $elasticsearch->indices()->delete(['index' => $indexName]);
                 Log::info("Index '{$indexName}' deleted successfully.");
+            } catch (\Exception $e) {
+                Log::info("Index '{$indexName}' does not exist, skipping delete.");
             }
 
             // Fetch data from MySQL
