@@ -141,7 +141,7 @@ class Search extends Model
             }
 
             return $data;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("ElasticSearch getSearchData error: " . $e->getMessage());
             return [
                 'data' => [],
