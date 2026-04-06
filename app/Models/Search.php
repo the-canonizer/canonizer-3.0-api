@@ -37,110 +37,119 @@ class Search extends Model
     
     public static function getSearchData($search, $type, $size, $from, $isLive, $asof = 'default', $asofdate = '')
     {
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $size = intval($size) ? $size: 20 ;
-        $from = $size * ((intval($from) ? : 1) - 1);
-        $searchFields = ['type_value'];
-        $indexName = 'canonizer_elastic_search';
-        $rangeValue = '';
-        if($asof === 'bydate'){
-            $rangeValue = intval($asofdate);
-        }
-        $response = $elasticsearch->search([
-            'index' => $indexName,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            [
-                                'bool' => [
-                                    'should' => [
-                                        [
-                                            'multi_match' => [
-                                                'query' => $search, // Use the custom query value here
-                                                'fields' => $searchFields,
-                                            ],
-                                        ],
-                                        [
-                                            'multi_match' => [
-                                                'query' => $search, // Use the custom query value here
-                                                'type' => 'phrase_prefix',
-                                                'fields' => $searchFields,
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'filter' => array_merge(
-                            [
-                                [
-                                    'term' => [
-                                        'is_live' => $isLive, // Use the custom type value here
-                                    ],
-                                ],
-                                [
-                                    'term' => [
-                                        'is_archive' => false, // Use the custom type value here
-                                    ],
-                                ],
-                                [
-                                    'terms' => [
-                                        'type' => $type, // Use the custom type value here
-                                    ],
-                                ],
-                            ],
-                            // Add the range filter conditionally
-                            $rangeValue ? [
-                                [
-                                    'range' => [
-                                        'go_live_time' => [
-                                            'lte' => $rangeValue, // Ensure it's an integer
-                                        ],
-                                    ],
-                                ]
-                            ] : []
-                        ),
-                    ],
-                ],
-                'size' => $size, // Use the custom size value here
-                'from' => $from, // Use the custom from value here
-                'aggs' => [
-                    'type_counts' => [
-                        'terms' => [
-                            'field' => 'type' // No size parameter specified
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-     
-        if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
-            $parsedResponse = $response['hits']['hits'];
-            $totalResponse = $response['hits']['total']['value'];
-            $typeCounts = [];
-            if (isset($response['aggregations']['type_counts']['buckets'])) {
-                foreach ($response['aggregations']['type_counts']['buckets'] as $bucket) {
-                    $typeCounts[$bucket['key']] = $bucket['doc_count'];
-                }
+        try {
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+            ElasticSearch::ensureIndexExists($elasticsearch);
+            $size = intval($size) ? $size: 20 ;
+            $from = $size * ((intval($from) ? : 1) - 1);
+            $searchFields = ['type_value'];
+            $indexName = 'canonizer_elastic_search';
+            $rangeValue = '';
+            if($asof === 'bydate'){
+                $rangeValue = intval($asofdate);
             }
-            $data = [
-                'data' => collect($parsedResponse)->pluck('_source'),
-                'type' => $type,
-                'count' => $totalResponse,
-                'type_counts' => $typeCounts, // Include counts per type
-            ];
-        } else {
-            // Handle the case where the Elasticsearch response doesn't contain the expected data.
-            $data = [
+            $response = $elasticsearch->search([
+                'index' => $indexName,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'multi_match' => [
+                                                    'query' => $search,
+                                                    'fields' => $searchFields,
+                                                ],
+                                            ],
+                                            [
+                                                'multi_match' => [
+                                                    'query' => $search,
+                                                    'type' => 'phrase_prefix',
+                                                    'fields' => $searchFields,
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            'filter' => array_merge(
+                                [
+                                    [
+                                        'term' => [
+                                            'is_live' => $isLive,
+                                        ],
+                                    ],
+                                    [
+                                        'term' => [
+                                            'is_archive' => false,
+                                        ],
+                                    ],
+                                    [
+                                        'terms' => [
+                                            'type' => $type,
+                                        ],
+                                    ],
+                                ],
+                                $rangeValue ? [
+                                    [
+                                        'range' => [
+                                            'go_live_time' => [
+                                                'lte' => $rangeValue,
+                                            ],
+                                        ],
+                                    ]
+                                ] : []
+                            ),
+                        ],
+                    ],
+                    'size' => $size,
+                    'from' => $from,
+                    'aggs' => [
+                        'type_counts' => [
+                            'terms' => [
+                                'field' => 'type'
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            if (isset($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
+                $parsedResponse = $response['hits']['hits'];
+                $totalResponse = $response['hits']['total']['value'];
+                $typeCounts = [];
+                if (isset($response['aggregations']['type_counts']['buckets'])) {
+                    foreach ($response['aggregations']['type_counts']['buckets'] as $bucket) {
+                        $typeCounts[$bucket['key']] = $bucket['doc_count'];
+                    }
+                }
+                $data = [
+                    'data' => collect($parsedResponse)->pluck('_source'),
+                    'type' => $type,
+                    'count' => $totalResponse,
+                    'type_counts' => $typeCounts,
+                ];
+            } else {
+                $data = [
+                    'data' => [],
+                    'type' => '',
+                    'count' => 0,
+                    'type_counts' => []
+                ];
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            \Log::error("ElasticSearch getSearchData error: " . $e->getMessage());
+            return [
                 'data' => [],
                 'type' => '',
                 'count' => 0,
-                'type_counts' => 0
-            ]; 
+                'type_counts' => []
+            ];
         }
-
-        return $data;
 
     }
 
