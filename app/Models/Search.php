@@ -109,7 +109,7 @@ class Search extends Model
                     'aggs' => [
                         'type_counts' => [
                             'terms' => [
-                                'field' => 'type'
+                                'field' => 'type.keyword'
                             ],
                         ],
                     ],
