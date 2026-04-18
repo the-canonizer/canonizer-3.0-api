@@ -39,7 +39,9 @@ class Search extends Model
     {
         try {
             $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-            ElasticSearch::ensureIndexExists($elasticsearch);
+            if ($elasticsearch) {
+                ElasticSearch::ensureIndexExists($elasticsearch);
+            }
             $size = intval($size) ? $size: 20 ;
             $from = $size * ((intval($from) ? : 1) - 1);
             $searchFields = ['type_value'];

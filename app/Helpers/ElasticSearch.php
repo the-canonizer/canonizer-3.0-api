@@ -35,7 +35,8 @@ class ElasticSearch
         }
 
         try {
-            $exists = $elasticsearch->indices()->exists(['index' => self::$indexName])->asBool();
+            $response = $elasticsearch->indices()->exists(['index' => self::$indexName]);
+            $exists = is_bool($response) ? $response : $response->asBool();
             if (!$exists) {
                 \Log::info("ElasticSearch index '" . self::$indexName . "' not found. Creating...");
                 $mapping = [
@@ -98,7 +99,7 @@ class ElasticSearch
                 $elasticsearch->indices()->create($mapping);
                 \Log::info("ElasticSearch index '" . self::$indexName . "' created successfully.");
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("ElasticSearch ensureIndexExists error: " . $e->getMessage());
         }
 
@@ -156,7 +157,7 @@ class ElasticSearch
             // Use the Bulk API to send the data in a batch
             $params = ['body' => $bulkData];
             $response = $elasticsearch->bulk($params);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("ElasticSearch ingestData error: " . $e->getMessage());
         }
         return;
@@ -189,7 +190,7 @@ class ElasticSearch
                 ];
                 $response = $elasticsearch->delete($delParam);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("ElasticSearch deleteData error: " . $e->getMessage());
         }
         return;
