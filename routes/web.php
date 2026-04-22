@@ -34,7 +34,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //Search Controller
     $router->get('/search','SearchController@getSearchResults');
     $router->post('/search-filter','SearchController@advanceSearchFilter');
-    
+
     //MetaTag Controller
     $router->post('/meta-tags', 'MetaTagController@getMetaTags');
 
