@@ -61,6 +61,7 @@ Route::group(['prefix' => 'v3'], function () {
         Route::get('/get-terms-and-services-content', [TermAndServicesController::class, 'getTermAndServicesContent']);
         Route::get('/get-privacy-policy-content', [PrivacyPolicyController::class, 'getPrivacyPolicyContent']);
         Route::get('/get-all-namespaces', [NamespaceController::class, 'getAll']);
+        Route::get('/topic-categories', [\App\Http\Controllers\TopicCategoryController::class, 'index']);
         Route::get('/get-whats-new-content', [VideoPodcastController::class, 'getNewContent']);
         Route::get('/get-social-media-links', [SocialMediaLinkController::class, 'getLinks']);
         Route::get('/get-algorithms', [AlgorithmController::class, 'getAll']);
@@ -216,6 +217,7 @@ Route::group(['prefix' => 'v3'], function () {
         Route::post('/update-camp-newsfeed', [NewsFeedController::class, 'updateNewsFeed']);
         Route::post('/delete-camp-newsfeed', [NewsFeedController::class, 'deleteNewsFeed']);
         Route::post('/login-as-user', [UserController::class, 'loginAsUser']);
+        Route::post('/topic-category/assign', [\App\Http\Controllers\TopicCategoryController::class, 'assign']);
     });
 
     Route::post('/ads', [AdsController::class, 'getAds']);

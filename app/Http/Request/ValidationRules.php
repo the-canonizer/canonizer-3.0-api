@@ -224,6 +224,8 @@ class ValidationRules
             'topic_name' => 'required|max:100',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
+            'category_id' => 'nullable|integer|exists:topic_categories,id',
+            'is_sandbox' => 'boolean',
             'nick_name' => 'required',
             'asof' => 'in:default,review,bydate',
             'tags' => 'array',

@@ -33,7 +33,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
      *
      * @var array
      */
-    protected $fillable = ['topic_name','is_disabled', 'is_one_level', 'is_rank_hidden', 'namespace_id', 'submit_time', 'submitter_nick_id', 'go_live_time', 'language', 'note', 'grace_period', 'topic_num'];
+    protected $fillable = ['topic_name','is_disabled', 'is_one_level', 'is_rank_hidden', 'is_sandbox', 'namespace_id', 'category_id', 'submit_time', 'submitter_nick_id', 'go_live_time', 'language', 'note', 'grace_period', 'topic_num'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -154,6 +154,11 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     public function nameSpace()
     {
         return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(\App\Models\TopicCategory::class, 'category_id');
     }
 
     public function views()
