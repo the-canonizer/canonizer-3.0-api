@@ -211,13 +211,13 @@ Route::group(['prefix' => 'v3'], function () {
 
     // Admin Middleware group
     Route::group(['middleware' => 'admin'], function () {
-        Route::get('/admin/topics', [TopicController::class, 'adminListTopics']);
         Route::post('/edit-camp-newsfeed', [NewsFeedController::class, 'editNewsFeed']);
         Route::post('/store-camp-newsfeed', [NewsFeedController::class, 'storeNewsFeed']);
         Route::post('/update-camp-newsfeed', [NewsFeedController::class, 'updateNewsFeed']);
         Route::post('/delete-camp-newsfeed', [NewsFeedController::class, 'deleteNewsFeed']);
         Route::post('/login-as-user', [UserController::class, 'loginAsUser']);
         Route::post('/topic-category/assign', [\App\Http\Controllers\TopicCategoryController::class, 'assign']);
+        Route::get('/admin/topics', [\App\Http\Controllers\TopicCategoryController::class, 'adminTopicList']);
     });
 
     Route::post('/ads', [AdsController::class, 'getAds']);
