@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Camp;
 use App\Facades\Util;
-use App\Models\Namespaces;
 use App\Models\Topic;
 use App\Models\Thread;
 use Illuminate\Http\Request;
@@ -126,12 +125,7 @@ class SitemapXmlController extends Controller
 
     public function getTopicSiteMapUrls()
     {
-        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-        $namespaceIds = [];
-        foreach ($namespaces as $namespace) {
-            $namespaceIds[] = $namespace->id;
-        }
-        $topics = Topic::whereNotIn('namespace_id', $namespaceIds)
+        $topics = Topic::where('is_sandbox', 0)
             ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <=' . time() . ' group by topic.topic_num)')
             ->orderBy('submit_time', 'DESC')
             ->get();
@@ -160,16 +154,11 @@ class SitemapXmlController extends Controller
 
     public function getCampSiteMapUrls()
     {
-        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-        $namespaceIds = [];
-        foreach ($namespaces as $namespace) {
-            $namespaceIds[] = $namespace->id;
-        }
         $camps = Camp::where('objector_nick_id', null)
             ->where('go_live_time', '<=', time())
             ->where('is_archive', 0)
-            ->whereHas('topic', function ($query) use ($namespaceIds) {
-                $query->whereNotIn('topic.namespace_id', $namespaceIds);
+            ->whereHas('topic', function ($query) {
+                $query->where('topic.is_sandbox', 0);
             })
             ->whereRaw('go_live_time in (select max(go_live_time) from camp where objector_nick_id is null and go_live_time < ' . time() . ' group by topic_num,camp_num)')
             ->groupBy('topic_num', 'camp_num')
@@ -194,13 +183,8 @@ class SitemapXmlController extends Controller
 
     public function getThreadSiteMapUrls()
     {
-        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-        $namespaceIds = [];
-        foreach ($namespaces as $namespace) {
-            $namespaceIds[] = $namespace->id;
-        }
-        $threads =  Thread::whereHas('topic', function ($query) use ($namespaceIds) {
-            $query->whereNotIn('topic.namespace_id', $namespaceIds);
+        $threads =  Thread::whereHas('topic', function ($query) {
+            $query->where('topic.is_sandbox', 0);
         })->get();
         $unique = [];
         $urlThreadSet = [];
@@ -231,14 +215,9 @@ class SitemapXmlController extends Controller
 
     public function getPostSiteMapUrls()
     {
-        $namespaces = Namespaces::where('name', 'like', "%sandbox%")->get();
-        $namespaceIds = [];
-        foreach ($namespaces as $namespace) {
-            $namespaceIds[] = $namespace->id;
-        }
         $threadsWithReplies = Thread::has('replies')->with('latestReply')->withCount('replies')
-            ->whereHas('topic', function ($query) use ($namespaceIds) {
-                $query->whereNotIn('topic.namespace_id', $namespaceIds);
+            ->whereHas('topic', function ($query) {
+                $query->where('topic.is_sandbox', 0);
             })
             ->get()->sortByDesc(function ($thread, $key) {
                 return $thread->latestReply->updated_at;

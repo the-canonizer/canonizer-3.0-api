@@ -33,7 +33,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
      *
      * @var array
      */
-    protected $fillable = ['topic_name','is_disabled', 'is_one_level', 'is_rank_hidden', 'is_sandbox', 'namespace_id', 'category_id', 'submit_time', 'submitter_nick_id', 'go_live_time', 'language', 'note', 'grace_period', 'topic_num'];
+    protected $fillable = ['topic_name','is_disabled', 'is_one_level', 'is_rank_hidden', 'is_sandbox', 'category_id', 'submit_time', 'submitter_nick_id', 'go_live_time', 'language', 'note', 'grace_period', 'topic_num'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -86,15 +86,15 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
         if (!$liveTopic) {
             return;
         }
-        $namespace = Namespaces::find($liveTopic->namespace_id);
-        $namespaceLabel = $namespace ? Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name)) : 'no-namespace';
+        $categoryName = TopicCategory::where('id', $liveTopic->category_id)->value('name') ?? '';
         $type = "camp";
         $typeValue = $item->topic_name;
         $topicNum = $item->topic_num;
         $campNum = 1;
         $campName = 'Agreement';
         $goLiveTime = $item->go_live_time;
-        $namespace = $namespaceLabel; //fetch namespace
+        // Position 8 of ElasticSearch::ingestData was historically "namespace" — now carries category name.
+        $namespace = $categoryName;
         $breadcrumb = '';
         $link =  ''; //self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
         $isArchive=0;
@@ -149,11 +149,6 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
     public function objectorNickName()
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'objector_nick_id');
-    }
-
-    public function nameSpace()
-    {
-        return $this->hasOne('App\Models\Namespaces', 'id', 'namespace_id');
     }
 
     public function category()
@@ -310,13 +305,7 @@ class Topic extends Model implements AuthenticatableContract, AuthorizableContra
                 $interval = $endtime - $starttime;
                 $val->objector_nick_name = null;
                 $val->tags = $val->tags->makeHidden(['pivot']);
-                $namespace = Namespaces::find($val->namespace_id);
-                $namespaceLabel = '';
-                if (!empty($namespace)) {
-                    $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-                }
-                $val->namespace = $namespaceLabel;
-                $val->unsetRelation('nameSpace');
+                $val->category_name = TopicCategory::where('id', $val->category_id)->value('name');
                 $val->submitter_nick_name=NickName::getNickName($val->submitter_nick_id)->nick_name;
                 $val->isAuthor = (isset($request->user()->id) && $submitterUserID == $request->user()->id) ?  true : false ;
                 $val->agreed_to_change = 0;

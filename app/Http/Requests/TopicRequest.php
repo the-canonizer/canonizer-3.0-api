@@ -29,7 +29,7 @@ class TopicRequest extends FormRequest
                     return [
                         'page_number' => 'required|integer',
                         'page_size' => 'required|integer',
-                        'namespace_id' => 'nullable|integer',
+                        'category_id' => 'nullable|integer|exists:topic_categories,id',
                         'asofdate' => 'required',
                         'algorithm' => 'required|string',
                         'asof' => 'required|string',

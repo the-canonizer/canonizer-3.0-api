@@ -11,7 +11,6 @@ use App\Models\Support;
 use App\Library\General;
 use App\Models\Nickname;
 use App\Models\Statement;
-use App\Models\Namespaces;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
 use App\Jobs\ActivityLoggerJob;
@@ -778,7 +777,7 @@ class StatementController extends Controller
                             default:
                                 $status  = "old";
                         }
-                        $namspaceId =  Topic::select('namespace_id')->where('topic_num', $val->topic_num)->first();
+                        $namspaceId =  Topic::select('category_id')->where('topic_num', $val->topic_num)->first();
                         $statement['comparison'][] = array(
                             'go_live_time' => ($val->go_live_time),
                             'submit_time' => ($val->submit_time),
@@ -810,7 +809,7 @@ class StatementController extends Controller
                 $latestRevision = Statement::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
+                    $namspaceId =  Topic::select('category_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
                     $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
@@ -860,8 +859,7 @@ class StatementController extends Controller
                         'grace_period' => $val->grace_period,
                         'submitter_nick_name' => Nickname::getUserByNickId($val->submitter_nick_id),
                         'status' => $status ?? null,
-                        'namespace_id' => $val->namespace_id,
-                        'namespace' => Namespaces::find($val->namespace_id)->label,
+                        'category_id' => $val->category_id,
                         'is_rank_hidden' => $val->is_rank_hidden,
                         'tags' => $val->tags->makeHidden(['pivot']),
                     );
@@ -875,7 +873,6 @@ class StatementController extends Controller
                 $latestRevision = Topic::where('topic_num', $request->topic_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
                     $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);
@@ -883,8 +880,7 @@ class StatementController extends Controller
                     $statement['liveStatement']['object_time'] = ($liveStatement->object_time);
                     $statement['liveStatement']['parsed_value'] = $liveStatement->topic_name;
                     $statement['liveStatement']['submitter_nick_name'] = Nickname::getUserByNickId($liveStatement->submitter_nick_id);
-                    $statement['liveStatement']['namespace_id']  = $namspaceId->namespace_id;
-                    $statement['liveStatement']['namespace'] = Namespaces::find($val->namespace_id)->label;
+                    $statement['liveStatement']['category_id'] = $liveStatement->category_id ?? null;
                     switch ($liveStatement) {
                         case $liveStatement->objector_nick_id !== NULL:
                             $statement['liveStatement']['status'] = "objected";
@@ -946,7 +942,7 @@ class StatementController extends Controller
                 $latestRevision = Camp::where('topic_num', $request->topic_num)->where('camp_num', $request->camp_num)->latest('submit_time')->first();
                 $statement['liveStatement'] = $liveStatement;
                 if (isset($liveStatement)) {
-                    $namspaceId =  Topic::select('namespace_id')->where('topic_num', $liveStatement->topic_num)->first();
+                    $namspaceId =  Topic::select('category_id')->where('topic_num', $liveStatement->topic_num)->first();
                     $currentTime = time();
                     $currentLive = 0;
                     $statement['liveStatement']['go_live_time'] = ($liveStatement->go_live_time);

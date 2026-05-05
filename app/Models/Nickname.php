@@ -121,11 +121,11 @@ class Nickname extends Model {
         return self::where('user_id', $userID)->pluck('id')->toArray();
     }
 
-    public static function getNickNameLink($userId, $namespaceId, $topicNum='', $campNum='', $forSearch = false){
+    public static function getNickNameLink($userId, $namespaceId = null, $topicNum='', $campNum='', $forSearch = false){
         if($forSearch){
-            $link = '/user/supports/'.$userId .'?canon='.$namespaceId;
+            $link = '/user/supports/'.$userId;
         }else{
-            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId .'?canon='.$namespaceId);
+            $link = config('global.APP_URL_FRONT_END') . ('/user/supports/'.$userId);
         }
 
         return $link;
@@ -280,8 +280,6 @@ class Nickname extends Model {
             $topic_num_cond = 'and u.topic_num = '.$topic_num;
         }
 
-        $namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : $namespace;
-
         if ((isset($filter['asof']) && $filter['asof'] == 'bydate')) {
                 $as_of_time = strtotime(date('Y-m-d H:i:s', strtotime($filter['asofdate'])));
                 $as_of_clause = "and go_live_time < $as_of_time";
@@ -299,10 +297,10 @@ class Nickname extends Model {
             (select s.title,s.topic_num,s.camp_name,s.submit_time,s.go_live_time, s.camp_num from camp s,
             (select topic_num, camp_num, max(go_live_time) as camp_max_glt from camp
             where objector_nick_id is null $as_of_clause group by topic_num, camp_num) cz,
-            (select t.topic_num, t.topic_name, t.namespace, t.go_live_time from topic t,
+            (select t.topic_num, t.topic_name, t.go_live_time from topic t,
             (select ts.topic_num, max(ts.go_live_time) as topic_max_glt from topic ts
-            where ts.namespace_id=$namespace and ts.objector_nick_id is null $as_of_clause group by ts.topic_num) tz
-            where t.namespace_id=$namespace and t.topic_num = tz.topic_num and t.go_live_time = tz.topic_max_glt) uz
+            where ts.objector_nick_id is null $as_of_clause group by ts.topic_num) tz
+            where t.topic_num = tz.topic_num and t.go_live_time = tz.topic_max_glt) uz
             where s.topic_num = cz.topic_num and s.camp_num=cz.camp_num and s.go_live_time = cz.camp_max_glt and s.topic_num=uz.topic_num) u
             where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
             (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by u.submit_time DESC";
@@ -397,10 +395,10 @@ class Nickname extends Model {
         (select s.title,s.topic_num,s.camp_name,s.submit_time,s.go_live_time, s.camp_num from camp s,
             (select topic_num, camp_num, max(go_live_time) as camp_max_glt from camp
                 where objector_nick_id is null $as_of_clause group by topic_num, camp_num) cz,
-                (select t.topic_num, t.topic_name, t.namespace, t.go_live_time from topic t,
+                (select t.topic_num, t.topic_name, t.go_live_time from topic t,
                     (select ts.topic_num, max(ts.go_live_time) as topic_max_glt from topic ts
-                        where ts.namespace_id=$namespace and ts.objector_nick_id is null $as_of_clause group by ts.topic_num) tz
-                            where t.namespace_id=$namespace and t.topic_num = tz.topic_num and t.go_live_time = tz.topic_max_glt) uz
+                        where ts.objector_nick_id is null $as_of_clause group by ts.topic_num) tz
+                            where t.topic_num = tz.topic_num and t.go_live_time = tz.topic_max_glt) uz
                 where s.topic_num = cz.topic_num and s.camp_num=cz.camp_num and s.go_live_time = cz.camp_max_glt and s.topic_num=uz.topic_num) u
         where u.topic_num = p.topic_num and ((u.camp_num = p.camp_num) or (u.camp_num = 1)) and p.nick_name_id = {$this->id} and
         (p.start < $as_of_time) and ((p.end = 0) or (p.end > $as_of_time)) and u.go_live_time < $as_of_time $topic_num_cond order by p.support_order ASC, u.submit_time DESC";

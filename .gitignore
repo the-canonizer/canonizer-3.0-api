@@ -47,3 +47,5 @@ Thumbs.db
 *.log
 .env.*
 !.env.example
+/database/mongo-data/
+/database/mysql-data/

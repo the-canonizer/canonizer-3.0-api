@@ -13,7 +13,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\TermAndServicesController;
 use App\Http\Controllers\PrivacyPolicyController;
-use App\Http\Controllers\NamespaceController;
 use App\Http\Controllers\VideoPodcastController;
 use App\Http\Controllers\SocialMediaLinkController;
 use App\Http\Controllers\AlgorithmController;
@@ -60,7 +59,6 @@ Route::group(['prefix' => 'v3'], function () {
         Route::post('get-camp-activity-log', [ActivityController::class, 'getCampActivityLog']);
         Route::get('/get-terms-and-services-content', [TermAndServicesController::class, 'getTermAndServicesContent']);
         Route::get('/get-privacy-policy-content', [PrivacyPolicyController::class, 'getPrivacyPolicyContent']);
-        Route::get('/get-all-namespaces', [NamespaceController::class, 'getAll']);
         Route::get('/topic-categories', [\App\Http\Controllers\TopicCategoryController::class, 'index']);
         Route::get('/get-whats-new-content', [VideoPodcastController::class, 'getNewContent']);
         Route::get('/get-social-media-links', [SocialMediaLinkController::class, 'getLinks']);

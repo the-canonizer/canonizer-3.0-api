@@ -414,13 +414,10 @@ class ThreadsController extends Controller
                     ->where('post.is_delete', 0)
                     ->count();
 
-                $namspaceId = Topic::select('namespace_id')
+                $catId = Topic::select('category_id')
                     ->where('topic_num', $thread->topic_id)
-                    ->get();
-
-                foreach ($namspaceId as $nId) {
-                    $thread->namespace_id = $nId->namespace_id;
-                }
+                    ->first();
+                $thread->category_id = $catId->category_id ?? null;
 
                 $thread->post_count = $postCount;
 
@@ -667,8 +664,8 @@ class ThreadsController extends Controller
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.thread.thread_not_related'));
             }
             $postCount =  Reply::where('c_thread_id', $threads->id)->where('post.is_delete', 0)->get();
-            $namspaceId =  Topic::select('namespace_id')->where('topic_num', $threads->topic_id)->first();
-            $threads->namespace_id = $namspaceId->namespace_id;
+            $catId =  Topic::select('category_id')->where('topic_num', $threads->topic_id)->first();
+            $threads->category_id = $catId->category_id ?? null;
             $threads->post_count = $postCount->count();
             $status = 200;
             $message = trans('message.success.success');

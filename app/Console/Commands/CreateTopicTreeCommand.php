@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Facades\Services\TreeServiceFacade;
-use App\Models\{CommandHistory, Namespaces, Topic};
+use App\Models\{CommandHistory, Topic};
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -50,17 +50,12 @@ class CreateTopicTreeCommand extends Command
             Log::info('tree:all command started....');
             $start = microtime(true);
 
-            //get all namespaces
-            $namespaces = Namespaces::all();
-            foreach ($namespaces as $value) {
-                // get all topic associated with this namespace
-                $topics = Topic::select(['topic_num', 'namespace_id', 'id'])
-                    ->where(["namespace_id" => $value['id']])
-                    ->groupBy('topic_num')
-                    ->get();
-                $this->createLess166Topics($topics, $asOfTime);
-                $this->creategreater166Topics($topics, $asOfTime);
-            }
+            // Process all topics (namespace partitioning was removed in the categories cutover)
+            $topics = Topic::select(['topic_num', 'id'])
+                ->groupBy('topic_num')
+                ->get();
+            $this->createLess166Topics($topics, $asOfTime);
+            $this->creategreater166Topics($topics, $asOfTime);
 
             // In some rare cases, data is duplicated randomly. This commad is used remove duplicated tree data.
             $this->call('tree:remove-duplicate', [

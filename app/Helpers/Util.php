@@ -17,7 +17,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Events\SupportAddedMailEvent;
 use Illuminate\Support\Facades\Event;
 use App\Events\SupportRemovedMailEvent;
-use App\Models\Namespaces;
 use App\Models\User;
 use Throwable;
 use App\Jobs\PurposedToSupportersMailJob;
@@ -347,22 +346,10 @@ class Util
     public static function convertDateFormatToUnix($dateTime) {
         return strtotime($dateTime);
     }
-    public function getEmailSubjectForSandbox($namespace_id)
+    public function getEmailSubjectForSandbox($_legacy = null)
     {
         try {
             $subject = 'canon';
-            $namespace = Namespaces::find($namespace_id);
-            if(preg_match('/sandbox/i',$namespace->name)){
-                $subject = 'canon >> sandbox';
-            }
-            if(preg_match('/sandbox testing/i',$namespace->name)){
-                $subject = 'canon >> sandbox testing';
-            }
-            if($subject == 'canon/sandbox testing'){
-                $subject = str_replace("canon/sandbox testing", "canon >> sandbox testing", $subject);
-            }else if($subject == 'canon/sandbox'){
-                $subject = str_replace("canon/sandbox", "canon >> sandbox", $subject);
-            }
             if(env('APP_ENV') == 'staging'){
                 return '[staging.' . $subject . ']';
             }

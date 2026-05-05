@@ -17,7 +17,6 @@ use App\Library\General;
 use App\Models\Nickname;
 use App\Models\TopicTag;
 use App\Models\Statement;
-use App\Models\Namespaces;
 use App\Models\FeatureTopic;
 use Illuminate\Http\Request;
 use App\Http\Request\Validate;
@@ -197,7 +196,6 @@ class TopicController extends Controller
             $current_time = time();
             $input = [
                 "topic_name" => Util::remove_emoji($request->topic_name),
-                "namespace_id" => $request->namespace,
                 "category_id" => $request->category_id,
                 "submit_time" => $current_time,
                 "submitter_nick_id" => $request->nick_name,
@@ -421,12 +419,9 @@ class TopicController extends Controller
             if (!$topic)
                 return $this->resProvider->apiJsonResponse(404, '', null, trans('message.error.topic_record_not_found'));
 
-            $namespace = Namespaces::find($topic->namespace_id);
-            $namespaceLabel = '';
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-            }
-            $topic->namespace_name = $namespaceLabel;
+            $topic->category_name = $topic->category_id
+                ? \App\Models\TopicCategory::where('id', $topic->category_id)->value('name')
+                : null;
             $topic->submitter_nick_name = NickName::getNickName($topic->submitter_nick_id)->nick_name;
             $topic->topicSubscriptionId = "";
             $topic->camp_num =  $topic->camp_num ?? 1;
@@ -953,20 +948,9 @@ class TopicController extends Controller
 
                         $namespaceData = [
                             'field' => 'topic_canon',
-                            'live' => trim($preliveTopic->namespace_id),
-                            'change-in-review' => trim($model->namespace_id),
+                            'live' => $preliveTopic->category_id ? \App\Models\TopicCategory::where('id', $preliveTopic->category_id)->value('name') : '',
+                            'change-in-review' => $model->category_id ? \App\Models\TopicCategory::where('id', $model->category_id)->value('name') : '',
                         ];
-
-                        $namespace = Namespaces::find($namespaceData['live']);
-                        if (!empty($namespace)) {
-                            $namespaceData['live'] = str_replace(">", " > ", trim(Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name))));
-                        }
-
-                        $namespace = Namespaces::find($namespaceData['change-in-review']);
-                        if (!empty($namespace)) {
-                            $namespaceData['change-in-review'] = str_replace(">", " > ", trim(Namespaces::stripAndChangeSlashes(Namespaces::getNamespaceLabel($namespace, $namespace->name))));
-                        }
-
                         $changeData[] = $namespaceData;
                     }
 
@@ -2063,14 +2047,13 @@ class TopicController extends Controller
             $cacheKey = "hot_topics_{$perPage}_{$supporterLimit}_{$page}";
 
             $collection = Cache::remember($cacheKey, 600, function () use ($request, $perPage, $supporterLimit) {
-                $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
                 $date30DaysAgo = Carbon::now()->subDays(30)->startOfDay()->timestamp;
 
                 $topics = Topic::join('topic_views', function ($join) use ($date30DaysAgo) {
                     $join->on('topic.topic_num', '=', 'topic_views.topic_num')
                         ->where('topic_views.updated_at', '>=', $date30DaysAgo);
                 })
-                    ->whereNotIn('namespace_id', $namespaceIds)
+                    ->where('topic.is_sandbox', 0)
                     ->select('topic.*', DB::raw('SUM(topic_views.views) as total_views')) // Summing views directly in the query
                     ->groupBy('topic.topic_num') // Group by topic number
                     ->orderByDesc('total_views') // Order by the calculated total_views column
@@ -2364,11 +2347,10 @@ class TopicController extends Controller
             $isRandom = $request->is_random ?? false;
             $perPage = $request->per_page ?? config('global.per_page');
             $userTags = $request->user()->userActiveTags()->pluck('tag_id');
-            $namespaceIds = Namespaces::where('name', 'like', "%sandbox%")->pluck('id')->toArray();
             $topics = Topic::with('tags')->whereHas('tags', function ($query) use ($userTags) {
                     $query->whereIn('tag_id', $userTags);
                 })
-                ->whereNotIn('namespace_id', $namespaceIds)
+                ->where('topic.is_sandbox', 0)
                 ->whereRaw('topic.go_live_time in (select max(topic.go_live_time) from topic where topic.topic_num=topic.topic_num and topic.objector_nick_id is null and topic.go_live_time <= ' . time() . ' group by topic.topic_num)')
                 ->orderBy('submit_time', 'DESC');
             if ($isRandom) {

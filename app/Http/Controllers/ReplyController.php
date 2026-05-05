@@ -294,10 +294,8 @@ class ReplyController extends Controller
                     $isMyPost = true;
                 }
                 $value->is_my_post = $isMyPost;
-                $namspaceId =  Topic::select('namespace_id')->where('topic_num',$value->topic_id)->get();
-                foreach($namspaceId as $nId){
-                    $value->namespace_id = $nId->namespace_id;
-                }
+                $catId = Topic::select('category_id')->where('topic_num', $value->topic_id)->first();
+                $value->category_id = $catId->category_id ?? null;
             }
             $status = 200;
             $message = trans('message.success.success');

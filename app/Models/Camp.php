@@ -56,23 +56,18 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         parent::boot();
 
-        static::saved(function($item) 
+        static::saved(function($item)
         {
             self::forgetCache($item);
-            $liveTopic = Topic::getLiveTopic($item->topic_num);            
-            $namespace = Namespaces::find($liveTopic->namespace_id);            
-            $namespaceLabel = 'no-namespace';
-            if (!empty($namespace)) {
-                $namespaceLabel = Namespaces::getNamespaceLabel($namespace, $namespace->name);
-                $namespaceLabel = Namespaces::stripAndChangeSlashes($namespaceLabel);
-            }
+            $liveTopic = Topic::getLiveTopic($item->topic_num);
             $type = "camp";
             $typeValue = $item->camp_name;
             $topicNum =  $item->topic_num;
             $campNum =   $item->camp_num;
             $campName =  $item->camp_name;
             $goLiveTime = $item->go_live_time;
-            $namespace = $namespaceLabel; //fetch namespace
+            // ElasticSearch position-8 historically held a namespace label; now carries the topic's category name.
+            $namespace = $liveTopic ? \App\Models\TopicCategory::where('id', $liveTopic->category_id)->value('name') : '';
             $breadcrumb = '';
             $link =  self::campLink($topicNum, $campNum, $liveTopic->topic_name, $campName, true);
             $liveId = "camp-". $topicNum . "-" . $campNum."-live";
@@ -162,9 +157,9 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function agreementTopicDefaultAsOfFilter($filter)
     {
-        return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
+        return self::select('topic.topic_name', 'topic.category_id', 'camp.*', 'topic_categories.name as category_name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
-            ->join('namespace', 'topic.namespace_id', '=', 'namespace.id')
+            ->leftJoin('topic_categories', 'topic.category_id', '=', 'topic_categories.id')
             ->where('topic.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)
@@ -175,22 +170,22 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public static function agreementTopicReviewAsOfFilter($filter)
     {
-        return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
+        return self::select('topic.topic_name', 'topic.category_id', 'camp.*', 'topic_categories.name as category_name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
-            ->join('namespace', 'topic.namespace_id', '=', 'namespace.id')
+            ->leftJoin('topic_categories', 'topic.category_id', '=', 'topic_categories.id')
             ->where('camp.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)
-            ->where('topic.grace_period', 0) 
+            ->where('topic.grace_period', 0)
             ->latest('topic.go_live_time')->first();
     }
 
     public static function agreementTopicByDateFilter($filter)
     {
         $asOfdate = isset($filter['asOfDate']) ? strtotime(date('Y-m-d H:i:s', strtotime($filter['asOfDate']))) :  strtotime(date('Y-m-d H:i:s'));
-        return self::select('topic.topic_name', 'topic.namespace_id', 'camp.*', 'namespace.name as namespace_name', 'namespace.name')
+        return self::select('topic.topic_name', 'topic.category_id', 'camp.*', 'topic_categories.name as category_name')
             ->join('topic', 'topic.topic_num', '=', 'camp.topic_num')
-            ->join('namespace', 'topic.namespace_id', '=', 'namespace.id')
+            ->leftJoin('topic_categories', 'topic.category_id', '=', 'topic_categories.id')
             ->where('camp.topic_num', $filter['topicNum'])->where('camp_name', '=', 'Agreement')
             ->where('camp.objector_nick_id', '=', NULL)
             ->where('topic.objector_nick_id', '=', NULL)

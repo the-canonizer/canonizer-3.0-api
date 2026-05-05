@@ -222,8 +222,6 @@ class ValidationRules
     {
         return ([
             'topic_name' => 'required|max:80',
-            'namespace' => 'required',
-            'create_namespace' => 'required_if:namespace,other|max:100',
             'category_id' => 'nullable|integer|exists:topic_categories,id',
             'is_sandbox' => 'boolean',
             'nick_name' => 'required',
@@ -555,7 +553,6 @@ class ValidationRules
             'submitter' => 'required',
             'topic_name' => 'required',
             'nick_name' => 'required',
-            'namespace_id' => 'required_unless:event_type,objection',
             'event_type' => 'required|in:update,edit,objection',
             'objection_reason' => 'required_if:event_type,objection',
             'is_rank_hidden' => 'boolean'

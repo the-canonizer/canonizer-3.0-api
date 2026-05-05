@@ -768,15 +768,14 @@ class CampService
             $array = [];
             $liveTopic = (new TopicService())->getLiveTopic($topicNum,$asOfTime, ['nofilter'=>true]);
             $liveCamp = $this->getLiveCamp($topicNum, $campNum, [], $asOfTime, $asOf);
-            $namespaceId = (isset($liveTopic->namespace_id) && $liveTopic->namespace_id ) ? $liveTopic->namespace_id : 1; 
 
-            foreach($supports as $key =>$support){            
+            foreach($supports as $key =>$support){
                 $array[$support->nick_name_id] = [
                         'score' => 0,
                         'support_order' => $support->support_order,
                         'nick_name' => $support->nick_name,
                         'nick_name_id' => $support->nick_name_id,
-                        'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, $namespaceId, $topicNum, $campNum),
+                        'nick_name_link' => Nickname::getNickNameLink($support->nick_name_id, null, $topicNum, $campNum),
                         'delegates' => [],
                         'camp_leader' => ($liveCamp && $liveCamp->camp_leader_nick_id > 0 && $liveCamp->camp_leader_nick_id == $support->nick_name_id),
                     ];
@@ -917,8 +916,8 @@ class CampService
         try {
 
             $returnTopics = DB::table('topic')
-            ->select(DB::raw('(select count(topic_support.id) from topic_support where topic_support.topic_num = c1.topic_num) as support'), 'c1.topic_num', 
-                'c1.camp_num', 'c1.title', 'c1.go_live_time', 'c1.submitter_nick_id', 't1.namespace_id')
+            ->select(DB::raw('(select count(topic_support.id) from topic_support where topic_support.topic_num = c1.topic_num) as support'), 'c1.topic_num',
+                'c1.camp_num', 'c1.title', 'c1.go_live_time', 'c1.submitter_nick_id', 't1.category_id')
             ->from('topic as t1')
             ->where(['t1.objector_nick_id' => null, 't1.grace_period' => 0])
             ->where('t1.go_live_time', '=', function ($query) use ($asofdate, $asof) {
@@ -931,7 +930,6 @@ class CampService
                     $query->where('t2.go_live_time', '<=', $asofdate);
                 }
             })
-            ->when($namespaceId, fn ($query, $namespaceId) => $query->where('t1.namespace_id', $namespaceId))
             ->when($search, fn ($query, $search) => $query->where('t1.topic_name', 'like', '%' . $search . '%'))
             
             ->when(($topic_tags), function ($query) use ($topic_tags) {
