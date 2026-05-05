@@ -198,6 +198,7 @@ class TopicController extends Controller
             $input = [
                 "topic_name" => Util::remove_emoji($request->topic_name),
                 "namespace_id" => $request->namespace,
+                "category_id" => $request->category_id,
                 "submit_time" => $current_time,
                 "submitter_nick_id" => $request->nick_name,
                 "go_live_time" =>  $current_time,
@@ -206,7 +207,8 @@ class TopicController extends Controller
                 "grace_period" => 0,
                 "is_disabled" =>  !empty($request->is_disabled) ? $request->is_disabled : 0,
                 "is_one_level" =>  !empty($request->is_one_level) ? $request->is_one_level : 0,
-                "is_rank_hidden" =>  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0
+                "is_rank_hidden" =>  !empty($request->is_rank_hidden) ? $request->is_rank_hidden : 0,
+                "is_sandbox" =>  !empty($request->is_sandbox) ? $request->is_sandbox : 0,
             ];
 
             DB::beginTransaction();
