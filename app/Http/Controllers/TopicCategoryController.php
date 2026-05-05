@@ -51,4 +51,23 @@ class TopicCategoryController extends Controller
             ''
         );
     }
+
+    public function adminTopicList(Request $request)
+    {
+        $rows = \DB::table('topic as t')
+            ->select(
+                't.topic_num',
+                \DB::raw('MAX(t.topic_name) as topic_name'),
+                \DB::raw('MAX(t.category_id) as category_id'),
+                \DB::raw('MAX(t.is_sandbox) as is_sandbox'),
+                \DB::raw('MAX(c.name) as category_name'),
+                \DB::raw('MIN(t.submit_time) as first_seen')
+            )
+            ->leftJoin('topic_categories as c', 't.category_id', '=', 'c.id')
+            ->groupBy('t.topic_num')
+            ->orderByDesc('first_seen')
+            ->get();
+
+        return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $rows, '');
+    }
 }
