@@ -366,19 +366,19 @@ class TopicSupport
 
                 DB::commit();
                 /* To update the Mongo Tree while adding support */
-                Util::dispatchJob($topic, $campNum, 1);
+                try { Util::dispatchJob($topic, $campNum, 1); } catch (\Throwable $e) { \Log::warning("dispatchJob failed: " . $e->getMessage()); }
 
                 //timeline start
                 $timeline_url = Util::getTimelineUrlgetTimelineUrl($topic->topic_num, $topic->topic_name, $campModel->camp_num, $campModel->camp_name, $topic->topic_name, "direct_support_added", null, $topic->namespace_id, $topic->submitter_nick_id);
 
-                Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " added direct support in camp - " . $campModel->camp_name, "direct_support_added", $campModel->camp_num, null, null, null, $asOfDefaultDate + 1, $timeline_url);
+                try { Util::dispatchTimelineJob($topic->topic_num, $campModel->camp_num, 1, $nickName . " added direct support in camp - " . $campModel->camp_name, "direct_support_added", $campModel->camp_num, null, null, null, $asOfDefaultDate + 1, $timeline_url); } catch (\Throwable $e) { \Log::warning("dispatchTimeline failed: " . $e->getMessage()); }
                 //timeline start
 
-                $subjectStatement = "has added their support to "; 
-                self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add');
+                $subjectStatement = "has added their support to ";
+                try { self::SendEmailToSubscribersAndSupporters($topicNum, $campNum, $nickNameId, $subjectStatement, 'add'); } catch (\Throwable $e) { \Log::warning("SendEmail failed: " . $e->getMessage()); }
                 //GetPushNotificationToSupporter::pushNotificationToSupporter($user,$topicNum, $campNum, 'add', null, $nickName);
                 //log activity
-                self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, null, $reason, $reason_summary, $citation_link);
+                try { self::logActivityForAddSupport($topicNum, $campNum, $nickNameId, null, $reason, $reason_summary, $citation_link); } catch (\Throwable $e) { \Log::warning("logActivity failed: " . $e->getMessage()); }
 
             }catch (Throwable $e) 
             {
