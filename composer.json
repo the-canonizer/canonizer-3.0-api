@@ -12,6 +12,7 @@
         "abraham/twitteroauth": "^7.0",
         "aws/aws-sdk-php": "^3.283",
         "doctrine/dbal": "^3.3",
+        "elasticsearch/elasticsearch": "^8.0",
         "google/apiclient": "^2.15",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^11.0",
