@@ -130,14 +130,22 @@ class UserController extends Controller
             $dispatchRequest = Request::create('/oauth/token', 'POST', $payload);
             $response = app()->handle($dispatchRequest);
             $generateToken = json_decode($response->getContent());
-            
+
             if ($response->getStatusCode() == 200) {
                 return (new SuccessResource((object)['data' => $generateToken]))->response()->setStatusCode(200);
             }
-            // Ensure status_code is set for ErrorResource
-            if (!isset($generateToken->status_code)) {
-                $generateToken->status_code = $response->getStatusCode();
+            // /oauth/token can return a non-JSON response (e.g. an HTML 5xx
+            // error page) when something fails inside Passport — most often a
+            // cache/db misconfiguration. In that case json_decode returns
+            // null and assigning status_code on null fatals. Synthesize a
+            // minimal error object so the caller still gets a clean response.
+            if (!is_object($generateToken)) {
+                $generateToken = (object) [
+                    'error'   => 'oauth_token_dispatch_failed',
+                    'message' => 'OAuth token endpoint returned a non-JSON response',
+                ];
             }
+            $generateToken->status_code = $response->getStatusCode();
             return (new ErrorResource($generateToken))->response()->setStatusCode($generateToken->status_code);
         } catch (Exception $ex) {
             Log::error("UserController :: clientToken :: message: ".$ex->getMessage());
