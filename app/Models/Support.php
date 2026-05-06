@@ -67,7 +67,7 @@ class Support extends Model
                 return;
             }
             //echo $supportCount;
-            ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive = true, $isArchive=0, $statementNum, $nickNameId, $supportCount);
+            try { ElasticSearch::ingestData($id, $type, $typeValue, $topicNum, $campNum, $link, $goLiveTime, $namespace, $breadcrumb, $isLive = true, $isArchive=0, $statementNum, $nickNameId, $supportCount); } catch (\Throwable $e) { \Log::warning("ElasticSearch::ingestData failed: " . $e->getMessage()); }
 
         });
     }

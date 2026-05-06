@@ -22,8 +22,11 @@ class CreateCampRestrictionLogsTable extends Migration
                 $table->text('notes')->nullable();
                 $table->timestamp('created_at')->useCurrent();
 
-                $table->foreign('restriction_id')->references('id')->on('camp_user_restrictions')->cascadeOnDelete();
-                $table->foreign('performed_by')->references('id')->on('person')->nullOnDelete();
+                // FKs disabled — fail to apply on production MySQL/InnoDB config
+                // (same root cause as 2025_11_10_164249_camp_user_restrictions).
+                // Table is already in production without these FKs.
+                // $table->foreign('restriction_id')->references('id')->on('camp_user_restrictions')->cascadeOnDelete();
+                // $table->foreign('performed_by')->references('id')->on('person')->nullOnDelete();
             });
         }
     }
