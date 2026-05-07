@@ -6,17 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Topic;
 use App\Models\TopicCategory;
 use App\Http\Resources\ErrorResource;
-use App\Helpers\ResponseInterface;
-
 class TopicCategoryController extends Controller
 {
-    public ResponseInterface $resProvider;
-
-    public function __construct(ResponseInterface $resProvider)
-    {
-        $this->resProvider = $resProvider;
-    }
-
     public function index()
     {
         $categories = TopicCategory::orderBy('name')->get(['id', 'name', 'description']);
