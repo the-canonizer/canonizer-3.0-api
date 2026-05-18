@@ -57,6 +57,9 @@ class ValidationMessages
             'phone_number.unique' => trans('message.validation_registration.phone_number_unique'),
 
             'country_code.required' => trans('message.validation_registration.country_code_required'),
+
+            'parent_user_email.email' => 'Parent user email must be a valid email address.',
+            'parent_user_email.exists' => 'Parent user email does not exist in the system.',
         ]);
     }
 

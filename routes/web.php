@@ -228,7 +228,12 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('camps/{id}/extend-restriction/{user_id}', 'CampRestrictionController@extend');
         $router->get('camps/{id}/restrictions', 'CampRestrictionController@index');
         $router->get('camps/{id}/restriction/logs', 'CampRestrictionController@restrictionLogs');
-        
+
+        //AI Agent Management
+        $router->get('ai-agents', 'AiAgentController@list');
+        $router->get('ai-agents/{id}', 'AiAgentController@show');
+        $router->put('ai-agents/{id}', 'AiAgentController@update');
+        $router->delete('ai-agents/{id}', 'AiAgentController@destroy');
     });
     
     $router->group(['middleware' => 'admin'], function() use ($router) {

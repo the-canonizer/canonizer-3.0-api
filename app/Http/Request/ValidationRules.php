@@ -34,6 +34,8 @@ class ValidationRules
             'password_confirmation' => 'required|same:password',
             'phone_number' => 'unique:person',
             'country_code' => 'required',
+            'type' => 'nullable|string|in:bot',
+            'parent_user_email' => 'nullable|string|email|exists:person,email',
         ]);
     }
 

@@ -35,6 +35,24 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
+        // Bypass Passport auth in local dev — authenticate user from JWT payload
+        if (env('APP_ENV') === 'local') {
+            $token = $request->bearerToken();
+            if ($token) {
+                $parts = explode('.', $token);
+                if (count($parts) === 3) {
+                    $payload = json_decode(base64_decode($parts[1]), true);
+                    if (isset($payload['sub'])) {
+                        $user = \App\Models\User::find($payload['sub']);
+                        if ($user) {
+                            $this->auth->guard($guard)->setUser($user);
+                            return $next($request);
+                        }
+                    }
+                }
+            }
+        }
+
         if ($this->auth->guard($guard)->guest()) {
             return response('Unauthorized.', 401);
         }
