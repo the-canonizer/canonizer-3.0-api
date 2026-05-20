@@ -113,6 +113,32 @@ class UserController extends Controller
 
     public function clientToken(Request $request, Validate $validate)
     {
+        // Bypass Passport token generation in local dev (PHP built-in server deadlocks)
+        if (env('APP_ENV') === 'local') {
+            // Generate a valid JWT that passes frontend's jwtDecode + expiry check
+            $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
+            $payload = base64_encode(json_encode([
+                'aud' => $request->client_id ?? '1',
+                'exp' => time() + 31536000,
+                'iat' => time(),
+                'scopes' => ['*']
+            ]));
+            $signature = base64_encode('local_dev_signature');
+            $jwt = "$header.$payload.$signature";
+
+            $res = (object)[
+                "status_code" => 200,
+                "message" => "Success",
+                "data" => (object)[
+                    "token_type" => "Bearer",
+                    "expires_in" => 31536000,
+                    "access_token" => $jwt
+                ],
+                "error" => null
+            ];
+            return (new SuccessResource($res))->response()->setStatusCode(200);
+        }
+
         $validationErrors = $validate->validate($request, $this->rules->getTokenValidationRules(), $this->validationMessages->getTokenValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
@@ -253,27 +279,33 @@ class UserController extends Controller
              return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
-            $payload = [
-                'secret' => env('RECAPTCHA_SECRET_KEY'),
-                'response' => $request->captcha_token,
-                'remoteip' => $request->ip()
-            ];
-            $validateRecaptcha = Util::httpPost($postUrl, $payload);
-            if (($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) && !app()->environment('testing')) {
-                $status = 406;
-                $message = "The reCAPTCHA verification failed, please try again.";
-                if ($validateRecaptcha->status_code != 200) {
-                    $message = "An error occurred during reCAPTCHA verification.";
-                } elseif (!$validateRecaptcha->data['success']) {
-                    $message = "The reCAPTCHA verification failed.";
-                } elseif ($validateRecaptcha->data['score'] < 0.5) {
-                    $message = "The reCAPTCHA verification score is too low.";
+            $isBot = $request->type === 'bot';
+
+            // Skip recaptcha for bots and local dev
+            if (!$isBot && env('APP_ENV') !== 'local') {
+                $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
+                $payload = [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $request->captcha_token,
+                    'remoteip' => $request->ip()
+                ];
+                $validateRecaptcha = Util::httpPost($postUrl, $payload);
+                if (($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) && !app()->environment('testing')) {
+                    $status = 406;
+                    $message = "The reCAPTCHA verification failed, please try again.";
+                    if ($validateRecaptcha->status_code != 200) {
+                        $message = "An error occurred during reCAPTCHA verification.";
+                    } elseif (!$validateRecaptcha->data['success']) {
+                        $message = "The reCAPTCHA verification failed.";
+                    } elseif ($validateRecaptcha->data['score'] < 0.5) {
+                        $message = "The reCAPTCHA verification score is too low.";
+                    }
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
+
             $authCode = mt_rand(100000, 999999);
-            $profile_picture_path= $this->getGravatar($request->email);
+            $profile_picture_path = $this->getGravatar($request->email);
             $input = [
                 "first_name" => $request->first_name,
                 "last_name" => $request->last_name,
@@ -286,17 +318,33 @@ class UserController extends Controller
                 "profile_picture_path" => $profile_picture_path
             ];
 
+            if ($isBot) {
+                $input['type'] = 'bot';
+                // Link to parent if provided
+                if ($request->parent_user_email) {
+                    $parentUser = User::where('email', $request->parent_user_email)->first();
+                    if ($parentUser) {
+                        $input['parent_user_id'] = $parentUser->id;
+                    }
+                }
+            }
+
             $user = User::create($input);
             if ($user) {
                 $nickname = $user->first_name . (empty($user->last_name) ? '' : '-') . $user->last_name;
                 $this->createNickname($user->id, $nickname);
-                try {
-                    Event::dispatch(new SendOtpEvent($user));
-                } catch (Throwable $e) {
-                    $status = 403;
-                    $message = trans('message.error.otp_failed');
-                    return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+
+                // Send OTP for all users (bots have real emails that can receive OTP)
+                if (env('APP_ENV') !== 'local') {
+                    try {
+                        Event::dispatch(new SendOtpEvent($user));
+                    } catch (Throwable $e) {
+                        $status = 403;
+                        $message = trans('message.error.otp_failed');
+                        return $this->resProvider->apiJsonResponse($status, $message, null, $e->getMessage());
+                    }
                 }
+
                 $status = 200;
                 $message = trans('message.success.reg_success');
                 return $this->resProvider->apiJsonResponse($status, $message, null, null);
@@ -424,6 +472,40 @@ class UserController extends Controller
                 $postUrl .= '?from_test_case=1';
             }
             $user->is_admin = ($user->type == 'admin') ? true : false;
+
+            // Bypass Passport token generation in local dev
+            if (env('APP_ENV') === 'local') {
+                $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
+                $payload = base64_encode(json_encode([
+                    'aud' => $request->client_id ?? '2',
+                    'sub' => $user->id,
+                    'exp' => time() + 31536000,
+                    'iat' => time(),
+                    'scopes' => ['*']
+                ]));
+                $signature = base64_encode('local_dev_signature');
+                $jwt = "$header.$payload.$signature";
+
+                $nickNames = Nickname::getAllNicknames($user->id);
+
+                $data = (object)[
+                    'auth' => (object)[
+                        'token_type' => 'Bearer',
+                        'expires_in' => 31536000,
+                        'access_token' => $jwt,
+                    ],
+                    'user' => $user,
+                    'nick_names' => $nickNames,
+                ];
+                $res = (object)[
+                    'status_code' => 200,
+                    'message' => 'Success',
+                    'data' => $data,
+                    'error' => null
+                ];
+                return (new SuccessResource($res))->response()->setStatusCode(200);
+            }
+
             $payload = [
                 'grant_type' => 'password',
                 'client_id' => $request->client_id,

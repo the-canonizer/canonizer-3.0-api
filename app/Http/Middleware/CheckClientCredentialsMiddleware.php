@@ -23,6 +23,11 @@ class CheckClientCredentialsMiddleware extends CheckCredentials
      */
     public function handle($request, Closure $next, ...$scopes)
     {
+        // Bypass client credential check in local development
+        if (env('APP_ENV') === 'local' || env('PASSPORT_BYPASS_CLIENT_CREDENTIALS') === 'true') {
+            return $next($request);
+        }
+
         $psr = (new PsrHttpFactory(
             new Psr17Factory,
             new Psr17Factory,
