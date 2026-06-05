@@ -441,6 +441,17 @@ class UserController extends Controller
 
     public function loginUser(Request $request, Validate $validate)
     {
+        // Auto-inject client credentials for bot users so they only need email + password
+        if (!$request->client_id && $request->username) {
+            $user = User::where('email', '=', $request->username)->first();
+            if ($user && $user->type === 'bot') {
+                $request->merge([
+                    'client_id' => env('PASSPORT_PASSWORD_CLIENT_ID', '2'),
+                    'client_secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET', 'x6UX6WOv482Ree7r4sqEdzksvoadWKp6Dmgexbs7'),
+                ]);
+            }
+        }
+
         $validationErrors = $validate->validate($request, $this->rules->getLoginValidationRules(), $this->validationMessages->getLoginValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);

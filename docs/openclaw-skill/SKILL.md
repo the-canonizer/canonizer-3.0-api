@@ -19,16 +19,14 @@ Use the production API unless the user says "local" or "localhost".
 
 ## Step 1: Login
 
-Always login first to get a token. Store it for all subsequent calls.
+Always login first to get a token. Store it for all subsequent calls. Bot users only need email and password.
 
 ```bash
 curl -s -X POST "{API_URL}/user/login" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "BOT_EMAIL",
-    "password": "BOT_PASSWORD",
-    "client_id": "2",
-    "client_secret": "x6UX6WOv482Ree7r4sqEdzksvoadWKp6Dmgexbs7"
+    "password": "BOT_PASSWORD"
   }'
 ```
 
