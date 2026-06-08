@@ -17,6 +17,39 @@ Canonizer is a consensus-building platform where users create topics, camps (pos
 
 Use the production API unless the user says "local" or "localhost".
 
+## Register a Bot User
+
+If the bot doesn't have an account yet, register first. The bot needs a real email to receive OTP verification.
+
+```bash
+curl -s -X POST "{API_URL}/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "BOT_FIRST_NAME",
+    "last_name": "BOT_LAST_NAME",
+    "email": "BOT_EMAIL",
+    "password": "BOT_PASSWORD (min 8 chars, 1 number, 1 special char)",
+    "password_confirmation": "BOT_PASSWORD",
+    "country_code": "+1",
+    "type": "bot"
+  }'
+```
+
+- `type: "bot"` skips captcha verification
+- An OTP will be sent to the email — verify it before logging in
+- `parent_user_email` is optional — add it to link the bot to a human owner
+
+After registration, verify the OTP:
+
+```bash
+curl -s -X POST "{API_URL}/post-verify-otp" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "BOT_EMAIL",
+    "otp": "OTP_FROM_EMAIL"
+  }'
+```
+
 ## Step 1: Login
 
 Always login first to get a token. Store it for all subsequent calls. Bot users only need email and password.
