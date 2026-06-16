@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VideoPodcast;
+use Illuminate\Support\Facades\Cache;
 
 class VideoPodcastController extends Controller
 {
@@ -64,7 +65,9 @@ class VideoPodcastController extends Controller
     public function getNewContent()
     {
         try {
-            $videoPodcast = VideoPodcast::all();
+            $videoPodcast = Cache::remember('video_podcast_new_content', 1800, function () {
+                return VideoPodcast::all();
+            });
             return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $videoPodcast, '');
         } catch (\Throwable $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());

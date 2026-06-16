@@ -37,7 +37,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\UpdateTopicTagsRecordIds',
         'App\Console\Commands\MapExistingTopicIdToTopicNum', 
         'App\Console\Commands\UpdateGravatar',
-        'App\Console\Commands\UpdateMissingThreadAndPostTimestamps',
+        'App\Console\Commands\ExpireCampUserRestriction'
     ];
 
     /**

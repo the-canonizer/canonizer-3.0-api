@@ -1,6 +1,8 @@
 <?php
 use Illuminate\Support\Facades\Artisan;
+
 /** @var \Laravel\Lumen\Routing\Router $router */
+
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +20,8 @@ $router->get('/key', function() {
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->post('/oauth/token', ['uses' => '\Dusterio\LumenPassport\Http\Controllers\AccessTokenController@issueToken']);
 
 
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
@@ -41,6 +45,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     //ProfileController
     $router->post('gravatar', 'ProfileController@getGravatar');
     
+    $router->post('/user/login',['uses' => 'UserController@loginUser']);
+    // $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
+    $router->post('/register','UserController@createUser');
+
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) 
     {
@@ -59,8 +67,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
 
         //UserController
         $router->get('/country/list','UserController@countryList');
-        $router->post('/register','UserController@createUser');
-        $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
+        // $router->post('/register','UserController@createUser');
+        // $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
         $router->post('/post-verify-otp','UserController@postVerifyOtp');
         $router->post('/user/social/login','UserController@socialLogin');
         $router->post('/user/social/callback',['uses'=>'UserController@socialCallback']);
@@ -95,9 +103,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->get('user/profile/{id}','ProfileController@getUserProfile');
         $router->get('user/all-supported-camps/{id}','ProfileController@getUserSupportedCamps');
         $router->get('user/supports/{id}',[ 'as' => 'user_supports','uses'=>'ProfileController@getUserSupports']);
-        $router->get('get-user-tags','ProfileController@getUserTags');
-        $router->post('save-user-tags','ProfileController@saveUserTags');
-        
+
         //TopicController 
         $router->post('/get-topic-history','TopicController@getTopicHistory');
         $router->post('/get-topic-record','TopicController@getTopicRecord');
@@ -112,9 +118,8 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         //VideoController
         $router->get('/videos', 'VideoController@getVideos');
         $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
-        $router->get('/consensus-video-podcasts','VideoController@getConsensusVideoPodcasts');
 
-       
+        //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
 
     //Route Group to access api with user access token
@@ -200,7 +205,9 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/get-statement-comparison','StatementController@getStatementComparison');
 
         //TopicController
-        $router->post('topic/save', ['uses' => 'TopicController@store', 'middleware' => 'throttle:1,0.05']);
+        // $router->post('topic/save', ['uses' => 'TopicController@store', 'middleware' => 'throttle:1,0.05']);
+        $router->post('topic/save', ['uses' => 'TopicController@store']);
+
         $router->post('commit/change','TopicController@commitAndNotifyChange');
         $router->post('discard/change','TopicController@discardChange');
         $router->post('agree-to-change','TopicController@agreeToChange');
@@ -214,6 +221,19 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('notification/read/all/','NotificationController@updateReadAll');
         $router->post('notification/delete/all/','NotificationController@deleteAll');
         $router->post('/update-fcm-token','NotificationController@updateFcmToken');
+
+        //Camp Restrictions
+        $router->post('camps/{id}/restrict', 'CampRestrictionController@restrict');
+        $router->post('camps/{id}/lift-restriction/{user_id}', 'CampRestrictionController@lift');
+        $router->post('camps/{id}/extend-restriction/{user_id}', 'CampRestrictionController@extend');
+        $router->get('camps/{id}/restrictions', 'CampRestrictionController@index');
+        $router->get('camps/{id}/restriction/logs', 'CampRestrictionController@restrictionLogs');
+
+        //AI Agent Management
+        $router->get('ai-agents', 'AiAgentController@list');
+        $router->get('ai-agents/{id}', 'AiAgentController@show');
+        $router->put('ai-agents/{id}', 'AiAgentController@update');
+        $router->delete('ai-agents/{id}', 'AiAgentController@destroy');
     });
     
     $router->group(['middleware' => 'admin'], function() use ($router) {
