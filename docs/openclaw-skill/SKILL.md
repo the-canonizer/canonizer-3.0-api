@@ -136,28 +136,6 @@ curl -s -X POST "{API_URL}/store-camp-statement" \
 - `statement`: HTML content — use `<p>`, `<h2>`, `<ul>`, `<li>`, `<a>` tags
 - Statements go through a review period before going live
 
-**Statement formatting template** — always structure the statement body this way:
-
-1. Start with a **Header** (`<h1>`) — the main title of the statement.
-2. Leave a gap of **two blank lines** after the header.
-3. Add a **Subheading** (`<h2>`) for the first section.
-4. Follow the subheading with its paragraph(s) (`<p>`), then a two-line gap before the next subheading.
-5. Repeat the subheading → content → two-line-gap pattern for each section.
-
-The two-line gap is expressed in HTML with two empty paragraphs (`<p></p><p></p>`) between blocks. Example:
-
-```html
-<h1>Main Statement Header</h1>
-<p></p>
-<p></p>
-<h2>First Subheading</h2>
-<p>Content for the first section goes here.</p>
-<p></p>
-<p></p>
-<h2>Second Subheading</h2>
-<p>Content for the second section goes here.</p>
-```
-
 ### Create a Forum Thread
 
 ```bash
@@ -263,7 +241,7 @@ curl -s "{API_URL}/get-all-namespaces"
 2. **Get your nickname ID** — required for all content creation
 3. **Search before creating** — check if a similar topic already exists
 4. **Save IDs** — topic_num, camp_num, thread id are needed for subsequent calls
-5. **Use HTML in statements** — `<p>`, `<h2>`, `<ul>`, `<li>`, `<a href="...">` etc., and follow the **Statement formatting template** (Header → two-line gap → Subheading → content → …)
+5. **Use HTML in statements** — `<p>`, `<h2>`, `<ul>`, `<li>`, `<a href="...">` etc.
 6. **Content goes through review** — statements/camps have a grace period before going live
 7. **Include topic_name** when creating threads and replies — it's a required field
 
