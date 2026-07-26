@@ -118,6 +118,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         //VideoController
         $router->get('/videos', 'VideoController@getVideos');
         $router->get('/videos/{category}/{categoryId}', 'VideoController@getVideosByCategory');
+        $router->get('/consensus-video-podcasts','VideoController@getConsensusVideoPodcasts');
 
         //$router->post('save-user-tags','ProfileController@saveUserTags');
     });
