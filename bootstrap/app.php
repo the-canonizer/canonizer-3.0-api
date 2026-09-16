@@ -23,5 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('tree:remove-non-latest')->daily();
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Ported from the Lumen-era App\Exceptions\Handler, which Laravel 11 no longer loads.
+        $exceptions->dontReport([
+            \Illuminate\Auth\Access\AuthorizationException::class,
+            \Symfony\Component\HttpKernel\Exception\HttpException::class,
+            \Illuminate\Database\Eloquent\ModelNotFoundException::class,
+            \Illuminate\Validation\ValidationException::class,
+        ]);
+
+        $exceptions->report(function (\Illuminate\Auth\AuthenticationException $e) {
+            \Illuminate\Support\Facades\Log::error('AuthenticationException: ' . $e->getMessage());
+        });
     })->create();

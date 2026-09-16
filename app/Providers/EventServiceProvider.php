@@ -6,7 +6,6 @@ use App\Mail\welcomeEmail;
 use App\Events\ExampleEvent;
 use App\Events\SendOtpEvent;
 use App\Events\CampForumEvent;
-use App\Events\LogActivityEvent;
 use App\Events\WelcomeMailEvent;
 use App\Listeners\ExampleListener;
 use App\Listeners\SendOtpListener;
@@ -14,7 +13,6 @@ use App\Listeners\CampForumListener;
 use App\Events\NotifySupportersEvent;
 use App\Events\SupportAddedMailEvent;
 use App\Events\CampForumPostMailEvent;
-use App\Listeners\LogActivityListener;
 use App\Listeners\WelcomeMailListener;
 use App\Events\SupportRemovedMailEvent;
 use App\Events\CampForumThreadMailEvent;
@@ -41,6 +39,8 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use App\Events\UnarchiveCampMailEvent;
 use App\Listeners\UnarchiveCampMailListener;
 use App\Events\EmailChangeEvent;
+use App\Events\IncreaseTopicViewCountEvent;
+use App\Listeners\IncreaseTopicViewCountListener;
 use App\Listeners\CampLeaderChangedListener;
 use App\Listeners\EmailChangeListener;
 
@@ -79,9 +79,6 @@ class EventServiceProvider extends ServiceProvider
         SupportRemovedMailEvent::class => [
             SupportRemovedMailListener::class,
         ],
-        LogActivityEvent::class => [
-            LogActivityListener::class,
-        ],
         SupportAddedMailEvent::class => [
             SupportAddedMailListener::class,
         ],
@@ -111,6 +108,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         CampLeaderRemovedEvent::class => [
             CampLeaderChangedListener::class
+        ],
+        IncreaseTopicViewCountEvent::class => [
+            IncreaseTopicViewCountListener::class
         ],
     ];
 }
