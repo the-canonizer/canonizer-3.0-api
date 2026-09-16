@@ -30,6 +30,7 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\AdsController;
 use App\Http\Controllers\SitemapXmlController;
 use App\Http\Controllers\CampRestrictionController;
+use App\Http\Controllers\AiAgentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -206,6 +207,12 @@ Route::group(['prefix' => 'v3'], function () {
         Route::post('camps/{id}/extend-restriction/{user_id}', [CampRestrictionController::class, 'extend']);
         Route::get('camps/{id}/restrictions', [CampRestrictionController::class, 'index']);
         Route::get('camps/{id}/restriction/logs', [CampRestrictionController::class, 'restrictionLogs']);
+
+        //AI Agent Management
+        Route::get('ai-agents', [AiAgentController::class, 'list']);
+        Route::get('ai-agents/{id}', [AiAgentController::class, 'show']);
+        Route::put('ai-agents/{id}', [AiAgentController::class, 'update']);
+        Route::delete('ai-agents/{id}', [AiAgentController::class, 'destroy']);
     });
 
     // Admin Middleware group
