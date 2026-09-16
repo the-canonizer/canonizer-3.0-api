@@ -7,6 +7,7 @@ class ElasticSearch
 {
     public $elasticsearchClient;
     public  static $indexName = 'canonizer_elastic_search';
+    private static $indexChecked = false;
 
     public function __construct()
     {
@@ -21,6 +22,88 @@ class ElasticSearch
             $clientBuilder->setBasicAuthentication($username, $password);
         }
         return $this->elasticsearchClient = $clientBuilder->build();
+    }
+
+    /**
+     * Ensure the ElasticSearch index exists, creating it with proper mappings if missing.
+     * Only checks once per request to avoid repeated calls.
+     */
+    public static function ensureIndexExists($elasticsearch)
+    {
+        if (self::$indexChecked || $elasticsearch === null) {
+            return;
+        }
+
+        try {
+            $response = $elasticsearch->indices()->exists(['index' => self::$indexName]);
+            $exists = is_bool($response) ? $response : $response->asBool();
+            if (!$exists) {
+                \Log::info("ElasticSearch index '" . self::$indexName . "' not found. Creating...");
+                $mapping = [
+                    'index' => self::$indexName,
+                    'body'  => [
+                        'settings' => [
+                            'analysis' => [
+                                'tokenizer' => [
+                                    'my_tokenizer' => [
+                                        'type' => 'whitespace'
+                                    ]
+                                ],
+                                'char_filter' => [
+                                    'replace_special_chars' => [
+                                        'type'        => 'pattern_replace',
+                                        'pattern'     => '[^\\p{L}\\p{N}#@$\\(\\)]+',
+                                        'replacement' => ' '
+                                    ]
+                                ],
+                                'analyzer' => [
+                                    'my_analyzer' => [
+                                        'type'        => 'custom',
+                                        'tokenizer'   => 'my_tokenizer',
+                                        'char_filter' => ['replace_special_chars'],
+                                        'filter'      => ['lowercase']
+                                    ]
+                                ]
+                            ]
+                        ],
+                        'mappings' => [
+                            'properties' => [
+                                'id'             => ['type' => 'keyword'],
+                                'is_live'        => ['type' => 'boolean'],
+                                'is_archive'     => ['type' => 'boolean'],
+                                'type'           => ['type' => 'keyword'],
+                                'type_value'     => [
+                                    'type'     => 'text',
+                                    'analyzer' => 'my_analyzer',
+                                    'fields'   => [
+                                        'keyword' => [
+                                            'type'         => 'keyword',
+                                            'ignore_above' => 256
+                                        ]
+                                    ]
+                                ],
+                                'record_id'      => ['type' => 'integer'],
+                                'topic_num'      => ['type' => 'integer'],
+                                'camp_num'       => ['type' => 'integer'],
+                                'statement_num'  => ['type' => 'integer'],
+                                'nick_name_id'   => ['type' => 'integer'],
+                                'go_live_time'   => ['type' => 'long'],
+                                'namespace'      => ['type' => 'keyword'],
+                                'link'           => ['type' => 'keyword'],
+                                'support_count'  => ['type' => 'double'],
+                                'breadcrumb_data' => ['type' => 'text'],
+                            ]
+                        ]
+                    ]
+                ];
+                $elasticsearch->indices()->create($mapping);
+                \Log::info("ElasticSearch index '" . self::$indexName . "' created successfully.");
+            }
+        } catch (\Throwable $e) {
+            \Log::error("ElasticSearch ensureIndexExists error: " . $e->getMessage());
+        }
+
+        self::$indexChecked = true;
     }
 
     public static function ingestData($id, 
@@ -44,8 +127,12 @@ class ElasticSearch
         }
         $isLiveValue = filter_var($isLive, FILTER_VALIDATE_BOOLEAN); 
         $isArchiveValue = filter_var($isArchive, FILTER_VALIDATE_BOOLEAN); 
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $bulkData = []; // An array to accumulate data for bulk indexing
+        try {
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+            if ($elasticsearch) {
+                self::ensureIndexExists($elasticsearch);
+            }
+            $bulkData = []; // An array to accumulate data for bulk indexing
              $bulkData[] = [
                  'index' => [
                      '_index' => self::$indexName,
@@ -68,12 +155,12 @@ class ElasticSearch
                 'is_live'=> $isLiveValue,
                 'is_archive' => $isArchiveValue
             ];
-            \Log::info("nicknamesss");
-        // Use the Bulk API to send the data in a batch
-        $params = ['body' => $bulkData];
-        \Log::info($bulkData);
-        $response = $elasticsearch->bulk($params);
-        \Log::info($response);
+            // Use the Bulk API to send the data in a batch
+            $params = ['body' => $bulkData];
+            $response = $elasticsearch->bulk($params);
+        } catch (\Throwable $e) {
+            \Log::error("ElasticSearch ingestData error: " . $e->getMessage());
+        }
         return;
 
     }
@@ -83,25 +170,31 @@ class ElasticSearch
         if (app()->environment('testing')) {
             return;
         }
-        $elasticsearch = (new Elasticsearch())->elasticsearchClient;
-        $params = [
-            'index' => self::$indexName,
-            'body'  => [
-                'query' => [
-                    'terms' => [
-                        '_id' => [$id]
+        try {
+            $elasticsearch = (new Elasticsearch())->elasticsearchClient;
+            if ($elasticsearch) {
+                self::ensureIndexExists($elasticsearch);
+            }
+            $params = [
+                'index' => self::$indexName,
+                'body'  => [
+                    'query' => [
+                        'terms' => [
+                            '_id' => [$id]
+                        ]
                     ]
                 ]
-            ]
-        ];      
-        $response = $elasticsearch->search($params);
-        if (isset($response['hits']['hits']) && !empty($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
-            $delParam = [
-                'index' => self::$indexName,
-                'id'    => $id
             ];
-            $response = $elasticsearch->delete($delParam);
-            // Process the response if needed          
+            $response = $elasticsearch->search($params);
+            if (isset($response['hits']['hits']) && !empty($response['hits']['hits']) && isset($response['hits']['total']['value'])) {
+                $delParam = [
+                    'index' => self::$indexName,
+                    'id'    => $id
+                ];
+                $response = $elasticsearch->delete($delParam);
+            }
+        } catch (\Throwable $e) {
+            \Log::error("ElasticSearch deleteData error: " . $e->getMessage());
         }
         return;
     }
