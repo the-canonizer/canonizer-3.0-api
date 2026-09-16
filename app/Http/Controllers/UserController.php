@@ -266,24 +266,29 @@ class UserController extends Controller
              return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
         }
         try {
-            $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
-            $payload = [
-                'secret' => env('RECAPTCHA_SECRET_KEY'),
-                'response' => $request->captcha_token,
-                'remoteip' => $request->ip()
-            ];
-            $validateRecaptcha = Util::httpPost($postUrl, $payload);
-            if (($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) && !app()->environment('testing')) {
-                $status = 406;
-                $message = "The reCAPTCHA verification failed, please try again.";
-                if ($validateRecaptcha->status_code != 200) {
-                    $message = "An error occurred during reCAPTCHA verification.";
-                } elseif (!$validateRecaptcha->data['success']) {
-                    $message = "The reCAPTCHA verification failed.";
-                } elseif ($validateRecaptcha->data['score'] < 0.5) {
-                    $message = "The reCAPTCHA verification score is too low.";
+            $isBot = $request->type === 'bot';
+
+            // Bots register through the API, not a browser, so there is no reCAPTCHA token to verify
+            if (!$isBot) {
+                $postUrl = env('RECAPTCHA_SITE_VERIFY_URL');
+                $payload = [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $request->captcha_token,
+                    'remoteip' => $request->ip()
+                ];
+                $validateRecaptcha = Util::httpPost($postUrl, $payload);
+                if (($validateRecaptcha->status_code != 200 || !$validateRecaptcha->data['success'] || $validateRecaptcha->data['score'] < 0.5) && !app()->environment('testing')) {
+                    $status = 406;
+                    $message = "The reCAPTCHA verification failed, please try again.";
+                    if ($validateRecaptcha->status_code != 200) {
+                        $message = "An error occurred during reCAPTCHA verification.";
+                    } elseif (!$validateRecaptcha->data['success']) {
+                        $message = "The reCAPTCHA verification failed.";
+                    } elseif ($validateRecaptcha->data['score'] < 0.5) {
+                        $message = "The reCAPTCHA verification score is too low.";
+                    }
+                    return $this->resProvider->apiJsonResponse($status, $message, null, null);
                 }
-                return $this->resProvider->apiJsonResponse($status, $message, null, null);
             }
             $authCode = mt_rand(100000, 999999);
             $profile_picture_path= $this->getGravatar($request->email);
@@ -298,6 +303,17 @@ class UserController extends Controller
                 "otp" => $authCode,
                 "profile_picture_path" => $profile_picture_path
             ];
+
+            if ($isBot) {
+                $input['type'] = 'bot';
+                // Link the bot to the human account that owns it, when one is given
+                if ($request->parent_user_email) {
+                    $parentUser = User::where('email', $request->parent_user_email)->first();
+                    if ($parentUser) {
+                        $input['parent_user_id'] = $parentUser->id;
+                    }
+                }
+            }
 
             $user = User::create($input);
             if ($user) {
@@ -406,6 +422,21 @@ class UserController extends Controller
 
     public function loginUser(Request $request, Validate $validate)
     {
+        // Bots authenticate with email + password only, so fill in the password-grant client
+        if (!$request->client_id && $request->username) {
+            $botUser = User::where('email', '=', $request->username)->first();
+            if ($botUser && $botUser->type === 'bot') {
+                $clientId = env('PASSPORT_PASSWORD_CLIENT_ID');
+                $clientSecret = env('PASSPORT_PASSWORD_CLIENT_SECRET');
+                if ($clientId && $clientSecret) {
+                    $request->merge([
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                    ]);
+                }
+            }
+        }
+
         $validationErrors = $validate->validate($request, $this->rules->getLoginValidationRules(), $this->validationMessages->getLoginValidationMessages());
         if ($validationErrors) {
             return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
