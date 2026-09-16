@@ -15,6 +15,7 @@ use App\Models\Topic;
 use App\Models\Camp;
 use App\Models\Statement;
 use App\Models\TopicSupport;
+use App\Events\IncreaseTopicViewCountEvent;
 use App\Facades\Repositories\TreeRepositoryFacade as TreeRepository;
 use App\Facades\Services\TopicServiceFacade;
 use Illuminate\Support\Facades\Log;
@@ -199,6 +200,10 @@ class TreeController extends Controller
                     }
                 }
                 $responseArray['data'][0][1]['collapsedTreeCampIds'] = array_reverse(Helpers::renderParentsCampTree($topicNumber, $campNumber));
+            }
+
+            if ($request->has('view')) {
+                event(new IncreaseTopicViewCountEvent($topicNumber, $campNumber, ceil($request->input('asofdate')), $request->view));
             }
 
             $responseArray['data'][0][1]['camp_views'] = intval(Helpers::getCampViewsByDate($topicNumber, $campNumber));
