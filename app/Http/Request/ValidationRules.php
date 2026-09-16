@@ -221,7 +221,7 @@ class ValidationRules
     public function getTopicStoreValidationRules(): array
     {
         return ([
-            'topic_name' => 'required|max:80',
+            'topic_name' => 'required|max:100',
             'namespace' => 'required',
             'create_namespace' => 'required_if:namespace,other|max:100',
             'nick_name' => 'required',

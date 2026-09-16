@@ -27,10 +27,14 @@ class CampUserRestrictions extends Migration
                 $table->enum('status', ['active','lifted','expired'])->default('active');
                 $table->timestamps();
 
-                // foreign keys 
-                $table->foreign('restricted_user_id')->references('id')->on('person')->cascadeOnDelete();
-                $table->foreign('restricted_by')->references('id')->on('person')->cascadeOnDelete();
-                $table->foreign('camp_id')->references('id')->on('camp')->cascadeOnDelete();
+                // foreign keys
+                // FKs disabled — fail to apply on production MySQL/InnoDB config
+                // (charset/collation mismatch with referenced tables); table is
+                // already in production without these FKs and the app code
+                // does not depend on them.
+                // $table->foreign('restricted_user_id')->references('id')->on('person')->cascadeOnDelete();
+                // $table->foreign('restricted_by')->references('id')->on('person')->cascadeOnDelete();
+                // $table->foreign('camp_id')->references('id')->on('camp')->cascadeOnDelete();
                 // $table->foreign('camp_num')->references('camp_num')->on('camp')->cascadeOnDelete();
                 // $table->foreign('topic_num')->references('topic_num')->on('camp')->cascadeOnDelete();
             });

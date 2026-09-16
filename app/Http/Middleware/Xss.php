@@ -10,10 +10,20 @@ class Xss
     public function handle(Request $request, Closure $next)
     {
         $input = $request->all();
-        array_walk_recursive($input, function (&$input) {
-            $input = strip_tags($input);
+        if (empty($input)) {
+            $raw = $request->getContent();
+            if (!empty($raw)) {
+                $decoded = json_decode($raw, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $input = $decoded;
+                }
+            }
+        }
+        array_walk_recursive($input, function (&$val) {
+            $val = strip_tags($val);
         });
         $request->merge($input);
+        $request->json()->replace($input);
         return $next($request);
     }
 }

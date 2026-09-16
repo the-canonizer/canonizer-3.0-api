@@ -191,6 +191,8 @@ Route::group(['prefix' => 'v3'], function () {
         Route::post('agree-to-change', [TopicController::class, 'agreeToChange']);
         Route::post('/manage-topic', [TopicController::class, 'manageTopic']);
         Route::post('/edit-topic', [TopicController::class, 'editTopicRecord']);
+        Route::post('/delete-topic', [TopicController::class, 'deleteTopic']);
+        Route::post('/restore-topic', [TopicController::class, 'restoreTopic']);
         Route::get('/preferred-topic', [TopicController::class, 'preferredTopic']);
 
         Route::get('notification-list', [NotificationController::class, 'notificationList']);
@@ -208,6 +210,7 @@ Route::group(['prefix' => 'v3'], function () {
 
     // Admin Middleware group
     Route::group(['middleware' => 'admin'], function () {
+        Route::get('/admin/topics', [TopicController::class, 'adminListTopics']);
         Route::post('/edit-camp-newsfeed', [NewsFeedController::class, 'editNewsFeed']);
         Route::post('/store-camp-newsfeed', [NewsFeedController::class, 'storeNewsFeed']);
         Route::post('/update-camp-newsfeed', [NewsFeedController::class, 'updateNewsFeed']);

@@ -576,6 +576,14 @@ class StatementController extends Controller
 
             $statement->go_live_time = strtotime(date('Y-m-d H:i:s', strtotime('+1 days')));
 
+            // If the submitter is the only supporter of this camp, skip the grace
+            // period entirely — there is nobody else who could object, so the
+            // change can go live immediately.
+            if (in_array($eventType, ['create', 'update', 'edit']) && $ifIamSingleSupporter) {
+                $statement->go_live_time = time();
+                $statement->grace_period = 0;
+            }
+
             /** Dispatch job for the case when the statement is in grace period by user B,
              * so schedule a job that will run and update the tree
              * also this will update the grace period flag as well.
@@ -607,7 +615,14 @@ class StatementController extends Controller
                 }
             }
 
-            return $this->resProvider->apiJsonResponse(200, $message, (isset($all['is_draft']) && $all['is_draft'] ? [ "draft_record_id" => $statement->id] : ''), '');
+            return $this->resProvider->apiJsonResponse(
+                200,
+                $message,
+                (isset($all['is_draft']) && $all['is_draft'])
+                    ? ['draft_record_id' => $statement->id]
+                    : ['change_gone_live' => ($statement->go_live_time <= time())],
+                ''
+            );
         } catch (Exception $e) {
             return $this->resProvider->apiJsonResponse(400, trans('message.error.exception'), '', $e->getMessage());
         }

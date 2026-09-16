@@ -2706,4 +2706,115 @@ class TopicController extends Controller
         // Util::mailSubscribersAndSupporters([], $subscribers, $link, $data);
     }
 
+    /**
+     * Soft-delete a topic. Permitted if the user is an admin
+     * OR owns the nickname that submitted the topic.
+     */
+    public function deleteTopic(Request $request)
+    {
+        $topicNum = $request->input('topic_num');
+        if (empty($topicNum)) {
+            return $this->resProvider->apiJsonResponse(400, 'topic_num is required', '', '');
+        }
+
+        $topic = Topic::where('topic_num', $topicNum)
+            ->where('is_disabled', 0)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$topic) {
+            return $this->resProvider->apiJsonResponse(404, 'Topic not found', '', '');
+        }
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->type === 'admin';
+        $nickIds = Nickname::getNicknamesIdsByUserId($user->id);
+        $isCreator = in_array($topic->submitter_nick_id, $nickIds);
+
+        if (!$isAdmin && !$isCreator) {
+            return $this->resProvider->apiJsonResponse(403, 'You do not have permission to delete this topic', '', '');
+        }
+
+        try {
+            Topic::where('topic_num', $topicNum)->update(['is_disabled' => 1]);
+
+            // Remove from canonizer-service MongoDB if configured
+            $appURL = env('CS_APP_URL');
+            $apiToken = env('API_TOKEN');
+            if (!empty($appURL) && !empty($apiToken)) {
+                $endpoint = $appURL . '/api/v1/tree/delete';
+                $headers = [
+                    'Content-Type:application/x-www-form-urlencoded',
+                    'X-Api-Token:' . $apiToken,
+                ];
+                Util::execute('POST', $endpoint, $headers, http_build_query(['topic_num' => $topicNum]));
+            }
+
+            return $this->resProvider->apiJsonResponse(200, 'Topic deleted', ['topic_num' => (int) $topicNum], '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, 'Failed to delete topic', '', $e->getMessage());
+        }
+    }
+
+    /**
+     * Admin or owner: restore a previously disabled topic.
+     */
+    public function restoreTopic(Request $request)
+    {
+        $topicNum = $request->input('topic_num');
+        if (empty($topicNum)) {
+            return $this->resProvider->apiJsonResponse(400, 'topic_num is required', '', '');
+        }
+
+        $topic = Topic::where('topic_num', $topicNum)->orderBy('id', 'desc')->first();
+        if (!$topic) {
+            return $this->resProvider->apiJsonResponse(404, 'Topic not found', '', '');
+        }
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->type === 'admin';
+        $nickIds = Nickname::getNicknamesIdsByUserId($user->id);
+        $isCreator = in_array($topic->submitter_nick_id, $nickIds);
+
+        if (!$isAdmin && !$isCreator) {
+            return $this->resProvider->apiJsonResponse(403, 'You do not have permission to restore this topic', '', '');
+        }
+
+        try {
+            Topic::where('topic_num', $topicNum)->update(['is_disabled' => 0]);
+            return $this->resProvider->apiJsonResponse(200, 'Topic restored. Run tree:all on the canonizer-service to re-index.', ['topic_num' => (int) $topicNum], '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, 'Failed to restore topic', '', $e->getMessage());
+        }
+    }
+
+    /**
+     * Admin: list all topics (live + disabled) with namespace label.
+     */
+    public function adminListTopics(Request $request)
+    {
+        try {
+            $rows = DB::table('topic as t')
+                ->leftJoin('nick_name as n', 'n.id', '=', 't.submitter_nick_id')
+                ->leftJoin('namespace as ns', 'ns.id', '=', 't.namespace_id')
+                ->select(
+                    't.id',
+                    't.topic_num',
+                    't.topic_name',
+                    't.namespace_id',
+                    'ns.label as namespace_label',
+                    't.submitter_nick_id',
+                    'n.nick_name as submitter_nick_name',
+                    't.is_disabled',
+                    't.submit_time',
+                    't.go_live_time'
+                )
+                ->orderBy('t.topic_num', 'desc')
+                ->get();
+            return $this->resProvider->apiJsonResponse(200, 'Success', $rows, '');
+        } catch (Exception $e) {
+            return $this->resProvider->apiJsonResponse(400, 'Failed to list topics', '', $e->getMessage());
+        }
+    }
+
 }
