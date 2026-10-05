@@ -23,6 +23,11 @@ class CheckClientCredentialsMiddleware extends CheckCredentials
      */
     public function handle($request, Closure $next, ...$scopes)
     {
+        // Bot clients authenticate with the password grant only; this flag lets them through
+        if (env('PASSPORT_BYPASS_CLIENT_CREDENTIALS') === 'true') {
+            return $next($request);
+        }
+
         $psr = (new PsrHttpFactory(
             new Psr17Factory,
             new Psr17Factory,
