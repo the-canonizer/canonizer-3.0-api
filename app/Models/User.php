@@ -109,7 +109,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      * @var array
      */
     protected $fillable = [
-       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path', 'birthday', 'gender', 'address_1', 'country', 'state' , 'postal_code'
+       'id', 'first_name','is_active','last_name','middle_name', 'email', 'password','otp','phone_number','country_code','status','type', 'profile_picture_path', 'birthday', 'gender', 'address_1', 'country', 'state' , 'postal_code', 'parent_user_id'
     ];
 
     /**
@@ -120,6 +120,21 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $hidden = [
         'password', 'remember_token', 'otp' , 'fcm_token'
     ];
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'parent_user_id');
+    }
+
+    public function bots()
+    {
+        return $this->hasMany(User::class, 'parent_user_id');
+    }
+
+    public function isBot()
+    {
+        return $this->type === 'bot';
+    }
 
     public function getBirthdayAttribute($value)
     {

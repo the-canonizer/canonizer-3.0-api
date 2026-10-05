@@ -279,6 +279,24 @@ class ProfileController extends Controller
 
         unset($user->profile_picture_path);
 
+        // Include AI agents
+        $user->agents = User::where('parent_user_id', $user->id)
+            ->where('type', 'bot')
+            ->select('id', 'first_name', 'last_name', 'email', 'type', 'is_active')
+            ->get();
+
+        $user->is_bot = $user->type === 'bot';
+
+        // If bot, include parent info
+        if ($user->is_bot && $user->parent_user_id) {
+            $parent = User::find($user->parent_user_id);
+            $user->parent_user = $parent ? [
+                'id' => $parent->id,
+                'first_name' => $parent->first_name,
+                'last_name' => $parent->last_name,
+            ] : null;
+        }
+
         try{
             $res = (object)[
                 "status_code" => 200,
@@ -561,6 +579,24 @@ class ProfileController extends Controller
 
                 $publicNickNames = Nickname::getAllNicknames($id, 0);
                 $userArray['nick_names'] = $publicNickNames;
+
+                // Include user's AI agents (bots)
+                $userArray['agents'] = User::where('parent_user_id', $id)
+                    ->where('type', 'bot')
+                    ->select('id', 'first_name', 'last_name', 'email', 'type', 'is_active')
+                    ->get();
+
+                // If this user is a bot, include parent info
+                if ($user->type === 'bot' && $user->parent_user_id) {
+                    $parent = User::find($user->parent_user_id);
+                    $userArray['parent_user'] = $parent ? [
+                        'id' => $parent->id,
+                        'first_name' => $parent->first_name,
+                        'last_name' => $parent->last_name,
+                    ] : null;
+                }
+
+                $userArray['is_bot'] = $user->type === 'bot';
 
                 $status = 200;
                 $message = trans('message.success.success');
