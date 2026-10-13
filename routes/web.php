@@ -50,8 +50,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/register','UserController@createUser');
 
     // Passkey (WebAuthn) login, an optional method alongside password/social
-    $router->post('/auth/passkey/login-options', 'PasskeyController@loginOptions');
-    $router->post('/auth/passkey/login-verify', 'PasskeyController@loginVerify');
+    // Public, so throttled; kept outside the Xss group on purpose: the bodies are opaque
+    // base64url/cryptographic blobs (strip_tags could only corrupt them) and nothing is rendered.
+    $router->post('/auth/passkey/login-options', ['uses' => 'PasskeyController@loginOptions', 'middleware' => 'throttle:30,1']);
+    $router->post('/auth/passkey/login-verify', ['uses' => 'PasskeyController@loginVerify', 'middleware' => 'throttle:20,1']);
 
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) 
