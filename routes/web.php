@@ -27,6 +27,21 @@ $router->post('/oauth/token', ['uses' => '\Dusterio\LumenPassport\Http\Controlle
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
 $router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
 
+// Passkey (WebAuthn) authentication, an optional login method alongside password/social
+$router->group(['prefix' => 'api/v1/auth'], function() use ($router)
+{
+    $router->post('/passkey/login-options', 'PasskeyController@loginOptions');
+    $router->post('/passkey/login-verify', 'PasskeyController@loginVerify');
+
+    $router->group(['middleware' => 'auth'], function() use ($router)
+    {
+        $router->post('/passkey/register-options', 'PasskeyController@registerOptions');
+        $router->post('/passkey/register-verify', 'PasskeyController@registerVerify');
+        $router->get('/passkeys', 'PasskeyController@index');
+        $router->delete('/passkeys/{id}', 'PasskeyController@destroy');
+    });
+});
+
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users

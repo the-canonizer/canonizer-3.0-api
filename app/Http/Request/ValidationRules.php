@@ -753,4 +753,31 @@ class ValidationRules
     }
 
     
+
+    public function getPasskeyRegisterRules(): array
+    {
+        return [
+            'credential' => 'required|array',
+            'credential.id' => 'required|string',
+            'credential.response' => 'required|array',
+            'label' => 'nullable|string|max:100',
+        ];
+    }
+
+    public function getPasskeyLoginOptionsRules(): array
+    {
+        return [
+            'email' => 'nullable|email',
+        ];
+    }
+
+    public function getPasskeyLoginVerifyRules(): array
+    {
+        return [
+            'challenge_id' => 'required|string',
+            'credential' => 'required|array',
+            'credential.id' => 'required|string',
+            'credential.response' => 'required|array',
+        ];
+    }
 }

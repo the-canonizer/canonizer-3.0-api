@@ -939,4 +939,16 @@ class ValidationMessages
         ]);
     }
 
+
+    public function getPasskeyMessages(): array
+    {
+        return [
+            'credential.required' => trans('message.passkey.verification_failed'),
+            'credential.array' => trans('message.passkey.verification_failed'),
+            'credential.id.required' => trans('message.passkey.verification_failed'),
+            'credential.response.required' => trans('message.passkey.verification_failed'),
+            'challenge_id.required' => trans('message.passkey.challenge_invalid'),
+            'email.email' => trans('message.login.username_required'),
+        ];
+    }
 }
