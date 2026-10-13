@@ -10,11 +10,10 @@ use App\Http\Request\ValidationMessages;
 use App\Http\Request\ValidationRules;
 use App\Http\Resources\Authentication\UserResource;
 use App\Http\Resources\ErrorResource;
-use App\Http\Resources\SuccessResource;
-use App\Models\Nickname;
 use App\Models\UserPasskey;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class PasskeyController extends Controller
@@ -87,37 +86,10 @@ class PasskeyController extends Controller
 
             // Same local-dev token bypass and payload as UserController::loginUser.
             if (env('APP_ENV') === 'local') {
-                $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
-                $payload = base64_encode(json_encode([
-                    'aud' => $request->client_id ?? '2',
-                    'sub' => $user->id,
-                    'exp' => time() + 31536000,
-                    'iat' => time(),
-                    'scopes' => ['*']
-                ]));
-                $signature = base64_encode('local_dev_signature');
-                $data = (object)[
-                    'auth' => (object)[
-                        'token_type' => 'Bearer',
-                        'expires_in' => 31536000,
-                        'access_token' => "$header.$payload.$signature",
-                    ],
-                    'user' => $user,
-                    'nick_names' => Nickname::getAllNicknames($user->id),
-                ];
-                $res = (object)[
-                    'status_code' => 200,
-                    'message' => 'Success',
-                    'data' => $data,
-                    'error' => null
-                ];
-                return (new SuccessResource($res))->response()->setStatusCode(200);
+                return $this->localDevLoginResponse($user, $request->client_id);
             }
 
-            $generateToken = Util::httpPost(URL::to('/') . '/oauth/token', [
-                'grant_type' => 'password',
-                'client_id' => env('PASSPORT_PASSWORD_CLIENT_ID'),
-                'client_secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET'),
+            $generateToken = Util::httpPost(URL::to('/') . '/oauth/token', ['grant_type' => 'password'] + $this->passwordGrantClient() + [
                 'username' => $user->email,
                 'password' => env('PASSPORT_MASTER_PASSWORD'),
                 'scope' => '*',
@@ -154,10 +126,17 @@ class PasskeyController extends Controller
         return $this->resProvider->apiJsonResponse(200, trans('message.passkey.deleted'), null, null);
     }
 
-    /** Service exceptions carry an HTTP status as their code; anything else is a 400. */
+    /**
+     * Service exceptions carry an HTTP status as their code and a client-safe message.
+     * Anything else (DB errors, HTTP failures, misconfiguration) is logged and returned
+     * as a generic 500 so internals never reach the client.
+     */
     private function failure(Exception $e)
     {
-        $code = in_array($e->getCode(), [400, 402, 404, 409], true) ? $e->getCode() : 400;
-        return $this->resProvider->apiJsonResponse($code, $e->getMessage(), null, null);
+        if (in_array($e->getCode(), [400, 402, 404, 409], true)) {
+            return $this->resProvider->apiJsonResponse($e->getCode(), $e->getMessage(), null, null);
+        }
+        Log::error($e);
+        return $this->resProvider->apiJsonResponse(500, trans('message.error.exception'), null, null);
     }
 }

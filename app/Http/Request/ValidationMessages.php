@@ -952,6 +952,10 @@ class ValidationMessages
             'credential.response.authenticatorData.required' => trans('message.passkey.verification_failed'),
             'credential.response.signature.required' => trans('message.passkey.verification_failed'),
             'credential.response.userHandle.string' => trans('message.passkey.verification_failed'),
+            'credential.response.transports.array' => trans('message.passkey.verification_failed'),
+            'credential.response.transports.max' => trans('message.passkey.verification_failed'),
+            'credential.response.transports.*.string' => trans('message.passkey.verification_failed'),
+            'credential.response.transports.*.in' => trans('message.passkey.verification_failed'),
             'challenge_id.required' => trans('message.passkey.challenge_invalid'),
         ];
     }

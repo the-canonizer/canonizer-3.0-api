@@ -762,7 +762,8 @@ class ValidationRules
             'credential.response' => 'required|array',
             'credential.response.clientDataJSON' => 'required|string',
             'credential.response.attestationObject' => 'required|string',
-            'credential.response.transports' => 'nullable|array',
+            'credential.response.transports' => 'nullable|array|max:6',
+            'credential.response.transports.*' => 'string|in:usb,nfc,ble,internal,hybrid,smart-card',
             'label' => 'nullable|string|max:100',
         ];
     }

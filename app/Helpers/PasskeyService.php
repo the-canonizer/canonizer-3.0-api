@@ -21,14 +21,28 @@ class PasskeyService
     const CHALLENGE_TTL = 300; // seconds
     const TIMEOUT_MS = 60000;
 
+    /**
+     * Fails with a clear (non-client) exception when the relying-party config is missing,
+     * instead of a TypeError from the string return types below. Called before any
+     * ceremony's own try/catch so it is never reported as a verification failure.
+     */
+    private function assertConfigured(): void
+    {
+        foreach (['WEBAUTHN_RP_ID', 'WEBAUTHN_ORIGIN'] as $key) {
+            if (!is_string(env($key)) || trim(env($key)) === '') {
+                throw new Exception("Passkey authentication is not configured: {$key} is not set.");
+            }
+        }
+    }
+
     private function rpId(): string
     {
-        return env('WEBAUTHN_RP_ID');
+        return (string)env('WEBAUTHN_RP_ID');
     }
 
     private function origin(): string
     {
-        return rtrim(env('WEBAUTHN_ORIGIN'), '/');
+        return rtrim((string)env('WEBAUTHN_ORIGIN'), '/');
     }
 
     private function webauthn(): WebAuthn
@@ -81,6 +95,7 @@ class PasskeyService
 
     public function registrationOptions(User $user): array
     {
+        $this->assertConfigured();
         $challenge = self::b64uEncode(random_bytes(32));
         $this->storeChallenge('passkey:reg:' . $user->id, ['challenge' => $challenge]);
 
@@ -106,6 +121,7 @@ class PasskeyService
 
     public function register(User $user, array $credential, ?string $label): UserPasskey
     {
+        $this->assertConfigured();
         $stored = $this->pullChallenge('passkey:reg:' . $user->id);
         $response = $credential['response'] ?? [];
         try {
@@ -147,6 +163,7 @@ class PasskeyService
      */
     public function loginOptions(): array
     {
+        $this->assertConfigured();
         $challengeId = (string)Str::uuid();
         $challenge = self::b64uEncode(random_bytes(32));
         $this->storeChallenge('passkey:login:' . $challengeId, ['challenge' => $challenge]);
@@ -166,6 +183,7 @@ class PasskeyService
     /** Verifies an assertion and returns the authenticated user. */
     public function login(string $challengeId, array $credential): User
     {
+        $this->assertConfigured();
         $stored = $this->pullChallenge('passkey:login:' . $challengeId);
         $response = $credential['response'] ?? [];
 
@@ -188,6 +206,8 @@ class PasskeyService
         }
 
         // Discoverable login: the authenticator's user handle must match the credential owner.
+        // userHandle is optional in an assertion; when absent the check is skipped, which is safe
+        // because the signature was already verified against this credential's stored public key.
         if (!empty($response['userHandle']) && self::b64uDecode($response['userHandle']) !== (string)$passkey->user_id) {
             throw new Exception(trans('message.passkey.verification_failed'), 400);
         }
@@ -212,9 +232,24 @@ class PasskeyService
             throw new Exception(trans('message.error.account_not_verified'), 402);
         }
 
-        $passkey->sign_count = $newCount;
-        $passkey->last_used_at = \Carbon\Carbon::now();
-        $passkey->save();
+        // Conditional update so two concurrent assertions can't both advance from the same
+        // stored count. Authenticators without a counter (always 0) have nothing to race on.
+        $now = \Carbon\Carbon::now();
+        $query = UserPasskey::where('id', $passkey->id);
+        if ($newCount > 0) {
+            $query->where('sign_count', '<', $newCount);
+        }
+        $updated = $query->update(['sign_count' => $newCount, 'last_used_at' => $now, 'updated_at' => $now]);
+        // MySQL reports changed (not matched) rows, so 0 only means a lost race when a counter is in use.
+        if ($newCount > 0 && $updated === 0) {
+            Log::warning('Passkey sign counter regression', [
+                'user_id' => $passkey->user_id,
+                'credential_id' => $passkey->credential_id,
+                'stored_count' => (int)$passkey->sign_count,
+                'received_count' => $newCount,
+            ]);
+            throw new Exception(trans('message.passkey.verification_failed'), 400);
+        }
 
         return $user;
     }

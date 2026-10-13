@@ -237,6 +237,9 @@ class PasskeyApiTest extends TestCase
         if (array_key_exists('label', $o)) {
             $body['label'] = $o['label'];
         }
+        if (array_key_exists('transports', $o)) {
+            $body['credential']['response']['transports'] = $o['transports'];
+        }
         $this->actingAs($user)->post(self::BASE . '/passkey/register-verify', $body);
     }
 
@@ -500,5 +503,65 @@ class PasskeyApiTest extends TestCase
         [$user] = $this->registeredUser();
         DB::table('person')->where('id', $user->id)->delete();
         $this->assertEquals(0, UserPasskey::where('user_id', $user->id)->count());
+    }
+
+    public function testRegistrationStoresAllowedTransports()
+    {
+        $user = $this->verifiedUser();
+        $this->register($user, $this->newKey(), random_bytes(32), ['transports' => ['internal', 'hybrid']]);
+        $this->assertEquals(200, $this->response->status(), $this->response->getContent());
+        $this->assertEquals('["internal","hybrid"]', UserPasskey::where('user_id', $user->id)->value('transports'));
+    }
+
+    public function testRegistrationRejectsUnknownTransport()
+    {
+        $user = $this->verifiedUser();
+        $this->register($user, $this->newKey(), random_bytes(32), ['transports' => ['usb', 'carrier-pigeon']]);
+        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(0, UserPasskey::where('user_id', $user->id)->count());
+    }
+
+    public function testRegistrationRejectsTooManyTransports()
+    {
+        $user = $this->verifiedUser();
+        $this->register($user, $this->newKey(), random_bytes(32), ['transports' => array_fill(0, 7, 'usb')]);
+        $this->assertEquals(400, $this->response->status());
+        $this->assertEquals(0, UserPasskey::where('user_id', $user->id)->count());
+    }
+
+    public function testUnexpectedErrorIsLoggedAndReturnedAsGeneric500()
+    {
+        [$user, $key, $credId] = $this->registeredUser();
+        \App\Facades\Util::shouldReceive('httpPost')->andThrow(new \Exception('SQLSTATE[42S02]: internal detail'));
+        Log::spy();
+
+        $this->loginVerify($credId, $key, $user, ['counter' => 1]);
+
+        $this->assertEquals(500, $this->response->status());
+        $this->assertStringNotContainsString('SQLSTATE', $this->response->getContent());
+        $this->assertEquals(trans('message.error.exception'), json_decode($this->response->getContent(), true)['message']);
+        Log::shouldHaveReceived('error')->once();
+    }
+
+    public function testMissingWebAuthnConfigReturnsGeneric500()
+    {
+        $rpId = env('WEBAUTHN_RP_ID');
+        putenv('WEBAUTHN_RP_ID');
+        unset($_ENV['WEBAUTHN_RP_ID'], $_SERVER['WEBAUTHN_RP_ID']);
+        try {
+            $this->post(self::BASE . '/passkey/login-options', []);
+            $this->assertEquals(500, $this->response->status(), $this->response->getContent());
+            $this->assertEquals(trans('message.error.exception'), json_decode($this->response->getContent(), true)['message']);
+        } finally {
+            putenv("WEBAUTHN_RP_ID={$rpId}");
+            $_ENV['WEBAUTHN_RP_ID'] = $_SERVER['WEBAUTHN_RP_ID'] = $rpId;
+        }
+    }
+
+    public function testDeleteRouteOnlyMatchesNumericIds()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->delete(self::BASE . '/passkeys/abc');
+        $this->assertEquals(404, $this->response->status());
     }
 }

@@ -138,7 +138,7 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/auth/passkey/register-options', 'PasskeyController@registerOptions');
         $router->post('/auth/passkey/register-verify', 'PasskeyController@registerVerify');
         $router->get('/auth/passkeys', 'PasskeyController@index');
-        $router->delete('/auth/passkeys/{id}', 'PasskeyController@destroy');
+        $router->delete('/auth/passkeys/{id:[0-9]+}', 'PasskeyController@destroy');
 
         //UserController
         $router->get('/user/logout','UserController@logoutUser');
