@@ -741,4 +741,14 @@ return [
         'email_required' => 'Email is required.',
         
     ],
+
+    'passkey' => [
+        'challenge_invalid' => 'The passkey challenge is invalid or has expired. Please try again.',
+        'credential_unknown' => 'This passkey is not recognised.',
+        'verification_failed' => 'Passkey verification failed.',
+        'already_registered' => 'This passkey is already registered.',
+        'not_found' => 'Passkey not found.',
+        'deleted' => 'Passkey removed successfully.',
+        'login_unavailable' => 'Passkey login is not available for this account.',
+    ],
 ];
