@@ -27,21 +27,6 @@ $router->post('/oauth/token', ['uses' => '\Dusterio\LumenPassport\Http\Controlle
 $router->get('/social/twitter/callback',['uses' => 'UserController@twitterCallback']);
 $router->post('/social/facebook/delete-data/callback',['uses' => 'UserController@facebookDeleteDataCallBack']);
 
-// Passkey (WebAuthn) authentication, an optional login method alongside password/social
-$router->group(['prefix' => 'api/v1/auth'], function() use ($router)
-{
-    $router->post('/passkey/login-options', 'PasskeyController@loginOptions');
-    $router->post('/passkey/login-verify', 'PasskeyController@loginVerify');
-
-    $router->group(['middleware' => 'auth'], function() use ($router)
-    {
-        $router->post('/passkey/register-options', 'PasskeyController@registerOptions');
-        $router->post('/passkey/register-verify', 'PasskeyController@registerVerify');
-        $router->get('/passkeys', 'PasskeyController@index');
-        $router->delete('/passkeys/{id}', 'PasskeyController@destroy');
-    });
-});
-
 $router->group(['prefix' => 'api/v3'], function() use ($router)
 {
     //Api for non register users
@@ -63,6 +48,10 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
     $router->post('/user/login',['uses' => 'UserController@loginUser']);
     // $router->post('/user/login',['uses' => 'UserController@loginUser', 'middleware' => 'checkstatus']);
     $router->post('/register','UserController@createUser');
+
+    // Passkey (WebAuthn) login, an optional method alongside password/social
+    $router->post('/auth/passkey/login-options', 'PasskeyController@loginOptions');
+    $router->post('/auth/passkey/login-verify', 'PasskeyController@loginVerify');
 
     //Route Group to access api with client token
     $router->group(['middleware' => ['Xss','client']], function() use ($router) 
@@ -143,6 +132,12 @@ $router->group(['prefix' => 'api/v3'], function() use ($router)
         $router->post('/create/user/tags', 'TagController@createUserTags');
         $router->post('get-activity-log','ActivityController@getActivityLog');
     
+        //PasskeyController
+        $router->post('/auth/passkey/register-options', 'PasskeyController@registerOptions');
+        $router->post('/auth/passkey/register-verify', 'PasskeyController@registerVerify');
+        $router->get('/auth/passkeys', 'PasskeyController@index');
+        $router->delete('/auth/passkeys/{id}', 'PasskeyController@destroy');
+
         //UserController
         $router->get('/user/logout','UserController@logoutUser');
         $router->get('/user/social/list','UserController@socialList');

@@ -9,7 +9,7 @@ class PasskeyApiTest extends TestCase
 {
     use DatabaseTransactions;
 
-    private const BASE = '/api/v1/auth';
+    private const BASE = '/api/v3/auth';
 
     private function fakeCredential(): array
     {
