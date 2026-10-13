@@ -760,14 +760,10 @@ class ValidationRules
             'credential' => 'required|array',
             'credential.id' => 'required|string',
             'credential.response' => 'required|array',
+            'credential.response.clientDataJSON' => 'required|string',
+            'credential.response.attestationObject' => 'required|string',
+            'credential.response.transports' => 'nullable|array',
             'label' => 'nullable|string|max:100',
-        ];
-    }
-
-    public function getPasskeyLoginOptionsRules(): array
-    {
-        return [
-            'email' => 'nullable|email',
         ];
     }
 
@@ -778,6 +774,10 @@ class ValidationRules
             'credential' => 'required|array',
             'credential.id' => 'required|string',
             'credential.response' => 'required|array',
+            'credential.response.clientDataJSON' => 'required|string',
+            'credential.response.authenticatorData' => 'required|string',
+            'credential.response.signature' => 'required|string',
+            'credential.response.userHandle' => 'nullable|string',
         ];
     }
 }
