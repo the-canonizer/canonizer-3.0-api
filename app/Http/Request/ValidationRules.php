@@ -753,4 +753,32 @@ class ValidationRules
     }
 
     
+
+    public function getPasskeyRegisterRules(): array
+    {
+        return [
+            'credential' => 'required|array',
+            'credential.id' => 'required|string',
+            'credential.response' => 'required|array',
+            'credential.response.clientDataJSON' => 'required|string',
+            'credential.response.attestationObject' => 'required|string',
+            'credential.response.transports' => 'nullable|array|max:6',
+            'credential.response.transports.*' => 'string|in:usb,nfc,ble,internal,hybrid,smart-card',
+            'label' => 'nullable|string|max:100',
+        ];
+    }
+
+    public function getPasskeyLoginVerifyRules(): array
+    {
+        return [
+            'challenge_id' => 'required|string',
+            'credential' => 'required|array',
+            'credential.id' => 'required|string',
+            'credential.response' => 'required|array',
+            'credential.response.clientDataJSON' => 'required|string',
+            'credential.response.authenticatorData' => 'required|string',
+            'credential.response.signature' => 'required|string',
+            'credential.response.userHandle' => 'nullable|string',
+        ];
+    }
 }

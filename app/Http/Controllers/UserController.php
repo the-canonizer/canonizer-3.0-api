@@ -445,10 +445,7 @@ class UserController extends Controller
         if (!$request->client_id && $request->username) {
             $user = User::where('email', '=', $request->username)->first();
             if ($user && $user->type === 'bot') {
-                $request->merge([
-                    'client_id' => env('PASSPORT_PASSWORD_CLIENT_ID', '2'),
-                    'client_secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET', 'x6UX6WOv482Ree7r4sqEdzksvoadWKp6Dmgexbs7'),
-                ]);
+                $request->merge($this->passwordGrantClient());
             }
         }
 
@@ -486,35 +483,7 @@ class UserController extends Controller
 
             // Bypass Passport token generation in local dev
             if (env('APP_ENV') === 'local') {
-                $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
-                $payload = base64_encode(json_encode([
-                    'aud' => $request->client_id ?? '2',
-                    'sub' => $user->id,
-                    'exp' => time() + 31536000,
-                    'iat' => time(),
-                    'scopes' => ['*']
-                ]));
-                $signature = base64_encode('local_dev_signature');
-                $jwt = "$header.$payload.$signature";
-
-                $nickNames = Nickname::getAllNicknames($user->id);
-
-                $data = (object)[
-                    'auth' => (object)[
-                        'token_type' => 'Bearer',
-                        'expires_in' => 31536000,
-                        'access_token' => $jwt,
-                    ],
-                    'user' => $user,
-                    'nick_names' => $nickNames,
-                ];
-                $res = (object)[
-                    'status_code' => 200,
-                    'message' => 'Success',
-                    'data' => $data,
-                    'error' => null
-                ];
-                return (new SuccessResource($res))->response()->setStatusCode(200);
+                return $this->localDevLoginResponse($user, $request->client_id);
             }
 
             $payload = [
