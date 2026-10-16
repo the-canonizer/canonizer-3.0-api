@@ -21,6 +21,15 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/api/health', function () use ($router) {
+    return response()->json([
+        'status' => 'ok',
+        'app' => env('APP_NAME', 'Canonizer'),
+        'framework' => $router->app->version(),
+        'timestamp' => date('c'),
+    ]);
+});
+
 $router->post('/oauth/token', ['uses' => '\Dusterio\LumenPassport\Http\Controllers\AccessTokenController@issueToken']);
 
 
