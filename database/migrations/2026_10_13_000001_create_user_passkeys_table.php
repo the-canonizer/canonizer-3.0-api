@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * credential_id can be up to 1023 raw bytes per the WebAuthn spec, so it is stored whole as
  * TEXT; uniqueness and lookups use credential_id_hash (SHA-256 hex) because TEXT can't be
- * indexed whole. user_id matches person.id (BIGINT UNSIGNED) and cascades on delete.
+ * indexed whole. user_id matches person.id (INT UNSIGNED) and cascades on delete.
  */
 class CreateUserPasskeysTable extends Migration
 {
@@ -15,7 +15,7 @@ class CreateUserPasskeysTable extends Migration
     {
         Schema::create('user_passkeys', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedInteger('user_id');
             $table->text('credential_id'); // base64url
             $table->char('credential_id_hash', 64)->unique();
             $table->text('public_key'); // PEM
