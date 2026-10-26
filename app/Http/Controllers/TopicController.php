@@ -2589,9 +2589,9 @@ class TopicController extends Controller
                 return (new ErrorResource($validationErrors))->response()->setStatusCode(400);
             }
             $topic = Topic::find($request->record_id);
-            $topic->tags = TopicTag::select('tag_id')->where('topic_id', $topic->id)->pluck('tag_id');
 
             if ($topic) {
+                $topic->tags = TopicTag::select('tag_id')->where('topic_id', $topic->id)->pluck('tag_id');
 
                 // if topic is agreed and live by another supporter, then it is not objectionable.
                 if ($request->event_type == 'objection' && $topic->go_live_time <= time() && empty($topic->objector_nick_id)) {
@@ -2604,8 +2604,9 @@ class TopicController extends Controller
                 $data = new stdClass();
                 $data->topic = $topic;
                 $data->nick_name = $nickName;
+                $data->bread_crumb = Camp::getEditPageBreadCrumb($topic->topic_num);
                 $response[0] = $data;
-                $indexes = ['topic', 'nick_name'];
+                $indexes = ['topic', 'nick_name', 'bread_crumb'];
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');

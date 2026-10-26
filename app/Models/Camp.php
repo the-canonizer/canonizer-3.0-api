@@ -308,6 +308,41 @@ class Camp extends Model implements AuthenticatableContract, AuthorizableContrac
         return array_reverse($campNames);
     }
 
+    /**
+     * Full hierarchical breadcrumb (Agreement -> ... -> camp) shared by the topic, camp and
+     * statement edit pages. It is always built from the live camp tree, so the path does not
+     * change based on the revision being edited, and every item carries a direct camp page link.
+     *
+     * @param int $topicNum
+     * @param int $campNum
+     * @return array
+     */
+    public static function getEditPageBreadCrumb($topicNum, $campNum = 1): array
+    {
+        $filter = ['topicNum' => $topicNum, 'campNum' => $campNum, 'asOf' => 'default'];
+        $camp = self::getLiveCamp($filter);
+
+        // Camp is not live yet (e.g. newly proposed camp), start from its latest non objected revision.
+        if (empty($camp)) {
+            $camp = self::where('topic_num', $topicNum)
+                ->where('camp_num', $campNum)
+                ->where('objector_nick_id', '=', NULL)
+                ->latest('submit_time')->first();
+        }
+
+        if (empty($camp)) {
+            return [];
+        }
+
+        $topic = Topic::getLiveTopic($topicNum, 'default');
+        $breadCrumb = self::campNameWithAncestors($camp, $filter);
+        foreach ($breadCrumb as $key => $item) {
+            $breadCrumb[$key]['camp_link'] = Util::getTopicCampUrlWithoutTime($item['topic_num'], $item['camp_num'], $topic, (object) ['camp_name' => $item['camp_name']]);
+        }
+
+        return $breadCrumb;
+    }
+
     public function nickname()
     {
         return $this->hasOne('App\Models\Nickname', 'id', 'camp_about_nick_id');

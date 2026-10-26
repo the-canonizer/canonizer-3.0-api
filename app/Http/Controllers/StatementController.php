@@ -390,8 +390,9 @@ class StatementController extends Controller
                 $data->parent_camp = $parentCamp;
                 $data->nick_name = $nickName;
                 $data->parent_camp_num = $parentCampNum;
+                $data->bread_crumb = Camp::getEditPageBreadCrumb($statement->topic_num, $statement->camp_num);
                 $response[0] = $data;
-                $indexes = ['statement', 'topic', 'parent_camp', 'nick_name', 'parent_camp_num'];
+                $indexes = ['statement', 'topic', 'parent_camp', 'nick_name', 'parent_camp_num', 'bread_crumb'];
                 $response = $this->resourceProvider->jsonResponse($indexes, $response);
                 $response = $response[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $response, '');
