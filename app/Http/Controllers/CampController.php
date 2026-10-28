@@ -1250,8 +1250,9 @@ class CampController extends Controller
                 $data->camp = $camp;
                 $data->parent_camp = Camp::campNameWithAncestors($camp, $filter);
                 $data->eligible_camp_leaders = self::getEligibleCampLeaders($camp->topic_num, $camp->camp_num, !is_null($camp->camp_leader_nick_id) ? [$camp->camp_leader_nick_id] : []);
+                $data->bread_crumb = Camp::getEditPageBreadCrumb($camp->topic_num, $camp->camp_num);
                 $response[0] = $data;
-                $indexes = ['camp', 'nick_name', 'parent_camp', 'topic', 'eligible_camp_leaders'];
+                $indexes = ['camp', 'nick_name', 'parent_camp', 'topic', 'eligible_camp_leaders', 'bread_crumb'];
                 $camp = $this->resourceProvider->jsonResponse($indexes, $response);
                 $camp = $camp[0];
                 return $this->resProvider->apiJsonResponse(200, trans('message.success.success'), $camp, '');
